@@ -1,0 +1,11 @@
+[oceandb]
+
+enabled=true
+#location of plugin class
+module=bdb
+module.path=venv/lib/python3.6/site-packages/oceandb_bigchaindb_driver/plugin.py
+db.hostname=localhost
+db.port=9984
+db.namespace=ocean:plankton:v0.0.0:asset:metadata
+db.app_id=
+db.app_key=

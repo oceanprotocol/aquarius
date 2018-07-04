@@ -1,0 +1,4 @@
+{
+  "dbconfig": "./dbconfig-test",
+  "assetsFolder": "./test_data_assets"
+}

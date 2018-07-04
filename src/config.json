@@ -1,0 +1,7 @@
+{
+  "db.host": "localhost",
+  "db.port": 27017,
+  "db.username": "myname",
+  "db.password": "ocn-protokeeper",
+  "coalaip-support": "yes"
+}
