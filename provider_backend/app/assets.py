@@ -18,37 +18,39 @@ oceandb = OceanDb('oceandb.ini').plugin
 #     def __init__(self):
 #         ResourceBase.__init__(self)
 #         self.assets_folder = DEFAULT_ASSETS_FOLDER
-        # assets_folder = ConfigOptions().getValue('assets-folder')
-        # if assets_folder and os.path.exists(assets_folder):
-        #     self.assets_folder = assets_folder
-
-@assets.route('/hello', methods=['GET'])
-def get_hello():
-    return 'Hello'
-
-
-#TODO create a different Blueprint
-@assets.route('/metadata/<asset_id>', methods=['GET'])
-def get(asset_id):
-    asset_record = oceandb.read(asset_id)
-    return jsonify(asset_record['data']), 200
+# assets_folder = ConfigOptions().getValue('assets-folder')
+# if assets_folder and os.path.exists(assets_folder):
+#     self.assets_folder = assets_folder
 
 
 @assets.route('/', methods=['GET'])
 def get_assets():
     args = []
     query = dict()
-
     args.append(query)
+    assets = oceandb.list()
+    list = []
+    for id in assets:
+        try:
+            list.append((oceandb.read(id['id']), id['id']))
+        except:
+            pass
 
-    assets = oceandb.query(AssetTypes.DATA_ASSET)
-    asset_ids = [a['id'] for a in assets]
+    asset_ids = [a[1] for a in list]
     resp_body = dict({'assetsIds': asset_ids})
-
     return jsonify(resp_body), 200
 
 
-@assets.route('/register', methods=['POST'])
+@assets.route('/metadata/<asset_id>', methods=['GET'])
+def get(asset_id):
+    try:
+        asset_record = oceandb.read(asset_id)
+        return jsonify(asset_record['data']), 200
+    except Exception as e:
+        return '"%s asset_id is not in OceanDB' % asset_id, 404
+
+
+@assets.route('/metadata', methods=['POST'])
 def register():
     required_attributes = ['title', 'publisherId', ]
     assert isinstance(request.json, dict), 'invalid payload format.'
@@ -59,7 +61,7 @@ def register():
 
     for attr in required_attributes:
         if attr not in data:
-            return '"%s" is required for registering an asset.' % attr , 400
+            return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
     if msg:
@@ -71,8 +73,44 @@ def register():
     try:
         tx = oceandb.write(_record)
         # add new assetId to response
-        _record['assetId'] = tx['id']
+        _record['assetId'] = tx
         return _sanitize_record(_record), 201
+    except Exception as err:
+        return 'Some error: "%s"' % str(err), 500
+
+
+@assets.route('/metadata/<asset_id>', methods=['PUT'])
+def update_metadata(asset_id):
+    required_attributes = ['title', 'publisherId', ]
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    if not data:
+        return 400
+    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+
+    for attr in required_attributes:
+        if attr not in data:
+            return '"%s" is required for registering an asset.' % attr, 400
+
+    msg = validate_asset_data(data)
+    if msg:
+        return msg, 404
+
+    _record = dict()
+    _record['data'] = data
+    _record['assetType'] = AssetTypes.DATA_ASSET
+    try:
+        oceandb.update(_record, asset_id)
+        return 200
+    except Exception as err:
+        return 'Some error: "%s"' % str(err), 500
+
+
+@assets.route('/metadata/<asset_id>', methods=['DELETE'])
+def retire(asset_id):
+    try:
+        oceandb.delete(asset_id)
+        return 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
@@ -82,12 +120,18 @@ def get_assets_metadata():
     args = []
     query = dict()
     args.append(query)
-    assets = oceandb.query(AssetTypes.DATA_ASSET)
-    assets_metadata = {a['id']: a['data'] for a in assets}
-
+    assets = oceandb.list()
+    list = []
+    for id in assets:
+        try:
+            list.append((oceandb.read(id['id']), id['id']))
+        except Exception as e:
+            return 'Some error: "%s"' % str(e), 500
+    assets_metadata = {a[1]: a[0] for a in list}
     return jsonify(assets_metadata), 200
 
-@assets.route('/download/{asset_id}')
+
+@assets.route('/download/<asset_id>')
 def download_data(self, response, asset_id, consumer_id, access_token):
     """Allows download of asset data file from this provider.
 
@@ -141,7 +185,8 @@ def download_data(self, response, asset_id, consumer_id, access_token):
 
     return files[0], 200
 
-@assets.route('/upload/{asset_id}')
+
+@assets.route('/upload/<asset_id>')
 def upload_data(self, body, response, asset_id, publisher_id=None):
     """
 
@@ -218,8 +263,10 @@ def _sanitize_record(data_record):
         data_record.pop('_id')
     return json.dumps(data_record)
 
+
 def validate_asset_data(data):
     return ''
+
 
 def allowed_file(filename):
     return True  # '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

@@ -8,6 +8,7 @@ services:
   - docker
 
 before_install:
+- docker-compose -f docker/docker-compose.yml up -d
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -U tox-travis
@@ -17,7 +18,7 @@ deploy:
   distributions: sdist bdist_wheel
   user: leucothia
   password:
-    secure:
+    secure: JkXAKZJRGNvw9v9ST04dPQUcQI1kDaYp/VEq4vIV4JpFmhRJFxdn0/KOycrT5qgpL2U1jBfPaHbflkiEPDAKEnKSPbxDa+kl0bnWnHDZE/6bIoUev/OHcfwUL/wUJ3poHQ+AIgjRB+OKyZ8Q0AnB6yFqni6VuxJD7X1u9YKU5CekQjPZtb1/F5g+8us+IZeKgehuNk10OCkgw3nolykjNMy/m7xVn+jtEx/ilPaFKs5HdbSMw2nBKwlhDqDhAAPzY3Iso1GASsu66Mz603njnxBGr4iymP+ZmZ4/Zd4aUasI3rC2gMiriyXlhVBFzoLT6oXa2ENnJx/Rwx1xor1FnxwBjjibta8ie6h3R6GZm0JB1HXTdvyz6+xxKoILArTKg6NrelF8/pNrqpHgHUv/qjPL5TCTYtkL21TIi6rhfa89Mi53+z8qcpoTMPjsh4qTxvy+ejBp+hYeow+xpJr92iqJRvz8yJ/kTvPIjHYAdS4LylIIPS2aM7xKMClx7c4vk9yhHS4hTLr+8w0+2Mdn39EQa/gS5ecIonkzi6loUvQgEu6tpSJdJTuiHLU/ziyaZc5UIVwXUp5yFKqijGYvmTqLQAc5PrVwAgmio9WR+rlzfJKmvc+H7s5+TM5MjQn8/aaIOsL3VpnZWMf6v+US1qqdcskpJ0GdlPakIu+fKMI=
   on:
     tags: true
     repo: oceanprotocol/provider-backend
