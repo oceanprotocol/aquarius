@@ -1,0 +1,36 @@
+
+existing users
+good.boy 0xc94fd63ad3eac49367775cc762fade65548bff69dc6ccf0edf5745ebd459170565e8afdf455183d068de5e3ae25616ffe0fe2b2ab3d105a6420549bdfccf738a
+bad.boy 0x006ad775eccf1f91e2891f8ba5bd6217edd75cb86cae1b2b8220141315a1877a5d302b56c145d0f09076c3f37c6cb03de29b0179346297d12ee3030bdd5fdcb9
+pretty.boy 0x80ba2f89d3bab09ef218decd7e3ac44e8cc8c60eb3dd2cd7697a4ce15c23f900dfd139a561df529e56122ed4f178e462015218358df1e8d4c076ed6847c007a1
+
+curl -H "Content-Type: application/json" -X POST --data '{"name": "data from the cosmos", "publisherId": "0xc94fd63ad3eac49367775cc762fade65548bff69dc6ccf0edf5745ebd459170565e8afdf455183d068de5e3ae25616ffe0fe2b2ab3d105a6420549bdfccf738a"}' http://localhost:8000/api/v1/keeper/assets/metadata
+
+
+asset-id 1601438831642132481
+
+add asset listing
+curl -H "Content-Type: application/json" -X POST --data '{"assetId": "1601438831642132481","prices": [{"name": "price1","scheme": "FIXED","description": "Free data for AI","quantity": 1,"price": 0.0}]}' "http://localhost:8000/api/v1/keeper/market/asset/1601438831642132481?publisher_id=0xc94fd63ad3eac49367775cc762fade65548bff69dc6ccf0edf5745ebd459170565e8afdf455183d068de5e3ae25616ffe0fe2b2ab3d105a6420549bdfccf738a"
+
+make a new contract
+curl -H "Content-Type: application/json" -X POST --data '{"publisherId": "0xc94fd63ad3eac49367775cc762fade65548bff69dc6ccf0edf5745ebd459170565e8afdf455183d068de5e3ae25616ffe0fe2b2ab3d105a6420549bdfccf738a","providerId": "0x006ad775eccf1f91e2891f8ba5bd6217edd75cb86cae1b2b8220141315a1877a5d302b56c145d0f09076c3f37c6cb03de29b0179346297d12ee3030bdd5fdcb9","consumerId": "0x80ba2f89d3bab09ef218decd7e3ac44e8cc8c60eb3dd2cd7697a4ce15c23f900dfd139a561df529e56122ed4f178e462015218358df1e8d4c076ed6847c007a1","assetId": "1601438831642132481"}' http://localhost:8000/api/v1/keeper/contracts/contract
+
+contract-id 1601439001041270785
+sing the contract
+curl -X PUT http://localhost:8000/api/v1/keeper/contracts/contract/1601439001041270785?actor_id=0xc94fd63ad3eac49367775cc762fade65548bff69dc6ccf0edf5745ebd459170565e8afdf455183d068de5e3ae25616ffe0fe2b2ab3d105a6420549bdfccf738a
+curl -X PUT http://localhost:8000/api/v1/keeper/contracts/contract/1601439001041270785?actor_id=0x006ad775eccf1f91e2891f8ba5bd6217edd75cb86cae1b2b8220141315a1877a5d302b56c145d0f09076c3f37c6cb03de29b0179346297d12ee3030bdd5fdcb9
+curl -X PUT http://localhost:8000/api/v1/keeper/contracts/contract/1601439001041270785?actor_id=0x80ba2f89d3bab09ef218decd7e3ac44e8cc8c60eb3dd2cd7697a4ce15c23f900dfd139a561df529e56122ed4f178e462015218358df1e8d4c076ed6847c007a1
+
+
+
+Week of the 4th:
+Team dynamics
+how we will work together as a team
+Hackathon
+UI design
+Community visibility
+
+What we will work on
+Music map
+Identity/wallet management
+Ocean agent

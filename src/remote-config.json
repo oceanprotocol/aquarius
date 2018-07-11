@@ -1,0 +1,10 @@
+{
+  "dbPort": 9984,
+  "dbScheme": "https",
+  "dbHost": "https://test.bigchaindb.com",
+  "dbHeaders": {
+      "app_id": "71228051",
+      "app_key": "58c81f29379bde573042af287e32f4e1"},
+
+  "assetsFolder": "./data_assets"
+}
