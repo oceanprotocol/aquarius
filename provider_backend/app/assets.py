@@ -1,26 +1,30 @@
+import os
 from flask import Blueprint, jsonify, request
 from oceandb_driver_interface import OceanDb
+
+from provider_backend.myapp import app
 from provider_backend.app.resource_constants import AssetTypes
 from werkzeug.utils import secure_filename
-import json, os
+import json
+
+from provider_backend.blockchain.ocean_contracts import OceanContracts
+from provider_backend.config_parser import load_config_section
+from provider_backend.constants import ConfigSections
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'osx', 'doc'}
 
 assets = Blueprint('assets', __name__)
-# metadata = Blueprint('metadata', __name__)
-oceandb = OceanDb('oceandb.ini').plugin
 
+config_file = app.config['CONFIG_FILE']
+# Prepare OceanDB
+oceandb = OceanDb(config_file).plugin
 
-# class AssetsResource(ResourceBase):
-#     URL_PREFIX = ''
-#     RESOURCE_URL = '/assets'
-#
-#     def __init__(self):
-#         ResourceBase.__init__(self)
-#         self.assets_folder = DEFAULT_ASSETS_FOLDER
-        # assets_folder = ConfigOptions().getValue('assets-folder')
-        # if assets_folder and os.path.exists(assets_folder):
-        #     self.assets_folder = assets_folder
+# Prepare keeper contracts for on-chain access control
+keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
+ocean_contracts = OceanContracts(keeper_config['keeper.host'], keeper_config['keeper.port'])
+
+ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
+
 
 @assets.route('/hello', methods=['GET'])
 def get_hello():
@@ -87,8 +91,9 @@ def get_assets_metadata():
 
     return jsonify(assets_metadata), 200
 
+
 @assets.route('/download/{asset_id}')
-def download_data(self, response, asset_id, consumer_id, access_token):
+def download_data(response, asset_id, consumer_id, access_token):
     """Allows download of asset data file from this provider.
 
     Data file can be stored locally at the provider end or at some cloud storage.
@@ -121,7 +126,7 @@ def download_data(self, response, asset_id, consumer_id, access_token):
     if not asset_record:
         return 'This asset id cannot be found. Please verify this asset id is correct.', 404
 
-    asset_folder_path = os.path.join(self.assets_folder, asset_id)
+    asset_folder_path = os.path.join(ASSETS_FOLDER, asset_id)
     if not os.path.exists(asset_folder_path) or not os.listdir(asset_folder_path):
         return 'The requested dataset was not found. Ask the provider/publisher to upload the dataset.', 404
 
@@ -141,8 +146,9 @@ def download_data(self, response, asset_id, consumer_id, access_token):
 
     return files[0], 200
 
+
 @assets.route('/upload/{asset_id}')
-def upload_data(self, body, response, asset_id, publisher_id=None):
+def upload_data(body, response, asset_id, publisher_id=None):
     """
 
     :param asset_id: a str identifying an asset in the ocean network
@@ -160,7 +166,7 @@ def upload_data(self, body, response, asset_id, publisher_id=None):
     # verify that this asset exists and not disabled
     resource_record = oceandb.read(asset_id)
     if not resource_record:
-        return "%s not found." % self._resource_label, 404
+        return "Data asset '%s' not found." % asset_id, 404
 
     # verify that the publisher is the same that published the asset
     if publisher_id != resource_record['publisherId']:
@@ -182,7 +188,7 @@ def upload_data(self, body, response, asset_id, publisher_id=None):
         # if file_type is not None:
         #     assets_db.update_one({'assetId': asset_id}, {'$set': {'contentType': file_type}})
 
-        asset_folder = os.path.join(self.assets_folder, asset_id)
+        asset_folder = os.path.join(ASSETS_FOLDER, asset_id)
         if not os.path.exists(asset_folder):
             os.makedirs(asset_folder)
 
@@ -218,8 +224,10 @@ def _sanitize_record(data_record):
         data_record.pop('_id')
     return json.dumps(data_record)
 
+
 def validate_asset_data(data):
     return ''
+
 
 def allowed_file(filename):
     return True  # '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
