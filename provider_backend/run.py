@@ -21,6 +21,5 @@ else:
 from provider_backend.app.assets import assets
 app.register_blueprint(assets, url_prefix=BaseURLs.BASE_PROVIDER_URL + '/assets')
 
-
 if __name__ == '__main__':
     app.run()

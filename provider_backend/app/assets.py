@@ -26,33 +26,34 @@ ocean_contracts = OceanContracts(keeper_config['keeper.host'], keeper_config['ke
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
-@assets.route('/hello', methods=['GET'])
-def get_hello():
-    return 'Hello'
-
-
-#TODO create a different Blueprint
-@assets.route('/metadata/<asset_id>', methods=['GET'])
-def get(asset_id):
-    asset_record = oceandb.read(asset_id)
-    return jsonify(asset_record['data']), 200
-
-
 @assets.route('/', methods=['GET'])
 def get_assets():
     args = []
     query = dict()
-
     args.append(query)
+    assets = oceandb.list()
+    asset_with_id = []
+    for asset in assets:
+        try:
+            asset_with_id.append((oceandb.read(asset['id']), asset['id']))
+        except:
+            pass
 
-    assets = oceandb.query(AssetTypes.DATA_ASSET)
-    asset_ids = [a['id'] for a in assets]
+    asset_ids = [a[1] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
-
     return jsonify(resp_body), 200
 
 
-@assets.route('/register', methods=['POST'])
+@assets.route('/metadata/<asset_id>', methods=['GET'])
+def get(asset_id):
+    try:
+        asset_record = oceandb.read(asset_id)
+        return jsonify(asset_record['data']), 200
+    except Exception as e:
+        return '"%s asset_id is not in OceanDB' % asset_id, 404
+
+
+@assets.route('/metadata', methods=['POST'])
 def register():
     required_attributes = ['title', 'publisherId', ]
     assert isinstance(request.json, dict), 'invalid payload format.'
@@ -63,7 +64,7 @@ def register():
 
     for attr in required_attributes:
         if attr not in data:
-            return '"%s" is required for registering an asset.' % attr , 400
+            return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
     if msg:
@@ -73,10 +74,46 @@ def register():
     _record['data'] = data
     _record['assetType'] = AssetTypes.DATA_ASSET
     try:
-        tx = oceandb.write(_record)
+        tx_id = oceandb.write(_record)
         # add new assetId to response
-        _record['assetId'] = tx['id']
+        _record['assetId'] = tx_id
         return _sanitize_record(_record), 201
+    except Exception as err:
+        return 'Some error: "%s"' % str(err), 500
+
+
+@assets.route('/metadata/<asset_id>', methods=['PUT'])
+def update(asset_id):
+    required_attributes = ['title', 'publisherId', ]
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    if not data:
+        return 400
+    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+
+    for attr in required_attributes:
+        if attr not in data:
+            return '"%s" is required for registering an asset.' % attr, 400
+
+    msg = validate_asset_data(data)
+    if msg:
+        return msg, 404
+
+    _record = dict()
+    _record['data'] = data
+    _record['assetType'] = AssetTypes.DATA_ASSET
+    try:
+        oceandb.update(_record, asset_id)
+        return 200
+    except Exception as err:
+        return 'Some error: "%s"' % str(err), 500
+
+
+@assets.route('/metadata/<asset_id>', methods=['DELETE'])
+def retire(asset_id):
+    try:
+        oceandb.delete(asset_id)
+        return 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
@@ -86,9 +123,14 @@ def get_assets_metadata():
     args = []
     query = dict()
     args.append(query)
-    assets = oceandb.query(AssetTypes.DATA_ASSET)
-    assets_metadata = {a['id']: a['data'] for a in assets}
-
+    assets = oceandb.list()
+    assets_with_id = []
+    for asset in assets:
+        try:
+            assets_with_id.append((oceandb.read(asset['id']), asset['id']))
+        except Exception as e:
+            return 'Some error: "%s"' % str(e), 500
+    assets_metadata = {a[1]: a[0] for a in assets_with_id}
     return jsonify(assets_metadata), 200
 
 

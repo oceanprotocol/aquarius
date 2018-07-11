@@ -7,9 +7,7 @@ flake8==3.5.0
 tox==2.9.1
 coverage==4.5.1
 oceandb-driver-interface
-oceandb-bigchaindb-driver
-bigchaindb_driver==0.5.0a2
-BigchainDB==2.0.0a2
+oceandb-bigchaindb-driver==0.0.2.2
 singletonify==0.1.2.0
 twine==1.11.0
 setuptools==39.1.0
