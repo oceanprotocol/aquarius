@@ -28,6 +28,14 @@ ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 @assets.route('/', methods=['GET'])
 def get_assets():
+    """Get all assets ids.
+    ---
+    tags:
+      - assets
+    responses:
+      200:
+        description: successful action
+    """
     args = []
     query = dict()
     args.append(query)
@@ -46,6 +54,22 @@ def get_assets():
 
 @assets.route('/metadata/<asset_id>', methods=['GET'])
 def get(asset_id):
+    """Get metadata of a particular asset
+    ---
+    tags:
+      - assets
+    parameters:
+      - name: asset_id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
+    responses:
+      200:
+        description: successful operation
+      404:
+        description: This asset id is not in OceanDB
+    """
     try:
         asset_record = oceandb.read(asset_id)
         return jsonify(asset_record['data']), 200
@@ -55,6 +79,39 @@ def get(asset_id):
 
 @assets.route('/metadata', methods=['POST'])
 def register():
+    """Register metadata of a new asset
+    ---
+    tags:
+      - assets
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          required:
+            - title
+            - publisherId
+          properties:
+            title:
+              type: string
+            publisherId:
+              type: string
+            metadata:
+              type: string
+    responses:
+      201:
+        description: Asset successfully registered.
+      400:
+        description: One of the required attributes is missed.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
     required_attributes = ['title', 'publisherId', ]
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
@@ -84,6 +141,39 @@ def register():
 
 @assets.route('/metadata/<asset_id>', methods=['PUT'])
 def update(asset_id):
+    """Update metadata of an asset
+    ---
+    tags:
+      - assets
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          required:
+            - title
+            - publisherId
+          properties:
+            title:
+              type: string
+            publisherId:
+              type: string
+            metadata:
+              type: string
+    responses:
+      200:
+        description: Asset successfully updated.
+      400:
+        description: One of the required attributes is missed.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
     required_attributes = ['title', 'publisherId', ]
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
@@ -111,6 +201,24 @@ def update(asset_id):
 
 @assets.route('/metadata/<asset_id>', methods=['DELETE'])
 def retire(asset_id):
+    """Retire metadata of an asset
+    ---
+    tags:
+      - assets
+    parameters:
+      - name: asset_id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
+    responses:
+      200:
+        description: successfully deleted
+      404:
+        description: This asset id is not in OceanDB
+      500:
+        description: Error
+    """
     try:
         oceandb.delete(asset_id)
         return 200
@@ -120,6 +228,14 @@ def retire(asset_id):
 
 @assets.route('/metadata', methods=['GET'])
 def get_assets_metadata():
+    """Get metadata of all assets.
+    ---
+    tags:
+      - assets
+    responses:
+      200:
+        description: successful action
+    """
     args = []
     query = dict()
     args.append(query)
@@ -134,7 +250,7 @@ def get_assets_metadata():
     return jsonify(assets_metadata), 200
 
 
-@assets.route('/download/{asset_id}')
+@assets.route('/asset/{asset_id}', methods=['GET'])
 def download_data(response, asset_id, consumer_id, access_token):
     """Allows download of asset data file from this provider.
 
@@ -189,15 +305,15 @@ def download_data(response, asset_id, consumer_id, access_token):
     return files[0], 200
 
 
-@assets.route('/upload/{asset_id}')
-def upload_data(body, response, asset_id, publisher_id=None):
+@assets.route('/asset/{asset_id}', methods=['POST'])
+def upload_data(asset_id, body= None, publisher_id=None):
     """
 
     :param asset_id: a str identifying an asset in the ocean network
     :param publisher_id: the ethereum address of the owner of this asset
     :return:
     """
-
+    reques = request
     # TODO
     # update asset metadata to specify that this asset is available for download from this provider directly.
 
@@ -272,4 +388,5 @@ def validate_asset_data(data):
 
 
 def allowed_file(filename):
-    return True  # '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
