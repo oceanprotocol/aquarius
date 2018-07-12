@@ -129,7 +129,6 @@ def register():
 
     _record = dict()
     _record['data'] = data
-    _record['assetType'] = AssetTypes.DATA_ASSET
     try:
         tx_id = oceandb.write(_record)
         # add new assetId to response
@@ -191,7 +190,6 @@ def update(asset_id):
 
     _record = dict()
     _record['data'] = data
-    _record['assetType'] = AssetTypes.DATA_ASSET
     try:
         oceandb.update(_record, asset_id)
         return 200
