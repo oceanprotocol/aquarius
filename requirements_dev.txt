@@ -13,6 +13,8 @@ twine==1.11.0
 setuptools==39.1.0
 web3==4.4.1
 
+flask-swagger==0.2.13
+flask-swagger-ui==3.6.0
 
 pytest==3.4.2
 pytest-runner==2.11.1

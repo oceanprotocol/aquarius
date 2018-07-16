@@ -1,48 +1,75 @@
+import os
 from flask import Blueprint, jsonify, request
 from oceandb_driver_interface import OceanDb
+
+from provider_backend.myapp import app
 from provider_backend.app.resource_constants import AssetTypes
 from werkzeug.utils import secure_filename
-import json, os
+import json
+
+from provider_backend.blockchain.ocean_contracts import OceanContracts
+from provider_backend.config_parser import load_config_section
+from provider_backend.constants import ConfigSections
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'osx', 'doc'}
 
 assets = Blueprint('assets', __name__)
-# metadata = Blueprint('metadata', __name__)
-oceandb = OceanDb('oceandb.ini').plugin
 
+config_file = app.config['CONFIG_FILE']
+# Prepare OceanDB
+oceandb = OceanDb(config_file).plugin
 
-# class AssetsResource(ResourceBase):
-#     URL_PREFIX = ''
-#     RESOURCE_URL = '/assets'
-#
-#     def __init__(self):
-#         ResourceBase.__init__(self)
-#         self.assets_folder = DEFAULT_ASSETS_FOLDER
-# assets_folder = ConfigOptions().getValue('assets-folder')
-# if assets_folder and os.path.exists(assets_folder):
-#     self.assets_folder = assets_folder
+# Prepare keeper contracts for on-chain access control
+keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
+ocean_contracts = OceanContracts(keeper_config['keeper.host'], keeper_config['keeper.port'])
+
+ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
 @assets.route('/', methods=['GET'])
 def get_assets():
+    """Get all assets ids.
+    ---
+    tags:
+      - assets
+    responses:
+      200:
+        description: successful action
+    """
     args = []
     query = dict()
     args.append(query)
     assets = oceandb.list()
-    list = []
-    for id in assets:
+    asset_with_id = []
+    for asset in assets:
         try:
-            list.append((oceandb.read(id['id']), id['id']))
+            asset_with_id.append((oceandb.read(asset['id']), asset['id']))
         except:
             pass
 
-    asset_ids = [a[1] for a in list]
+    asset_ids = [a[1] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
     return jsonify(resp_body), 200
 
 
 @assets.route('/metadata/<asset_id>', methods=['GET'])
 def get(asset_id):
+    """Get metadata of a particular asset
+    ---
+    tags:
+      - assets
+    parameters:
+      - name: asset_id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
+    responses:
+      200:
+        description: successful operation
+      404:
+        description: This asset id is not in OceanDB
+    """
     try:
         asset_record = oceandb.read(asset_id)
         return jsonify(asset_record['data']), 200
@@ -52,15 +79,117 @@ def get(asset_id):
 
 @assets.route('/metadata', methods=['POST'])
 def register():
-    required_attributes = ['title', 'publisherId', ]
+    """Register metadata of a new asset
+    ---
+    tags:
+      - assets
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          required:
+            - publisherId
+            - metadata
+          properties:
+            publisherId:
+              description: Id of the asset's publisher.
+              type: string
+              example: '0x0234242345'
+            metadata:
+              schema:
+                id: Metadata
+                type: object
+                required:
+                  - name
+                  - links
+                  - size
+                  - format
+                  - description
+                properties:
+                  name:
+                    type: string
+                    description: a few words describing the resource.
+                    example: Berling Climate NetCDF
+                  links:
+                    type: array
+                    description: links for data samples, or links to find out more information
+                    example: ["https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip","https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"]
+                  size:
+                    type: string
+                    description: size of data in MB, GB, or Tera bytes
+                    example: 0.000217GB
+                  format:
+                    type: string
+                    description: file format if applicable
+                    example: .zip
+                  description:
+                    type: string
+                    description: details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                    example: Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.
+                  date:
+                    type: string
+                    description: date the resource was made available
+                    example: 01-01-2019
+                  labels:
+                    type: array
+                    description: labels can serve the role of multiple categories
+                    example: [climate, ocean, atmosphere, temperature]
+                  license:
+                    type: string
+                    example: propietary
+                  classification:
+                    type: string
+                    example: public
+                  industry:
+                    type: string
+                    example: Earth Sciences
+                  category:
+                    type: string
+                    description: can be assigned to a category in addition to having labels
+                    example: Climate
+                  note:
+                    type: string
+                    description: any additional information worthy of highlighting (description maybe sufficient)
+                  keywords:
+                    type: array
+                    description: can enhance search and find functions
+                    example: [climate, ocean, atmosphere, temperature]
+                  updateFrequency:
+                    type: string
+                    description: how often are updates expected (seldome, annual, quarterly, etc.), or is the resource static (never expected to get updated)
+                    example: static
+                  lifecycleStage:
+                    type: string
+    responses:
+      201:
+        description: Asset successfully registered.
+      400:
+        description: One of the required attributes is missed.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
         return 400
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
+    required_attributes = ['metadata', 'publisherId', ]
+    required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
+
     for attr in required_attributes:
         if attr not in data:
+            return '"%s" is required for registering an asset.' % attr, 400
+
+    for attr in required_metadata_attributes:
+        if attr not in data['metadata']:
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
@@ -69,19 +198,114 @@ def register():
 
     _record = dict()
     _record['data'] = data
-    _record['assetType'] = AssetTypes.DATA_ASSET
     try:
-        tx = oceandb.write(_record)
+        tx_id = oceandb.write(_record)
         # add new assetId to response
-        _record['assetId'] = tx
+        _record['assetId'] = tx_id
         return _sanitize_record(_record), 201
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
 
 @assets.route('/metadata/<asset_id>', methods=['PUT'])
-def update_metadata(asset_id):
-    required_attributes = ['title', 'publisherId', ]
+def update(asset_id):
+    """Update metadata of an asset
+    ---
+    tags:
+      - assets
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          required:
+            - publisherId
+            - metadata
+          properties:
+            publisherId:
+              description: Id of the asset's publisher.
+              type: string
+              example: '0x0234242345'
+            metadata:
+              schema:
+                id: Metadata
+                type: object
+                required:
+                  - name
+                  - links
+                  - size
+                  - format
+                  - description
+                properties:
+                  name:
+                    type: string
+                    description: a few words describing the resource.
+                    example: Berling Climate NetCDF
+                  links:
+                    type: array
+                    description: links for data samples, or links to find out more information
+                    example: ["https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip","https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"]
+                  size:
+                    type: string
+                    description: size of data in MB, GB, or Tera bytes
+                    example: 0.000217GB
+                  format:
+                    type: string
+                    description: file format if applicable
+                    example: .zip
+                  description:
+                    type: string
+                    description: details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                    example: Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.
+                  date:
+                    type: string
+                    description: date the resource was made available
+                    example: 01-01-2019
+                  labels:
+                    type: array
+                    description: labels can serve the role of multiple categories
+                    example: [climate, ocean, atmosphere, temperature]
+                  license:
+                    type: string
+                    example: propietary
+                  classification:
+                    type: string
+                    example: public
+                  industry:
+                    type: string
+                    example: Earth Sciences
+                  category:
+                    type: string
+                    description: can be assigned to a category in addition to having labels
+                    example: Climate
+                  note:
+                    type: string
+                    description: any additional information worthy of highlighting (description maybe sufficient)
+                  keywords:
+                    type: array
+                    description: can enhance search and find functions
+                    example: [climate, ocean, atmosphere, temperature]
+                  updateFrequency:
+                    type: string
+                    description: how often are updates expected (seldome, annual, quarterly, etc.), or is the resource static (never expected to get updated)
+                    example: static
+                  lifecycleStage:
+                    type: string
+    responses:
+      200:
+        description: Asset successfully updated.
+      400:
+        description: One of the required attributes is missed.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    required_attributes = ['metadata', 'publisherId', ]
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
@@ -92,13 +316,17 @@ def update_metadata(asset_id):
         if attr not in data:
             return '"%s" is required for registering an asset.' % attr, 400
 
+    required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
+    for attr in required_metadata_attributes:
+        if attr not in data['metadata']:
+            return '"%s" is required for registering an asset.' % attr, 400
+
     msg = validate_asset_data(data)
     if msg:
         return msg, 404
 
     _record = dict()
     _record['data'] = data
-    _record['assetType'] = AssetTypes.DATA_ASSET
     try:
         oceandb.update(_record, asset_id)
         return 200
@@ -108,6 +336,24 @@ def update_metadata(asset_id):
 
 @assets.route('/metadata/<asset_id>', methods=['DELETE'])
 def retire(asset_id):
+    """Retire metadata of an asset
+    ---
+    tags:
+      - assets
+    parameters:
+      - name: asset_id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
+    responses:
+      200:
+        description: successfully deleted
+      404:
+        description: This asset id is not in OceanDB
+      500:
+        description: Error
+    """
     try:
         oceandb.delete(asset_id)
         return 200
@@ -117,22 +363,30 @@ def retire(asset_id):
 
 @assets.route('/metadata', methods=['GET'])
 def get_assets_metadata():
+    """Get metadata of all assets.
+    ---
+    tags:
+      - assets
+    responses:
+      200:
+        description: successful action
+    """
     args = []
     query = dict()
     args.append(query)
     assets = oceandb.list()
-    list = []
-    for id in assets:
+    assets_with_id = []
+    for asset in assets:
         try:
-            list.append((oceandb.read(id['id']), id['id']))
+            assets_with_id.append((oceandb.read(asset['id']), asset['id']))
         except Exception as e:
             return 'Some error: "%s"' % str(e), 500
-    assets_metadata = {a[1]: a[0] for a in list}
+    assets_metadata = {a[1]: a[0] for a in assets_with_id}
     return jsonify(assets_metadata), 200
 
 
-@assets.route('/download/<asset_id>')
-def download_data(self, response, asset_id, consumer_id, access_token):
+@assets.route('/asset/{asset_id}', methods=['GET'])
+def download_data(response, asset_id, consumer_id, access_token):
     """Allows download of asset data file from this provider.
 
     Data file can be stored locally at the provider end or at some cloud storage.
@@ -165,7 +419,7 @@ def download_data(self, response, asset_id, consumer_id, access_token):
     if not asset_record:
         return 'This asset id cannot be found. Please verify this asset id is correct.', 404
 
-    asset_folder_path = os.path.join(self.assets_folder, asset_id)
+    asset_folder_path = os.path.join(ASSETS_FOLDER, asset_id)
     if not os.path.exists(asset_folder_path) or not os.listdir(asset_folder_path):
         return 'The requested dataset was not found. Ask the provider/publisher to upload the dataset.', 404
 
@@ -186,15 +440,15 @@ def download_data(self, response, asset_id, consumer_id, access_token):
     return files[0], 200
 
 
-@assets.route('/upload/<asset_id>')
-def upload_data(self, body, response, asset_id, publisher_id=None):
+@assets.route('/asset/{asset_id}', methods=['POST'])
+def upload_data(asset_id, body= None, publisher_id=None):
     """
 
     :param asset_id: a str identifying an asset in the ocean network
     :param publisher_id: the ethereum address of the owner of this asset
     :return:
     """
-
+    reques = request
     # TODO
     # update asset metadata to specify that this asset is available for download from this provider directly.
 
@@ -205,7 +459,7 @@ def upload_data(self, body, response, asset_id, publisher_id=None):
     # verify that this asset exists and not disabled
     resource_record = oceandb.read(asset_id)
     if not resource_record:
-        return "%s not found." % self._resource_label, 404
+        return "Data asset '%s' not found." % asset_id, 404
 
     # verify that the publisher is the same that published the asset
     if publisher_id != resource_record['publisherId']:
@@ -227,7 +481,7 @@ def upload_data(self, body, response, asset_id, publisher_id=None):
         # if file_type is not None:
         #     assets_db.update_one({'assetId': asset_id}, {'$set': {'contentType': file_type}})
 
-        asset_folder = os.path.join(self.assets_folder, asset_id)
+        asset_folder = os.path.join(ASSETS_FOLDER, asset_id)
         if not os.path.exists(asset_folder):
             os.makedirs(asset_folder)
 
@@ -269,4 +523,5 @@ def validate_asset_data(data):
 
 
 def allowed_file(filename):
-    return True  # '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
