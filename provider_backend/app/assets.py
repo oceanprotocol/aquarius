@@ -93,15 +93,78 @@ def register():
         schema:
           type: object
           required:
-            - title
             - publisherId
+            - metadata
           properties:
-            title:
-              type: string
             publisherId:
+              description: Id of the asset's publisher.
               type: string
+              example: '0x0234242345'
             metadata:
-              type: string
+              schema:
+                id: Metadata
+                type: object
+                required:
+                  - name
+                  - links
+                  - size
+                  - format
+                  - description
+                properties:
+                  name:
+                    type: string
+                    description: a few words describing the resource.
+                    example: Berling Climate NetCDF
+                  links:
+                    type: array
+                    description: links for data samples, or links to find out more information
+                    example: ["https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip","https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"]
+                  size:
+                    type: string
+                    description: size of data in MB, GB, or Tera bytes
+                    example: 0.000217GB
+                  format:
+                    type: string
+                    description: file format if applicable
+                    example: .zip
+                  description:
+                    type: string
+                    description: details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                    example: Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.
+                  date:
+                    type: string
+                    description: date the resource was made available
+                    example: 01-01-2019
+                  labels:
+                    type: array
+                    description: labels can serve the role of multiple categories
+                    example: [climate, ocean, atmosphere, temperature]
+                  license:
+                    type: string
+                    example: propietary
+                  classification:
+                    type: string
+                    example: public
+                  industry:
+                    type: string
+                    example: Earth Sciences
+                  category:
+                    type: string
+                    description: can be assigned to a category in addition to having labels
+                    example: Climate
+                  note:
+                    type: string
+                    description: any additional information worthy of highlighting (description maybe sufficient)
+                  keywords:
+                    type: array
+                    description: can enhance search and find functions
+                    example: [climate, ocean, atmosphere, temperature]
+                  updateFrequency:
+                    type: string
+                    description: how often are updates expected (seldome, annual, quarterly, etc.), or is the resource static (never expected to get updated)
+                    example: static
+                  lifecycleStage:
+                    type: string
     responses:
       201:
         description: Asset successfully registered.
@@ -112,15 +175,21 @@ def register():
       500:
         description: Error
     """
-    required_attributes = ['title', 'publisherId', ]
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
         return 400
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
+    required_attributes = ['metadata', 'publisherId', ]
+    required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
+
     for attr in required_attributes:
         if attr not in data:
+            return '"%s" is required for registering an asset.' % attr, 400
+
+    for attr in required_metadata_attributes:
+        if attr not in data['metadata']:
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
@@ -154,15 +223,78 @@ def update(asset_id):
         schema:
           type: object
           required:
-            - title
             - publisherId
+            - metadata
           properties:
-            title:
-              type: string
             publisherId:
+              description: Id of the asset's publisher.
               type: string
+              example: '0x0234242345'
             metadata:
-              type: string
+              schema:
+                id: Metadata
+                type: object
+                required:
+                  - name
+                  - links
+                  - size
+                  - format
+                  - description
+                properties:
+                  name:
+                    type: string
+                    description: a few words describing the resource.
+                    example: Berling Climate NetCDF
+                  links:
+                    type: array
+                    description: links for data samples, or links to find out more information
+                    example: ["https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip","https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"]
+                  size:
+                    type: string
+                    description: size of data in MB, GB, or Tera bytes
+                    example: 0.000217GB
+                  format:
+                    type: string
+                    description: file format if applicable
+                    example: .zip
+                  description:
+                    type: string
+                    description: details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                    example: Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.
+                  date:
+                    type: string
+                    description: date the resource was made available
+                    example: 01-01-2019
+                  labels:
+                    type: array
+                    description: labels can serve the role of multiple categories
+                    example: [climate, ocean, atmosphere, temperature]
+                  license:
+                    type: string
+                    example: propietary
+                  classification:
+                    type: string
+                    example: public
+                  industry:
+                    type: string
+                    example: Earth Sciences
+                  category:
+                    type: string
+                    description: can be assigned to a category in addition to having labels
+                    example: Climate
+                  note:
+                    type: string
+                    description: any additional information worthy of highlighting (description maybe sufficient)
+                  keywords:
+                    type: array
+                    description: can enhance search and find functions
+                    example: [climate, ocean, atmosphere, temperature]
+                  updateFrequency:
+                    type: string
+                    description: how often are updates expected (seldome, annual, quarterly, etc.), or is the resource static (never expected to get updated)
+                    example: static
+                  lifecycleStage:
+                    type: string
     responses:
       200:
         description: Asset successfully updated.
@@ -173,7 +305,7 @@ def update(asset_id):
       500:
         description: Error
     """
-    required_attributes = ['title', 'publisherId', ]
+    required_attributes = ['metadata', 'publisherId', ]
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
@@ -182,6 +314,11 @@ def update(asset_id):
 
     for attr in required_attributes:
         if attr not in data:
+            return '"%s" is required for registering an asset.' % attr, 400
+
+    required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
+    for attr in required_metadata_attributes:
+        if attr not in data['metadata']:
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
