@@ -3,7 +3,6 @@ from flask import Blueprint, jsonify, request
 from oceandb_driver_interface import OceanDb
 
 from provider_backend.myapp import app
-from provider_backend.app.resource_constants import AssetTypes
 from werkzeug.utils import secure_filename
 import json
 
@@ -43,11 +42,11 @@ def get_assets():
     asset_with_id = []
     for asset in assets:
         try:
-            asset_with_id.append((oceandb.read(asset['id']), asset['id']))
+            asset_with_id.append(oceandb.read(asset['id']))
         except:
             pass
 
-    asset_ids = [a[1] for a in asset_with_id]
+    asset_ids = [a['data']['data']['assetId'] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
     return jsonify(resp_body), 200
 
@@ -71,14 +70,24 @@ def get(asset_id):
         description: This asset id is not in OceanDB
     """
     try:
-        asset_record = oceandb.read(asset_id)
+        tx_id = find_tx_id(asset_id)
+        asset_record = oceandb.read(tx_id)
         return jsonify(asset_record['data']), 200
     except Exception as e:
         return '"%s asset_id is not in OceanDB' % asset_id, 404
 
 
-@assets.route('/metadata', methods=['POST'])
-def register():
+def find_tx_id(asset_id):
+    all = oceandb.list()
+    for a in all:
+        if a['data']['data']['assetId'] == asset_id:
+            return a['id']
+        else:
+            return "%s not found" % asset_id
+
+
+@assets.route('/metadata/<asset_id>', methods=['POST'])
+def register(asset_id):
     """Register metadata of a new asset
     ---
     tags:
@@ -86,6 +95,11 @@ def register():
     consumes:
       - application/json
     parameters:
+      - name: asset_id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
       - in: body
         name: body
         required: true
@@ -197,11 +211,12 @@ def register():
         return msg, 404
 
     _record = dict()
-    _record['data'] = data
+    _record['metadata'] = data['metadata']
+    _record['publisherId'] = data['publisherId']
+    _record['assetId'] = asset_id
     try:
         tx_id = oceandb.write(_record)
         # add new assetId to response
-        _record['assetId'] = tx_id
         return _sanitize_record(_record), 201
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
@@ -216,6 +231,11 @@ def update(asset_id):
     consumes:
       - application/json
     parameters:
+      - name: asset_id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
       - in: body
         name: body
         required: true
@@ -326,10 +346,13 @@ def update(asset_id):
         return msg, 404
 
     _record = dict()
-    _record['data'] = data
+    _record['metadata'] = data['metadata']
+    _record['publisherId'] = data['publisherId']
+    _record['assetId'] = asset_id
     try:
-        oceandb.update(_record, asset_id)
-        return 200
+        tx_id = find_tx_id(asset_id)
+        oceandb.update(_record, tx_id)
+        return _sanitize_record(_record), 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
@@ -355,7 +378,8 @@ def retire(asset_id):
         description: Error
     """
     try:
-        oceandb.delete(asset_id)
+        tx_id = find_tx_id(asset_id)
+        oceandb.delete(tx_id)
         return 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
@@ -378,10 +402,10 @@ def get_assets_metadata():
     assets_with_id = []
     for asset in assets:
         try:
-            assets_with_id.append((oceandb.read(asset['id']), asset['id']))
+            assets_with_id.append((oceandb.read(asset['id'])))
         except Exception as e:
             return 'Some error: "%s"' % str(e), 500
-    assets_metadata = {a[1]: a[0] for a in assets_with_id}
+    assets_metadata = {a['data']['data']['assetId']: a['data']['data']for a in assets_with_id}
     return jsonify(assets_metadata), 200
 
 
