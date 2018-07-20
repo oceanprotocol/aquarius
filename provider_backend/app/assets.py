@@ -86,8 +86,8 @@ def find_tx_id(asset_id):
             return "%s not found" % asset_id
 
 
-@assets.route('/metadata/<asset_id>', methods=['POST'])
-def register(asset_id):
+@assets.route('/metadata', methods=['POST'])
+def register():
     """Register metadata of a new asset
     ---
     tags:
@@ -195,7 +195,7 @@ def register(asset_id):
         return 400
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
-    required_attributes = ['metadata', 'publisherId', ]
+    required_attributes = ['assetId', 'metadata', 'publisherId', ]
     required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
 
     for attr in required_attributes:
@@ -213,9 +213,9 @@ def register(asset_id):
     _record = dict()
     _record['metadata'] = data['metadata']
     _record['publisherId'] = data['publisherId']
-    _record['assetId'] = asset_id
+    _record['assetId'] = data['assetId']
     try:
-        tx_id = oceandb.write(_record)
+        oceandb.write(_record)
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
