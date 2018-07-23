@@ -10,11 +10,14 @@ Data assets without proper descriptive metadata can have poor visibility and dis
 * Size: size of data in MB, GB, or Tera bytes
 * Format: file format if applicable
 * Description: details of what the resource is. For a data set explain what the data represents and what it can be used for.
+* License:
+  * Public Domain
+  * Creative Commons Public Domain Dedication
+  * ... there is a long list of license types here: https://help.data.world/hc/en-us/articles/115006114287-Common-license-types-for-datasets 
 
 ## Optional metadata
 These are examples of attributes that can enhance the discoverability of a resource:
 
-* License
 * Service level agreement
 * Date: date the resource was made available
 * Labels: labels can serve the role of multiple categories
@@ -27,14 +30,8 @@ These are examples of attributes that can enhance the discoverability of a resou
 * Life cycle state: ?
 
 ## Future considerations
-`Some of these may actually need to be required attributes.`
 
 Privacy
-
-License:
-* Public Domain
-* Creative Commons Public Domain Dedication
-* ... there is a long list of license types here: https://help.data.world/hc/en-us/articles/115006114287-Common-license-types-for-datasets 
 
 Service level agreement
 
