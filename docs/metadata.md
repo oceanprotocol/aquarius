@@ -14,6 +14,8 @@ Data assets without proper descriptive metadata can have poor visibility and dis
 ## Optional metadata
 These are examples of attributes that can enhance the discoverability of a resource:
 
+* License
+* Service level agreement
 * Date: date the resource was made available
 * Labels: labels can serve the role of multiple categories
 * Keywords: can enhance search and find functions
@@ -25,9 +27,14 @@ These are examples of attributes that can enhance the discoverability of a resou
 * Life cycle state: ?
 
 ## Future considerations
+`Some of these may actually need to be required attributes.`
+
 Privacy
 
-License
+License:
+* Public Domain
+* Creative Commons Public Domain Dedication
+* ... there is a long list of license types here: https://help.data.world/hc/en-us/articles/115006114287-Common-license-types-for-datasets 
 
 Service level agreement
 
