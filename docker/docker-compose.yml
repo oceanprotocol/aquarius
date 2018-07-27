@@ -55,7 +55,8 @@ services:
       - '33333:80'
     volumes:
       - ./docs/server/build/html:/usr/share/nginx/html
-  ganache-cli:
-    image: marciomansur/docker-ganache-cli
-    ports:
-      - '8545:8545'
+#      TODO Create ganache-cli docker image
+#  ganache-cli:
+#    image: marciomansur/docker-ganache-cli
+#    ports:
+#      - '8545:8545'

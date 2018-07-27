@@ -14,6 +14,13 @@ twine==1.11.0
 setuptools==39.1.0
 py-solc
 web3==4.4.1
+PyJWT==1.6.4
+pyopenssl
+eciespy
+
+
+azure==1.0.3
+
 
 flask-swagger==0.2.13
 flask-swagger-ui==3.6.0

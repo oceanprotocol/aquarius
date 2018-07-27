@@ -95,11 +95,6 @@ def register():
     consumes:
       - application/json
     parameters:
-      - name: asset_id
-        in: path
-        description: ID of the asset.
-        required: true
-        type: string
       - in: body
         name: body
         required: true
@@ -107,9 +102,14 @@ def register():
         schema:
           type: object
           required:
+            - assetId
             - publisherId
             - metadata
           properties:
+            assetId:
+              description: ID of the asset.
+              example: '0x1298371984723941'
+              type: string
             publisherId:
               description: Id of the asset's publisher.
               type: string
@@ -409,7 +409,7 @@ def get_assets_metadata():
     return jsonify(assets_metadata), 200
 
 
-@assets.route('/asset/{asset_id}', methods=['GET'])
+@assets.route('/download/<asset_id>?challenge_id', methods=['GET'])
 def download_data(response, asset_id, consumer_id, access_token):
     """Allows download of asset data file from this provider.
 
