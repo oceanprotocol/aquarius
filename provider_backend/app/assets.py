@@ -6,7 +6,7 @@ from provider_backend.myapp import app
 from werkzeug.utils import secure_filename
 import json
 
-from provider_backend.blockchain.ocean_contracts import OceanContracts
+from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
 from provider_backend.config_parser import load_config_section
 from provider_backend.constants import ConfigSections
 
@@ -20,7 +20,7 @@ oceandb = OceanDb(config_file).plugin
 
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
-ocean_contracts = OceanContracts(keeper_config['keeper.host'], keeper_config['keeper.port'])
+ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
