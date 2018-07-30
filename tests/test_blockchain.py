@@ -1,8 +1,8 @@
-from provider_backend.blockchain.ocean_contracts import OceanContracts
+from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
 from provider_backend.acl.acl import generate_encription_keys,decode,encode,generate_encoding_pair
 
 
-ocean = OceanContracts()
+ocean = OceanContractsWrapper()
 ocean.init_contracts()
 
 acl_concise = ocean.concise_contracts['Auth.json']
