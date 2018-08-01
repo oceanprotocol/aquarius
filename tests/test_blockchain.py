@@ -1,7 +1,4 @@
 from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider_backend.acl.acl import generate_encription_keys,decode,encode,generate_encoding_pair
-
-from provider_backend.blockchain.ocean_contracts import OceanContracts
 from provider_backend.acl.acl import generate_encription_keys, decode, encode, generate_encoding_pair, dec
 from eth_account.messages import defunct_hash_message
 from eth_keys import KeyAPI

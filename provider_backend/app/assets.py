@@ -1,4 +1,5 @@
 import os, json, datetime
+
 from flask import Blueprint, jsonify, request
 from oceandb_driver_interface import OceanDb
 from azure.storage.blob import BlobService
@@ -21,7 +22,7 @@ oceandb = OceanDb(config_file).plugin
 
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
-ocean_contracts = OceanContracts(keeper_config['keeper.host'], keeper_config['keeper.port'])
+ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 ocean_contracts.init_contracts()
 
 # filter_access_consent = ocean_contracts.watch_event('OceanAuth', 'RequestAccessConsent', ocean_contracts.commit_access_request, 500,
@@ -36,7 +37,7 @@ ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_con
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
-@assets.route('/', methods=['GET'])
+@assets.route('', methods=['GET'])
 def get_assets():
     """Get all assets ids.
     ---
@@ -201,20 +202,24 @@ def register():
         description: Error
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-    data = request.json
-    if not data:
-        return 400
-    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     required_attributes = ['assetId', 'metadata', 'publisherId', ]
     required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
 
+    data = request.json
+    if not data:
+        print('request body seems empty, expecting %s' % str(required_attributes))
+        return 400
+    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+
     for attr in required_attributes:
         if attr not in data:
+            print('%s is required, got %s' % (attr, str(data)))
             return '"%s" is required for registering an asset.' % attr, 400
 
     for attr in required_metadata_attributes:
         if attr not in data['metadata']:
+            print('%s metadata is required, got %s' % (attr, str(data['metadata'])))
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
@@ -230,6 +235,7 @@ def register():
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
+        print('encounterd an error while saving the asset data to oceandb: %s' % str(err))
         return 'Some error: "%s"' % str(err), 500
 
 
@@ -416,8 +422,8 @@ def get_assets_metadata():
             assets_with_id.append((oceandb.read(asset['id'])))
         except Exception as e:
             return 'Some error: "%s"' % str(e), 500
-    assets_metadata = {a['data']['data']['assetId']: a['data']['data'] for a in assets_with_id}
-    return jsonify(assets_metadata), 200
+    assets_metadata = {a['data']['data']['assetId']: a['data']['data']for a in assets_with_id}
+    return jsonify(json.dumps(assets_metadata)), 200
 
 
 @assets.route('/download/<asset_id>?<challenge_id>', methods=['GET'])
