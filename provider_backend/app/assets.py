@@ -5,7 +5,7 @@ from oceandb_driver_interface import OceanDb
 from azure.storage.blob import BlobService
 from azure.storage import AccessPolicy, SharedAccessPolicy
 
-from blockchain.constants import OceanContracts
+from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.myapp import app
 from werkzeug.utils import secure_filename
 import json
