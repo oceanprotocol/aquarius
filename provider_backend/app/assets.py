@@ -1,7 +1,8 @@
-import os
+import os, json, datetime
 from flask import Blueprint, jsonify, request
 from oceandb_driver_interface import OceanDb
-
+from azure.storage.blob import BlobService
+from azure.storage import AccessPolicy, SharedAccessPolicy
 from provider_backend.myapp import app
 from werkzeug.utils import secure_filename
 import json
@@ -20,6 +21,16 @@ oceandb = OceanDb(config_file).plugin
 
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
+ocean_contracts = OceanContracts(keeper_config['keeper.host'], keeper_config['keeper.port'])
+ocean_contracts.init_contracts()
+
+# filter_access_consent = ocean_contracts.watch_event('OceanAuth', 'RequestAccessConsent', ocean_contracts.commit_access_request, 500,
+#                                           fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
+# filter_payment = ocean_contracts.watch_event('OceanMarket', 'PaymentReceived', ocean_contracts.publish_encrypted_token, 500,
+#                                    fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
+
+# Prepare resources access configuration to download assets
+recources_config = load_config_section(config_file, ConfigSections.RESOURCES)
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
@@ -405,12 +416,12 @@ def get_assets_metadata():
             assets_with_id.append((oceandb.read(asset['id'])))
         except Exception as e:
             return 'Some error: "%s"' % str(e), 500
-    assets_metadata = {a['data']['data']['assetId']: a['data']['data']for a in assets_with_id}
+    assets_metadata = {a['data']['data']['assetId']: a['data']['data'] for a in assets_with_id}
     return jsonify(assets_metadata), 200
 
 
-@assets.route('/download/<asset_id>?challenge_id', methods=['GET'])
-def download_data(response, asset_id, consumer_id, access_token):
+@assets.route('/download/<asset_id>?<challenge_id>', methods=['GET'])
+def download_data(asset_id, challenge_id, access_token):
     """Allows download of asset data file from this provider.
 
     Data file can be stored locally at the provider end or at some cloud storage.
@@ -418,19 +429,31 @@ def download_data(response, asset_id, consumer_id, access_token):
     free/commons assets, the consumer must still go through the purchase contract
     transaction).
 
-    Validation:
-    - assetId is in the system and valid for this provider
-    - consumerId is valid in the system and authorized to access this asset. This
-    authorization is obtained from the on-chain contract by sending the assetId and
-    consumerId.
+    ---
+    tags:
+      - assets
 
-    :param assetId: a str identifying an asset in the ocean network
-    :param consumerId: the ethereum address of the user consuming this asset
-    :param accessToken: a dict representing the access info/credentials of
-        this asset specifically issued for this consumer
-    :return:
-        Serving the download request if everything validates ok
-        Error/message if something fails the validation
+    consumes:
+      - application/json
+    parameters:
+      - name: asset_id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          required:
+            - challenge_id
+          properties:
+            challenge_id:
+              description: Id of the asset's publisher.
+              type: string
+              example: '0x0234242345'
 
     """
     # Validate accessToken
@@ -439,33 +462,47 @@ def download_data(response, asset_id, consumer_id, access_token):
     # Verify consumer has permission to consume this asset (on-chain authorization)
 
     # Get asset metadata record
-    asset_record = oceandb.read(asset_id)
-    if not asset_record:
-        return 'This asset id cannot be found. Please verify this asset id is correct.', 404
+    required_attributes = ['accessId','consumerId', 'sig.v', 'sig.r', 'sig.s']
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    contract_instance = ocean_contracts.concise_contracts['OceanAuth.json']
 
-    asset_folder_path = os.path.join(ASSETS_FOLDER, asset_id)
-    if not os.path.exists(asset_folder_path) or not os.listdir(asset_folder_path):
-        return 'The requested dataset was not found. Ask the provider/publisher to upload the dataset.', 404
+    if contract_instance.verifyAccessTokenDelivery(accessId,                     # accessId
+                                                   event['args'],                # consumerId
+                                                   event,                        # sig.v
+                                                   event,                        # sig.r
+                                                   event,  # sig.s
+                                                   transact={'from': event['args']['_receiver']}):
+        url = oceandb.read(asset_id)['metadata']['links']
+        return generate_sasurl(url)
 
-    files = []
-    for filename in os.listdir(asset_folder_path):
-        file_path = os.path.join(asset_folder_path, filename)
-        files.append(file_path)
-
-    if not files:
-        return 'Resource not found.', 404
-
-    content_type = asset_record.get("contentType")
-    if content_type:
-        response.set_header("content-type", content_type)
-
-    # check asset metadata to figure out whether asset is stored locally or stored on the cloud
-
-    return files[0], 200
+    # asset_record = oceandb.read(asset_id)
+    # if not asset_record:
+    #     return 'This asset id cannot be found. Please verify this asset id is correct.', 404
+    #
+    # asset_folder_path = os.path.join(ASSETS_FOLDER, asset_id)
+    # if not os.path.exists(asset_folder_path) or not os.listdir(asset_folder_path):
+    #     return 'The requested dataset was not found. Ask the provider/publisher to upload the dataset.', 404
+    #
+    # files = []
+    # for filename in os.listdir(asset_folder_path):
+    #     file_path = os.path.join(asset_folder_path, filename)
+    #     files.append(file_path)
+    #
+    # if not files:
+    #     return 'Resource not found.', 404
+    #
+    # content_type = asset_record.get("contentType")
+    # if content_type:
+    #     response.set_header("content-type", content_type)
+    #
+    # # check asset metadata to figure out whether asset is stored locally or stored on the cloud
+    #
+    # return files[0], 200
 
 
 @assets.route('/asset/{asset_id}', methods=['POST'])
-def upload_data(asset_id, body= None, publisher_id=None):
+def upload_data(asset_id, body=None, publisher_id=None):
     """
 
     :param asset_id: a str identifying an asset in the ocean network
@@ -549,3 +586,61 @@ def validate_asset_data(data):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def generate_sasurl(url):
+    bs = BlobService(account_name=recources_config['azure.account.name'],
+                     account_key=recources_config['azure.account.key'])
+    today = datetime.datetime.utcnow()
+    todayPlusMonth = today + datetime.timedelta(30)
+    todayPlusMonthISO = todayPlusMonth.replace(microsecond=0).isoformat() + 'Z'
+    sasToken = bs.generate_shared_access_signature(recources_config['azure.container'], None, SharedAccessPolicy(
+        AccessPolicy(None, todayPlusMonthISO, "rw"), None))
+    return url + "?" + sasToken
+
+
+
+# {
+#   "assetId": "0x1298371984723941",
+#   "metadata": {
+#     "category": "Climate",
+#     "classification": "public",
+#     "date": "01-01-2019",
+#     "description": "Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.",
+#     "format": ".zip",
+#     "industry": "Earth Sciences",
+#     "keywords": [
+#       "climate",
+#       "ocean",
+#       "atmosphere",
+#       "temperature"
+#     ],
+#     "labels": [
+#       "climate",
+#       "ocean",
+#       "atmosphere",
+#       "temperature"
+#     ],
+#     "license": "propietary",
+#     "lifecycleStage": "string",
+#     "links": [
+#       "https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip",
+#       "https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"
+#     ],
+#     "name": "Berling Climate NetCDF",
+#     "note": "string",
+#     "size": "0.000217GB",
+#     "updateFrequency": "static"
+#   },
+#   "publisherId": "0x0234242345",
+#   "commitAccessRequest":{
+#     "challengeId",
+#     "available",
+#     "expire",
+#     "discovery",
+#     "permissions",
+#     "slaLink",
+#     "slaType",
+#     "accessTokenHash"
+#   }
+# }

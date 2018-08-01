@@ -1,5 +1,6 @@
 import os
 import json
+import requests
 import time, site
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
@@ -8,9 +9,10 @@ from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.config_parser import load_config_section
 from provider_backend.myapp import app
 from provider_backend.constants import ConfigSections
-from provider_backend.acl.acl import enc, encode
+from provider_backend.acl.acl import enc, dec, encode, generate_encoding_pair
 from threading import Thread
-
+from secrets import token_hex
+from provider_backend.app import assets
 
 def convert_to_bytes(data):
     return Web3.toBytes(text=data)
@@ -52,6 +54,7 @@ class OceanContractsWrapper(object):
             OceanContracts.OACL: config['auth.address'],
             OceanContracts.OTKN: config['token.address']
         }
+        self.encoding_key_pair = generate_encoding_pair()
 
     def init_contracts(self, contracts_folder=None, contracts_addresses=None):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path
@@ -81,11 +84,11 @@ class OceanContractsWrapper(object):
         self.web3.eth.waitForTransactionReceipt(tx_hash)
         return self.web3.eth.getTransactionReceipt(tx_hash)
 
-    def watch_event(self, contract_name, event_name, callback, interval, fromBlock=0, toBlock='latest',filters=None,):
+    def watch_event(self, contract_name, event_name, callback, interval, fromBlock=0, toBlock='latest', filters=None, ):
         event_filter = self.install_filter(
             contract_name, event_name, fromBlock, toBlock, filters
         )
-        event_filter.poll_interval= 500
+        event_filter.poll_interval = 500
         Thread(
             target=self.watcher,
             args=(event_filter, callback, interval),
@@ -111,11 +114,28 @@ class OceanContractsWrapper(object):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
             # TODO register metadata of the request.
-            # url_for("/register")
-            # assets.register()
-            commit_access_request = contract_instance.commitAccessRequest(event['args']['_id'], True, event['args']['_timeout'], 'discovery',
-                                              'read', 'slaLink',
-                                              'slaType',transact={'from': event['args']['_provider']})
+            # requests.post('/api/v1/provider/assets/metadata', data=json.dumps({"publisherId": "0x1",
+            #                                                                    "metadata": {
+            #                                                                        "name": "name",
+            #                                                                        "links": ["link"],
+            #                                                                        "size": "size",
+            #                                                                        "format": "format",
+            #                                                                        "description": "description"
+            #                                                                    },
+            #                                                                    "assetId": "001",
+            #                                                                    "consumerAddress": event['args'][
+            #                                                                        '_consumer'],
+            #                                                                    "consumerTempPubKey": event['args'][
+            #                                                                        '_pubkey'],
+            #                                                                    "challengeId": event['args']['_id'],
+            #                                                                    "date":
+            #                                                                    })
+            #               )
+            commit_access_request = contract_instance.commitAccessRequest(event['args']['_id'], True,
+                                                                          event['args']['_timeout'], 'discovery',
+                                                                          'read', 'slaLink',
+                                                                          'slaType',
+                                                                          transact={'from': event['args']['_provider']})
             print('Provider has committed the order: %s' % commit_access_request)
             return commit_access_request
         except Exception as e:
@@ -124,42 +144,43 @@ class OceanContractsWrapper(object):
     def publish_encrypted_token(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            public_key = contract_instance.getTempPubKey(event['args']['_paymentId'],
-                                                         call={'from': event['args']['_receiver']})
-            print("Public key: %s" % public_key)
-            jwt=encode(
-            {
+            temp_public_key = contract_instance.getTempPubKey(event['args']['_paymentId'],
+                                                              call={'from': event['args']['_receiver']})
+            print("Public key: %s" % temp_public_key)
+            jwt = encode({
                 "iss": "resourceowner.com",
                 "sub": "WorldCupDatasetForAnalysis",
                 "iat": 1516239022,
-                "exp": 1526790800,
-                "consumer_pubkey": public_key,
-                "temp_pubkey": "Temp. Public Key for Encryption",
+                "exp": 1826790800,
+                "consumer_pubkey": "Consumer Public Key",
+                "temp_pubkey": temp_public_key,
                 "request_id": "Request Identifier",
                 "consent_hash": "Consent Hash",
                 "resource_id": "Resource Identifier",
                 "timeout": "Timeout comming from AUTH contract",
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
-            }, public_key)
-            # encJWT = enc(public_key, jwt)
-            print("Delivering token jwt: %s" % jwt)
+                "nonce": token_hex(32),
+            }, self.encoding_key_pair.private_key)
+            encJWT = enc(jwt, temp_public_key)
+            # encJWT = enc(b'eyJhbGciOiJIUzI1', temp_public_key)
+            # print("Delivering token jwt: %s" % jwt)
+            print("Delivering token jwt: %s" % encJWT)
             deliver_acces_token = contract_instance.deliverAccessToken(event['args']['_paymentId'],
-                                                                       jwt,
+                                                                       encJWT,
                                                                        transact={'from': event['args']['_receiver']})
             print('Provider has send the jwt: %s' % deliver_acces_token)
             return deliver_acces_token
         except Exception as e:
             return e
 
-    #
-    # def release_payment(self, event):
-    #     contract_instance = self.contracts[OceanContracts.OACL][0]
-    #
-    #     if contract_instance.verifyAccessTokenDelivery(event['args']['_paymentId'], #accessId
-    #                                                        event['args'],               #consumerId
-    #                                                        event,                       #sig.v
-    #                                                        event,                       #sig.r
-    #                                                        event,                       #sig.s
-    #                                                        transact={'from': event['args']['_receiver']}):
-    #         return generate_sasurl(url)
+    def release_payment(self, event):
+        contract_instance = self.concise_contracts['OceanAuth.json']
+
+        if contract_instance.verifyAccessTokenDelivery(event['args']['_paymentId'],  # accessId
+                                                       event['args'],  # consumerId
+                                                       event,  # sig.v
+                                                       event,  # sig.r
+                                                       event,  # sig.s
+                                                       transact={'from': event['args']['_receiver']}):
+            return generate_sasurl(url)
