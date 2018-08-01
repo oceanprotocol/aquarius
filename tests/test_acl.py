@@ -10,7 +10,33 @@ def test_encode_decode():
 def test_encrypt_decrypt():
     provider_keypair = generate_encoding_pair()
     consumer_keypair = generate_encription_keys()
-    encod = encode({"metadata": "example"}, provider_keypair.private_key)
+    encod = encode({
+                "iss": "resourceowner.com",
+                "sub": "WorldCupDatasetForAnalysis",
+                "iat": 1516239022,
+                "exp": 1826790800,
+                "consumer_pubkey": "public_key",
+                "temp_pubkey": "Temp. Public Key for Encryption",
+                "request_id": "Request Identifier",
+                "consent_hash": "Consent Hash",
+                "resource_id": "Resource Identifier",
+                "timeout": "Timeout comming from AUTH contract",
+                "response_type": "Signed_URL",
+                "resource_server_plugin": "Azure",
+            }, provider_keypair.private_key)
     encrypt = enc(encod, consumer_keypair.public_key)
     decrypt = dec(encrypt, consumer_keypair.private_key)
-    assert {"metadata": "example"} == decode(decrypt, provider_keypair.public_key)
+    assert {
+                "iss": "resourceowner.com",
+                "sub": "WorldCupDatasetForAnalysis",
+                "iat": 1516239022,
+                "exp": 1826790800,
+                "consumer_pubkey": "public_key",
+                "temp_pubkey": "Temp. Public Key for Encryption",
+                "request_id": "Request Identifier",
+                "consent_hash": "Consent Hash",
+                "resource_id": "Resource Identifier",
+                "timeout": "Timeout comming from AUTH contract",
+                "response_type": "Signed_URL",
+                "resource_server_plugin": "Azure",
+            } == decode(decrypt, provider_keypair.public_key)

@@ -1,29 +1,29 @@
 from provider_backend.blockchain.ocean_contracts import OceanContracts
-from provider_backend.acl.acl import generate_encription_keys,decode,encode,generate_encoding_pair
-
+from provider_backend.acl.acl import generate_encription_keys, decode, encode, generate_encoding_pair, dec
+from eth_account.messages import defunct_hash_message
+from eth_keys import KeyAPI
 
 ocean = OceanContracts()
 ocean.init_contracts()
 
-acl_concise = ocean.concise_contracts['Auth.json']
-acl = ocean.contracts['Auth.json']
-market_concise = ocean.concise_contracts['Market.json']
-market = ocean.contracts['Market.json']
+acl_concise = ocean.concise_contracts['OceanAuth.json']
+acl = ocean.contracts['OceanAuth.json']
+market_concise = ocean.concise_contracts['OceanMarket.json']
+market = ocean.contracts['OceanMarket.json']
 token = ocean.concise_contracts['OceanToken.json']
 
 
-def test_version_contracts():
-    assert '0.3' == market_concise.version()
+# def test_version_contracts():
+#     assert '0.3' == market_concise.version()
 
 
 def test_commit_access_requested():
     print("Starting test_commit_access_requested")
-    resource_id = market_concise.generateStr2Id('resouce', transact={'from': ocean.web3.eth.accounts[0]})
+    resource_id = market_concise.generateId('resource', transact={'from': ocean.web3.eth.accounts[0]})
     print("recource_id: %s" % resource_id)
     resource_price = 10
 
-    # pubprivkey = generate_encription_keys()
-    pubprivkey = generate_encoding_pair()
+    pubprivkey = generate_encription_keys()
     pubkey = pubprivkey.public_key
     privkey = pubprivkey.private_key
 
@@ -32,14 +32,10 @@ def test_commit_access_requested():
     print('buyer balance = ', token.balanceOf(ocean.web3.eth.accounts[1]))
     print('seller balance = ', token.balanceOf(ocean.web3.eth.accounts[0]))
 
-
-    filter_access_consent = ocean.watch_event('Auth', 'RequestAccessConsent', ocean.commit_access_request, 500,
+    filter_access_consent = ocean.watch_event('OceanAuth', 'RequestAccessConsent', ocean.commit_access_request, 500,
                                               fromBlock='latest', filters={"address": ocean.web3.eth.accounts[0]})
-    filter_payment = ocean.watch_event('Market', 'PaymentReceived', ocean.publish_encrypted_token, 500,
+    filter_payment = ocean.watch_event('OceanMarket', 'PaymentReceived', ocean.publish_encrypted_token, 500,
                                        fromBlock='latest', filters={"address": ocean.web3.eth.accounts[0]})
-
-    # filter = ocean.watch_event(ocean.commit_access_request, 500, ocean.web3.eth.accounts[0])
-    # filter = ocean._request_access_consent_filter(ocean.web3.eth.accounts[0])
 
     # 1. Provider register an asset
     market_concise.register(resource_id,
@@ -53,8 +49,8 @@ def test_commit_access_requested():
                                             transact={'from': ocean.web3.eth.accounts[1]})
     receipt = ocean.get_tx_receipt(req)
     send_event = acl.events.RequestAccessConsent().processReceipt(receipt)
-    access_id=send_event[0]['args']['_id']
-    assert send_event[0] == filter_access_consent.get_all_entries()[0]
+    access_id = send_event[0]['args']['_id']
+    assert send_event[0] == filter_access_consent.get_new_entries()[0]
 
     # 3. Provider commit the request in commit_access_request
 
@@ -64,32 +60,60 @@ def test_commit_access_requested():
                   transact={'from': ocean.web3.eth.accounts[1]})
 
     send_payment = market_concise.sendPayment(access_id,
-                               ocean.web3.eth.accounts[0],
-                               resource_price,
-                               9999999999,
-                               transact={'from': ocean.web3.eth.accounts[1]})
-
+                                              ocean.web3.eth.accounts[0],
+                                              resource_price,
+                                              9999999999,
+                                              ocean.web3.toChecksumAddress(acl_concise.address),
+                                              transact={'from': ocean.web3.eth.accounts[1]})
 
     print('buyer balance = ', token.balanceOf(ocean.web3.eth.accounts[1]))
     print('seller balance = ', token.balanceOf(ocean.web3.eth.accounts[0]))
 
     # Verify consent has been emited
-    assert acl_concise.verifyCommitted(access_id,1) == True
+    assert acl_concise.verifyCommitted(access_id, 1) == True
 
+    assert filter_payment.get_new_entries()[0]['transactionHash'] == send_payment
 
+    assert acl_concise.getTempPubKey(access_id) == pubkey
 
-    # assert filter_payment.get_all_entries()[0]['transactionHash'] == send_payment
+    on_chain_enc_token = acl_concise.getEncJWT(access_id, call={'from': ocean.web3.eth.accounts[1]})
 
-    assert acl_concise.getTempPubKey(access_id) == pubkey.decode('utf-8')
+    print("jwt: %s" % decode(dec(on_chain_enc_token, privkey), ocean.encoding_key_pair.public_key))
 
+    assert pubkey == decode(dec(on_chain_enc_token, privkey), ocean.encoding_key_pair.public_key)['temp_pubkey']
 
-    jwt = acl_concise.getEncJWT(access_id, call={'from': ocean.web3.eth.accounts[1]})
+    signature = ocean.web3.eth.sign(ocean.web3.eth.accounts[1], data=on_chain_enc_token)
 
+    fixed_msg = defunct_hash_message(hexstr=ocean.web3.toHex(on_chain_enc_token))
+    # fixed_msg_sha = ocean.web3.sha3(fixed_msg)
 
-    print("jwt: %s" % jwt)
-    print("jwt: %s" % decode(jwt, privkey))
+    # sig = ocean.web3.toBytes(signature)
 
+    sig = KeyAPI.Signature(signature_bytes=signature)
+
+    v, r, s = ocean.web3.toInt(sig.v), to_32byte_hex(sig.r), to_32byte_hex(sig.s)
+    if v != 27 and v != 28:
+        v = 27 + v % 2
+
+    assert acl_concise.isSigned(ocean.web3.eth.accounts[1],
+                                ocean.web3.toHex(fixed_msg),
+                                v,
+                                r,
+                                s,
+                                call={'from': ocean.web3.eth.accounts[0]}) == True
+
+    assert acl_concise.verifyAccessTokenDelivery(access_id,
+                                                 ocean.web3.eth.accounts[0],
+                                                 ocean.web3.toHex(fixed_msg),
+                                                 v,
+                                                 r,
+                                                 s,
+                                                 call={'from': ocean.web3.eth.accounts[1]}) == True
 
     print("Test finished")
 
-    # acl.commitAccessRequest(accessId, True, 9999999999, 'discovery', 'read', 'slaLink', 'slaType')
+
+def to_32byte_hex(val):
+    return ocean.web3.toBytes(val).rjust(32, b'\0')
+
+
