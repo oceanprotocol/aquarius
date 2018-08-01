@@ -5,6 +5,7 @@ import time, site
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
 
+from acl.acl import generate_sasurl
 from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.config_parser import load_config_section
 from provider_backend.myapp import app
@@ -12,7 +13,6 @@ from provider_backend.constants import ConfigSections
 from provider_backend.acl.acl import enc, dec, encode, generate_encoding_pair
 from threading import Thread
 from secrets import token_hex
-from provider_backend.app import assets
 
 def convert_to_bytes(data):
     return Web3.toBytes(text=data)
@@ -175,7 +175,7 @@ class OceanContractsWrapper(object):
             return e
 
     def release_payment(self, event):
-        contract_instance = self.concise_contracts['OceanAuth.json']
+        contract_instance = self.contracts[OceanContracts.OACL]
 
         if contract_instance.verifyAccessTokenDelivery(event['args']['_paymentId'],  # accessId
                                                        event['args'],  # consumerId

@@ -1,16 +1,17 @@
+from blockchain.constants import OceanContracts
 from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider_backend.acl.acl import generate_encription_keys, decode, encode, generate_encoding_pair, dec
+from provider_backend.acl.acl import generate_encryption_keys, decode, encode, generate_encoding_pair, dec
 from eth_account.messages import defunct_hash_message
 from eth_keys import KeyAPI
 
 ocean = OceanContractsWrapper()
 ocean.init_contracts()
 
-acl_concise = ocean.concise_contracts['OceanAuth.json']
-acl = ocean.contracts['OceanAuth.json']
-market_concise = ocean.concise_contracts['OceanMarket.json']
-market = ocean.contracts['OceanMarket.json']
-token = ocean.concise_contracts['OceanToken.json']
+acl_concise = ocean.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
+acl = ocean.contracts[OceanContracts.OCEAN_ACL_CONTRACT][1]
+market_concise = ocean.contracts[OceanContracts.OCEAN_MARKET_CONTRACT][0]
+market = ocean.contracts[OceanContracts.OCEAN_MARKET_CONTRACT][1]
+token = ocean.contracts[OceanContracts.OCEAN_TOKEN_CONTRACT][0]
 
 
 # def test_version_contracts():
@@ -23,7 +24,7 @@ def test_commit_access_requested():
     print("recource_id: %s" % resource_id)
     resource_price = 10
 
-    pubprivkey = generate_encription_keys()
+    pubprivkey = generate_encryption_keys()
     pubkey = pubprivkey.public_key
     privkey = pubprivkey.private_key
 
@@ -32,9 +33,9 @@ def test_commit_access_requested():
     print('buyer balance = ', token.balanceOf(ocean.web3.eth.accounts[1]))
     print('seller balance = ', token.balanceOf(ocean.web3.eth.accounts[0]))
 
-    filter_access_consent = ocean.watch_event('OceanAuth', 'RequestAccessConsent', ocean.commit_access_request, 500,
+    filter_access_consent = ocean.watch_event(OceanContracts.OACL, 'RequestAccessConsent', ocean.commit_access_request, 500,
                                               fromBlock='latest', filters={"address": ocean.web3.eth.accounts[0]})
-    filter_payment = ocean.watch_event('OceanMarket', 'PaymentReceived', ocean.publish_encrypted_token, 500,
+    filter_payment = ocean.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean.publish_encrypted_token, 500,
                                        fromBlock='latest', filters={"address": ocean.web3.eth.accounts[0]})
 
     # 1. Provider register an asset

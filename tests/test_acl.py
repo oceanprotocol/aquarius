@@ -1,4 +1,4 @@
-from provider_backend.acl.acl import encode, decode, enc, dec, generate_encription_keys, generate_encoding_pair
+from provider_backend.acl.acl import encode, decode, enc, dec, generate_encryption_keys, generate_encoding_pair
 
 
 def test_encode_decode():
@@ -9,7 +9,7 @@ def test_encode_decode():
 
 def test_encrypt_decrypt():
     provider_keypair = generate_encoding_pair()
-    consumer_keypair = generate_encription_keys()
+    consumer_keypair = generate_encryption_keys()
     encod = encode({
                 "iss": "resourceowner.com",
                 "sub": "WorldCupDatasetForAnalysis",
