@@ -10,6 +10,7 @@ from ecies import encrypt, decrypt
 
 CryptoKeypair = namedtuple('CryptoKeypair', ('private_key', 'public_key'))
 
+
 def generate_encryption_keys():
     k = generate_eth_key()
     prvhex = k.to_hex()

@@ -4,6 +4,8 @@ from flask import Blueprint, jsonify, request
 from oceandb_driver_interface import OceanDb
 from azure.storage.blob import BlobService
 from azure.storage import AccessPolicy, SharedAccessPolicy
+
+from blockchain.constants import OceanContracts
 from provider_backend.myapp import app
 from werkzeug.utils import secure_filename
 import json
@@ -25,9 +27,9 @@ keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 ocean_contracts.init_contracts()
 
-# filter_access_consent = ocean_contracts.watch_event('OceanAuth', 'RequestAccessConsent', ocean_contracts.commit_access_request, 500,
+# filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL, 'RequestAccessConsent', ocean_contracts.commit_access_request, 500,
 #                                           fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
-# filter_payment = ocean_contracts.watch_event('OceanMarket', 'PaymentReceived', ocean_contracts.publish_encrypted_token, 500,
+# filter_payment = ocean_contracts.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean_contracts.publish_encrypted_token, 500,
 #                                    fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
 
 # Prepare resources access configuration to download assets

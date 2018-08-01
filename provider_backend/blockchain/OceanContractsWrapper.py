@@ -5,7 +5,7 @@ import time, site
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
 
-from acl.acl import generate_sasurl
+from provider_backend.acl.acl import generate_sasurl
 from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.config_parser import load_config_section
 from provider_backend.myapp import app
@@ -176,7 +176,7 @@ class OceanContractsWrapper(object):
 
     def release_payment(self, event):
         contract_instance = self.contracts[OceanContracts.OACL]
-
+        url = ''
         if contract_instance.verifyAccessTokenDelivery(event['args']['_paymentId'],  # accessId
                                                        event['args'],  # consumerId
                                                        event,  # sig.v
