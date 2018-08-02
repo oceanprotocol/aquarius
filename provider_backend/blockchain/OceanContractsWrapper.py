@@ -5,14 +5,19 @@ import time, site
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
 
-from provider_backend.acl.acl import generate_sasurl
 from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.config_parser import load_config_section
 from provider_backend.myapp import app
 from provider_backend.constants import ConfigSections
-from provider_backend.acl.acl import enc, dec, encode, generate_encoding_pair
+from provider_backend.acl.acl import enc, encode, generate_encoding_pair
 from threading import Thread
 from secrets import token_hex
+from eth_keys import KeyAPI
+from collections import namedtuple
+from werkzeug.contrib.cache import SimpleCache
+
+Signature = namedtuple('Signature', ('v', 'r', 's'))
+
 
 def convert_to_bytes(data):
     return Web3.toBytes(text=data)
@@ -36,14 +41,15 @@ def get_contracts_path(config):
 
 class OceanContractsWrapper(object):
 
-    def __init__(self, host, port, account=None):
+    def __init__(self, host=None, port=None, account=None):
 
         # Don't need these in the global scope
         config_file = app.config['CONFIG_FILE']
         config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
 
-        self.host = host
-        self.port = port
+        self.host = config['keeper.host'] if 'keeper.host' in config else host
+
+        self.port = config['keeper.port'] if 'keeper.port' in config else port
         self.web3 = OceanContractsWrapper.connect_web3(self.host, self.port)
         self.account = self.web3.eth.accounts[0] if account is None else account
         self.contracts_abis_path = get_contracts_path(config)
@@ -55,6 +61,8 @@ class OceanContractsWrapper(object):
             OceanContracts.OTKN: config['token.address']
         }
         self.encoding_key_pair = generate_encoding_pair()
+        self.cache = SimpleCache()
+
 
     def init_contracts(self, contracts_folder=None, contracts_addresses=None):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path
@@ -72,12 +80,12 @@ class OceanContractsWrapper(object):
             abi = json.load(abi_definition)
 
             concise_cont = self.web3.eth.contract(
-                    address=self.web3.toChecksumAddress(contract_address),
-                    abi=abi['abi'],
-                    ContractFactoryClass=ConciseContract)
+                address=self.web3.toChecksumAddress(contract_address),
+                abi=abi['abi'],
+                ContractFactoryClass=ConciseContract)
             contract = self.web3.eth.contract(
-                    address=self.web3.toChecksumAddress(contract_address),
-                    abi=abi['abi'])
+                address=self.web3.toChecksumAddress(contract_address),
+                abi=abi['abi'])
             return concise_cont, contract
 
     def get_tx_receipt(self, tx_hash):
@@ -114,31 +122,22 @@ class OceanContractsWrapper(object):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
             # TODO register metadata of the request.
-            # requests.post('/api/v1/provider/assets/metadata', data=json.dumps({"publisherId": "0x1",
-            #                                                                    "metadata": {
-            #                                                                        "name": "name",
-            #                                                                        "links": ["link"],
-            #                                                                        "size": "size",
-            #                                                                        "format": "format",
-            #                                                                        "description": "description"
-            #                                                                    },
-            #                                                                    "assetId": "001",
-            #                                                                    "consumerAddress": event['args'][
-            #                                                                        '_consumer'],
-            #                                                                    "consumerTempPubKey": event['args'][
-            #                                                                        '_pubkey'],
-            #                                                                    "challengeId": event['args']['_id'],
-            #                                                                    "date":
-            #                                                                    })
-            #               )
+            # This resource is going to be used later to fill the rest of the fields
+
+            # resource = requests.get('/metadata/%s' % event['args']['_resourceId'], content_type='application/json')
+            self.cache.add(event['args']['_id'],event['args'])
             commit_access_request = contract_instance.commitAccessRequest(event['args']['_id'], True,
                                                                           event['args']['_timeout'], 'discovery',
                                                                           'read', 'slaLink',
                                                                           'slaType',
-                                                                          transact={'from': event['args']['_provider']})
+                                                                          transact={
+                                                                              'from': event['args']['_provider']})
             print('Provider has committed the order: %s' % commit_access_request)
             return commit_access_request
         except Exception as e:
+            contract_instance.cancelAccessRequest(event['args']['_id'], transact={
+                'from': event['args']['_provider']})
+            print('There are not resource with this id register in Oceandb.')
             return e
 
     def publish_encrypted_token(self, event):
@@ -147,17 +146,18 @@ class OceanContractsWrapper(object):
             temp_public_key = contract_instance.getTempPubKey(event['args']['_paymentId'],
                                                               call={'from': event['args']['_receiver']})
             print("Public key: %s" % temp_public_key)
+            c = self.cache.get(event['args']['_paymentId'])
             jwt = encode({
                 "iss": "resourceowner.com",
-                "sub": "WorldCupDatasetForAnalysis",
+                "sub": "WorldCupDatasetForAnalysis",                                # Resource Name
                 "iat": 1516239022,
                 "exp": 1826790800,
-                "consumer_pubkey": "Consumer Public Key",
+                "consumer_pubkey": "Consumer Public Key",                           # Consumer Public Key
                 "temp_pubkey": temp_public_key,
-                "request_id": "Request Identifier",
-                "consent_hash": "Consent Hash",
-                "resource_id": "Resource Identifier",
-                "timeout": "Timeout comming from AUTH contract",
+                "request_id": event['args']['_paymentId'].hex(),                    # Request Identifier
+                "consent_hash": "Consent Hash",                                     # Consent Hash
+                "resource_id": c['_id'].hex(),   # Resource Identifier
+                "timeout": event['args']['_expire'],                                # Timeout comming from AUTH contract
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
                 "nonce": token_hex(32),
@@ -174,13 +174,13 @@ class OceanContractsWrapper(object):
         except Exception as e:
             return e
 
-    def release_payment(self, event):
-        contract_instance = self.contracts[OceanContracts.OACL]
-        url = ''
-        if contract_instance.verifyAccessTokenDelivery(event['args']['_paymentId'],  # accessId
-                                                       event['args'],  # consumerId
-                                                       event,  # sig.v
-                                                       event,  # sig.r
-                                                       event,  # sig.s
-                                                       transact={'from': event['args']['_receiver']}):
-            return generate_sasurl(url)
+    def to_32byte_hex(self, val):
+        return self.web3.toBytes(val).rjust(32, b'\0')
+
+    def split_signature(self, signature):
+        sig = KeyAPI.Signature(signature_bytes=signature)
+
+        v, r, s = self.web3.toInt(sig.v), self.to_32byte_hex(sig.r), self.to_32byte_hex(sig.s)
+        if v != 27 and v != 28:
+            v = 27 + v % 2
+        return Signature(v, r, s)

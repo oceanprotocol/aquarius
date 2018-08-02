@@ -27,7 +27,7 @@ keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 ocean_contracts.init_contracts()
 
-# filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL, 'RequestAccessConsent', ocean_contracts.commit_access_request, 500,
+# filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL, 'AccessConsentRequested', ocean_contracts.commit_access_request, 500,
 #                                           fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
 # filter_payment = ocean_contracts.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean_contracts.publish_encrypted_token, 500,
 #                                    fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
@@ -428,8 +428,8 @@ def get_assets_metadata():
     return jsonify(json.dumps(assets_metadata)), 200
 
 
-@assets.route('/download/<asset_id>?<challenge_id>', methods=['GET'])
-def download_data(asset_id, challenge_id, access_token):
+@assets.route('/consume/<asset_id>', methods=['GET'])
+def consume_resource(asset_id):
     """Allows download of asset data file from this provider.
 
     Data file can be stored locally at the provider end or at some cloud storage.
@@ -459,7 +459,7 @@ def download_data(asset_id, challenge_id, access_token):
             - challenge_id
           properties:
             challenge_id:
-              description: Id of the asset's publisher.
+              description:
               type: string
               example: '0x0234242345'
 
@@ -473,7 +473,15 @@ def download_data(asset_id, challenge_id, access_token):
     required_attributes = ['accessId','consumerId', 'sig.v', 'sig.r', 'sig.s']
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    contract_instance = ocean_contracts.concise_contracts['OceanAuth.json']
+    if not data:
+        return 400
+    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+
+    for attr in required_attributes:
+        if attr not in data:
+            return '"%s" is required for registering an asset.' % attr, 400
+
+    contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
 
     if contract_instance.verifyAccessTokenDelivery(accessId,                     # accessId
                                                    event['args'],                # consumerId
@@ -605,50 +613,3 @@ def generate_sasurl(url):
     sasToken = bs.generate_shared_access_signature(recources_config['azure.container'], None, SharedAccessPolicy(
         AccessPolicy(None, todayPlusMonthISO, "rw"), None))
     return url + "?" + sasToken
-
-
-
-# {
-#   "assetId": "0x1298371984723941",
-#   "metadata": {
-#     "category": "Climate",
-#     "classification": "public",
-#     "date": "01-01-2019",
-#     "description": "Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.",
-#     "format": ".zip",
-#     "industry": "Earth Sciences",
-#     "keywords": [
-#       "climate",
-#       "ocean",
-#       "atmosphere",
-#       "temperature"
-#     ],
-#     "labels": [
-#       "climate",
-#       "ocean",
-#       "atmosphere",
-#       "temperature"
-#     ],
-#     "license": "propietary",
-#     "lifecycleStage": "string",
-#     "links": [
-#       "https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip",
-#       "https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"
-#     ],
-#     "name": "Berling Climate NetCDF",
-#     "note": "string",
-#     "size": "0.000217GB",
-#     "updateFrequency": "static"
-#   },
-#   "publisherId": "0x0234242345",
-#   "commitAccessRequest":{
-#     "challengeId",
-#     "available",
-#     "expire",
-#     "discovery",
-#     "permissions",
-#     "slaLink",
-#     "slaType",
-#     "accessTokenHash"
-#   }
-# }

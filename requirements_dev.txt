@@ -13,7 +13,7 @@ singletonify==0.1.2.0
 twine==1.11.0
 setuptools==39.1.0
 py-solc
-web3==4.4.1
+web3==4.5.0
 PyJWT==1.6.4
 pyopenssl
 eciespy
