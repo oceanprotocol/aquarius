@@ -7,8 +7,7 @@ ARG VERSION
 COPY . /opt/provider-backend
 WORKDIR /opt/provider-backend
 
-RUN pip install flask
-RUN pip install -r /opt/provider-backend/requirements_dev.txt --user
+RUN pip install -r /opt/provider-backend/requirements_dev.txt
 RUN chmod +x docker-entrypoint.sh
 
 CMD "./docker-entrypoint.sh"
