@@ -96,7 +96,7 @@ class OceanContractsWrapper(object):
         event_filter = self.install_filter(
             contract_name, event_name, fromBlock, toBlock, filters
         )
-        event_filter.poll_interval = 500
+        event_filter.poll_interval = interval
         Thread(
             target=self.watcher,
             args=(event_filter, callback, interval),
@@ -181,6 +181,14 @@ class OceanContractsWrapper(object):
         sig = KeyAPI.Signature(signature_bytes=signature)
 
         v, r, s = self.web3.toInt(sig.v), self.to_32byte_hex(sig.r), self.to_32byte_hex(sig.s)
+        if v != 27 and v != 28:
+            v = 27 + v % 2
+        return Signature(v, r, s)
+
+    def split_signature2(self, signature):
+        v = self.web3.toInt(signature[-1])
+        r = self.to_32byte_hex(int.from_bytes(signature[:32], 'big'))
+        s = self.to_32byte_hex(int.from_bytes(signature[32:64], 'big'))
         if v != 27 and v != 28:
             v = 27 + v % 2
         return Signature(v, r, s)
