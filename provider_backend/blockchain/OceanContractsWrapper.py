@@ -12,9 +12,9 @@ from provider_backend.constants import ConfigSections
 from provider_backend.acl.acl import enc, encode, generate_encoding_pair
 from threading import Thread
 from secrets import token_hex
-from eth_keys import KeyAPI
 from collections import namedtuple
 from werkzeug.contrib.cache import SimpleCache
+from provider_backend.constants import BaseURLs
 
 Signature = namedtuple('Signature', ('v', 'r', 's'))
 
@@ -62,7 +62,6 @@ class OceanContractsWrapper(object):
         }
         self.encoding_key_pair = generate_encoding_pair()
         self.cache = SimpleCache()
-
 
     def init_contracts(self, contracts_folder=None, contracts_addresses=None):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path
@@ -121,11 +120,14 @@ class OceanContractsWrapper(object):
     def commit_access_request(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            # TODO register metadata of the request.
-            # This resource is going to be used later to fill the rest of the fields
+            resource = json.loads(requests.get(
+                "http://0.0.0.0:5000" +
+                BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % self.web3.toHex(event['args']['_resourceId'])).text
 
-            # resource = requests.get('/metadata/%s' % event['args']['_resourceId'], content_type='application/json')
-            self.cache.add(event['args']['_id'],event['args'])
+                                  )
+            _cache = dict()
+            _cache['access_request'] = event['args']
+            _cache['resource_metadata'] = resource
             commit_access_request = contract_instance.commitAccessRequest(event['args']['_id'], True,
                                                                           event['args']['_timeout'], 'discovery',
                                                                           'read', 'slaLink',
@@ -133,6 +135,8 @@ class OceanContractsWrapper(object):
                                                                           transact={
                                                                               'from': event['args']['_provider']})
             print('Provider has committed the order: %s' % commit_access_request)
+            _cache['consent_hash'] = self.web3.toHex(commit_access_request)
+            self.cache.add(event['args']['_id'], _cache)
             return commit_access_request
         except Exception as e:
             contract_instance.cancelAccessRequest(event['args']['_id'], transact={
@@ -147,24 +151,26 @@ class OceanContractsWrapper(object):
                                                               call={'from': event['args']['_receiver']})
             print("Public key: %s" % temp_public_key)
             c = self.cache.get(event['args']['_paymentId'])
+            iat = time.time()
+            # TODO Validate that all the values are good.
             jwt = encode({
-                "iss": "resourceowner.com",
-                "sub": "WorldCupDatasetForAnalysis",                                # Resource Name
-                "iat": 1516239022,
-                "exp": 1826790800,
-                "consumer_pubkey": "Consumer Public Key",                           # Consumer Public Key
+                "iss": c['access_request']['_provider'],
+                "sub": c['resource_metadata']['data']['metadata']['name'],  # Resource Name
+                "iat": iat,
+                "exp": iat + event['args']['_expire'],
+                "consumer_pubkey": "Consumer Public Key",  # Consumer Public Key
                 "temp_pubkey": temp_public_key,
-                "request_id": event['args']['_paymentId'].hex(),                    # Request Identifier
-                "consent_hash": "Consent Hash",                                     # Consent Hash
-                "resource_id": c['_id'].hex(),   # Resource Identifier
-                "timeout": event['args']['_expire'],                                # Timeout comming from AUTH contract
+                "request_id": self.web3.toHex(event['args']['_paymentId']),  # Request Identifier
+                "consent_hash": c['consent_hash'],  # Consent Hash
+                "resource_id": self.web3.toHex(c['access_request']['_id']),  # Resource Identifier
+                "timeout": event['args']['_expire'],  # Timeout comming from AUTH contract
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
+                "service_endpoint": "<myserver>/cosume/",
                 "nonce": token_hex(32),
             }, self.encoding_key_pair.private_key)
             encJWT = enc(jwt, temp_public_key)
-            # encJWT = enc(b'eyJhbGciOiJIUzI1', temp_public_key)
-            # print("Delivering token jwt: %s" % jwt)
+            self.cache.delete(event['args']['_paymentId'])
             print("Delivering token jwt: %s" % encJWT)
             deliver_acces_token = contract_instance.deliverAccessToken(event['args']['_paymentId'],
                                                                        encJWT,
@@ -176,14 +182,6 @@ class OceanContractsWrapper(object):
 
     def to_32byte_hex(self, val):
         return self.web3.toBytes(val).rjust(32, b'\0')
-
-    def split_signature(self, signature):
-        sig = KeyAPI.Signature(signature_bytes=signature)
-
-        v, r, s = self.web3.toInt(sig.v), self.to_32byte_hex(sig.r), self.to_32byte_hex(sig.s)
-        if v != 27 and v != 28:
-            v = 27 + v % 2
-        return Signature(v, r, s)
 
     def split_signature2(self, signature):
         v = self.web3.toInt(signature[-1])

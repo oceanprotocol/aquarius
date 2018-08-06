@@ -26,15 +26,9 @@ oceandb = OceanDb(config_file).plugin
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 ocean_contracts.init_contracts()
-
-# filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL, 'AccessConsentRequested', ocean_contracts.commit_access_request, 500,
-#                                           fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
-# filter_payment = ocean_contracts.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean_contracts.publish_encrypted_token, 500,
-#                                    fromBlock='latest', filters={"address": ocean_contracts.web3.eth.accounts[0]})
-
 # Prepare resources access configuration to download assets
 recources_config = load_config_section(config_file, ConfigSections.RESOURCES)
-ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
+# ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
@@ -97,7 +91,8 @@ def find_tx_id(asset_id):
         if a['data']['data']['assetId'] == asset_id:
             return a['id']
         else:
-            return "%s not found" % asset_id
+            pass
+    return "%s not found" % asset_id
 
 
 @assets.route('/metadata', methods=['POST'])
@@ -483,14 +478,14 @@ def consume_resource(asset_id):
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
 
-    if contract_instance.verifyAccessTokenDelivery(accessId,                     # accessId
-                                                   event['args'],                # consumerId
-                                                   event,                        # sig.v
-                                                   event,                        # sig.r
-                                                   event,  # sig.s
-                                                   transact={'from': event['args']['_receiver']}):
-        url = oceandb.read(asset_id)['metadata']['links']
-        return generate_sasurl(url)
+    # if contract_instance.verifyAccessTokenDelivery(accessId,                     # accessId
+    #                                                event['args'],                # consumerId
+    #                                                event,                        # sig.v
+    #                                                event,                        # sig.r
+    #                                                event,  # sig.s
+    #                                                transact={'from': event['args']['_receiver']}):
+    #     url = oceandb.read(asset_id)['metadata']['links']
+    #     return generate_sasurl(url)
 
     # asset_record = oceandb.read(asset_id)
     # if not asset_record:
@@ -602,6 +597,11 @@ def validate_asset_data(data):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL, 'AccessConsentRequested', ocean_contracts.commit_access_request, 250,
+#                                           fromBlock='latest', filters={"address": keeper_config['provider.address']})
+# filter_payment = ocean_contracts.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean_contracts.publish_encrypted_token, 250,
+#                                    fromBlock='latest', filters={"address":  keeper_config['provider.address']})
 
 
 def generate_sasurl(url):
