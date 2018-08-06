@@ -14,19 +14,16 @@ token = ocean.contracts[OceanContracts.OCEAN_TOKEN_CONTRACT][0]
 
 
 def test_commit_access_requested():
-    print("Starting test_commit_access_requested")
     resource_id = market_concise.generateId('resource', transact={'from': ocean.web3.eth.accounts[0]})
-    print("recource_id: %s" % resource_id)
-    resource_price = 10
-
+    resource_price = 100
     pubprivkey = generate_encryption_keys()
     pubkey = pubprivkey.public_key
     privkey = pubprivkey.private_key
 
     market_concise.requestTokens(2000, transact={'from': ocean.web3.eth.accounts[0]})
     market_concise.requestTokens(2000, transact={'from': ocean.web3.eth.accounts[1]})
-    print('buyer balance = ', token.balanceOf(ocean.web3.eth.accounts[1]))
-    print('seller balance = ', token.balanceOf(ocean.web3.eth.accounts[0]))
+    buyer_balance_start = token.balanceOf(ocean.web3.eth.accounts[1])
+    seller_balance_start = token.balanceOf(ocean.web3.eth.accounts[0])
 
     filter_access_consent = ocean.watch_event(OceanContracts.OACL, 'AccessConsentRequested',
                                               ocean.commit_access_request, 500,
@@ -61,28 +58,20 @@ def test_commit_access_requested():
                                               resource_price,
                                               9999999999,
                                               transact={'from': ocean.web3.eth.accounts[1]})
-
-    print('buyer balance = ', token.balanceOf(ocean.web3.eth.accounts[1]))
-    print('seller balance = ', token.balanceOf(ocean.web3.eth.accounts[0]))
+    receipt_payment = ocean.get_tx_receipt(send_payment)
+    market.events.PaymentReceived().processReceipt(receipt_payment)
 
     # Verify consent has been emited
     assert acl_concise.verifyCommitted(request_id, 1)
-
     assert filter_payment.get_new_entries()[0]['transactionHash'] == send_payment
-
     assert acl_concise.getTempPubKey(request_id) == pubkey
 
     on_chain_enc_token = acl_concise.getEncryptedAccessToken(request_id, call={'from': ocean.web3.eth.accounts[1]})
 
-    print("jwt: %s" % decode(dec(on_chain_enc_token, privkey), ocean.encoding_key_pair.public_key))
-
     assert pubkey == decode(dec(on_chain_enc_token, privkey), ocean.encoding_key_pair.public_key)['temp_pubkey']
 
     signature = ocean.web3.eth.sign(ocean.web3.eth.accounts[1], data=on_chain_enc_token)
-
     fixed_msg = defunct_hash_message(hexstr=ocean.web3.toHex(on_chain_enc_token))
-    # fixed_msg_sha = ocean.web3.sha3(fixed_msg)
-
     sig = ocean.split_signature(signature)
 
     assert acl_concise.isSigned(ocean.web3.eth.accounts[1],
@@ -92,10 +81,16 @@ def test_commit_access_requested():
                                 sig.s,
                                 call={'from': ocean.web3.eth.accounts[0]})
 
-    assert acl_concise.verifyAccessTokenDelivery(request_id,
-                                                 ocean.web3.eth.accounts[1],
-                                                 ocean.web3.toHex(fixed_msg),
-                                                 sig.v,
-                                                 sig.r,
-                                                 sig.s,
-                                                 call={'from': ocean.web3.eth.accounts[0]})
+    verify = acl_concise.verifyAccessTokenDelivery(request_id,
+                                                   ocean.web3.eth.accounts[1],
+                                                   ocean.web3.toHex(fixed_msg),
+                                                   sig.v,
+                                                   sig.r,
+                                                   sig.s,
+                                                   transact={'from': ocean.web3.eth.accounts[0]})
+
+    receipt_payment_release = ocean.get_tx_receipt(verify)
+    market.events.PaymentReleased().processReceipt(receipt_payment_release)
+    assert acl_concise.verifyCommitted(request_id, 2)
+    assert token.balanceOf(ocean.web3.eth.accounts[1]) == buyer_balance_start - resource_price
+    assert token.balanceOf(ocean.web3.eth.accounts[0]) == seller_balance_start + resource_price

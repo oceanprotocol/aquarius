@@ -17,7 +17,7 @@ The most simple way to start is:
 git clone git@github.com:oceanprotocol/provider-backend.git
 cd provider-backend/
 
-export FLASK_APP=provider_backend/app.py
+export FLASK_APP=provider_backend/run.py
 export CONFIG_FILE=oceandb.ini 
 flask run
 ```
