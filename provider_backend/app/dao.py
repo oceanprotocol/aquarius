@@ -1,11 +1,10 @@
 from oceandb_driver_interface import OceanDb
-from provider_backend.myapp import app
 
 
 class Dao(object):
 
-    def __init__(self,config_file):
-        self.oceandb=OceanDb(config_file).plugin
+    def __init__(self, config_file):
+        self.oceandb = OceanDb(config_file).plugin
 
     def get_assets(self):
         assets = self.oceandb.list()
@@ -30,13 +29,13 @@ class Dao(object):
                 pass
         return "%s not found" % asset_id
 
-    def register(self,record):
+    def register(self, record):
         return self.oceandb.write(record)
 
-    def update(self, record,asset_id):
+    def update(self, record, asset_id):
         tx_id = self.find_tx_id(asset_id)
         return self.oceandb.update(record, tx_id)
 
-    def delete(self,asset_id):
+    def delete(self, asset_id):
         tx_id = self.find_tx_id(asset_id)
         return self.oceandb.delete(tx_id)

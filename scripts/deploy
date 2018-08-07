@@ -14,3 +14,4 @@ auth=$(echo $values | cut -d' ' -f3)
 sed -i -e "/token.address=/c ${token}" $CONF_FILE
 sed -i -e "/market.address=/c ${market}" $CONF_FILE
 sed -i -e "/auth.address=/c ${auth}" $CONF_FILE
+sed -i -e "/provider.address=/c provider.address=" $CONF_FILE
