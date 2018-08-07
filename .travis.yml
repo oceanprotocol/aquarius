@@ -7,6 +7,7 @@ services:
   - docker
 
 before_install:
+- docker build -t provider-backend .
 - docker-compose -f docker/docker-compose.yml up -d
 -
 
