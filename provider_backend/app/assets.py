@@ -1,13 +1,11 @@
-import os, json, datetime
+import datetime
 
 from flask import Blueprint, jsonify, request
-from oceandb_driver_interface import OceanDb
 from azure.storage.blob import BlobService
 from azure.storage import AccessPolicy, SharedAccessPolicy
 
 from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.myapp import app
-from werkzeug.utils import secure_filename
 import json
 
 from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
@@ -21,7 +19,7 @@ assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
 # Prepare OceanDB
-dao= Dao(config_file)
+dao = Dao(config_file)
 
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
@@ -32,6 +30,20 @@ recources_config = load_config_section(config_file, ConfigSections.RESOURCES)
 # ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
 
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
+
+@assets.before_app_first_request
+def start_filters():
+    ocean = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
+    ocean.init_contracts()
+
+    provider_account=keeper_config['provider.address']
+    print("deploying filters")
+    filter_access_consent = ocean.watch_event(OceanContracts.OACL, 'AccessConsentRequested',
+                                              ocean.commit_access_request, 250,
+                                              fromBlock='latest', filters={"address": provider_account})
+    filter_payment = ocean.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean.publish_encrypted_token, 2500,
+                                       fromBlock='latest', filters={"address": provider_account})
+    print("Filters deployed")
 
 
 @assets.route('', methods=['GET'])
@@ -54,7 +66,7 @@ def get_assets():
     #         asset_with_id.append(oceandb.read(asset['id']))
     #     except:
     #         pass
-    asset_with_id=dao.get_assets()
+    asset_with_id = dao.get_assets()
 
     asset_ids = [a['data']['data']['assetId'] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
@@ -80,24 +92,10 @@ def get(asset_id):
         description: This asset id is not in OceanDB
     """
     try:
-        # tx_id = find_tx_id(asset_id)
-        # asset_record = oceandb.read(tx_id)
         asset_record = dao.get(asset_id)
         return jsonify(asset_record['data']), 200
     except Exception as e:
         return '"%s asset_id is not in OceanDB' % asset_id, 404
-
-
-
-
-# def find_tx_id(asset_id):
-#     all = oceandb.list()
-#     for a in all:
-#         if a['data']['data']['assetId'] == asset_id:
-#             return a['id']
-#         else:
-#             pass
-#     return "%s not found" % asset_id
 
 
 @assets.route('/metadata', methods=['POST'])
@@ -233,7 +231,6 @@ def register():
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = data['assetId']
     try:
-        # oceandb.write(_record)
         dao.register(_record)
         # add new assetId to response
         return _sanitize_record(_record), 201
@@ -370,8 +367,6 @@ def update(asset_id):
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = asset_id
     try:
-        # tx_id = find_tx_id(asset_id)
-        # oceandb.update(_record, tx_id)
         dao.update(_record, asset_id)
         return _sanitize_record(_record), 200
     except Exception as err:
@@ -399,8 +394,6 @@ def retire(asset_id):
         description: Error
     """
     try:
-        # tx_id = find_tx_id(asset_id)
-        # oceandb.delete(tx_id)
         dao.delete(asset_id)
         return 200
     except Exception as err:
@@ -420,14 +413,7 @@ def get_assets_metadata():
     args = []
     query = dict()
     args.append(query)
-    # assets = oceandb.list()
-    # assets_with_id = []
-    # for asset in assets:
-    #     try:
-    #         assets_with_id.append((oceandb.read(asset['id'])))
-    #     except Exception as e:
-    #         return 'Some error: "%s"' % str(e), 500
-    assets_with_id=dao.get_assets()
+    assets_with_id = dao.get_assets()
     assets_metadata = {a['data']['data']['assetId']: a['data']['data'] for a in assets_with_id}
     return jsonify(json.dumps(assets_metadata)), 200
 
@@ -490,12 +476,11 @@ def consume_resource(asset_id):
 
     if contract_instance.verifyAccessTokenDelivery(data['accessId'],  # accessId
                                                    data['consumerId'],  # consumerId
-                                                   ocean_contracts.web3.toHex(data['fixed_msg']), #Depend of the request to hex
+                                                   ocean_contracts.web3.toHex(data['fixed_msg']),
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
                                                    transact={'from': keeper_config['provider.address']}):
-        # url = oceandb.read(asset_id)['metadata']['links']
         url = dao.get(asset_id)['metadata']['links']
         return generate_sasurl(url), 200
 
