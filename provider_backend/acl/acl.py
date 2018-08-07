@@ -22,11 +22,11 @@ def generate_encoding_pair():
 
 
 def encode(data, secret):
-    return jwt.encode(data, secret, algorithm='RS256')
+    return jwt.encode(data, secret, algorithm='HS256')
 
 
-def decode(encoded, secret):
-    return jwt.decode(encoded, secret, algorithms='RS256')
+def decode(encoded):
+    return jwt.decode(encoded, algorithms='HS256', verify=False)
 
 
 def enc(data, publicKey):

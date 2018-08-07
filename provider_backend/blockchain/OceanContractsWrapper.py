@@ -1,10 +1,8 @@
 import os
 import json
-import requests
 import time, site
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
-
 from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.config_parser import load_config_section
 from provider_backend.myapp import app
@@ -14,10 +12,9 @@ from threading import Thread
 from secrets import token_hex
 from collections import namedtuple
 from werkzeug.contrib.cache import SimpleCache
-from provider_backend.constants import BaseURLs
+from provider_backend.app.dao import Dao
 
 Signature = namedtuple('Signature', ('v', 'r', 's'))
-
 
 def convert_to_bytes(data):
     return Web3.toBytes(text=data)
@@ -46,6 +43,7 @@ class OceanContractsWrapper(object):
         # Don't need these in the global scope
         config_file = app.config['CONFIG_FILE']
         config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
+        self.dao=Dao(config_file)
 
         self.host = config['keeper.host'] if 'keeper.host' in config else host
 
@@ -120,11 +118,7 @@ class OceanContractsWrapper(object):
     def commit_access_request(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            resource = json.loads(requests.get(
-                "http://0.0.0.0:5000" +
-                BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % self.web3.toHex(event['args']['_resourceId'])).text
-
-                                  )
+            resource=self.dao.get(self.web3.toHex(event['args']['_resourceId']))
             _cache = dict()
             _cache['access_request'] = event['args']
             _cache['resource_metadata'] = resource
@@ -155,7 +149,7 @@ class OceanContractsWrapper(object):
             # TODO Validate that all the values are good.
             jwt = encode({
                 "iss": c['access_request']['_provider'],
-                "sub": c['resource_metadata']['data']['metadata']['name'],  # Resource Name
+                "sub": c['resource_metadata']['data']['data']['metadata']['name'],  # Resource Name
                 "iat": iat,
                 "exp": iat + event['args']['_expire'],
                 "consumer_pubkey": "Consumer Public Key",  # Consumer Public Key
@@ -183,7 +177,7 @@ class OceanContractsWrapper(object):
     def to_32byte_hex(self, val):
         return self.web3.toBytes(val).rjust(32, b'\0')
 
-    def split_signature2(self, signature):
+    def split_signature(self, signature):
         v = self.web3.toInt(signature[-1])
         r = self.to_32byte_hex(int.from_bytes(signature[:32], 'big'))
         s = self.to_32byte_hex(int.from_bytes(signature[32:64], 'big'))

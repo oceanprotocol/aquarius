@@ -144,14 +144,14 @@ def test_commit_access_requested(client):
 
     decrypted_token = dec(on_chain_enc_token, privkey)
     pub_key = ocean.encoding_key_pair.public_key
-    access_token = decode(decrypted_token, pub_key)
+    access_token = decode(decrypted_token)
 
     assert pubkey == access_token['temp_pubkey']
     signature = ocean.web3.eth.sign(consumer_account, data=on_chain_enc_token)
 
     fixed_msg = defunct_hash_message(hexstr=ocean.web3.toHex(on_chain_enc_token))
 
-    sig = ocean.split_signature2(signature)
+    sig = ocean.split_signature(signature)
 
     assert acl_concise.isSigned(consumer_account,
                                 ocean.web3.toHex(fixed_msg),
