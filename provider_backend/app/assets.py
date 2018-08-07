@@ -13,6 +13,7 @@ import json
 from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
 from provider_backend.config_parser import load_config_section
 from provider_backend.constants import ConfigSections
+from provider_backend.app.dao import Dao
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'osx', 'doc'}
 
@@ -20,7 +21,7 @@ assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
 # Prepare OceanDB
-oceandb = OceanDb(config_file).plugin
+dao= Dao(config_file)
 
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
@@ -46,13 +47,14 @@ def get_assets():
     args = []
     query = dict()
     args.append(query)
-    assets = oceandb.list()
-    asset_with_id = []
-    for asset in assets:
-        try:
-            asset_with_id.append(oceandb.read(asset['id']))
-        except:
-            pass
+    # assets = oceandb.list()
+    # asset_with_id = []
+    # for asset in assets:
+    #     try:
+    #         asset_with_id.append(oceandb.read(asset['id']))
+    #     except:
+    #         pass
+    asset_with_id=dao.get_assets()
 
     asset_ids = [a['data']['data']['assetId'] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
@@ -78,21 +80,24 @@ def get(asset_id):
         description: This asset id is not in OceanDB
     """
     try:
-        tx_id = find_tx_id(asset_id)
-        asset_record = oceandb.read(tx_id)
+        # tx_id = find_tx_id(asset_id)
+        # asset_record = oceandb.read(tx_id)
+        asset_record = dao.get(asset_id)
         return jsonify(asset_record['data']), 200
     except Exception as e:
         return '"%s asset_id is not in OceanDB' % asset_id, 404
 
 
-def find_tx_id(asset_id):
-    all = oceandb.list()
-    for a in all:
-        if a['data']['data']['assetId'] == asset_id:
-            return a['id']
-        else:
-            pass
-    return "%s not found" % asset_id
+
+
+# def find_tx_id(asset_id):
+#     all = oceandb.list()
+#     for a in all:
+#         if a['data']['data']['assetId'] == asset_id:
+#             return a['id']
+#         else:
+#             pass
+#     return "%s not found" % asset_id
 
 
 @assets.route('/metadata', methods=['POST'])
@@ -228,7 +233,8 @@ def register():
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = data['assetId']
     try:
-        oceandb.write(_record)
+        # oceandb.write(_record)
+        dao.register(_record)
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
@@ -364,8 +370,9 @@ def update(asset_id):
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = asset_id
     try:
-        tx_id = find_tx_id(asset_id)
-        oceandb.update(_record, tx_id)
+        # tx_id = find_tx_id(asset_id)
+        # oceandb.update(_record, tx_id)
+        dao.update(_record, asset_id)
         return _sanitize_record(_record), 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
@@ -392,8 +399,9 @@ def retire(asset_id):
         description: Error
     """
     try:
-        tx_id = find_tx_id(asset_id)
-        oceandb.delete(tx_id)
+        # tx_id = find_tx_id(asset_id)
+        # oceandb.delete(tx_id)
+        dao.delete(asset_id)
         return 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
@@ -412,14 +420,15 @@ def get_assets_metadata():
     args = []
     query = dict()
     args.append(query)
-    assets = oceandb.list()
-    assets_with_id = []
-    for asset in assets:
-        try:
-            assets_with_id.append((oceandb.read(asset['id'])))
-        except Exception as e:
-            return 'Some error: "%s"' % str(e), 500
-    assets_metadata = {a['data']['data']['assetId']: a['data']['data']for a in assets_with_id}
+    # assets = oceandb.list()
+    # assets_with_id = []
+    # for asset in assets:
+    #     try:
+    #         assets_with_id.append((oceandb.read(asset['id'])))
+    #     except Exception as e:
+    #         return 'Some error: "%s"' % str(e), 500
+    assets_with_id=dao.get_assets()
+    assets_metadata = {a['data']['data']['assetId']: a['data']['data'] for a in assets_with_id}
     return jsonify(json.dumps(assets_metadata)), 200
 
 
@@ -465,7 +474,7 @@ def consume_resource(asset_id):
     # Verify consumer has permission to consume this asset (on-chain authorization)
 
     # Get asset metadata record
-    required_attributes = ['accessId','consumerId', 'sig.v', 'sig.r', 'sig.s']
+    required_attributes = ['accessId', 'consumerId', 'fixed_msg', 'sigEncJWT']
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
@@ -477,39 +486,18 @@ def consume_resource(asset_id):
             return '"%s" is required for registering an asset.' % attr, 400
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
+    sig = OceanContractsWrapper.split_signature(data['sigEncJWT'])
 
-    # if contract_instance.verifyAccessTokenDelivery(accessId,                     # accessId
-    #                                                event['args'],                # consumerId
-    #                                                event,                        # sig.v
-    #                                                event,                        # sig.r
-    #                                                event,  # sig.s
-    #                                                transact={'from': event['args']['_receiver']}):
-    #     url = oceandb.read(asset_id)['metadata']['links']
-    #     return generate_sasurl(url)
-
-    # asset_record = oceandb.read(asset_id)
-    # if not asset_record:
-    #     return 'This asset id cannot be found. Please verify this asset id is correct.', 404
-    #
-    # asset_folder_path = os.path.join(ASSETS_FOLDER, asset_id)
-    # if not os.path.exists(asset_folder_path) or not os.listdir(asset_folder_path):
-    #     return 'The requested dataset was not found. Ask the provider/publisher to upload the dataset.', 404
-    #
-    # files = []
-    # for filename in os.listdir(asset_folder_path):
-    #     file_path = os.path.join(asset_folder_path, filename)
-    #     files.append(file_path)
-    #
-    # if not files:
-    #     return 'Resource not found.', 404
-    #
-    # content_type = asset_record.get("contentType")
-    # if content_type:
-    #     response.set_header("content-type", content_type)
-    #
-    # # check asset metadata to figure out whether asset is stored locally or stored on the cloud
-    #
-    # return files[0], 200
+    if contract_instance.verifyAccessTokenDelivery(data['accessId'],  # accessId
+                                                   data['consumerId'],  # consumerId
+                                                   ocean_contracts.web3.toHex(data['fixed_msg']), #Depend of the request to hex
+                                                   sig.v,  # sig.v
+                                                   sig.r,  # sig.r
+                                                   sig.s,  # sig.s
+                                                   transact={'from': keeper_config['provider.address']}):
+        # url = oceandb.read(asset_id)['metadata']['links']
+        url = dao.get(asset_id)['metadata']['links']
+        return generate_sasurl(url), 200
 
 
 @assets.route('/asset/{asset_id}', methods=['POST'])
@@ -525,63 +513,63 @@ def upload_data(asset_id, body=None, publisher_id=None):
     # update asset metadata to specify that this asset is available for download from this provider directly.
 
     # require parameter
-    if not publisher_id:
-        return "This call requires some arguments but none were provided. Publisher id is required", 401
-
-    # verify that this asset exists and not disabled
-    resource_record = oceandb.read(asset_id)
-    if not resource_record:
-        return "Data asset '%s' not found." % asset_id, 404
-
-    # verify that the publisher is the same that published the asset
-    if publisher_id != resource_record['publisherId']:
-        return "Actor %s not authorized to upload in this asset." % publisher_id, 401
-
-    file_path = None
-    try:
-        if not isinstance(body, dict) or 'file' not in body or not body['file']:
-            return "Malformed file upload request.", 400
-
-        file_value = body['file']
-        assert len(file_value) == 2
-        file_name = body['file'][0]
-        input_file = body['file'][1]
-        if not allowed_file(file_name):
-            return 400
-
-        # file_type = body.get('filetype')
-        # if file_type is not None:
-        #     assets_db.update_one({'assetId': asset_id}, {'$set': {'contentType': file_type}})
-
-        asset_folder = os.path.join(ASSETS_FOLDER, asset_id)
-        if not os.path.exists(asset_folder):
-            os.makedirs(asset_folder)
-
-        file_name = secure_filename(file_name)
-        file_path = os.path.join(asset_folder, file_name) + '~'
-        if os.path.exists(file_path[:-1]):
-            return "Resource already exists with the same name. Try uploading using a different file name.", 422
-
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-        with open(file_path, 'wb') as output_file:
-            _size = 4096
-            while True:
-                chunk = input_file.read(_size)
-                if not chunk:
-                    break
-                output_file.write(chunk)
-
-        os.rename(file_path, file_path[:-1])
-
-        return 'File saved successfully to "%s"' % file_path[:-1], 201
-
-    except Exception as err:
-        print('Error: "%s"' % str(err))
-        if file_path and os.path.exists(file_path):
-            os.remove(file_path)
-        return str(err), 500
+    # if not publisher_id:
+    #     return "This call requires some arguments but none were provided. Publisher id is required", 401
+    #
+    # # verify that this asset exists and not disabled
+    # resource_record = oceandb.read(asset_id)
+    # if not resource_record:
+    #     return "Data asset '%s' not found." % asset_id, 404
+    #
+    # # verify that the publisher is the same that published the asset
+    # if publisher_id != resource_record['publisherId']:
+    #     return "Actor %s not authorized to upload in this asset." % publisher_id, 401
+    #
+    # file_path = None
+    # try:
+    #     if not isinstance(body, dict) or 'file' not in body or not body['file']:
+    #         return "Malformed file upload request.", 400
+    #
+    #     file_value = body['file']
+    #     assert len(file_value) == 2
+    #     file_name = body['file'][0]
+    #     input_file = body['file'][1]
+    #     if not allowed_file(file_name):
+    #         return 400
+    #
+    #     # file_type = body.get('filetype')
+    #     # if file_type is not None:
+    #     #     assets_db.update_one({'assetId': asset_id}, {'$set': {'contentType': file_type}})
+    #
+    #     asset_folder = os.path.join(ASSETS_FOLDER, asset_id)
+    #     if not os.path.exists(asset_folder):
+    #         os.makedirs(asset_folder)
+    #
+    #     file_name = secure_filename(file_name)
+    #     file_path = os.path.join(asset_folder, file_name) + '~'
+    #     if os.path.exists(file_path[:-1]):
+    #         return "Resource already exists with the same name. Try uploading using a different file name.", 422
+    #
+    #     if os.path.exists(file_path):
+    #         os.remove(file_path)
+    #
+    #     with open(file_path, 'wb') as output_file:
+    #         _size = 4096
+    #         while True:
+    #             chunk = input_file.read(_size)
+    #             if not chunk:
+    #                 break
+    #             output_file.write(chunk)
+    #
+    #     os.rename(file_path, file_path[:-1])
+    #
+    #     return 'File saved successfully to "%s"' % file_path[:-1], 201
+    #
+    # except Exception as err:
+    #     print('Error: "%s"' % str(err))
+    #     if file_path and os.path.exists(file_path):
+    #         os.remove(file_path)
+    #     return str(err), 500
 
 
 def _sanitize_record(data_record):
@@ -597,11 +585,6 @@ def validate_asset_data(data):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL, 'AccessConsentRequested', ocean_contracts.commit_access_request, 250,
-#                                           fromBlock='latest', filters={"address": keeper_config['provider.address']})
-# filter_payment = ocean_contracts.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean_contracts.publish_encrypted_token, 250,
-#                                    fromBlock='latest', filters={"address":  keeper_config['provider.address']})
 
 
 def generate_sasurl(url):

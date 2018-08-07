@@ -4,7 +4,7 @@ from provider_backend.acl.acl import encode, decode, enc, dec, generate_encrypti
 def test_encode_decode():
     pubprivkey = generate_encoding_pair()
     encod = encode({"metadata": "example"}, pubprivkey.private_key)
-    assert {"metadata": "example"} == decode(encod, pubprivkey.public_key)
+    assert {"metadata": "example"} == decode(encod)
 
 
 def test_encrypt_decrypt():
@@ -39,4 +39,4 @@ def test_encrypt_decrypt():
                 "timeout": "Timeout comming from AUTH contract",
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
-            } == decode(decrypt, provider_keypair.public_key)
+            } == decode(decrypt)
