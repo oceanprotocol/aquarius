@@ -16,6 +16,7 @@ from provider_backend.app.dao import Dao
 
 Signature = namedtuple('Signature', ('v', 'r', 's'))
 
+
 def convert_to_bytes(data):
     return Web3.toBytes(text=data)
 
@@ -38,12 +39,12 @@ def get_contracts_path(config):
 
 class OceanContractsWrapper(object):
 
-    def __init__(self, host=None, port=None, account=None):
+    def __init__(self, host=None, port=None, account=None, api_url=None):
 
         # Don't need these in the global scope
         config_file = app.config['CONFIG_FILE']
         config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
-        self.dao=Dao(config_file)
+        self.dao = Dao(config_file)
 
         self.host = config['keeper.host'] if 'keeper.host' in config else host
 
@@ -60,6 +61,7 @@ class OceanContractsWrapper(object):
         }
         self.encoding_key_pair = generate_encoding_pair()
         self.cache = SimpleCache()
+        self.api_url = api_url
 
     def init_contracts(self, contracts_folder=None, contracts_addresses=None):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path
@@ -70,6 +72,7 @@ class OceanContractsWrapper(object):
 
     @staticmethod
     def connect_web3(host, port='8545'):
+        # TODO Resolve http and https
         return Web3(HTTPProvider("http://%s:%s" % (host, port)))
 
     def get_contract_instances(self, contract_file, contract_address):
@@ -110,15 +113,26 @@ class OceanContractsWrapper(object):
     def install_filter(self, contract_name, event_name, fromBlock=0, toBlock='latest', filters=None):
         contract_instance = self.contracts[contract_name][1]
         event = getattr(contract_instance.events, event_name)
-        eventFilter = event.createFilter(
+        event_filter = event.createFilter(
             fromBlock=fromBlock, toBlock=toBlock, argument_filters=filters
         )
-        return eventFilter
+        return event_filter
+
+    def to_32byte_hex(self, val):
+        return self.web3.toBytes(val).rjust(32, b'\0')
+
+    def split_signature(self, signature):
+        v = self.web3.toInt(signature[-1])
+        r = self.to_32byte_hex(int.from_bytes(signature[:32], 'big'))
+        s = self.to_32byte_hex(int.from_bytes(signature[32:64], 'big'))
+        if v != 27 and v != 28:
+            v = 27 + v % 2
+        return Signature(v, r, s)
 
     def commit_access_request(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            resource=self.dao.get(self.web3.toHex(event['args']['_resourceId']))
+            resource = self.dao.get(self.web3.toHex(event['args']['_resourceId']))
             _cache = dict()
             _cache['access_request'] = event['args']
             _cache['resource_metadata'] = resource
@@ -141,9 +155,6 @@ class OceanContractsWrapper(object):
     def publish_encrypted_token(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            temp_public_key = contract_instance.getTempPubKey(event['args']['_paymentId'],
-                                                              call={'from': event['args']['_receiver']})
-            print("Public key: %s" % temp_public_key)
             c = self.cache.get(event['args']['_paymentId'])
             iat = time.time()
             # TODO Validate that all the values are good.
@@ -153,17 +164,17 @@ class OceanContractsWrapper(object):
                 "iat": iat,
                 "exp": iat + event['args']['_expire'],
                 "consumer_pubkey": "Consumer Public Key",  # Consumer Public Key
-                "temp_pubkey": temp_public_key,
+                "temp_pubkey": c['access_request']['_pubKey'],
                 "request_id": self.web3.toHex(event['args']['_paymentId']),  # Request Identifier
                 "consent_hash": c['consent_hash'],  # Consent Hash
                 "resource_id": self.web3.toHex(c['access_request']['_id']),  # Resource Identifier
                 "timeout": event['args']['_expire'],  # Timeout comming from AUTH contract
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
-                "service_endpoint": "<myserver>/cosume/",
+                "service_endpoint": "%s/consume" % self.api_url,
                 "nonce": token_hex(32),
             }, self.encoding_key_pair.private_key)
-            encJWT = enc(jwt, temp_public_key)
+            encJWT = enc(jwt, c['access_request']['_pubKey'])
             self.cache.delete(event['args']['_paymentId'])
             print("Delivering token jwt: %s" % encJWT)
             deliver_acces_token = contract_instance.deliverAccessToken(event['args']['_paymentId'],
@@ -173,14 +184,3 @@ class OceanContractsWrapper(object):
             return deliver_acces_token
         except Exception as e:
             return e
-
-    def to_32byte_hex(self, val):
-        return self.web3.toBytes(val).rjust(32, b'\0')
-
-    def split_signature(self, signature):
-        v = self.web3.toInt(signature[-1])
-        r = self.to_32byte_hex(int.from_bytes(signature[:32], 'big'))
-        s = self.to_32byte_hex(int.from_bytes(signature[32:64], 'big'))
-        if v != 27 and v != 28:
-            v = 27 + v % 2
-        return Signature(v, r, s)

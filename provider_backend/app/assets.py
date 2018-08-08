@@ -1,8 +1,8 @@
-import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request
-from azure.storage.blob import BlobService
-from azure.storage import AccessPolicy, SharedAccessPolicy
+from azure.storage.blob import BlockBlobService
+from azure.storage.blob import BlobPermissions
 
 from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.myapp import app
@@ -23,7 +23,8 @@ dao = Dao(config_file)
 
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
-ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
+ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
+                                        api_url='request.url')
 ocean_contracts.init_contracts()
 # Prepare resources access configuration to download assets
 recources_config = load_config_section(config_file, ConfigSections.RESOURCES)
@@ -31,12 +32,13 @@ recources_config = load_config_section(config_file, ConfigSections.RESOURCES)
 
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
+
 @assets.before_app_first_request
 def start_filters():
-    ocean = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'])
+    ocean = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'], api_url=request.url)
     ocean.init_contracts()
 
-    provider_account=keeper_config['provider.address']
+    provider_account = keeper_config['provider.address']
     print("deploying filters")
     filter_access_consent = ocean.watch_event(OceanContracts.OACL, 'AccessConsentRequested',
                                               ocean.commit_access_request, 250,
@@ -418,7 +420,7 @@ def get_assets_metadata():
     return jsonify(json.dumps(assets_metadata)), 200
 
 
-@assets.route('/consume/<asset_id>', methods=['GET'])
+@assets.route('/metadata/consume/<asset_id>', methods=['POST'])
 def consume_resource(asset_id):
     """Allows download of asset data file from this provider.
 
@@ -460,7 +462,7 @@ def consume_resource(asset_id):
     # Verify consumer has permission to consume this asset (on-chain authorization)
 
     # Get asset metadata record
-    required_attributes = ['accessId', 'consumerId', 'fixed_msg', 'sigEncJWT']
+    required_attributes = ['requestId', 'consumerId', 'fixed_msg', 'sigEncJWT']
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
@@ -472,17 +474,19 @@ def consume_resource(asset_id):
             return '"%s" is required for registering an asset.' % attr, 400
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
-    sig = OceanContractsWrapper.split_signature(data['sigEncJWT'])
+    sig = ocean_contracts.split_signature(ocean_contracts.web3.toBytes(hexstr=data['sigEncJWT']))
 
-    if contract_instance.verifyAccessTokenDelivery(data['accessId'],  # accessId
+    if contract_instance.verifyAccessTokenDelivery(data['requestId'],  # requestId
                                                    data['consumerId'],  # consumerId
-                                                   ocean_contracts.web3.toHex(data['fixed_msg']),
+                                                   data['fixed_msg'],
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
-                                                   transact={'from': keeper_config['provider.address']}):
-        url = dao.get(asset_id)['metadata']['links']
-        return generate_sasurl(url), 200
+                                                   transact={'from': ocean_contracts.web3.eth.accounts[0]}):
+        url = dao.get(asset_id)['data']['data']['metadata']['links']
+        return generate_sasurl(url[0]), 200
+    else:
+        return '"%s error generating the sasurl.' % asset_id, 404
 
 
 @assets.route('/asset/{asset_id}', methods=['POST'])
@@ -573,11 +577,13 @@ def allowed_file(filename):
 
 
 def generate_sasurl(url):
-    bs = BlobService(account_name=recources_config['azure.account.name'],
-                     account_key=recources_config['azure.account.key'])
-    today = datetime.datetime.utcnow()
-    todayPlusMonth = today + datetime.timedelta(30)
-    todayPlusMonthISO = todayPlusMonth.replace(microsecond=0).isoformat() + 'Z'
-    sasToken = bs.generate_shared_access_signature(recources_config['azure.container'], None, SharedAccessPolicy(
-        AccessPolicy(None, todayPlusMonthISO, "rw"), None))
-    return url + "?" + sasToken
+    bs = BlockBlobService(account_name=recources_config['azure.account.name'],
+                          account_key=recources_config['azure.account.key'])
+    sas_token = bs.generate_blob_shared_access_signature(recources_config['azure.container'],
+                                                         url.split('/')[-1],
+                                                         permission=BlobPermissions.READ,
+                                                         expiry=datetime.utcnow() + timedelta(hours=24),
+                                                         )
+    source_blob_url = bs.make_blob_url(recources_config['azure.container'], url.split('/')[-1],
+                                       sas_token=sas_token)
+    return source_blob_url

@@ -19,7 +19,7 @@ pyopenssl
 eciespy
 
 
-azure==1.0.3
+azure==4.0.0
 
 
 flask-swagger==0.2.13

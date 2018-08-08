@@ -4,11 +4,6 @@ import sys
 
 from provider_backend.myapp import app
 from provider_backend.constants import BaseURLs, DEFAULT_ASSETS_FOLDER
-from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider_backend.blockchain.constants import OceanContracts
-from provider_backend.config_parser import load_config_section
-from provider_backend.constants import ConfigSections
-from threading import Thread
 
 
 if 'UPLOADS_FOLDER' in os.environ and os.environ['UPLOADS_FOLDER']:
@@ -27,4 +22,4 @@ from provider_backend.app.assets import assets
 app.register_blueprint(assets, url_prefix=BaseURLs.BASE_PROVIDER_URL + '/assets')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='localhost', port=5000)

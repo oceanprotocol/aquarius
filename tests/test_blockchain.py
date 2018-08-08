@@ -2,21 +2,27 @@ import time
 
 from provider_backend.blockchain.constants import OceanContracts
 from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider_backend.acl.acl import generate_encryption_keys, decode, encode, generate_encoding_pair, dec
+from provider_backend.acl.acl import generate_encryption_keys, decode, dec
 from eth_account.messages import defunct_hash_message
 import json
 from provider_backend.constants import BaseURLs
 
-json_dict = {"publisherId": "0x1",
-             "metadata": {
-                 "name": "name",
-                 "links": ["link"],
-                 "size": "size",
-                 "format": "format",
-                 "description": "description"
-             },
-             "assetId": "001"
-             }
+json_consume = {"publisherId": "0x01",
+                "metadata": {
+                    "name": "testzkp",
+                    "links": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf"],
+                    "size": "1.08MiB",
+                    "format": "pdf",
+                    "description": "description"
+                },
+                "assetId": "0x01"}
+
+json_request_consume = {
+    'requestId': "",
+    'consumerId': "",
+    'fixed_msg': "",
+    'sigEncJWT': ""
+}
 
 ocean = OceanContractsWrapper()
 ocean.init_contracts()
@@ -57,10 +63,10 @@ def test_commit_access_requested(client):
     resource_id = market_concise.generateId('resource', transact={'from': provider_account})
     print("recource_id: %s" % resource_id)
     resource_price = 10
-    json_dict['assetId'] = ocean.web3.toHex(resource_id)
-    post = client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata',
-                       data=json.dumps(json_dict),
-                       content_type='application/json')
+    json_consume['assetId'] = ocean.web3.toHex(resource_id)
+    client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata',
+                data=json.dumps(json_consume),
+                content_type='application/json')
 
     pubprivkey = generate_encryption_keys()
     pubkey = pubprivkey.public_key
@@ -161,25 +167,27 @@ def test_commit_access_requested(client):
                                 sig.r,
                                 sig.s,
                                 call={'from': provider_account})
+    json_request_consume['requestId'] = ocean.web3.toHex(request_id)
+    json_request_consume['fixed_msg'] = ocean.web3.toHex(fixed_msg)
+    json_request_consume['consumerId'] = consumer_account
+    json_request_consume['sigEncJWT'] = ocean.web3.toHex(signature)
 
-    verify = acl_concise.verifyAccessTokenDelivery(request_id,
-                                                   consumer_account,
-                                                   ocean.web3.toHex(fixed_msg),
-                                                   sig.v,
-                                                   sig.r,
-                                                   sig.s,
-                                                   transact={'from': provider_account})
+    # access_token['service_endpoint']
+    post = client.post(
+        BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/consume/%s' % ocean.web3.toHex(resource_id),
+        data=json.dumps(json_request_consume),
+        content_type='application/json')
 
-    receipt_payment_release = ocean.get_tx_receipt(verify)
-    market.events.PaymentReleased().processReceipt(receipt_payment_release)
+    print(post.data.decode('utf-8'))
+    assert post.status_code == 200
     assert acl_concise.verifyCommitted(request_id, 2)
 
     buyer_balance = token.balanceOf(consumer_account)
     seller_balance = token.balanceOf(provider_account)
     print('end: buyer balance -- current %s, starting %s, diff %s' % (
-    buyer_balance, buyer_balance_start, (buyer_balance - buyer_balance_start)))
+        buyer_balance, buyer_balance_start, (buyer_balance - buyer_balance_start)))
     print('end: seller balance -- current %s, starting %s, diff %s' % (
-    seller_balance, seller_balance_start, (seller_balance - seller_balance_start)))
+        seller_balance, seller_balance_start, (seller_balance - seller_balance_start)))
     assert token.balanceOf(consumer_account) == buyer_balance_start - resource_price
     assert token.balanceOf(provider_account) == seller_balance_start + resource_price
     print('All good \/')
