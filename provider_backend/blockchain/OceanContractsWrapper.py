@@ -99,16 +99,26 @@ class OceanContractsWrapper(object):
         event_filter.poll_interval = interval
         Thread(
             target=self.watcher,
-            args=(event_filter, callback, interval),
+            args=(event_filter, callback),
             daemon=True,
         ).start()
         return event_filter
 
-    def watcher(self, event_filter, callback, interval):
+    def watcher(self, event_filter, callback):
         while True:
-            for event in event_filter.get_all_entries():
+            try:
+                events = event_filter.get_all_entries()
+            except ValueError as err:
+                # ignore error, but log it
+                print('Got error grabbing keeper events: ', str(err))
+                events = []
+
+            for event in events:
                 callback(event)
-                time.sleep(interval)
+                time.sleep(0.1)
+
+            # always take a rest
+            time.sleep(0.1)
 
     def install_filter(self, contract_name, event_name, fromBlock=0, toBlock='latest', filters=None):
         contract_instance = self.contracts[contract_name][1]

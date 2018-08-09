@@ -41,9 +41,9 @@ def start_filters():
     provider_account = keeper_config['provider.address']
     print("deploying filters")
     filter_access_consent = ocean.watch_event(OceanContracts.OACL, 'AccessConsentRequested',
-                                              ocean.commit_access_request, 250,
+                                              ocean.commit_access_request, 0.5,
                                               fromBlock='latest', filters={"address": provider_account})
-    filter_payment = ocean.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean.publish_encrypted_token, 2500,
+    filter_payment = ocean.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean.publish_encrypted_token, 0.5,
                                        fromBlock='latest', filters={"address": provider_account})
     print("Filters deployed")
 
