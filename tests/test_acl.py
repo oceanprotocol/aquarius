@@ -1,4 +1,4 @@
-from provider_backend.acl.acl import encode, decode, enc, dec, generate_encryption_keys, generate_encoding_pair
+from acl.acl import encode, decode, enc, dec, generate_encryption_keys, generate_encoding_pair
 
 
 def test_encode_decode():

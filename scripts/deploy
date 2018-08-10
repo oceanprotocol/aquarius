@@ -1,5 +1,6 @@
 #!/bin/bash -x
-CONF_FILE=~/Projects/provider-backend/oceandb.ini
+PROVIDERDIR=~/Projects/provider-backend
+CONF_FILE=$PROVIDERDIR/oceandb.ini
 KEEPERDIR=~/Projects/keeper-contracts
 cd $KEEPERDIR
 #echo $(pwd)
@@ -11,6 +12,7 @@ values=$(echo $result | sed 's/OceanToken: /token.address=/' | sed 's/OceanMarke
 token=$(echo $values | cut -d' ' -f1)
 market=$(echo $values | cut -d' ' -f2)
 auth=$(echo $values | cut -d' ' -f3)
+cp -R $KEEPERDIR/build/contracts $PROVIDERDIR/venv/contracts
 sed -i -e "/token.address=/c ${token}" $CONF_FILE
 sed -i -e "/market.address=/c ${market}" $CONF_FILE
 sed -i -e "/auth.address=/c ${auth}" $CONF_FILE

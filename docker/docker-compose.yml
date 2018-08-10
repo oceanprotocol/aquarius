@@ -62,12 +62,12 @@ services:
     command: ["-h=0.0.0.0"]
     networks:
       - backend
-  provider-backend:
-    image: provider-backend
-    ports:
-    - 5000:5000
-    networks:
-      - backend
+#  provider-backend:
+#    image: provider-backend
+#    ports:
+#    - 5000:5000
+#    networks:
+#      - backend
 
 networks:
   backend:

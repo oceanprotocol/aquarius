@@ -17,10 +17,21 @@ class Dao(object):
         return asset_with_id
 
     def get(self, asset_id):
-        tx_id = self.find_tx_id(asset_id)
+        tx_id = self._find_tx_id(asset_id)
         return self.oceandb.read(tx_id)
 
-    def find_tx_id(self, asset_id):
+    def register(self, record):
+        return self.oceandb.write(record)
+
+    def update(self, record, asset_id):
+        tx_id = self._find_tx_id(asset_id)
+        return self.oceandb.update(record, tx_id)
+
+    def delete(self, asset_id):
+        tx_id = self._find_tx_id(asset_id)
+        return self.oceandb.delete(tx_id)
+
+    def _find_tx_id(self, asset_id):
         all = self.oceandb.list()
         for a in all:
             if a['data']['data']['assetId'] == asset_id:
@@ -28,14 +39,3 @@ class Dao(object):
             else:
                 pass
         return "%s not found" % asset_id
-
-    def register(self, record):
-        return self.oceandb.write(record)
-
-    def update(self, record, asset_id):
-        tx_id = self.find_tx_id(asset_id)
-        return self.oceandb.update(record, tx_id)
-
-    def delete(self, asset_id):
-        tx_id = self.find_tx_id(asset_id)
-        return self.oceandb.delete(tx_id)
