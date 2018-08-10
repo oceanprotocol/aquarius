@@ -10,7 +10,7 @@ import json
 
 from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
 from provider_backend.config_parser import load_config_section
-from provider_backend.constants import ConfigSections
+from provider_backend.constants import ConfigSections, BaseURLs
 from provider_backend.app.dao import Dao
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'osx', 'doc'}
@@ -23,8 +23,11 @@ dao = Dao(config_file)
 
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
+res_conf = load_config_section(config_file, ConfigSections.RESOURCES)
+provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.host'], res_conf['provider.port'])
+provider_url += BaseURLs.ASSETS_URL
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
-                                        api_url='request.url')
+                                        api_url=provider_url)
 ocean_contracts.init_contracts()
 # Prepare resources access configuration to download assets
 recources_config = load_config_section(config_file, ConfigSections.RESOURCES)
@@ -35,7 +38,7 @@ ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 @assets.before_app_first_request
 def start_filters():
-    ocean = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'], api_url=request.url)
+    ocean = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'], api_url=provider_url)
     ocean.init_contracts()
 
     provider_account = keeper_config['provider.address']
@@ -460,13 +463,14 @@ def consume_resource(asset_id):
     # grab encrypted accessToken from blockchain for this assetId and consumerId
     # encrypt accessToken with consumer public key then compare with the fetched token from chain
     # Verify consumer has permission to consume this asset (on-chain authorization)
-
     # Get asset metadata record
     required_attributes = ['requestId', 'consumerId', 'fixed_msg', 'sigEncJWT']
     assert isinstance(request.json, dict), 'invalid payload format.'
+    print('got "consume" request: ', request.json)
     data = request.json
     if not data:
-        return 400
+        return 'payload seems empty.', 400
+
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     for attr in required_attributes:
