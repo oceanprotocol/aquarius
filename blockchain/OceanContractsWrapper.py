@@ -42,7 +42,7 @@ class OceanContractsWrapper(object):
 
         self.port = config['keeper.port'] if 'keeper.port' in config else port
         self.web3 = OceanContractsWrapper.connect_web3(self.host, self.port)
-        self.account = self.web3.eth.accounts[0] #if account is None else account
+        self.account = self.web3.eth.accounts[0] if account is None else account
         self.contracts_abis_path = get_contracts_path(config)
 
         self.contracts = {}
