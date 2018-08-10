@@ -23,27 +23,32 @@ provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.h
 provider_url += BaseURLs.ASSETS_URL
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
                                         keeper_config['provider.address'])
-                                        api_url=provider_url)
+
 ocean_contracts.init_contracts()
 # Prepare resources access configuration to download assets
 resources_config = load_config_section(config_file, ConfigSections.RESOURCES)
 
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
-filters = Filters(ocean_contracts_wrapper=ocean_contracts, config_file=config_file, hostname=app.config['HOST']
-                  , port=app.config['PORT'])
+
+def get_provider_address_filter():
+    return {"address": keeper_config['provider.address']}
+
+
+filters = Filters(ocean_contracts_wrapper=ocean_contracts, config_file=config_file, api_url=provider_url)
 filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL,
                                                     'AccessConsentRequested',
                                                     filters.commit_access_request,
                                                     0.5,
                                                     fromBlock='latest',
-                                                    filters={"address": keeper_config['provider.address']})
+                                                    filters=get_provider_address_filter())
+
 filter_payment = ocean_contracts.watch_event(OceanContracts.OMKT,
                                              'PaymentReceived',
                                              filters.publish_encrypted_token,
                                              0.5,
                                              fromBlock='latest',
-                                             filters={"address": keeper_config['provider.address']})
+                                             filters=get_provider_address_filter())
 
 
 @assets.route('', methods=['GET'])
@@ -453,12 +458,14 @@ def consume_resource(asset_id):
     print('got "consume" request: ', request.json)
     data = request.json
     if not data:
+        print('Consume failed: data is empty.')
         return 'payload seems empty.', 400
 
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     for attr in required_attributes:
         if attr not in data:
+            print('Consume failed: required attr %s missing.' % attr)
             return '"%s" is required for registering an asset.' % attr, 400
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
@@ -478,6 +485,7 @@ def consume_resource(asset_id):
                                    resources_config['azure.account.key'],
                                    resources_config['azure.container']), 200
         else:
+            print('resource server plugin is not supported: ', jwt['resource_server_plugin'])
             return '"%s error generating the sasurl.' % asset_id, 404
     else:
         return '"%s error generating the sasurl.' % asset_id, 404

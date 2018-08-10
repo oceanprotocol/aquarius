@@ -9,13 +9,14 @@ from provider_backend.constants import BaseURLs
 
 class Filters(object):
 
-    def __init__(self, ocean_contracts_wrapper, config_file, hostname, port):
+    def __init__(self, ocean_contracts_wrapper, config_file, api_url):
         self.contracts = ocean_contracts_wrapper.contracts
         self.web3 = ocean_contracts_wrapper.web3
         self.dao = Dao(config_file)
         self.cache = SimpleCache()
         self.encoding_key_pair = generate_encoding_pair()
-        self.api_url = 'http://' + hostname + ':'+ str(port) + BaseURLs.BASE_PROVIDER_URL
+        self.api_url = api_url
+        print('Keeper filters: got api url = "%s"' % self.api_url)
 
     def commit_access_request(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
@@ -24,19 +25,26 @@ class Filters(object):
             _cache = dict()
             _cache['access_request'] = event['args']
             _cache['resource_metadata'] = resource
-            commit_access_request = contract_instance.commitAccessRequest(event['args']['_id'], True,
+            gas_amount = 4000000
+            commit_access_request_tx = contract_instance.commitAccessRequest(event['args']['_id'], True,
                                                                           event['args']['_timeout'], 'discovery',
                                                                           'read', 'slaLink',
                                                                           'slaType',
-                                                                          transact={'from': event['args']['_provider']})
-            print('Provider has committed the order: %s' % commit_access_request)
-            _cache['consent_hash'] = self.web3.toHex(commit_access_request)
+                                                                          transact={
+                                                                              'from': event['args']['_provider'],
+                                                                              'gas': gas_amount
+                                                                          }
+            )
+            print('Provider has committed the order, transactionId is: %s' % commit_access_request_tx)
+            _cache['consent_hash'] = self.web3.toHex(commit_access_request_tx)
             self.cache.add(event['args']['_id'], _cache)
-            return commit_access_request
+            return commit_access_request_tx
         except Exception as e:
-            contract_instance.cancelAccessRequest(event['args']['_id'], transact={
-                'from': event['args']['_provider']})
-            print('There are not resource with this id register in Oceandb.')
+            # Don't need to cancel request, in case of error we can do a retry mechanism. So far most failures are due
+            # to issues with gas amount. Also if this call throws an error, it will mess up the event watcher.
+            # contract_instance.cancelAccessRequest(event['args']['_id'], transact={
+            #     'from': event['args']['_provider']})
+            print('There is no resource with this id registered in Oceandb.')
             return e
 
     def publish_encrypted_token(self, event):
@@ -54,20 +62,27 @@ class Filters(object):
                 "temp_pubkey": c['access_request']['_pubKey'],
                 "request_id": self.web3.toHex(event['args']['_paymentId']),  # Request Identifier
                 "consent_hash": c['consent_hash'],  # Consent Hash
-                "resource_id": self.web3.toHex(c['access_request']['_id']),  # Resource Identifier
-                "timeout": event['args']['_expire'],  # Timeout comming from AUTH contract
+                "resource_id": self.web3.toHex(c['resource_metadata']['assetId']),  # Resource Identifier
+                # Timeout coming from OceanAuth contract, specified by provider in the commitment consent.
+                "timeout": event['args']['_expire'],
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
-                "service_endpoint": "%s/assets/consume" % self.api_url,
+                "service_endpoint": "%s/metadata/consume" % self.api_url,
                 "nonce": token_hex(32),
             }, self.encoding_key_pair.private_key)
-            encJWT = enc(jwt, c['access_request']['_pubKey'])
+            public_key = c['access_request']['_pubKey']
+            enc_jwt = enc(jwt, public_key)
+            # print('encrypting token:',
+            #       '\nencoded jwt: ', jwt,
+            #       '\npublicKey: ', public_key,
+            # )
             self.cache.delete(event['args']['_paymentId'])
-            print("Delivering token jwt: %s" % encJWT)
+            print("Delivering encrypted JWT (access token): %s" % enc_jwt.hex())
             deliver_acces_token = contract_instance.deliverAccessToken(event['args']['_paymentId'],
-                                                                       encJWT,
-                                                                       transact={'from': event['args']['_receiver']})
-            print('Provider has send the jwt: %s' % deliver_acces_token)
+                                                                       enc_jwt,
+                                                                       transact={'from': event['args']['_receiver'],
+                                                                                 'gas': 4000000})
+            print('Provider has sent the access token, transactionId is: %s' % deliver_acces_token)
             return deliver_acces_token
         except Exception as e:
             return e
