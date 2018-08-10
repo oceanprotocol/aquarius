@@ -6,6 +6,10 @@ sudo: required
 services:
 - docker
 
+before_install:
+- docker-compose -f docker/docker-compose.yml up -d
+- docker exec -it docker_keeper-contracts_1 scripts/deploy
+
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -U tox-travis
 script: tox
