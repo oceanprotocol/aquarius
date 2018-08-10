@@ -1,3 +1,5 @@
+import codecs
+import traceback
 from secrets import token_hex
 from acl.acl import enc, encode, generate_encoding_pair
 import time
@@ -5,7 +7,6 @@ from blockchain.constants import OceanContracts
 from provider_backend.app.dao import Dao
 from werkzeug.contrib.cache import SimpleCache
 from provider_backend.constants import BaseURLs
-
 
 class Filters(object):
 
@@ -21,11 +22,28 @@ class Filters(object):
     def commit_access_request(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
+            res_id = event['args']['_resourceId']
+            request_id = event['args']['_id']
+            consumer = event['args']['_consumer']
+            provider = event['args']['_provider']
+
+            # check keeper for the status of this access request, if already committed then it should be ignored.
+            committed = contract_instance.verifyCommitted(request_id, 1)
+            if committed:
+                print('got access request event, but it is already committed, ignoring... ', request_id)
+                return
+
+            print('process access request: ',
+                  '\nresourceId: ', res_id,
+                  '\nrequestId: ', request_id,
+                  '\nconsumer: ', consumer,
+                  '\nprovider: ', provider)
+
             resource = self.dao.get(self.web3.toHex(event['args']['_resourceId']))
             _cache = dict()
             _cache['access_request'] = event['args']
             _cache['resource_metadata'] = resource
-            gas_amount = 4000000
+            gas_amount = 1000000
             commit_access_request_tx = contract_instance.commitAccessRequest(event['args']['_id'], True,
                                                                           event['args']['_timeout'], 'discovery',
                                                                           'read', 'slaLink',
@@ -44,12 +62,13 @@ class Filters(object):
             # to issues with gas amount. Also if this call throws an error, it will mess up the event watcher.
             # contract_instance.cancelAccessRequest(event['args']['_id'], transact={
             #     'from': event['args']['_provider']})
-            print('There is no resource with this id registered in Oceandb.')
+            print('There is no resource with this id registered in Oceandb.', traceback.print_exc())
             return e
 
     def publish_encrypted_token(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
+            print('payment id: ', event['args']['_paymentId'], self.cache._cache)
             c = self.cache.get(event['args']['_paymentId'])
             iat = time.time()
             # TODO Validate that all the values are good.
@@ -62,7 +81,7 @@ class Filters(object):
                 "temp_pubkey": c['access_request']['_pubKey'],
                 "request_id": self.web3.toHex(event['args']['_paymentId']),  # Request Identifier
                 "consent_hash": c['consent_hash'],  # Consent Hash
-                "resource_id": self.web3.toHex(hexstr=c['resource_metadata']['data']['data']['assetId']),  # Resource Identifier
+                "resource_id": self.web3.toHex(codecs.encode(c['resource_metadata']['data']['data']['assetId'])),  # Resource Identifier
                 # Timeout coming from OceanAuth contract, specified by provider in the commitment consent.
                 "timeout": event['args']['_expire'],
                 "response_type": "Signed_URL",
@@ -76,7 +95,7 @@ class Filters(object):
             #       '\nencoded jwt: ', jwt,
             #       '\npublicKey: ', public_key,
             # )
-            self.cache.delete(event['args']['_paymentId'])
+            # self.cache.delete(event['args']['_paymentId'])
             print("Delivering encrypted JWT (access token): %s" % enc_jwt.hex())
             deliver_acces_token = contract_instance.deliverAccessToken(event['args']['_paymentId'],
                                                                        enc_jwt,
@@ -85,5 +104,5 @@ class Filters(object):
             print('Provider has sent the access token, transactionId is: %s' % deliver_acces_token)
             return deliver_acces_token
         except Exception as e:
-            print("Error creating jwt: %e" % e)
+            print('error processing payment event (trying to publish JWT)', str(e))
             return e

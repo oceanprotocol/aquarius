@@ -32,21 +32,26 @@ ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
 def get_provider_address_filter():
-    return {"address": keeper_config['provider.address']}
+    account = ocean_contracts.web3.eth.accounts[0]  # keeper_config['provider.address']
+    return {"address": account}
 
 
-filters = Filters(ocean_contracts_wrapper=ocean_contracts, config_file=config_file, api_url=provider_url)
-filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL,
+ocn_for_filters = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
+                                        keeper_config['provider.address'])
+ocn_for_filters.init_contracts()
+
+filters = Filters(ocean_contracts_wrapper=ocn_for_filters, config_file=config_file, api_url=provider_url)
+filter_access_consent = ocn_for_filters.watch_event(OceanContracts.OACL,
                                                     'AccessConsentRequested',
                                                     filters.commit_access_request,
-                                                    0.5,
+                                                    0.2,
                                                     fromBlock='latest',
                                                     filters=get_provider_address_filter())
 
-filter_payment = ocean_contracts.watch_event(OceanContracts.OMKT,
+filter_payment = ocn_for_filters.watch_event(OceanContracts.OMKT,
                                              'PaymentReceived',
                                              filters.publish_encrypted_token,
-                                             0.5,
+                                             0.2,
                                              fromBlock='latest',
                                              filters=get_provider_address_filter())
 
