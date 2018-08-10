@@ -10,7 +10,7 @@ token=$(echo $values | cut -d' ' -f1)
 market=$(echo $values | cut -d' ' -f2)
 auth=$(echo $values | cut -d' ' -f3)
 #cp -R $KEEPERDIR/build/contracts $PROVIDERDIR/venv/contracts
-sed -i -e "/token.address=/c ${token}" $CONF_FILE
-sed -i -e "/market.address=/c ${market}" $CONF_FILE
-sed -i -e "/auth.address=/c ${auth}" $CONF_FILE
-sed -i -e "/provider.address=/c provider.address=" $CONF_FILE
+sed -i -e "/token.address =/c ${token}" $CONF_FILE
+sed -i -e "/market.address =/c ${market}" $CONF_FILE
+sed -i -e "/auth.address =/c ${auth}" $CONF_FILE
+sed -i -e "/provider.address =/c provider.address=" $CONF_FILE

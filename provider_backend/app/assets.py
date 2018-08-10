@@ -416,7 +416,7 @@ def get_assets_metadata():
     return jsonify(json.dumps(assets_metadata)), 200
 
 
-@assets.route('/consume/<asset_id>', methods=['POST'])
+@assets.route('/metadata/consume/<asset_id>', methods=['POST'])
 def consume_resource(asset_id):
     """Allows download of asset data file from this provider.
 

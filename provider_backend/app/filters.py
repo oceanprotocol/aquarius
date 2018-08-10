@@ -62,7 +62,7 @@ class Filters(object):
                 "temp_pubkey": c['access_request']['_pubKey'],
                 "request_id": self.web3.toHex(event['args']['_paymentId']),  # Request Identifier
                 "consent_hash": c['consent_hash'],  # Consent Hash
-                "resource_id": self.web3.toHex(c['resource_metadata']['assetId']),  # Resource Identifier
+                "resource_id": self.web3.toHex(hexstr=c['resource_metadata']['data']['data']['assetId']),  # Resource Identifier
                 # Timeout coming from OceanAuth contract, specified by provider in the commitment consent.
                 "timeout": event['args']['_expire'],
                 "response_type": "Signed_URL",
@@ -85,4 +85,5 @@ class Filters(object):
             print('Provider has sent the access token, transactionId is: %s' % deliver_acces_token)
             return deliver_acces_token
         except Exception as e:
+            print("Error creating jwt: %e" % e)
             return e
