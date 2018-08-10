@@ -9,6 +9,7 @@ from provider_backend.myapp import app
 from provider_backend.constants import ConfigSections
 from threading import Thread
 from collections import namedtuple
+import asyncio
 
 Signature = namedtuple('Signature', ('v', 'r', 's'))
 
@@ -26,7 +27,7 @@ def get_contracts_path(config):
 
 class OceanContractsWrapper(object):
 
-    def __init__(self, host=None, port=None, account=None, api_url=None):
+    def __init__(self, host=None, port=None, account=None):
 
         # Don't need these in the global scope
         if 'CONFIG_FILE' in os.environ and os.environ['CONFIG_FILE']:

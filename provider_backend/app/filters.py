@@ -4,17 +4,18 @@ import time
 from blockchain.constants import OceanContracts
 from provider_backend.app.dao import Dao
 from werkzeug.contrib.cache import SimpleCache
+from provider_backend.constants import BaseURLs
 
 
 class Filters(object):
 
-    def __init__(self, ocean_contracts_wrapper, config_file, api_url=None):
+    def __init__(self, ocean_contracts_wrapper, config_file, hostname, port):
         self.contracts = ocean_contracts_wrapper.contracts
         self.web3 = ocean_contracts_wrapper.web3
         self.dao = Dao(config_file)
         self.cache = SimpleCache()
         self.encoding_key_pair = generate_encoding_pair()
-        self.api_url = api_url
+        self.api_url = 'http://' + hostname + ':'+ str(port) + BaseURLs.BASE_PROVIDER_URL
 
     def commit_access_request(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
@@ -57,7 +58,7 @@ class Filters(object):
                 "timeout": event['args']['_expire'],  # Timeout comming from AUTH contract
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
-                "service_endpoint": "%s/consume" % self.api_url,
+                "service_endpoint": "%s/assets/consume" % self.api_url,
                 "nonce": token_hex(32),
             }, self.encoding_key_pair.private_key)
             encJWT = enc(jwt, c['access_request']['_pubKey'])

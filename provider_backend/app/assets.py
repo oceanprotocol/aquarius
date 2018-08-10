@@ -19,15 +19,15 @@ dao = Dao(config_file)
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
-                                        keeper_config['provider.address'],
-                                        api_url='request.url')
+                                        keeper_config['provider.address'])
 ocean_contracts.init_contracts()
 # Prepare resources access configuration to download assets
 resources_config = load_config_section(config_file, ConfigSections.RESOURCES)
 
 ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
-filters = Filters(ocean_contracts_wrapper=ocean_contracts, config_file=config_file)
+filters = Filters(ocean_contracts_wrapper=ocean_contracts, config_file=config_file, hostname=app.config['HOST']
+                  , port=app.config['PORT'])
 filter_access_consent = ocean_contracts.watch_event(OceanContracts.OACL,
                                                     'AccessConsentRequested',
                                                     filters.commit_access_request,
@@ -407,7 +407,7 @@ def get_assets_metadata():
     return jsonify(json.dumps(assets_metadata)), 200
 
 
-@assets.route('/metadata/consume/<asset_id>', methods=['POST'])
+@assets.route('/consume/<asset_id>', methods=['POST'])
 def consume_resource(asset_id):
     """Allows download of asset data file from this provider.
 

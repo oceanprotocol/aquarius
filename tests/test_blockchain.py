@@ -6,7 +6,6 @@ from acl.acl import generate_encryption_keys, decode, dec
 from eth_account.messages import defunct_hash_message
 import json
 from provider_backend.constants import BaseURLs
-import asyncio
 
 json_consume = {"publisherId": "0x01",
                 "metadata": {
@@ -175,12 +174,10 @@ def test_commit_access_requested(client):
     json_request_consume['sigEncJWT'] = ocean.web3.toHex(signature)
     json_request_consume['jwt'] = ocean.web3.toHex(decrypted_token)
 
-    # access_token['service_endpoint']
     post = client.post(
-        BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/consume/%s' % ocean.web3.toHex(resource_id),
+        access_token['service_endpoint'].split('5000')[1] + '/%s' % ocean.web3.toHex(resource_id),
         data=json.dumps(json_request_consume),
         content_type='application/json')
-
     print(post.data.decode('utf-8'))
     assert post.status_code == 200
     assert acl_concise.verifyCommitted(request_id, 2)
