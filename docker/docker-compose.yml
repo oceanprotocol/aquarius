@@ -6,12 +6,12 @@ services:
   mongodb:
     image: mongo:3.6
     ports:
-      - "27017:27017"
+    - "27017:27017"
     command: mongod
   bigchaindb:
     depends_on:
-      - mongodb
-      - tendermint
+    - mongodb
+    - tendermint
     image: bigchaindb/bigchaindb:2.0.0-beta1
     environment:
       BIGCHAINDB_DATABASE_BACKEND: localmongodb
@@ -23,9 +23,9 @@ services:
       BIGCHAINDB_TENDERMINT_HOST: tendermint
       BIGCHAINDB_TENDERMINT_PORT: 46657
     ports:
-      - "9984:9984"
-      - "9985:9985"
-      - "46658"
+    - "9984:9984"
+    - "9985:9985"
+    - "46658"
     healthcheck:
       test: ["CMD", "bash", "-c", "curl http://bigchaindb:9984 && curl http://tendermint:46657/abci_query"]
       interval: 3s
@@ -37,14 +37,14 @@ services:
     #   - ./tmdata:/tendermint
     entrypoint: ''
     ports:
-      - "46656:46656"
-      - "46657:46657"
+    - "46656:46656"
+    - "46657:46657"
     command: sh -c "tendermint init && tendermint node --consensus.create_empty_blocks=false --proxy_app=tcp://bigchaindb:46658"
-  bdb:
-    image: busybox
-    depends_on:
-      bigchaindb:
-        condition: service_healthy
+  #bdb:
+  #  image: busybox
+  #  depends_on:
+  #    bigchaindb:
+  #      condition: service_healthy
   # curl client to check the health of development env
   curl-client:
     image: appropriate/curl
@@ -52,22 +52,14 @@ services:
   vdocs:
     image: nginx
     ports:
-      - '33333:80'
+    - '33333:80'
     volumes:
-      - ./docs/server/build/html:/usr/share/nginx/html
-  ganache-cli:
-    image: trufflesuite/ganache-cli:latest
+    - ../docs/server/build/html:/usr/share/nginx/html
+  keeper-contracts:
+    image: oceanprotocol/keeper-contracts
     ports:
-      - 8545:8545
-    command: ["-h=0.0.0.0"]
+    - 8545:8545
     networks:
-      - backend
-  provider-backend:
-    image: provider-backend
-    ports:
-    - 5000:5000
-    networks:
-      - backend
-
+    - backend
 networks:
   backend:

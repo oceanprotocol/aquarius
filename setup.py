@@ -35,7 +35,7 @@ setup(
     include_package_data=True,
     keywords='provider-backend',
     name='provider-backend',
-    packages=find_packages(include=['provider_backend']),
+    packages=find_packages(include=['provider_backend', 'blockchain', 'acl', 'provider_backend.app']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,

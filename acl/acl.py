@@ -29,9 +29,9 @@ def decode(encoded):
     return jwt.decode(encoded, algorithms='HS256', verify=False)
 
 
-def enc(data, publicKey):
-    return encrypt(publicKey, data)
+def enc(data, public_key):
+    return encrypt(public_key, data)
 
 
-def dec(encrypted, privateKey):
-    return decrypt(privateKey, encrypted)
+def dec(encrypted, private_key):
+    return decrypt(private_key, encrypted)

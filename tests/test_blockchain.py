@@ -1,8 +1,8 @@
 import time
 
-from provider_backend.blockchain.constants import OceanContracts
-from provider_backend.blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider_backend.acl.acl import generate_encryption_keys, decode, dec
+from blockchain.constants import OceanContracts
+from blockchain.OceanContractsWrapper import OceanContractsWrapper
+from acl.acl import generate_encryption_keys, decode, dec
 from eth_account.messages import defunct_hash_message
 import json
 from provider_backend.constants import BaseURLs
@@ -55,7 +55,9 @@ def process_enc_token(event):
 def test_commit_access_requested(client):
     expire_seconds = 9999999999
     consumer_account = ocean.web3.eth.accounts[1]
+    # consumer_account = '0x009c95E90369bED8ECCD3AA3DFaf0F8a90849b17'
     provider_account = ocean.web3.eth.accounts[0]
+    # provider_account = '0x007341576b7F7fB0A135728C1A9DA487b1191124'
     print("Starting test_commit_access_requested")
     print("buyer: %s" % consumer_account)
     print("seller: %s" % provider_account)
@@ -151,7 +153,7 @@ def test_commit_access_requested(client):
     on_chain_enc_token2 = acl_concise.getEncryptedAccessToken(request_id, call={'from': consumer_account})
 
     decrypted_token = dec(on_chain_enc_token, privkey)
-    pub_key = ocean.encoding_key_pair.public_key
+    # pub_key = ocean.encoding_key_pair.public_key
     access_token = decode(decrypted_token)
 
     assert pubkey == access_token['temp_pubkey']
@@ -167,17 +169,15 @@ def test_commit_access_requested(client):
                                 sig.r,
                                 sig.s,
                                 call={'from': provider_account})
-    json_request_consume['requestId'] = ocean.web3.toHex(request_id)
     json_request_consume['fixed_msg'] = ocean.web3.toHex(fixed_msg)
     json_request_consume['consumerId'] = consumer_account
     json_request_consume['sigEncJWT'] = ocean.web3.toHex(signature)
+    json_request_consume['jwt'] = ocean.web3.toHex(decrypted_token)
 
-    # access_token['service_endpoint']
     post = client.post(
-        BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/consume/%s' % ocean.web3.toHex(resource_id),
+        access_token['service_endpoint'].split('5000')[1] + '/%s' % ocean.web3.toHex(resource_id),
         data=json.dumps(json_request_consume),
         content_type='application/json')
-
     print(post.data.decode('utf-8'))
     assert post.status_code == 200
     assert acl_concise.verifyCommitted(request_id, 2)

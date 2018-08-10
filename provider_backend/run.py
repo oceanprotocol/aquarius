@@ -3,8 +3,7 @@ import os
 import sys
 
 from provider_backend.myapp import app
-from provider_backend.constants import BaseURLs, DEFAULT_ASSETS_FOLDER
-
+from provider_backend.constants import BaseURLs, DEFAULT_ASSETS_FOLDER, DEFAULT_HOST, DEFAULT_PORT
 
 if 'UPLOADS_FOLDER' in os.environ and os.environ['UPLOADS_FOLDER']:
     app.config['UPLOADS_FOLDER'] = os.environ['UPLOADS_FOLDER']
@@ -16,10 +15,19 @@ if 'CONFIG_FILE' in os.environ and os.environ['CONFIG_FILE']:
 else:
     print('A config file must be set in the environment variable "CONFIG_FILE".')
     sys.exit(1)
+if 'HOST' in os.environ and os.environ['HOST']:
+    app.config['HOST'] = os.environ['HOST']
+else:
+    app.config['HOST'] = DEFAULT_HOST
+if 'PORT' in os.environ and os.environ['PORT']:
+    app.config['PORT'] = os.environ['PORT']
+else:
+    app.config['PORT'] = DEFAULT_PORT
 
 
 from provider_backend.app.assets import assets
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=5000)
+    app.run(host=app.config.get('HOST'),
+            port=app.config.get('PORT'))
