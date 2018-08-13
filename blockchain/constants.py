@@ -1,0 +1,9 @@
+
+class OceanContracts:
+    OCEAN_MARKET_CONTRACT = 'OceanMarket'
+    OCEAN_TOKEN_CONTRACT = 'OceanToken'
+    OCEAN_ACL_CONTRACT = 'OceanAuth'
+
+    OMKT = OCEAN_MARKET_CONTRACT
+    OTKN = OCEAN_TOKEN_CONTRACT
+    OACL = OCEAN_ACL_CONTRACT

@@ -20,23 +20,23 @@ json_dict_no_valid_metadata = {"publisherId": "0x0",
                                }
 
 json_before = {"publisherId": "0x6",
-             "metadata":{
-                 "name":"name",
-                 "links":["link"],
-                 "size":"size",
-                 "format":"format",
-                 "description":"description"
-             },
-               "assetId":"003"}
+               "metadata": {
+                   "name": "name",
+                   "links": ["link"],
+                   "size": "size",
+                   "format": "format",
+                   "description": "description"
+               },
+               "assetId": "003"}
 json_update = {"publisherId": "0x6",
-             "metadata":{
-                 "name":"nameUpdated",
-                 "links":["link"],
-                 "size":"size",
-                 "format":"format",
-                 "description":"description"
-             },
-            "assetId":"003"}
+               "metadata": {
+                   "name": "nameUpdated",
+                   "links": ["link"],
+                   "size": "size",
+                   "format": "format",
+                   "description": "description"
+               },
+               "assetId": "003"}
 
 
 def test_create_asset(client):
@@ -69,9 +69,10 @@ def test_update_asset_metadata(client):
     post = client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata',
                        data=json.dumps(json_before),
                        content_type='application/json')
-    put = client.put(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
-               data=json.dumps(json_update),
-               content_type='application/json')
+    client.put(
+        BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
+        data=json.dumps(json_update),
+        content_type='application/json')
     rv = client.get(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
         content_type='application/json')
