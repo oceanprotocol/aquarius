@@ -475,7 +475,7 @@ def consume_resource(asset_id):
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
     sig = ocean_contracts.split_signature(ocean_contracts.web3.toBytes(hexstr=data['sigEncJWT']))
-    jwt = decode(ocean_contracts.web3.toBytes(hexstr=data['jwt']))
+    jwt = decode(data['jwt'])
 
     if contract_instance.verifyAccessTokenDelivery(jwt['request_id'],  # requestId
                                                    ocean_contracts.web3.toChecksumAddress(data['consumerId']),  # consumerId

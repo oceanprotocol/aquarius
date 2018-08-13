@@ -172,7 +172,7 @@ def test_commit_access_requested(client):
     json_request_consume['fixed_msg'] = ocean.web3.toHex(fixed_msg)
     json_request_consume['consumerId'] = consumer_account
     json_request_consume['sigEncJWT'] = ocean.web3.toHex(signature)
-    json_request_consume['jwt'] = ocean.web3.toHex(decrypted_token)
+    json_request_consume['jwt'] = ocean.web3.toBytes(hexstr=ocean.web3.toHex(decrypted_token)).decode('utf-8')
 
     post = client.post(
         access_token['service_endpoint'].split('5000')[1] + '/%s' % ocean.web3.toHex(resource_id),
