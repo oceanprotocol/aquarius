@@ -22,8 +22,8 @@ class Filters(object):
     def commit_access_request(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            res_id = event['args']['_resourceId']
-            request_id = event['args']['_id']
+            res_id = self.web3.toHex(event['args']['_resourceId'])
+            request_id = self.web3.toHex(event['args']['_id'])
             consumer = event['args']['_consumer']
             provider = event['args']['_provider']
 
@@ -39,10 +39,16 @@ class Filters(object):
                   '\nconsumer: ', consumer,
                   '\nprovider: ', provider)
 
-            resource = self.dao.get(self.web3.toHex(event['args']['_resourceId']))
+            try:
+                resource = self.dao.get(res_id)
+            except Exception:
+                # print('res id: ', res_id)
+                return
+
             _cache = dict()
             _cache['access_request'] = event['args']
             _cache['resource_metadata'] = resource
+            print('cached resource: ', res_id, resource)
             gas_amount = 1000000
             commit_access_request_tx = contract_instance.commitAccessRequest(event['args']['_id'], True,
                                                                           event['args']['_timeout'], 'discovery',
@@ -53,9 +59,9 @@ class Filters(object):
                                                                               'gas': gas_amount
                                                                           }
             )
-            print('Provider has committed the order, transactionId is: %s' % commit_access_request_tx)
+            print('Provider has committed the order, res_id, request_id: ', res_id, request_id)
             _cache['consent_hash'] = self.web3.toHex(commit_access_request_tx)
-            self.cache.add(event['args']['_id'], _cache)
+            self.cache.add(request_id, _cache)
             return commit_access_request_tx
         except Exception as e:
             # Don't need to cancel request, in case of error we can do a retry mechanism. So far most failures are due
@@ -68,41 +74,45 @@ class Filters(object):
     def publish_encrypted_token(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            print('payment id: ', event['args']['_paymentId'], self.cache._cache)
-            c = self.cache.get(event['args']['_paymentId'])
+            print('payment id: ', event['args']['_paymentId'].hex(), self.cache._cache)
+            request_id = self.web3.toHex(event['args']['_paymentId'])
+            c = self.cache.get(request_id)
+            asset_id = c['resource_metadata']['data']['data']['assetId']
             iat = time.time()
             # TODO Validate that all the values are good.
-            jwt = encode({
+            plain_jwt = {
                 "iss": c['access_request']['_provider'],
                 "sub": c['resource_metadata']['data']['data']['metadata']['name'],  # Resource Name
                 "iat": iat,
                 "exp": iat + event['args']['_expire'],
                 "consumer_pubkey": "Consumer Public Key",  # Consumer Public Key
                 "temp_pubkey": c['access_request']['_pubKey'],
-                "request_id": self.web3.toHex(event['args']['_paymentId']),  # Request Identifier
+                "request_id": request_id,  # Request Identifier
                 "consent_hash": c['consent_hash'],  # Consent Hash
-                "resource_id": self.web3.toHex(codecs.encode(c['resource_metadata']['data']['data']['assetId'])),  # Resource Identifier
+                "resource_id": asset_id,  # Resource Identifier
                 # Timeout coming from OceanAuth contract, specified by provider in the commitment consent.
                 "timeout": event['args']['_expire'],
                 "response_type": "Signed_URL",
                 "resource_server_plugin": "Azure",
                 "service_endpoint": "%s/metadata/consume" % self.api_url,
                 "nonce": token_hex(32),
-            }, self.encoding_key_pair.private_key)
+            }
+            jwt = encode(plain_jwt, self.encoding_key_pair.private_key)
             public_key = c['access_request']['_pubKey']
             enc_jwt = enc(jwt, public_key)
+            # print('publishing jwt: ', plain_jwt)
             # print('encrypting token:',
             #       '\nencoded jwt: ', jwt,
             #       '\npublicKey: ', public_key,
             # )
             # self.cache.delete(event['args']['_paymentId'])
-            print("Delivering encrypted JWT (access token): %s" % enc_jwt.hex())
+            # print("Delivering encrypted JWT (access token): %s" % enc_jwt.hex())
             deliver_acces_token = contract_instance.deliverAccessToken(event['args']['_paymentId'],
                                                                        enc_jwt,
                                                                        transact={'from': event['args']['_receiver'],
                                                                                  'gas': 4000000})
-            print('Provider has sent the access token, transactionId is: %s' % deliver_acces_token)
+            # print('Provider has sent the access token, transactionId is: %s' % deliver_acces_token)
             return deliver_acces_token
         except Exception as e:
-            print('error processing payment event (trying to publish JWT)', str(e))
+            print('error processing payment event (trying to publish JWT)', str(e), traceback.print_exc())
             return e
