@@ -475,16 +475,17 @@ def consume_resource(asset_id):
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
     sig = ocean_contracts.split_signature(ocean_contracts.web3.toBytes(hexstr=data['sigEncJWT']))
-    jwt = decode(ocean_contracts.web3.toBytes(hexstr=data['jwt']))
+    jwt = decode(data['jwt'])
 
     if contract_instance.verifyAccessTokenDelivery(jwt['request_id'],  # requestId
-                                                   data['consumerId'],  # consumerId
+                                                   ocean_contracts.web3.toChecksumAddress(data['consumerId']),  # consumerId
                                                    data['fixed_msg'],
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
                                                    transact={'from': ocean_contracts.web3.eth.accounts[0]}):
         if jwt['resource_server_plugin'] == 'Azure':
+            print('reading asset from oceandb: ', asset_id)
             url = dao.get(asset_id)['data']['data']['metadata']['links']
             return generate_sasurl(url[0], resources_config['azure.account.name'],
                                    resources_config['azure.account.key'],
