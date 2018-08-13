@@ -17,6 +17,7 @@ web3==4.5.0
 PyJWT==1.6.4
 pyopenssl
 eciespy
+gunicorn==19.9.0
 
 
 azure==4.0.0

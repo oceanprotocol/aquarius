@@ -20,7 +20,8 @@ def get_contracts_path(config):
         elif os.getenv('VIRTUAL_ENV') is not None:
             return "%s/contracts" % (os.getenv('VIRTUAL_ENV'))
         else:
-            return "%s/contracts" % site.getsitepackages()[0]
+            # return "%s/contracts" % site.getsitepackages()[0]
+            return "/usr/local/contracts"
     except Exception as e:
         return e
 
