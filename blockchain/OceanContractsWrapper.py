@@ -71,11 +71,11 @@ class OceanContractsWrapper(object):
     def get_contract_instances(self, contract_file, contract_address):
         with open(contract_file, 'r') as abi_definition:
             abi = json.load(abi_definition)
-            if not contract_address and self.keeper_network_id and 'networks' in abi:
-                deployed_networks = abi['networks']
-                if self.keeper_network_id in deployed_networks:
-                    contract_address = deployed_networks[self.keeper_network_id]['address']
-                    print('Extracted %s contract address ' % contract_file, contract_address)
+            if not contract_address and 'address' in abi:
+                # deployed_networks = abi['networks']
+                # if self.keeper_network_id in deployed_networks:
+                contract_address = abi['address']
+                print('Extracted %s contract address ' % contract_file, contract_address)
 
             concise_cont = self.web3.eth.contract(
                 address=self.web3.toChecksumAddress(contract_address),
