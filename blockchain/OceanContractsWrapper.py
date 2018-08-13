@@ -52,7 +52,7 @@ class OceanContractsWrapper(object):
             OceanContracts.OACL: config['auth.address'],
             OceanContracts.OTKN: config['token.address']
         }
-
+        self.network = config['keeper.network']
         self.keeper_network_id = str(config.get('keeper.networkid', '')).strip()
 
 
@@ -60,7 +60,7 @@ class OceanContractsWrapper(object):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path
         contract_address_map = contracts_addresses if contracts_addresses else self.default_contract_address_map
         for contract_name, address in contract_address_map.items():
-            contract_abi_file = os.path.join(contracts_abis_path, contract_name + '.json')
+            contract_abi_file = os.path.join(contracts_abis_path, contract_name + '.' + self.network + '.json')
             self.contracts[contract_name] = self.get_contract_instances(contract_abi_file, address)
 
     @staticmethod
