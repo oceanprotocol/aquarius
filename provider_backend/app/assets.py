@@ -487,9 +487,12 @@ def consume_resource(asset_id):
         if jwt['resource_server_plugin'] == 'Azure':
             print('reading asset from oceandb: ', asset_id)
             url = dao.get(asset_id)['data']['data']['metadata']['links']
-            return generate_sasurl(url[0], resources_config['azure.account.name'],
+            url_dict=[]
+            for i in url:
+                url_dict.append(generate_sasurl(i, resources_config['azure.account.name'],
                                    resources_config['azure.account.key'],
-                                   resources_config['azure.container']), 200
+                                   resources_config['azure.container']))
+            return jsonify(url_dict), 200
         else:
             print('resource server plugin is not supported: ', jwt['resource_server_plugin'])
             return '"%s error generating the sasurl.' % asset_id, 404
