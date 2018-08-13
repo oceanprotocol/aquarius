@@ -1,15 +1,27 @@
-FROM python:3.6
+FROM python:3.6.6-alpine
 
 MAINTAINER Ocean Protocol <devops@oceanprotocol.com>
 
 ARG VERSION
 
-COPY . /opt/provider-backend
-WORKDIR /opt/provider-backend
+RUN apk add --update \
+    python3 \
+    python3-dev \
+    py-pip \
+    gcc \
+    gmp gmp-dev \
+    libffi-dev \
+    openssl-dev \
+    build-base \
+  && pip install virtualenv \
+  && rm -rf /var/cache/apk/*
 
-RUN pip install -r /opt/provider-backend/requirements_dev.txt
+COPY . provider-backend
+WORKDIR provider-backend
+
+RUN pip install -r requirements_dev.txt
 RUN chmod +x docker-entrypoint.sh
 
-CMD "./docker-entrypoint.sh"
+ENTRYPOINT ["./docker-entrypoint.sh"]
 
 EXPOSE 5000
