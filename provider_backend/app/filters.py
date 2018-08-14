@@ -28,7 +28,7 @@ class Filters(object):
             provider = event['args']['_provider']
 
             # check keeper for the status of this access request, if already committed then it should be ignored.
-            committed = contract_instance.verifyCommitted(request_id, 1)
+            committed = contract_instance.statusOfAccessRequest(request_id) == 1
             if committed:
                 print('got access request event, but it is already committed, ignoring... ', request_id)
                 return

@@ -2,9 +2,10 @@ from flask import Flask, jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 from provider_backend.constants import BaseURLs
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 
 @app.route("/spec")
 def spec():
