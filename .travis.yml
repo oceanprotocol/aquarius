@@ -6,8 +6,6 @@ sudo: required
 services:
 - docker
 
-before_install:
-- docker-compose -f docker/docker-compose.yml up -d
 before_script:
 - ./scripts/deploy
 
