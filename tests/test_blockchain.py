@@ -144,7 +144,7 @@ def test_commit_access_requested(client):
     # assert events
     # assert send_payment in tx_hashes
 
-    assert acl_concise.getTempPubKey(request_id, call={"from": provider_account}) == pubkey
+    # assert acl_concise.getTempPubKey(request_id, call={"from": provider_account}) == pubkey
 
     events = get_events(filter_token_published)
     assert events
@@ -180,7 +180,7 @@ def test_commit_access_requested(client):
         content_type='application/json')
     print(post.data.decode('utf-8'))
     assert post.status_code == 200
-    assert acl_concise.statusOfAccessRequest(request_id) == 2
+    assert acl_concise.statusOfAccessRequest(request_id) == 3
 
     buyer_balance = token.balanceOf(consumer_account)
     seller_balance = token.balanceOf(provider_account)
