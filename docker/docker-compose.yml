@@ -55,7 +55,7 @@ services:
     networks:
     - backend
     volumes:
-    - ./venv/contracts:/keeper-contracts/artifacts/
+    - ../venv/contracts:/keeper-contracts/artifacts/
 
 networks:
   backend:

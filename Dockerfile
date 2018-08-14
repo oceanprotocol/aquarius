@@ -1,4 +1,4 @@
-FROM python:3.6.6-alpine
+FROM python:3.6-alpine
 
 MAINTAINER Ocean Protocol <devops@oceanprotocol.com>
 
