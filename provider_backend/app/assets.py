@@ -483,7 +483,7 @@ def consume_resource(asset_id):
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
-                                                   transact={'from': ocean_contracts.web3.eth.accounts[0]}):
+                                                   transact={'from': ocean_contracts.web3.eth.accounts[0], 'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             print('reading asset from oceandb: ', asset_id)
             url = dao.get(asset_id)['data']['data']['metadata']['links']
