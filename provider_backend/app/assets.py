@@ -483,13 +483,18 @@ def consume_resource(asset_id):
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
-                                                   transact={'from': ocean_contracts.web3.eth.accounts[0]}):
+                                                   transact={'from': ocean_contracts.web3.eth.accounts[0], 'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             print('reading asset from oceandb: ', asset_id)
             url = dao.get(asset_id)['data']['data']['metadata']['links']
-            return generate_sasurl(url[0], resources_config['azure.account.name'],
+            print('url: ', url)
+
+            sasurl = generate_sasurl(url, resources_config['azure.account.name'],
                                    resources_config['azure.account.key'],
-                                   resources_config['azure.container']), 200
+                                   resources_config['azure.container'])
+            print('sasurl: ', type(sasurl), sasurl)
+            return str(sasurl), 200
+
         else:
             print('resource server plugin is not supported: ', jwt['resource_server_plugin'])
             return '"%s error generating the sasurl.' % asset_id, 404
