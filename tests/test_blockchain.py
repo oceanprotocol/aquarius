@@ -10,7 +10,7 @@ from provider_backend.constants import BaseURLs
 json_consume = {"publisherId": "0x01",
                 "metadata": {
                     "name": "testzkp",
-                    "links": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf"],
+                    "links": "https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf",
                     "size": "1.08MiB",
                     "format": "pdf",
                     "description": "description"
