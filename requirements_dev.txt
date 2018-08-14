@@ -7,12 +7,24 @@ flake8==3.5.0
 tox==2.9.1
 coverage==4.5.1
 oceandb-driver-interface
-oceandb-bigchaindb-driver==0.0.2.2
+oceandb-bigchaindb-driver==0.0.2.4
+keeper-contracts==0.0.1.5
 singletonify==0.1.2.0
 twine==1.11.0
 setuptools==39.1.0
-web3==4.4.1
+py-solc
+web3==4.5.0
+PyJWT==1.6.4
+pyopenssl
+eciespy
+gunicorn==19.9.0
 
+
+azure==4.0.0
+
+
+flask-swagger==0.2.13
+flask-swagger-ui==3.6.0
 
 pytest==3.4.2
 pytest-runner==2.11.1
