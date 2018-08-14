@@ -52,7 +52,7 @@ class OceanContractsWrapper(object):
             OceanContracts.OACL: config['auth.address'],
             OceanContracts.OTKN: config['token.address']
         }
-
+        self.network = config['keeper.network']
         self.keeper_network_id = str(config.get('keeper.networkid', '')).strip()
 
 
@@ -60,7 +60,7 @@ class OceanContractsWrapper(object):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path
         contract_address_map = contracts_addresses if contracts_addresses else self.default_contract_address_map
         for contract_name, address in contract_address_map.items():
-            contract_abi_file = os.path.join(contracts_abis_path, contract_name + '.json')
+            contract_abi_file = os.path.join(contracts_abis_path, contract_name + '.' + self.network + '.json')
             self.contracts[contract_name] = self.get_contract_instances(contract_abi_file, address)
 
     @staticmethod
@@ -71,11 +71,11 @@ class OceanContractsWrapper(object):
     def get_contract_instances(self, contract_file, contract_address):
         with open(contract_file, 'r') as abi_definition:
             abi = json.load(abi_definition)
-            if not contract_address and self.keeper_network_id and 'networks' in abi:
-                deployed_networks = abi['networks']
-                if self.keeper_network_id in deployed_networks:
-                    contract_address = deployed_networks[self.keeper_network_id]['address']
-                    print('Extracted %s contract address ' % contract_file, contract_address)
+            if not contract_address and 'address' in abi:
+                # deployed_networks = abi['networks']
+                # if self.keeper_network_id in deployed_networks:
+                contract_address = abi['address']
+                print('Extracted %s contract address ' % contract_file, contract_address)
 
             concise_cont = self.web3.eth.contract(
                 address=self.web3.toChecksumAddress(contract_address),

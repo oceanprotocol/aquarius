@@ -10,7 +10,7 @@ from provider_backend.constants import BaseURLs
 json_consume = {"publisherId": "0x01",
                 "metadata": {
                     "name": "testzkp",
-                    "links": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf"],
+                    "links": "https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf",
                     "size": "1.08MiB",
                     "format": "pdf",
                     "description": "description"
@@ -102,20 +102,20 @@ def test_commit_access_requested(client):
     # events = get_events(filter_access_consent)
 
     # assert send_event[0] in events
-    assert acl_concise.verifyCommitted(request_id, 0) or acl_concise.verifyCommitted(request_id, 1)
+    assert acl_concise.statusOfAccessRequest(request_id) == 0 or acl_concise.statusOfAccessRequest(request_id) == 1
 
-    filter_token_published = ocean.watch_event(OceanContracts.OACL, 'EncryptedTokenPublished', process_enc_token, 250,
+    filter_token_published = ocean.watch_event(OceanContracts.OACL, 'EncryptedTokenPublished', process_enc_token, 0.25,
                                                fromBlock='latest')  # , filters={"id": request_id})
 
     # 3. Provider commit the request in commit_access_request
 
     # Verify consent has been emited
     i = 0
-    while acl_concise.verifyCommitted(request_id, 1) is False and i < 100:
+    while (acl_concise.statusOfAccessRequest(request_id) == 1) is False and i < 100:
         i += 1
         time.sleep(0.1)
 
-    assert acl_concise.verifyCommitted(request_id, 1)
+    assert acl_concise.statusOfAccessRequest(request_id) == 1
 
     # 4. consumer make payment after approve spend token
     token.approve(ocean.web3.toChecksumAddress(market_concise.address),
@@ -144,7 +144,7 @@ def test_commit_access_requested(client):
     # assert events
     # assert send_payment in tx_hashes
 
-    assert acl_concise.getTempPubKey(request_id, call={"from": provider_account}) == pubkey
+    # assert acl_concise.getTempPubKey(request_id, call={"from": provider_account}) == pubkey
 
     events = get_events(filter_token_published)
     assert events
@@ -162,13 +162,13 @@ def test_commit_access_requested(client):
     fixed_msg = defunct_hash_message(hexstr=ocean.web3.toHex(on_chain_enc_token))
 
     sig = ocean.split_signature(signature)
-
-    assert acl_concise.isSigned(consumer_account,
-                                ocean.web3.toHex(fixed_msg),
-                                sig.v,
-                                sig.r,
-                                sig.s,
-                                call={'from': provider_account})
+    #
+    # assert acl_concise.isSigned(consumer_account,
+    #                             ocean.web3.toHex(fixed_msg),
+    #                             sig.v,
+    #                             sig.r,
+    #                             sig.s,
+    #                             call={'from': provider_account})
     json_request_consume['fixed_msg'] = ocean.web3.toHex(fixed_msg)
     json_request_consume['consumerId'] = consumer_account
     json_request_consume['sigEncJWT'] = ocean.web3.toHex(signature)
@@ -180,7 +180,7 @@ def test_commit_access_requested(client):
         content_type='application/json')
     print(post.data.decode('utf-8'))
     assert post.status_code == 200
-    assert acl_concise.verifyCommitted(request_id, 2)
+    assert acl_concise.statusOfAccessRequest(request_id) == 3
 
     buyer_balance = token.balanceOf(consumer_account)
     seller_balance = token.balanceOf(provider_account)
