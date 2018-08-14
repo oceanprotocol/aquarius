@@ -104,7 +104,7 @@ def test_commit_access_requested(client):
     # assert send_event[0] in events
     assert acl_concise.verifyCommitted(request_id, 0) or acl_concise.verifyCommitted(request_id, 1)
 
-    filter_token_published = ocean.watch_event(OceanContracts.OACL, 'EncryptedTokenPublished', process_enc_token, 250,
+    filter_token_published = ocean.watch_event(OceanContracts.OACL, 'EncryptedTokenPublished', process_enc_token, 0.25,
                                                fromBlock='latest')  # , filters={"id": request_id})
 
     # 3. Provider commit the request in commit_access_request
