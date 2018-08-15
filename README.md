@@ -7,6 +7,12 @@
 
 [![Build Status](https://travis-ci.com/oceanprotocol/provider.svg?token=pA8zcB6SCxKW5MHpqs6L&branch=master)](https://travis-ci.com/oceanprotocol/provider)
 
+---
+
+**🐲🦑 THERE BE DRAGONS AND SQUIDS. This is in alpha state and you can expect running into problems. If you run into them, please open up [a new issue](https://github.com/oceanprotocol/provider/issues). 🦑🐲**
+
+---
+
 
 Get Started
 ------------
