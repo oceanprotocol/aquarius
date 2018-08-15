@@ -1,14 +1,14 @@
 from flask import Blueprint, jsonify, request
-from provider_backend.app.osmosis import generate_sasurl
+from provider.app.osmosis import generate_sasurl
 from blockchain.constants import OceanContracts
-from provider_backend.myapp import app
+from provider.myapp import app
 import json
 from acl.acl import decode
 from blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider_backend.config_parser import load_config_section
-from provider_backend.constants import ConfigSections, BaseURLs
-from provider_backend.app.dao import Dao
-from provider_backend.app.filters import Filters
+from provider.config_parser import load_config_section
+from provider.constants import ConfigSections, BaseURLs
+from provider.app.dao import Dao
+from provider.app.filters import Filters
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'osx', 'doc'}
 assets = Blueprint('assets', __name__)

@@ -4,9 +4,9 @@ from secrets import token_hex
 from acl.acl import enc, encode, generate_encoding_pair
 import time
 from blockchain.constants import OceanContracts
-from provider_backend.app.dao import Dao
+from provider.app.dao import Dao
 from werkzeug.contrib.cache import SimpleCache
-from provider_backend.constants import BaseURLs
+from provider.constants import BaseURLs
 
 class Filters(object):
 
@@ -33,11 +33,11 @@ class Filters(object):
                 print('got access request event, but it is already committed, ignoring... ', request_id)
                 return
 
-            print('process access request: ',
-                  '\nresourceId: ', res_id,
-                  '\nrequestId: ', request_id,
-                  '\nconsumer: ', consumer,
-                  '\nprovider: ', provider)
+            # print('process access request: ',
+            #       '\nresourceId: ', res_id,
+            #       '\nrequestId: ', request_id,
+            #       '\nconsumer: ', consumer,
+            #       '\nprovider: ', provider)
 
             try:
                 resource = self.dao.get(res_id)
@@ -59,7 +59,7 @@ class Filters(object):
                                                                               'gas': gas_amount
                                                                           }
             )
-            print('Provider has committed the order, res_id, request_id: ', res_id, request_id)
+            #print('Provider has committed the order, res_id, request_id: ', res_id, request_id)
             _cache['consent_hash'] = self.web3.toHex(commit_access_request_tx)
             self.cache.add(request_id, _cache)
             return commit_access_request_tx
@@ -74,8 +74,15 @@ class Filters(object):
     def publish_encrypted_token(self, event):
         contract_instance = self.contracts[OceanContracts.OACL][0]
         try:
-            print('payment id: ', event['args']['_paymentId'].hex(), self.cache._cache)
             request_id = self.web3.toHex(event['args']['_paymentId'])
+
+            # check keeper for the status of this access request, if the status is not committed should be ignored.
+            committed = contract_instance.statusOfAccessRequest(request_id) != 1
+            if committed:
+                print('got payment received event, but the encrypted token has been already publish, ignoring... ', request_id)
+                return
+
+            print('payment id: ', request_id, self.cache._cache)
             c = self.cache.get(request_id)
             asset_id = c['resource_metadata']['data']['data']['assetId']
             iat = time.time()
