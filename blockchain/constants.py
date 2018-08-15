@@ -1,4 +1,3 @@
-
 class OceanContracts:
     OCEAN_MARKET_CONTRACT = 'OceanMarket'
     OCEAN_TOKEN_CONTRACT = 'OceanToken'

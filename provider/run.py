@@ -24,7 +24,6 @@ if 'PORT' in os.environ and os.environ['PORT']:
 else:
     app.config['PORT'] = DEFAULT_PORT
 
-
 from provider.app.assets import assets
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 

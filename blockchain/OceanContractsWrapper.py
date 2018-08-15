@@ -1,4 +1,4 @@
-import os,sys
+import os, sys
 import json
 import time
 from web3 import Web3, HTTPProvider
@@ -11,6 +11,7 @@ from threading import Thread
 from collections import namedtuple
 
 Signature = namedtuple('Signature', ('v', 'r', 's'))
+
 
 def get_contracts_path(config):
     try:
@@ -52,7 +53,6 @@ class OceanContractsWrapper(object):
             OceanContracts.OTKN: config['token.address']
         }
         self.network = config['keeper.network']
-
 
     def init_contracts(self, contracts_folder=None, contracts_addresses=None):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path

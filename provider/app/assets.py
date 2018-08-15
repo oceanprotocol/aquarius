@@ -32,7 +32,8 @@ ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
 def get_provider_address_filter():
-    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] else keeper_config['provider.address']
+    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] else keeper_config[
+        'provider.address']
     return {"address": account}
 
 
@@ -478,18 +479,20 @@ def consume_resource(asset_id):
     jwt = decode(data['jwt'])
 
     if contract_instance.verifyAccessTokenDelivery(jwt['request_id'],  # requestId
-                                                   ocean_contracts.web3.toChecksumAddress(data['consumerId']),  # consumerId
+                                                   ocean_contracts.web3.toChecksumAddress(data['consumerId']),
+                                                   # consumerId
                                                    data['fixed_msg'],
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
-                                                   transact={'from': ocean_contracts.web3.eth.accounts[0], 'gas': 4000000}):
+                                                   transact={'from': ocean_contracts.web3.eth.accounts[0],
+                                                             'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             print('reading asset from oceandb: ', asset_id)
             url = dao.get(asset_id)['data']['data']['metadata']['links']
             sasurl = generate_sasurl(url, resources_config['azure.account.name'],
-                                   resources_config['azure.account.key'],
-                                   resources_config['azure.container'])
+                                     resources_config['azure.account.key'],
+                                     resources_config['azure.container'])
             return str(sasurl), 200
         else:
             print('resource server plugin is not supported: ', jwt['resource_server_plugin'])

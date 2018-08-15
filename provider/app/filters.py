@@ -1,4 +1,3 @@
-import codecs
 import traceback
 from secrets import token_hex
 from acl.acl import enc, encode, generate_encoding_pair
@@ -6,7 +5,7 @@ import time
 from blockchain.constants import OceanContracts
 from provider.app.dao import Dao
 from werkzeug.contrib.cache import SimpleCache
-from provider.constants import BaseURLs
+
 
 class Filters(object):
 
@@ -24,8 +23,8 @@ class Filters(object):
         try:
             res_id = self.web3.toHex(event['args']['_resourceId'])
             request_id = self.web3.toHex(event['args']['_id'])
-            consumer = event['args']['_consumer']
-            provider = event['args']['_provider']
+            # consumer = event['args']['_consumer']
+            # provider = event['args']['_provider']
 
             # check keeper for the status of this access request, if already committed then it should be ignored.
             committed = contract_instance.statusOfAccessRequest(request_id) == 1
@@ -51,15 +50,14 @@ class Filters(object):
             print('cached resource: ', res_id, resource)
             gas_amount = 1000000
             commit_access_request_tx = contract_instance.commitAccessRequest(event['args']['_id'], True,
-                                                                          event['args']['_timeout'], 'discovery',
-                                                                          'read', 'slaLink',
-                                                                          'slaType',
-                                                                          transact={
-                                                                              'from': event['args']['_provider'],
-                                                                              'gas': gas_amount
-                                                                          }
-            )
-            #print('Provider has committed the order, res_id, request_id: ', res_id, request_id)
+                                                                             event['args']['_timeout'], 'discovery',
+                                                                             'read', 'slaLink',
+                                                                             'slaType',
+                                                                             transact={
+                                                                                 'from': event['args']['_provider'],
+                                                                                 'gas': gas_amount}
+                                                                             )
+            # print('Provider has committed the order, res_id, request_id: ', res_id, request_id)
             _cache['consent_hash'] = self.web3.toHex(commit_access_request_tx)
             self.cache.add(request_id, _cache)
             return commit_access_request_tx
@@ -79,7 +77,8 @@ class Filters(object):
             # check keeper for the status of this access request, if the status is not committed should be ignored.
             committed = contract_instance.statusOfAccessRequest(request_id) != 1
             if committed:
-                print('got payment received event, but the encrypted token has been already publish, ignoring... ', request_id)
+                print('got payment received event, but the encrypted token has been already publish, ignoring... ',
+                      request_id)
                 return
 
             print('payment id: ', request_id, self.cache._cache)
