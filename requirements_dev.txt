@@ -18,6 +18,7 @@ PyJWT==1.6.4
 pyopenssl
 eciespy
 gunicorn==19.9.0
+codacy-coverage
 
 
 azure==4.0.0
