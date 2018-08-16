@@ -5,7 +5,7 @@ from blockchain.OceanContractsWrapper import OceanContractsWrapper
 from acl.acl import generate_encryption_keys, decode, dec
 from eth_account.messages import defunct_hash_message
 import json
-from provider_backend.constants import BaseURLs
+from provider.constants import BaseURLs
 
 json_consume = {"publisherId": "0x01",
                 "metadata": {

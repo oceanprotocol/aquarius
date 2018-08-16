@@ -1,17 +1,18 @@
 from flask import Flask, jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
-from provider_backend.constants import BaseURLs
+from provider.constants import BaseURLs
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route("/spec")
 def spec():
     swag = swagger(app)
     swag['info']['version'] = "1.0"
-    swag['info']['title'] = "Provider-backend"
+    swag['info']['title'] = "Ocean-provider"
     return jsonify(swag)
 
 

@@ -4,6 +4,7 @@ DEFAULT_ASSETS_FOLDER = os.path.join(os.getcwd(), "asset_files")
 DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 5000
 
+
 class ConfigSections:
     KEEPER_CONTRACTS = 'keeper-contracts'
     RESOURCES = 'resources'

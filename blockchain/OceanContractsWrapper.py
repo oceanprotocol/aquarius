@@ -1,17 +1,17 @@
-import os,sys
+import os, sys
 import json
-import time, site
+import time
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
 from blockchain.constants import OceanContracts
-from provider_backend.config_parser import load_config_section
-from provider_backend.myapp import app
-from provider_backend.constants import ConfigSections
+from provider.config_parser import load_config_section
+from provider.myapp import app
+from provider.constants import ConfigSections
 from threading import Thread
 from collections import namedtuple
-import asyncio
 
 Signature = namedtuple('Signature', ('v', 'r', 's'))
+
 
 def get_contracts_path(config):
     try:
@@ -53,8 +53,6 @@ class OceanContractsWrapper(object):
             OceanContracts.OTKN: config['token.address']
         }
         self.network = config['keeper.network']
-        self.keeper_network_id = str(config.get('keeper.networkid', '')).strip()
-
 
     def init_contracts(self, contracts_folder=None, contracts_addresses=None):
         contracts_abis_path = contracts_folder if contracts_folder else self.contracts_abis_path
@@ -72,8 +70,6 @@ class OceanContractsWrapper(object):
         with open(contract_file, 'r') as abi_definition:
             abi = json.load(abi_definition)
             if not contract_address and 'address' in abi:
-                # deployed_networks = abi['networks']
-                # if self.keeper_network_id in deployed_networks:
                 contract_address = abi['address']
                 print('Extracted %s contract address ' % contract_file, contract_address)
 

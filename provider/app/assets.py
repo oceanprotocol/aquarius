@@ -1,14 +1,14 @@
 from flask import Blueprint, jsonify, request
-from provider_backend.app.osmosis import generate_sasurl
+from provider.app.osmosis import generate_sasurl
 from blockchain.constants import OceanContracts
-from provider_backend.myapp import app
+from provider.myapp import app
 import json
 from acl.acl import decode
 from blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider_backend.config_parser import load_config_section
-from provider_backend.constants import ConfigSections, BaseURLs
-from provider_backend.app.dao import Dao
-from provider_backend.app.filters import Filters
+from provider.config_parser import load_config_section
+from provider.constants import ConfigSections, BaseURLs
+from provider.app.dao import Dao
+from provider.app.filters import Filters
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'osx', 'doc'}
 assets = Blueprint('assets', __name__)
@@ -32,7 +32,8 @@ ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
 def get_provider_address_filter():
-    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] else keeper_config['provider.address']
+    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] else keeper_config[
+        'provider.address']
     return {"address": account}
 
 
@@ -478,18 +479,20 @@ def consume_resource(asset_id):
     jwt = decode(data['jwt'])
 
     if contract_instance.verifyAccessTokenDelivery(jwt['request_id'],  # requestId
-                                                   ocean_contracts.web3.toChecksumAddress(data['consumerId']),  # consumerId
+                                                   ocean_contracts.web3.toChecksumAddress(data['consumerId']),
+                                                   # consumerId
                                                    data['fixed_msg'],
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
-                                                   transact={'from': ocean_contracts.web3.eth.accounts[0], 'gas': 4000000}):
+                                                   transact={'from': ocean_contracts.web3.eth.accounts[0],
+                                                             'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             print('reading asset from oceandb: ', asset_id)
             url = dao.get(asset_id)['data']['data']['metadata']['links']
             sasurl = generate_sasurl(url, resources_config['azure.account.name'],
-                                   resources_config['azure.account.key'],
-                                   resources_config['azure.container'])
+                                     resources_config['azure.account.key'],
+                                     resources_config['azure.container'])
             return str(sasurl), 200
         else:
             print('resource server plugin is not supported: ', jwt['resource_server_plugin'])

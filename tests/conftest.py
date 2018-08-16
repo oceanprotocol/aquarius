@@ -1,6 +1,6 @@
 import pytest
 
-from provider_backend.run import app
+from provider.run import app
 
 app = app
 

@@ -1,5 +1,5 @@
 import json
-from provider_backend.constants import BaseURLs
+from provider.constants import BaseURLs
 
 json_dict = {"publisherId": "0x1",
              "metadata": {
