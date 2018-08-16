@@ -16,8 +16,8 @@ RUN apk add --update \
   && pip install virtualenv \
   && rm -rf /var/cache/apk/*
 
-COPY . provider-backend
-WORKDIR provider-backend
+COPY . provider
+WORKDIR provider
 
 RUN pip install -r requirements_dev.txt
 RUN chmod +x docker-entrypoint.sh

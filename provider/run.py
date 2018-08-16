@@ -2,8 +2,8 @@ import os
 
 import sys
 
-from provider_backend.myapp import app
-from provider_backend.constants import BaseURLs, DEFAULT_ASSETS_FOLDER, DEFAULT_HOST, DEFAULT_PORT
+from provider.myapp import app
+from provider.constants import BaseURLs, DEFAULT_ASSETS_FOLDER, DEFAULT_HOST, DEFAULT_PORT
 
 if 'UPLOADS_FOLDER' in os.environ and os.environ['UPLOADS_FOLDER']:
     app.config['UPLOADS_FOLDER'] = os.environ['UPLOADS_FOLDER']
@@ -24,8 +24,7 @@ if 'PORT' in os.environ and os.environ['PORT']:
 else:
     app.config['PORT'] = DEFAULT_PORT
 
-
-from provider_backend.app.assets import assets
+from provider.app.assets import assets
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 
 if __name__ == '__main__':

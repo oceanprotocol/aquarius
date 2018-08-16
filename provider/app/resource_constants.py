@@ -1,4 +1,3 @@
-
 DUMMY_ASSET_URL = 'http://example.com/'
 
 
