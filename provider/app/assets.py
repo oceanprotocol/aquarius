@@ -33,8 +33,8 @@ ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
 def get_provider_address_filter():
-    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] else keeper_config[
-        'provider.address']
+    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] \
+        else keeper_config['provider.address']
     return {"address": account}
 
 
