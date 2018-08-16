@@ -21,8 +21,9 @@ keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS
 res_conf = load_config_section(config_file, ConfigSections.RESOURCES)
 provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.host'], res_conf['provider.port'])
 provider_url += BaseURLs.ASSETS_URL
+provider_address = None if not keeper_config['provider.address'] else keeper_config['provider.address']
 ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
-                                        keeper_config['provider.address'])
+                                        provider_address)
 
 ocean_contracts.init_contracts()
 # Prepare resources access configuration to download assets
@@ -32,13 +33,13 @@ ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
 def get_provider_address_filter():
-    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] else keeper_config[
-        'provider.address']
+    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] \
+        else keeper_config['provider.address']
     return {"address": account}
 
 
 ocn_for_filters = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
-                                        keeper_config['provider.address'])
+                                        provider_address)
 ocn_for_filters.init_contracts()
 
 filters = Filters(ocean_contracts_wrapper=ocn_for_filters, config_file=config_file, api_url=provider_url)
@@ -485,7 +486,7 @@ def consume_resource(asset_id):
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
-                                                   transact={'from': ocean_contracts.web3.eth.accounts[0],
+                                                   transact={'from': ocean_contracts.account,
                                                              'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             print('reading asset from oceandb: ', asset_id)
