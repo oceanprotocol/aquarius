@@ -5,7 +5,10 @@
 > 🐋 Provide an off-chain database store for data assets metadata and registration and perform part of access control in collaboration with the keeper-contracts.
 > [oceanprotocol.com](https://oceanprotocol.com)
 
-[![Build Status](https://travis-ci.com/oceanprotocol/provider.svg?token=pA8zcB6SCxKW5MHpqs6L&branch=master)](https://travis-ci.com/oceanprotocol/provider)
+![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)
+![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)
+![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)
+![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)
 
 ---
 
@@ -13,9 +16,31 @@
 
 ---
 
+## Table of Contents
 
-Get Started
-------------
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
+  - [API documentation](#api-documentation)
+  - [Code style](#code-style)
+  - [Testing](#testing)
+  - [License](#license)
+
+
+## Features
+
+The Provider handles all non-blockchain related core functionality, including compute and storage interfaces, and connections to Ocean Keepers. Additionally, the Provider implements Ocean's Service Integrity and Orchestration capabilities, allowing for services to be requested, ordered, scheduled, verfied, and curated. 
+
+## Prerequisites
+
+You should have running a instance of BigchainDB and ganache-cli. 
+You can start running the docker-compose in the docker directory:
+
+```docker
+docker-compose up
+```
+
+## Quick Start
 
 The most simple way to start is:
 
@@ -28,26 +53,17 @@ export CONFIG_FILE=oceandb.ini
 flask run
 ```
 
-Requirements
-------------
 
-You should have running a instance of BigchainDB and ganache-cli. 
-You can start running the docker-compose in the docker directory:
+## API documentation
 
-```docker
-docker-compose up
-```
-
-API documentation
------------------
 Once you have your application running you can access to the documentation in:
 
 ```bash
 http://127.0.0.1:5000/api/v1/docs
 ```
 
-Configuration
--------------
+## Configuration
+
 
 In the configuration there are now three sections:
 
@@ -70,3 +86,32 @@ In the configuration there are now three sections:
     azure.account.key=k2Vk4yfb88WNlWW+W54a8ytJm8MYO1GW9IgiV7TNGKSdmKyVNXzyhiRZ3U1OHRotj/vTYdhJj+ho30HPyJpuYQ==
     azure.container=testfiles
     ```
+    
+
+## Code style
+
+The information about code style in python is documented in this two links [python-developer-guide](https://github.com/oceanprotocol/dev-ocean/blob/master/doc/development/python-developer-guide.md)
+and [python-style-guide](https://github.com/oceanprotocol/dev-ocean/blob/master/doc/development/python-style-guide.md).
+    
+## Testing
+
+Automatic tests are setup via Travis, executing `tox`.
+Our test use pytest framework.
+
+
+## License
+
+```
+Copyright 2018 Ocean Protocol Foundation Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
