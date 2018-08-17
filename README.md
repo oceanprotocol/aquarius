@@ -22,9 +22,12 @@
   - [Prerequisites](#prerequisites)
   - [Quick Start](#quick-start)
   - [API documentation](#api-documentation)
+  - [Configuration](#configuration)
   - [Code style](#code-style)
   - [Testing](#testing)
   - [License](#license)
+
+---
 
 
 ## Features
