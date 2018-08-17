@@ -5,7 +5,7 @@
 > 🐋 Provide an off-chain database store for data assets metadata and registration and perform part of access control in collaboration with the keeper-contracts.
 > [oceanprotocol.com](https://oceanprotocol.com)
 
-![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)
+[![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)](https://travis-ci.com/oceanprotocol/provider)
 ![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)
 ![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)
 ![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)
