@@ -1,3 +1,4 @@
 provider.egg-info
 .eggs
 .tox
+.git/
