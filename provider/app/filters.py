@@ -1,8 +1,8 @@
 import traceback
 from secrets import token_hex
-from acl.acl import enc, encode, generate_encoding_pair
+from ocean_web3.acl import encrypt, encode, generate_encoding_pair
 import time
-from blockchain.constants import OceanContracts
+from ocean_web3.constants import OceanContracts
 from provider.app.dao import Dao
 from werkzeug.contrib.cache import SimpleCache
 
@@ -105,7 +105,7 @@ class Filters(object):
             }
             jwt = encode(plain_jwt, self.encoding_key_pair.private_key)
             public_key = c['access_request']['_pubKey']
-            enc_jwt = enc(jwt, public_key)
+            enc_jwt = encrypt(jwt, public_key)
             # print('publishing jwt: ', plain_jwt)
             # print('encrypting token:',
             #       '\nencoded jwt: ', jwt,

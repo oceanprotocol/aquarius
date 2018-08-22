@@ -19,6 +19,7 @@ pyopenssl
 eciespy
 gunicorn==19.9.0
 codacy-coverage
+ocean-web3
 
 
 azure==4.0.0
