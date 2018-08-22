@@ -6,9 +6,9 @@
 > [oceanprotocol.com](https://oceanprotocol.com)
 
 [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)](https://travis-ci.com/oceanprotocol/provider)
-![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)
-![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)
-![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)
+[![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)](https://app.codacy.com/project/ocean-protocol/provider/dashboard)
+[![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)](https://pypi.org/project/ocean-provider/)
+[![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)](https://github.com/oceanprotocol/provider/graphs/contributors)
 
 ---
 
