@@ -1,8 +1,8 @@
 import time
 
-from blockchain.constants import OceanContracts
-from blockchain.OceanContractsWrapper import OceanContractsWrapper
-from acl.acl import generate_encryption_keys, decode, dec
+from ocean_web3.constants import OceanContracts
+from ocean_web3.ocean_contracts import OceanContractsWrapper
+from ocean_web3.acl import generate_encryption_keys, decode, decrypt
 from eth_account.messages import defunct_hash_message
 import json
 from provider.constants import BaseURLs
@@ -55,9 +55,7 @@ def process_enc_token(event):
 def test_commit_access_requested(client):
     expire_seconds = 9999999999
     consumer_account = ocean.web3.eth.accounts[1]
-    # consumer_account = '0x009c95E90369bED8ECCD3AA3DFaf0F8a90849b17'
     provider_account = ocean.web3.eth.accounts[0]
-    # provider_account = '0x007341576b7F7fB0A135728C1A9DA487b1191124'
     print("Starting test_commit_access_requested")
     print("buyer: %s" % consumer_account)
     print("seller: %s" % provider_account)
@@ -77,12 +75,6 @@ def test_commit_access_requested(client):
     market_concise.requestTokens(2000, transact={'from': provider_account})
     market_concise.requestTokens(2000, transact={'from': consumer_account})
 
-    # TODO Use the events with the filters intitialized by the application insetad of this
-    # filter_access_consent = ocean.watch_event(OceanContracts.OACL, 'AccessConsentRequested',
-    #                                           ocean.commit_access_request, 250,
-    #                                           fromBlock='latest', filters={"address": provider_account})
-    # filter_payment = ocean.watch_event(OceanContracts.OMKT, 'PaymentReceived', ocean.publish_encrypted_token, 2500,
-    #                                    fromBlock='latest', filters={"address": provider_account})
 
     # 1. Provider register an asset
     market_concise.register(resource_id,
@@ -150,9 +142,9 @@ def test_commit_access_requested(client):
     assert events
     assert events[0].args['_id'] == request_id
     on_chain_enc_token = events[0].args["_encryptedAccessToken"]
-    on_chain_enc_token2 = acl_concise.getEncryptedAccessToken(request_id, call={'from': consumer_account})
+    # on_chain_enc_token2 = acl_concise.getEncryptedAccessToken(request_id, call={'from': consumer_account})
 
-    decrypted_token = dec(on_chain_enc_token, privkey)
+    decrypted_token = decrypt(on_chain_enc_token, privkey)
     # pub_key = ocean.encoding_key_pair.public_key
     access_token = decode(decrypted_token)
 
@@ -162,13 +154,6 @@ def test_commit_access_requested(client):
     fixed_msg = defunct_hash_message(hexstr=ocean.web3.toHex(on_chain_enc_token))
 
     sig = ocean.split_signature(signature)
-    #
-    # assert acl_concise.isSigned(consumer_account,
-    #                             ocean.web3.toHex(fixed_msg),
-    #                             sig.v,
-    #                             sig.r,
-    #                             sig.s,
-    #                             call={'from': provider_account})
     json_request_consume['fixed_msg'] = ocean.web3.toHex(fixed_msg)
     json_request_consume['consumerId'] = consumer_account
     json_request_consume['sigEncJWT'] = ocean.web3.toHex(signature)
