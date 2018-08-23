@@ -11,8 +11,8 @@ json_dict = {"publisherId": "0x1",
              },
              "assetId": "001"
              }
-json_dict_no_metadata = {"publisherId": "0x0"}
-json_dict_no_valid_metadata = {"publisherId": "0x0",
+json_dict_no_metadata = {"publisherId": "0x2"}
+json_dict_no_valid_metadata = {"publisherId": "0x4",
                                "metadata": {
                                    "name": "name"
                                },
