@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
 from provider.app.osmosis import generate_sasurl
-from blockchain.constants import OceanContracts
+from ocean_web3.constants import OceanContracts
 from provider.myapp import app
 import json
-from acl.acl import decode
-from blockchain.OceanContractsWrapper import OceanContractsWrapper
-from provider.config_parser import load_config_section
+from ocean_web3.acl import decode
+from ocean_web3.ocean_contracts import OceanContractsWrapper
+from ocean_web3.config_parser import load_config_section
 from provider.constants import ConfigSections, BaseURLs
 from provider.app.dao import Dao
 from provider.app.filters import Filters
