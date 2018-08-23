@@ -25,6 +25,7 @@
   - [Configuration](#configuration)
   - [Code style](#code-style)
   - [Testing](#testing)
+  - [New version](#version)
   - [License](#license)
 
 ---
@@ -101,6 +102,9 @@ and [python-style-guide](https://github.com/oceanprotocol/dev-ocean/blob/master/
 Automatic tests are setup via Travis, executing `tox`.
 Our test use pytest framework.
 
+## Version
+
+The `bumpversion.sh` script helps to bump the project version. You can execute the script using as first argument {major|minor|patch} to bump accordingly the version.
 
 ## License
 
