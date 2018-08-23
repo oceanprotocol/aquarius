@@ -236,7 +236,8 @@ def register():
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = data['assetId']
     try:
-        dao.register(_record)
+        # dao.register(_record)
+        dao.register(_record, resource_id=data['assetId'])
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
@@ -400,7 +401,7 @@ def retire(asset_id):
     """
     try:
         dao.delete(asset_id)
-        return 200
+        return '', 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
