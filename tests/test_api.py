@@ -47,7 +47,7 @@ def test_create_asset(client):
     rv = client.get(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
         content_type='application/json')
-    assert 'name' in json.loads(rv.data.decode('utf-8'))['data']['metadata']['name']
+    assert 'name' in json.loads(rv.data.decode('utf-8'))['metadata']['name']
     client.delete(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'])
 
 
@@ -76,5 +76,5 @@ def test_update_asset_metadata(client):
     rv = client.get(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
         content_type='application/json')
-    assert 'nameUpdated' in json.loads(rv.data.decode('utf-8'))['data']['metadata']['name']
+    assert 'nameUpdated' in json.loads(rv.data.decode('utf-8'))['metadata']['name']
     client.delete(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'])

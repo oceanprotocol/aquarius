@@ -11,7 +11,7 @@ class Dao(object):
         asset_with_id = []
         for asset in assets:
             try:
-                asset_with_id.append(self.oceandb.read(asset['data']['resource_id']))
+                asset_with_id.append(self.oceandb.read(asset['assetId']))
             except Exception as e:
                 print(e)
                 pass
@@ -22,8 +22,6 @@ class Dao(object):
 
     def register(self, record, resource_id):
         return self.oceandb.write(record, resource_id)
-    # def register(self, record):
-    #     return self.oceandb.write(record)
 
     def update(self, record, resource_id):
         return self.oceandb.update(record, resource_id)
