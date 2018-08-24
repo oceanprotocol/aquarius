@@ -1,6 +1,6 @@
-[![banner](docs/img/repo-banner@2x.png)](https://oceanprotocol.com)
+[![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/banner/banner-ocean-01.png)](https://oceanprotocol.com)
 
-<h1 align="center">provider</h1>
+# provider
 
 > 🐋 Provide an off-chain database store for data assets metadata and registration and perform part of access control in collaboration with the keeper-contracts.
 > [oceanprotocol.com](https://oceanprotocol.com)
