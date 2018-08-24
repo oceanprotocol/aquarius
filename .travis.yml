@@ -1,18 +1,22 @@
 language: python
+sudo: required
 python:
 - 3.6
 
-sudo: required
 services:
 - docker
 
 before_install:
 - docker-compose -f docker/docker-compose.yml up -d
 
-
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox-travis
-script: tox
+install:
+- pip install -U tox-travis
+
+script:
+- tox
+- docker build -t oceanprotocol/provider .
+
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
