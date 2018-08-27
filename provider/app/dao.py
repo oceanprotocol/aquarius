@@ -17,14 +17,14 @@ class Dao(object):
                 pass
         return asset_with_id
 
-    def get(self, resource_id):
-        return self.oceandb.read(resource_id)
+    def get(self, asset_id):
+        return self.oceandb.read(asset_id)
 
-    def register(self, record, resource_id):
-        return self.oceandb.write(record, resource_id)
+    def register(self, record, asset_id):
+        return self.oceandb.write(record, asset_id)
 
-    def update(self, record, resource_id):
-        return self.oceandb.update(record, resource_id)
+    def update(self, record, asset_id):
+        return self.oceandb.update(record, asset_id)
 
-    def delete(self, resource_id):
-        return self.oceandb.delete(resource_id)
+    def delete(self, asset_id):
+        return self.oceandb.delete(asset_id)

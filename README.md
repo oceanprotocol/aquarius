@@ -1,4 +1,4 @@
-[![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/banner/banner-ocean-01.png)](https://oceanprotocol.com)
+[![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
 # provider
 

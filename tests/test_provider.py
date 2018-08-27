@@ -60,10 +60,10 @@ def test_commit_access_requested(client):
     print("buyer: %s" % consumer_account)
     print("seller: %s" % provider_account)
 
-    resource_id = market_concise.generateId('resource', transact={'from': provider_account})
-    print("recource_id: %s" % resource_id)
+    asset_id = market_concise.generateId('resource', transact={'from': provider_account})
+    print("recource_id: %s" % asset_id)
     resource_price = 10
-    json_consume['assetId'] = ocean.web3.toHex(resource_id)
+    json_consume['assetId'] = ocean.web3.toHex(asset_id)
     client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata',
                 data=json.dumps(json_consume),
                 content_type='application/json')
@@ -77,12 +77,12 @@ def test_commit_access_requested(client):
 
 
     # 1. Provider register an asset
-    market_concise.register(resource_id,
+    market_concise.register(asset_id,
                             resource_price,
                             transact={'from': provider_account})
     # 2. Consumer initiate an access request
     expiry = int(time.time() + expire_seconds)
-    req = acl_concise.initiateAccessRequest(resource_id,
+    req = acl_concise.initiateAccessRequest(asset_id,
                                             provider_account,
                                             pubkey,
                                             expiry,
@@ -160,7 +160,7 @@ def test_commit_access_requested(client):
     json_request_consume['jwt'] = ocean.web3.toBytes(hexstr=ocean.web3.toHex(decrypted_token)).decode('utf-8')
 
     post = client.post(
-        access_token['service_endpoint'].split('5000')[1] + '/%s' % ocean.web3.toHex(resource_id),
+        access_token['service_endpoint'].split('5000')[1] + '/%s' % ocean.web3.toHex(asset_id),
         data=json.dumps(json_request_consume),
         content_type='application/json')
     print(post.data.decode('utf-8'))
