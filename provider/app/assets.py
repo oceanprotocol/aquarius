@@ -73,7 +73,7 @@ def get_assets():
     args.append(query)
     asset_with_id = dao.get_assets()
 
-    asset_ids = [a['data']['data']['assetId'] for a in asset_with_id]
+    asset_ids = [a['assetId'] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
     return jsonify(resp_body), 200
 
@@ -98,7 +98,7 @@ def get(asset_id):
     """
     try:
         asset_record = dao.get(asset_id)
-        return jsonify(asset_record['data']), 200
+        return jsonify(asset_record), 200
     except Exception as e:
         return '"%s asset_id is not in OceanDB' % asset_id, 404
 
@@ -237,7 +237,7 @@ def register():
     _record['assetId'] = data['assetId']
     try:
         # dao.register(_record)
-        dao.register(_record, resource_id=data['assetId'])
+        dao.register(_record, data['assetId'])
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
@@ -420,7 +420,7 @@ def get_assets_metadata():
     query = dict()
     args.append(query)
     assets_with_id = dao.get_assets()
-    assets_metadata = {a['data']['data']['assetId']: a['data']['data'] for a in assets_with_id}
+    assets_metadata = {a['assetId']: a for a in assets_with_id}
     return jsonify(json.dumps(assets_metadata)), 200
 
 
@@ -491,7 +491,7 @@ def consume_resource(asset_id):
                                                              'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             print('reading asset from oceandb: ', asset_id)
-            url = dao.get(asset_id)['data']['data']['metadata']['links']
+            url = dao.get(asset_id)['metadata']['links']
             sasurl = generate_sasurl(url, resources_config['azure.account.name'],
                                      resources_config['azure.account.key'],
                                      resources_config['azure.container'])
