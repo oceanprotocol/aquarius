@@ -83,12 +83,12 @@ class Filters(object):
 
             print('payment id: ', request_id, self.cache._cache)
             c = self.cache.get(request_id)
-            asset_id = c['resource_metadata']['data']['data']['assetId']
+            asset_id = c['resource_metadata']['assetId']
             iat = time.time()
             # TODO Validate that all the values are good.
             plain_jwt = {
                 "iss": c['access_request']['_provider'],
-                "sub": c['resource_metadata']['data']['data']['metadata']['name'],  # Resource Name
+                "sub": c['resource_metadata']['metadata']['name'],  # Resource Name
                 "iat": iat,
                 "exp": iat + event['args']['_expire'],
                 "consumer_pubkey": "Consumer Public Key",  # Consumer Public Key
@@ -106,12 +106,7 @@ class Filters(object):
             jwt = encode(plain_jwt, self.encoding_key_pair.private_key)
             public_key = c['access_request']['_pubKey']
             enc_jwt = encrypt(jwt, public_key)
-            # print('publishing jwt: ', plain_jwt)
-            # print('encrypting token:',
-            #       '\nencoded jwt: ', jwt,
-            #       '\npublicKey: ', public_key,
-            # )
-            # self.cache.delete(event['args']['_paymentId'])
+            self.cache.delete(event['args']['_paymentId'])
             # print("Delivering encrypted JWT (access token): %s" % enc_jwt.hex())
             deliver_acces_token = contract_instance.deliverAccessToken(event['args']['_paymentId'],
                                                                        enc_jwt,
