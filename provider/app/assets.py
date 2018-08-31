@@ -10,7 +10,6 @@ from provider.constants import ConfigSections, BaseURLs
 from provider.app.dao import Dao
 from provider.app.filters import Filters
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'osx', 'doc'}
 assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
@@ -28,8 +27,6 @@ ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_con
 ocean_contracts.init_contracts()
 # Prepare resources access configuration to download assets
 resources_config = load_config_section(config_file, ConfigSections.RESOURCES)
-
-ASSETS_FOLDER = app.config['UPLOADS_FOLDER']
 
 
 def get_provider_address_filter():
@@ -511,8 +508,3 @@ def _sanitize_record(data_record):
 
 def validate_asset_data(data):
     return ''
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
