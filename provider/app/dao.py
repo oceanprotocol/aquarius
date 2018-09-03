@@ -13,7 +13,7 @@ class Dao(object):
             try:
                 asset_with_id.append(self.oceandb.read(asset['assetId']))
             except Exception as e:
-                print(e)
+                print(str(e))
                 pass
         return asset_with_id
 

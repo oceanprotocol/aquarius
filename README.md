@@ -64,7 +64,7 @@ you only need to generate your certificates and execute this command:
 gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 provider.run:app
 ```
 
-Be aware of add in the config file how you want to resolve your server:
+Be aware of adding in the config file how you want to resolve your server:
     
 ```yaml
 provider.scheme = https
@@ -72,7 +72,7 @@ provider.host = localhost
 provider.port = 5000
 ```
 
-You can genereta some certificates for testing running:
+You can generate some certificates for testing running:
 
 ```bash
 openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
