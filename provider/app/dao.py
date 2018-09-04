@@ -4,7 +4,7 @@ from oceandb_driver_interface import OceanDb
 class Dao(object):
 
     def __init__(self, config_file):
-        self.oceandb = OceanDb(config_file).plugin
+        self.oceandb = OceanDb(config_file).plugin(config_file)
 
     def get_assets(self):
         assets = self.oceandb.list()
