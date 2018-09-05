@@ -9,11 +9,9 @@ from ocean_web3.config_parser import load_config_section
 from provider.constants import ConfigSections, BaseURLs
 from provider.app.dao import Dao
 from provider.app.filters import Filters
-import logging
+from provider.log import setup_logging
 
-logger = logging.getLogger('Assets')
-logging.basicConfig(level=logging.INFO)
-
+setup_logging()
 assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
@@ -464,7 +462,7 @@ def consume_resource(asset_id):
     # Get asset metadata record
     required_attributes = ['consumerId', 'fixed_msg', 'sigEncJWT', 'jwt']
     assert isinstance(request.json, dict), 'invalid payload format.'
-    logging.info('got "consume" request: ', request.json)
+    logging.info('got "consume" request: %s' % request.json)
     data = request.json
     if not data:
         logging.error('Consume failed: data is empty.')
@@ -491,14 +489,14 @@ def consume_resource(asset_id):
                                                    transact={'from': ocean_contracts.account,
                                                              'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
-            logging.info('reading asset from oceandb: ', asset_id)
+            logging.info('reading asset from oceandb: %s' % asset_id)
             url = dao.get(asset_id)['metadata']['links']
             sasurl = generate_sasurl(url, resources_config['azure.account.name'],
                                      resources_config['azure.account.key'],
                                      resources_config['azure.container'])
             return str(sasurl), 200
         else:
-            logging.error('resource server plugin is not supported: ', jwt['resource_server_plugin'])
+            logging.error('resource server plugin is not supported: %s' % jwt['resource_server_plugin'])
             return '"%s error generating the sasurl.' % asset_id, 404
     else:
         return '"%s error generating the sasurl.' % asset_id, 404

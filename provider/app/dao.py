@@ -6,8 +6,6 @@ class Dao(object):
 
     def __init__(self, config_file):
         self.oceandb = OceanDb(config_file).plugin(config_file)
-        self.logger = logging.getLogger('Dao')
-        logging.basicConfig(level=logging.INFO)
 
     def get_assets(self):
         assets = self.oceandb.list()
@@ -16,7 +14,7 @@ class Dao(object):
             try:
                 asset_with_id.append(self.oceandb.read(asset['assetId']))
             except Exception as e:
-                self.logger.error(str(e))
+                logging.error(str(e))
                 pass
         return asset_with_id
 
