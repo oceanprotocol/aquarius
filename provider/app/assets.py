@@ -10,6 +10,7 @@ from provider.constants import ConfigSections, BaseURLs
 from provider.app.dao import Dao
 from provider.app.filters import Filters
 from provider.log import setup_logging
+import logging
 
 setup_logging()
 assets = Blueprint('assets', __name__)
@@ -240,7 +241,7 @@ def register():
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
-        logging.error('encounterd an error while saving the asset data to oceandb: %s' % str(err))
+        logging.error('encounterd an error while saving the asset data to oceandb: {}'.format(str(err)))
         return 'Some error: "%s"' % str(err), 500
 
 
