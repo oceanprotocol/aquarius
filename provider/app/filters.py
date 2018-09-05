@@ -29,7 +29,7 @@ class Filters(object):
             # check keeper for the status of this access request, if already committed then it should be ignored.
             committed = contract_instance.statusOfAccessRequest(request_id) == 1
             if committed:
-                self.logger.info('got access request event, but it is already committed, ignoring... ', request_id)
+                self.logger.info('got access request event, but it is already committed, ignoring... %s' % request_id)
                 return
             self.logger.debug('process access request: ',
                               '\nresourceId: ', res_id,
@@ -39,7 +39,7 @@ class Filters(object):
             try:
                 resource = self.dao.get(res_id)
             except Exception as e:
-                self.logger.info('res id: ', res_id)
+                self.logger.info('res id: %s' % res_id)
                 self.logger.info(str(e))
                 return
             _cache = dict()
@@ -55,7 +55,7 @@ class Filters(object):
                                                                                  'from': event['args']['_provider'],
                                                                                  'gas': gas_amount}
                                                                              )
-            self.logger.debug('Provider has committed the order, res_id, request_id: ', res_id, request_id)
+            self.logger.debug('Provider has committed the order, res_id, request_id: %s,%s' % (res_id, request_id))
             _cache['consent_hash'] = self.web3.toHex(commit_access_request_tx)
             self.cache.add(request_id, _cache)
             return commit_access_request_tx
@@ -64,7 +64,8 @@ class Filters(object):
             # to issues with gas amount. Also if this call throws an error, it will mess up the event watcher.
             # contract_instance.cancelAccessRequest(event['args']['_id'], transact={
             #     'from': event['args']['_provider']})
-            self.logger.error('There is no resource with this id registered in Oceandb.', traceback.print_exc())
+            self.logger.error('There is no resource with this id registered in Oceandb.')
+            self.logger.error(traceback.print_exc())
             return e
 
     def publish_encrypted_token(self, event):
@@ -75,9 +76,9 @@ class Filters(object):
             committed = contract_instance.statusOfAccessRequest(request_id) != 1
             if committed:
                 self.logger.info('got payment received event, but the encrypted token has been already publish, '
-                                 'ignoring... ', request_id)
+                                 'ignoring... %s' % request_id)
                 return
-            self.logger.debug('payment id: ', request_id, self.cache._cache)
+            self.logger.debug('payment id: %s' % request_id)
             c = self.cache.get(request_id)
             asset_id = c['resource_metadata']['assetId']
             iat = time.time()
@@ -111,5 +112,6 @@ class Filters(object):
             self.logger.debug('Provider has sent the access token, transactionId is: %s' % deliver_acces_token)
             return deliver_acces_token
         except Exception as e:
-            self.logger.error('error processing payment event (trying to publish JWT)', str(e), traceback.print_exc())
+            self.logger.error('error processing payment event (trying to publish JWT)')
+            self.logger.error(traceback.print_exc())
             return e
