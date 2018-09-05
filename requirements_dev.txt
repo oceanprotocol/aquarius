@@ -161,7 +161,7 @@ pysha3==1.0.2
 pytest==3.4.2
 pytest-runner==2.11.1
 python-dateutil==2.7.3
-python-rapidjson==0.0.11
+python-rapidjson==0.6.3
 python-rapidjson-schema==0.1.1
 pytz==2018.5
 PyYAML==3.13
@@ -174,8 +174,6 @@ semantic-version==2.6.0
 singletonify==0.1.2.0
 six==1.11.0
 statsd==3.2.1
-toolz==0.9.0
-tox==2.9.1
 tqdm==4.25.0
 twine==1.11.0
 urllib3==1.23
