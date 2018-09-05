@@ -30,11 +30,11 @@ class Filters(object):
                 logging.info('got access request event, but it is already committed, ignoring... %s' % request_id)
                 return
             logging.debug('process access request: '
-                              '\nresourceId: %s'
-                              '\nrequestId: %s'
-                              '\nconsumer: %s'
-                              '\nprovider: %s' % (
-                                  res_id, request_id, event['args']['_consumer'], event['args']['_provider']))
+                          '\nresourceId: %s'
+                          '\nrequestId: %s'
+                          '\nconsumer: %s'
+                          '\nprovider: %s' % (
+                              res_id, request_id, event['args']['_consumer'], event['args']['_provider']))
             try:
                 resource = self.dao.get(res_id)
             except Exception as e:
@@ -74,9 +74,8 @@ class Filters(object):
             # check keeper for the status of this access request, if the status is not committed should be ignored.
             committed = contract_instance.statusOfAccessRequest(request_id) != 1
             if committed:
-                logging.info('got payment received event,',
-                                 'but the encrypted token has been already publish,',
-                                 'ignoring... %s' % request_id)
+                logging.info('got payment received event, but the encrypted token has been already publish,')
+                logging.info('ignoring... %s' % request_id)
                 return
             logging.debug('payment id: %s' % request_id)
             c = self.cache.get(request_id)
