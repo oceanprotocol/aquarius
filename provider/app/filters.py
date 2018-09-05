@@ -31,11 +31,12 @@ class Filters(object):
             if committed:
                 self.logger.info('got access request event, but it is already committed, ignoring... %s' % request_id)
                 return
-            self.logger.debug('process access request: ',
-                              '\nresourceId: ', res_id,
-                              '\nrequestId: ', request_id,
-                              '\nconsumer: ', event['args']['_consumer'],
-                              '\nprovider: ', event['args']['_provider'])
+            self.logger.debug('process access request: '
+                              '\nresourceId: %s'
+                              '\nrequestId: %s'
+                              '\nconsumer: %s'
+                              '\nprovider: %s' % (
+                                  res_id, request_id, event['args']['_consumer'], event['args']['_provider']))
             try:
                 resource = self.dao.get(res_id)
             except Exception as e:
@@ -45,7 +46,7 @@ class Filters(object):
             _cache = dict()
             _cache['access_request'] = event['args']
             _cache['resource_metadata'] = resource
-            self.logger.debug('cached resource: ', res_id, resource)
+            self.logger.debug('cached resource: %s %s' % (res_id, resource))
             gas_amount = 1000000
             commit_access_request_tx = contract_instance.commitAccessRequest(event['args']['_id'], True,
                                                                              event['args']['_timeout'], 'discovery',
@@ -75,7 +76,8 @@ class Filters(object):
             # check keeper for the status of this access request, if the status is not committed should be ignored.
             committed = contract_instance.statusOfAccessRequest(request_id) != 1
             if committed:
-                self.logger.info('got payment received event, but the encrypted token has been already publish, '
+                self.logger.info('got payment received event,',
+                                 'but the encrypted token has been already publish,',
                                  'ignoring... %s' % request_id)
                 return
             self.logger.debug('payment id: %s' % request_id)
