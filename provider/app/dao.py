@@ -1,4 +1,5 @@
 from oceandb_driver_interface import OceanDb
+import logging
 
 
 class Dao(object):
@@ -13,7 +14,7 @@ class Dao(object):
             try:
                 asset_with_id.append(self.oceandb.read(asset['assetId']))
             except Exception as e:
-                print(str(e))
+                logging.error(str(e))
                 pass
         return asset_with_id
 

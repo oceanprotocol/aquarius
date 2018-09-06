@@ -9,7 +9,10 @@ from ocean_web3.config_parser import load_config_section
 from provider.constants import ConfigSections, BaseURLs
 from provider.app.dao import Dao
 from provider.app.filters import Filters
+from provider.log import setup_logging
+import logging
 
+setup_logging()
 assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
@@ -210,18 +213,18 @@ def register():
 
     data = request.json
     if not data:
-        print('request body seems empty, expecting %s' % str(required_attributes))
+        logging.error('request body seems empty, expecting %s' % str(required_attributes))
         return 400
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     for attr in required_attributes:
         if attr not in data:
-            print('%s is required, got %s' % (attr, str(data)))
+            logging.error('%s is required, got %s' % (attr, str(data)))
             return '"%s" is required for registering an asset.' % attr, 400
 
     for attr in required_metadata_attributes:
         if attr not in data['metadata']:
-            print('%s metadata is required, got %s' % (attr, str(data['metadata'])))
+            logging.error('%s metadata is required, got %s' % (attr, str(data['metadata'])))
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
@@ -238,7 +241,7 @@ def register():
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
-        print('encounterd an error while saving the asset data to oceandb: %s' % str(err))
+        logging.error('encounterd an error while saving the asset data to oceandb: {}'.format(str(err)))
         return 'Some error: "%s"' % str(err), 500
 
 
@@ -460,17 +463,17 @@ def consume_resource(asset_id):
     # Get asset metadata record
     required_attributes = ['consumerId', 'fixed_msg', 'sigEncJWT', 'jwt']
     assert isinstance(request.json, dict), 'invalid payload format.'
-    print('got "consume" request: ', request.json)
+    logging.info('got "consume" request: %s' % request.json)
     data = request.json
     if not data:
-        print('Consume failed: data is empty.')
+        logging.error('Consume failed: data is empty.')
         return 'payload seems empty.', 400
 
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     for attr in required_attributes:
         if attr not in data:
-            print('Consume failed: required attr %s missing.' % attr)
+            logging.error('Consume failed: required attr %s missing.' % attr)
             return '"%s" is required for registering an asset.' % attr, 400
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
@@ -487,14 +490,14 @@ def consume_resource(asset_id):
                                                    transact={'from': ocean_contracts.account,
                                                              'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
-            print('reading asset from oceandb: ', asset_id)
+            logging.info('reading asset from oceandb: %s' % asset_id)
             url = dao.get(asset_id)['metadata']['links']
             sasurl = generate_sasurl(url, resources_config['azure.account.name'],
                                      resources_config['azure.account.key'],
                                      resources_config['azure.container'])
             return str(sasurl), 200
         else:
-            print('resource server plugin is not supported: ', jwt['resource_server_plugin'])
+            logging.error('resource server plugin is not supported: %s' % jwt['resource_server_plugin'])
             return '"%s error generating the sasurl.' % asset_id, 404
     else:
         return '"%s error generating the sasurl.' % asset_id, 404
