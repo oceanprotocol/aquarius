@@ -84,7 +84,7 @@ class Filters(object):
             # TODO Validate that all the values are good.
             plain_jwt = {
                 "iss": c['access_request']['_provider'],
-                "sub": c['resource_metadata']['metadata']['name'],  # Resource Name
+                "sub": c['resource_metadata']['metadata']['base']['name'],  # Resource Name
                 "iat": iat,
                 "exp": iat + event['args']['_expire'],
                 "consumer_pubkey": "Consumer Public Key",  # Consumer Public Key

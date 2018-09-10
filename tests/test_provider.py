@@ -7,15 +7,44 @@ from eth_account.messages import defunct_hash_message
 import json
 from provider.constants import BaseURLs
 
-json_consume = {"publisherId": "0x01",
+json_consume = {"publisherId": "0x1",
                 "metadata": {
-                    "name": "testzkp",
-                    "links": "https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf",
-                    "size": "1.08MiB",
-                    "format": "pdf",
-                    "description": "description"
+                    "base": {
+                        "name": "UK Weather information 2011",
+                        "description": "Weather information of UK including temperature and humidity",
+                        "size": "3.1gb",
+                        "dateCreated": "2012-02-01T10:55:11+00:00",
+                        "author": "Met Office",
+                        "license": "CC-BY",
+                        "copyrightHolder": "Met Office",
+                        "encoding": "UTF-8",
+                        "compression": "zip",
+                        "contentType": "text/csv",
+                        "workExample": "stationId,latitude,longitude,datetime,temperature,humidity\n"
+                                       "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
+                        "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf"],
+                        "links": [
+                            {
+                                "sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
+                            {
+                                "sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
+                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
+                        ],
+                        "inLanguage": "en",
+                        "tags": "weather, uk, 2011, temperature, humidity"
+
+                    },
+                    "curation": {
+                        "rating": 0,
+                        "numVotes": 0,
+                        "schema": "Binary Votting"
+                    },
+                    "additionalInformation": {
+                        "updateFrecuency": "yearly"
+                    }
                 },
-                "assetId": "0x01"}
+                "assetId": "001"
+                }
 
 json_request_consume = {
     'requestId': "",
@@ -74,7 +103,6 @@ def test_commit_access_requested(client):
 
     market_concise.requestTokens(2000, transact={'from': provider_account})
     market_concise.requestTokens(2000, transact={'from': consumer_account})
-
 
     # 1. Provider register an asset
     market_concise.register(asset_id,
@@ -165,6 +193,9 @@ def test_commit_access_requested(client):
         content_type='application/json')
     print(post.data.decode('utf-8'))
     assert post.status_code == 200
+    while (acl_concise.statusOfAccessRequest(request_id) == 3) is False and i < 1000:
+        i += 1
+        time.sleep(0.1)
     assert acl_concise.statusOfAccessRequest(request_id) == 3
 
     buyer_balance = token.balanceOf(consumer_account)
