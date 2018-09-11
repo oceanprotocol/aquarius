@@ -6,52 +6,7 @@ from ocean_web3.acl import generate_encryption_keys, decode, decrypt
 from eth_account.messages import defunct_hash_message
 import json
 from provider.constants import BaseURLs
-
-json_consume = {"publisherId": "0x1",
-                "metadata": {
-                    "base": {
-                        "name": "UK Weather information 2011",
-                        "description": "Weather information of UK including temperature and humidity",
-                        "size": "3.1gb",
-                        "dateCreated": "2012-02-01T10:55:11+00:00",
-                        "author": "Met Office",
-                        "license": "CC-BY",
-                        "copyrightHolder": "Met Office",
-                        "encoding": "UTF-8",
-                        "compression": "zip",
-                        "contentType": "text/csv",
-                        "workExample": "stationId,latitude,longitude,datetime,temperature,humidity\n"
-                                       "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                        "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf"],
-                        "links": [
-                            {
-                                "sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                            {
-                                "sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
-                        ],
-                        "inLanguage": "en",
-                        "tags": "weather, uk, 2011, temperature, humidity"
-
-                    },
-                    "curation": {
-                        "rating": 0,
-                        "numVotes": 0,
-                        "schema": "Binary Votting"
-                    },
-                    "additionalInformation": {
-                        "updateFrecuency": "yearly"
-                    }
-                },
-                "assetId": "001"
-                }
-
-json_request_consume = {
-    'requestId': "",
-    'consumerId': "",
-    'fixed_msg': "",
-    'sigEncJWT': ""
-}
+from tests.conftest import json_dict, json_request_consume
 
 ocean = OceanContractsWrapper()
 ocean.init_contracts()
@@ -92,9 +47,9 @@ def test_commit_access_requested(client):
     asset_id = market_concise.generateId('resource', transact={'from': provider_account})
     print("recource_id: %s" % asset_id)
     resource_price = 10
-    json_consume['assetId'] = ocean.web3.toHex(asset_id)
+    json_dict['assetId'] = ocean.web3.toHex(asset_id)
     client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata',
-                data=json.dumps(json_consume),
+                data=json.dumps(json_dict),
                 content_type='application/json')
 
     pubprivkey = generate_encryption_keys()
