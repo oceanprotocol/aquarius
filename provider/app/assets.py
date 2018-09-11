@@ -268,7 +268,7 @@ def register():
     _record['metadata'] = data['metadata']
     _record['metadata']['curation']['rating'] = 0.00
     _record['metadata']['curation']['numVotes'] = 0
-    _record['metadata']['additionalInformation']['checksum'] = hashlib.md5(
+    _record['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
         json.dumps(data['metadata']['base']).encode('UTF-8')).hexdigest()
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = data['assetId']
@@ -447,7 +447,7 @@ def update(asset_id):
 
     _record = dict()
     _record['metadata'] = data['metadata']
-    _record['metadata']['additionalInformation']['checksum'] = hashlib.md5(
+    _record['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
         json.dumps(data['metadata']['base']).encode('UTF-8')).hexdigest()
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = asset_id
