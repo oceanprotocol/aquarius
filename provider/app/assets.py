@@ -11,6 +11,7 @@ from provider.app.dao import Dao
 from provider.app.filters import Filters
 from provider.log import setup_logging
 import logging
+import hashlib
 
 setup_logging()
 assets = Blueprint('assets', __name__)
@@ -143,6 +144,7 @@ def register():
                   - license
                   - contentType
                   - contentUrls
+                  - price
                 properties:
                   name:
                     type: string
@@ -208,6 +210,10 @@ def register():
                     type: string
                     description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
                     example: weather, uk, 2011, temperature, humidity
+                  price:
+                    type: number
+                    description: Price of the asset.
+                    example: 10
                   rating:
                     type: number
                     description: Decimal values between 0 and 1. 0 is the default value
@@ -262,6 +268,8 @@ def register():
     _record['metadata'] = data['metadata']
     _record['metadata']['curation']['rating'] = 0.00
     _record['metadata']['curation']['numVotes'] = 0
+    _record['metadata']['additionalInformation']['checksum'] = hashlib.md5(
+        json.dumps(data['metadata']['base']).encode('UTF-8')).hexdigest()
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = data['assetId']
     try:
@@ -316,6 +324,7 @@ def update(asset_id):
                   - contentUrls
                   - rating
                   - numVotes
+                  - price
                 properties:
                   name:
                     type: string
@@ -381,6 +390,10 @@ def update(asset_id):
                     type: string
                     description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
                     example: weather, uk, 2011, temperature, humidity
+                  price:
+                    type: number
+                    description: Price of the asset.
+                    example: 10
                   rating:
                     type: number
                     description: Decimal values between 0 and 1. 0 is the default value
@@ -434,6 +447,8 @@ def update(asset_id):
 
     _record = dict()
     _record['metadata'] = data['metadata']
+    _record['metadata']['additionalInformation']['checksum'] = hashlib.md5(
+        json.dumps(data['metadata']['base']).encode('UTF-8')).hexdigest()
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = asset_id
     try:

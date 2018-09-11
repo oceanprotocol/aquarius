@@ -33,8 +33,8 @@ json_dict = {"publisherId": "0x1",
                         {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
                      ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity"
-
+                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "price": 10
                 },
                 "curation": {
                     "rating": 0,
@@ -77,7 +77,8 @@ json_before = {"publisherId": "0x6",
                         {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
                      ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity"
+                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "price":50
 
                 },
                 "curation": {
@@ -114,7 +115,8 @@ json_update = {"publisherId": "0x6",
                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
                        ],
                        "inLanguage": "en",
-                       "tags": "weather, uk, 2011, temperature, humidity"
+                       "tags": "weather, uk, 2011, temperature, humidity",
+                       "price": 50
 
                    },
                    "curation": {
