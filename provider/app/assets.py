@@ -12,6 +12,9 @@ from provider.app.filters import Filters
 from provider.log import setup_logging
 import logging
 import hashlib
+from datetime import datetime
+import pytz
+
 
 setup_logging()
 assets = Blueprint('assets', __name__)
@@ -256,7 +259,7 @@ def register():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['assetId', 'metadata', 'publisherId', ]
-    required_metadata_base_attributes = ['name', 'dateCreated', 'size', 'author', 'license', 'contentType',
+    required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
                                          'contentUrls']
     data = request.json
     if not data:
@@ -283,6 +286,7 @@ def register():
 
     _record = dict()
     _record['metadata'] = data['metadata']
+    _record['metadata']['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(tzinfo=pytz.UTC).isoformat()
     _record['metadata']['curation']['rating'] = 0.00
     _record['metadata']['curation']['numVotes'] = 0
     _record['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
@@ -454,7 +458,7 @@ def update(asset_id):
         description: Error
     """
     required_attributes = ['metadata', 'publisherId', ]
-    required_metadata_base_attributes = ['name', 'dateCreated', 'size', 'author', 'license', 'contentType',
+    required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
                                          'contentUrls']
     required_metadata_curation_attributes = ['rating', 'numVotes']
 
@@ -482,8 +486,10 @@ def update(asset_id):
     if msg:
         return msg, 404
 
+    date_created = dao.get(asset_id)['metadata']['base']['dateCreated']
     _record = dict()
     _record['metadata'] = data['metadata']
+    _record['metadata']['base']['dateCreated'] = date_created
     _record['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
         json.dumps(data['metadata']['base']).encode('UTF-8')).hexdigest()
     _record['publisherId'] = data['publisherId']
