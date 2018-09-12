@@ -23,7 +23,6 @@ config_file = app.config['CONFIG_FILE']
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
 res_conf = load_config_section(config_file, ConfigSections.RESOURCES)
-oceandb = load_config_section(config_file, ConfigSections.OCEANBD)
 # Prepare OceanDB
 dao = Dao(config_file)
 
