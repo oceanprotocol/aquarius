@@ -1,8 +1,12 @@
+import pytz
+import json
+import logging
+import hashlib
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from provider.app.osmosis import generate_sasurl
 from ocean_web3.constants import OceanContracts
 from provider.myapp import app
-import json
 from ocean_web3.acl import decode
 from ocean_web3.ocean_contracts import OceanContractsWrapper
 from ocean_web3.config_parser import load_config_section
@@ -10,21 +14,19 @@ from provider.constants import ConfigSections, BaseURLs
 from provider.app.dao import Dao
 from provider.app.filters import Filters
 from provider.log import setup_logging
-import logging
-import hashlib
-from datetime import datetime
-import pytz
 
 
 setup_logging()
 assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
-# Prepare OceanDB
-dao = Dao(config_file)
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
 res_conf = load_config_section(config_file, ConfigSections.RESOURCES)
+oceandb = load_config_section(config_file, ConfigSections.OCEANBD)
+# Prepare OceanDB
+dao = Dao(config_file)
+
 provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.host'], res_conf['provider.port'])
 provider_url += BaseURLs.ASSETS_URL
 provider_address = None if not keeper_config['provider.address'] else keeper_config['provider.address']
@@ -163,11 +165,6 @@ def register():
                         type: string
                         description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
                         example: Weather information of UK including temperature and humidity
-                      dateCreated:
-                        type: string
-                        format: date-time
-                        description: The date on which was created or was added. Follow https://tools.ietf.org/html/rfc3339#section-5.6
-                        example: 2012-02-01T10:55:11+00:00
                       size:
                         type: string
                         description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
@@ -344,7 +341,6 @@ def update(asset_id):
                     type: object
                     required:
                       - name
-                      - dateCreated
                       - size
                       - author
                       - license
@@ -360,11 +356,6 @@ def update(asset_id):
                         type: string
                         description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
                         example: Weather information of UK including temperature and humidity
-                      dateCreated:
-                        type: string
-                        format: date-time
-                        description: The date on which was created or was added. Follow https://tools.ietf.org/html/rfc3339#section-5.6
-                        example: 2012-02-01T10:55:11+00:00
                       size:
                         type: string
                         description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed

@@ -4,8 +4,8 @@ import logging
 
 class Dao(object):
 
-    def __init__(self, config_file):
-        self.oceandb = OceanDb(config_file).plugin(config_file)
+    def __init__(self, config_file=None, oceandb_section=None):
+        self.oceandb = OceanDb(config_file).plugin(oceandb_section)
 
     def get_assets(self):
         assets = self.oceandb.list()
