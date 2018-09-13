@@ -253,7 +253,7 @@ def register():
         description: Error
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-    required_attributes = ['assetId', 'metadata', 'publisherId', ]
+    required_attributes = ['assetId', 'publisherId', 'base']
     required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
                                          'contentUrls']
     data = request.json
@@ -267,12 +267,9 @@ def register():
             logging.error('%s is required, got %s' % (attr, str(data)))
             return '"%s" is required for registering an asset.' % attr, 400
 
-    if not data['metadata']['base']:
-        logging.error('metadata base is required')
-        return 'metadata base is required for registering an asset.', 400
     for attr in required_metadata_base_attributes:
-        if attr not in data['metadata']['base']:
-            logging.error('%s metadata is required, got %s' % (attr, str(data['metadata']['base'])))
+        if attr not in data['base']:
+            logging.error('%s metadata is required, got %s' % (attr, str(data['base'])))
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
@@ -280,15 +277,14 @@ def register():
         return msg, 404
 
     _record = dict()
-    _record['metadata'] = data['metadata']
-    _record['metadata']['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(
+    _record = data
+    _record['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(
         tzinfo=pytz.UTC).isoformat()
-    _record['metadata']['curation']['rating'] = 0.00
-    _record['metadata']['curation']['numVotes'] = 0
-    _record['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
-        json.dumps(data['metadata']['base']).encode('UTF-8')).hexdigest()
-    _record['publisherId'] = data['publisherId']
-    _record['assetId'] = data['assetId']
+    _record['curation']['rating'] = 0.00
+    _record['curation']['numVotes'] = 0
+    _record['additionalInformation']['checksum'] = hashlib.sha3_256(json.dumps(data['base']).encode('UTF-8')).hexdigest()
+    # _record['publisherId'] = data['publisherId']
+    # _record['assetId'] = data['assetId']
     try:
         dao.register(_record, data['assetId'])
         # add new assetId to response
@@ -446,7 +442,7 @@ def update(asset_id):
       500:
         description: Error
     """
-    required_attributes = ['metadata', 'publisherId', ]
+    required_attributes = ['base', 'publisherId', ]
     required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
                                          'contentUrls']
     required_metadata_curation_attributes = ['rating', 'numVotes']
@@ -462,26 +458,24 @@ def update(asset_id):
             return '"%s" is required for registering an asset.' % attr, 400
 
     for attr in required_metadata_base_attributes:
-        if attr not in data['metadata']['base']:
-            logging.error('%s metadata is required, got %s' % (attr, str(data['metadata']['base'])))
+        if attr not in data['base']:
+            logging.error('%s metadata is required, got %s' % (attr, str(data['base'])))
             return '"%s" is required for registering an asset.' % attr, 400
 
     for attr in required_metadata_curation_attributes:
-        if attr not in data['metadata']['curation']:
-            logging.error('%s metadata is required, got %s' % (attr, str(data['metadata']['curation'])))
+        if attr not in data['curation']:
+            logging.error('%s metadata is required, got %s' % (attr, str(data['curation'])))
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
     if msg:
         return msg, 404
 
-    date_created = dao.get(asset_id)['metadata']['base']['dateCreated']
+    date_created = dao.get(asset_id)['base']['dateCreated']
     _record = dict()
-    _record['metadata'] = data['metadata']
-    _record['metadata']['base']['dateCreated'] = date_created
-    _record['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
-        json.dumps(data['metadata']['base']).encode('UTF-8')).hexdigest()
-    _record['publisherId'] = data['publisherId']
+    _record = data
+    _record['base']['dateCreated'] = date_created
+    _record['additionalInformation']['checksum'] = hashlib.sha3_256(json.dumps(data['base']).encode('UTF-8')).hexdigest()
     _record['assetId'] = asset_id
     try:
         dao.update(_record, asset_id)
@@ -602,7 +596,7 @@ def consume_resource(asset_id):
                                                              'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             logging.info('reading asset from oceandb: %s' % asset_id)
-            urls = dao.get(asset_id)['metadata']['base']['contentUrls']
+            urls = dao.get(asset_id)['base']['contentUrls']
             url_list = []
             for url in urls:
                 url_list.append(generate_sasurl(url, resources_config['azure.account.name'],

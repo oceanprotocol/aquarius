@@ -11,7 +11,7 @@ def test_create_asset(client):
     rv = client.get(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
         content_type='application/json')
-    assert json_dict['metadata']['base']['name'] in json.loads(rv.data.decode('utf-8'))['metadata']['base']['name']
+    assert json_dict['base']['name'] in json.loads(rv.data.decode('utf-8'))['base']['name']
     client.delete(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'])
 
 
@@ -40,6 +40,6 @@ def test_update_asset_metadata(client):
     rv = client.get(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
         content_type='application/json')
-    assert json_update['metadata']['curation']['rating'] == json.loads(rv.data.decode('utf-8'))['metadata']['curation']['rating']
-    assert json.loads(post.data.decode('utf-8'))['metadata']['additionalInformation']['checksum'] != json.loads(rv.data.decode('utf-8'))['metadata']['additionalInformation']['checksum']
+    assert json_update['curation']['rating'] == json.loads(rv.data.decode('utf-8'))['curation']['rating']
+    assert json.loads(post.data.decode('utf-8'))['additionalInformation']['checksum'] != json.loads(rv.data.decode('utf-8'))['additionalInformation']['checksum']
     client.delete(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'])
