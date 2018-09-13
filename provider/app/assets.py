@@ -77,7 +77,6 @@ def get_assets():
     query = dict()
     args.append(query)
     asset_with_id = dao.get_assets()
-
     asset_ids = [a['assetId'] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
     return jsonify(resp_body), 200
@@ -282,7 +281,8 @@ def register():
 
     _record = dict()
     _record['metadata'] = data['metadata']
-    _record['metadata']['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(tzinfo=pytz.UTC).isoformat()
+    _record['metadata']['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(
+        tzinfo=pytz.UTC).isoformat()
     _record['metadata']['curation']['rating'] = 0.00
     _record['metadata']['curation']['numVotes'] = 0
     _record['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
@@ -290,7 +290,6 @@ def register():
     _record['publisherId'] = data['publisherId']
     _record['assetId'] = data['assetId']
     try:
-        # dao.register(_record)
         dao.register(_record, data['assetId'])
         # add new assetId to response
         return _sanitize_record(_record), 201

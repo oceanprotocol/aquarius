@@ -94,7 +94,7 @@ json_update = {"publisherId": "0x6",
                    "base": {
                        "name": "UK Weather information 2011",
                        "description": "Weather information of UK including temperature and humidity",
-                       "size": "3.1gb",
+                       "size": "3.7gb",
                        "author": "Met Office",
                        "license": "CC-BY",
                        "copyrightHolder": "Met Office",
