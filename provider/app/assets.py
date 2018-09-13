@@ -125,7 +125,7 @@ def register():
           required:
             - assetId
             - publisherId
-            - metadata
+            - base
           properties:
             assetId:
               description: ID of the asset.
@@ -135,113 +135,106 @@ def register():
               description: Id of the asset's publisher.
               type: string
               example: '0x0234242345'
-            metadata:
-              schema:
-                id: Metadata
-                type: object
-                required:
-                  - base
-                properties:
-                  base:
-                    id: Base
-                    type: object
-                    required:
-                      - name
-                      - dateCreated
-                      - size
-                      - author
-                      - license
-                      - contentType
-                      - contentUrls
-                      - price
-                    properties:
-                      name:
-                        type: string
-                        description: Descriptive name of the Asset
-                        example: UK Weather information 2011
-                      description:
-                        type: string
-                        description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
-                        example: Weather information of UK including temperature and humidity
-                      size:
-                        type: string
-                        description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
-                        example: 3.1gb
-                      author:
-                        type: string
-                        description: Name of the entity generating this data.
-                        example: Met Office
-                      license:
-                        type: string
-                        description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
-                        example: CC-BY
-                      copyrightHolder:
-                        type: string
-                        description: The party holding the legal copyright. Empty by default
-                        example: Met Office
-                      encoding:
-                        type: string
-                        description: File encoding
-                        example: UTF-8
-                      compression:
-                        type: string
-                        description: File compression
-                        example: zip
-                      contentType:
-                        type: string
-                        description: File format if applicable
-                        example: text/csv
-                      workExample:
-                        type: string
-                        description: Example of the concept of this asset. This example is part of the metadata, not an external link.
-                        example: stationId,latitude,longitude,datetime,temperature,humidity\n
-                            423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
-                      contentUrls:
-                        type: array
-                        description: List of content urls resolving the ASSET files
-                        example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
-                      links:
-                        type: array
-                        description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
-                        example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                                  {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                                  {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
-                      inLanguage:
-                        type: string
-                        description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
-                        example: en
-                      tags:
-                        type: string
-                        description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
-                        example: weather, uk, 2011, temperature, humidity
-                      price:
-                        type: number
-                        description: Price of the asset.
-                        example: 10
-                  curation:
-                    id: Curation
-                    type: object
-                    properties:
-                      rating:
-                        type: number
-                        description: Decimal values between 0 and 1. 0 is the default value
-                        example: 0
-                      numVotes:
-                        type: integer
-                        description: any additional information worthy of highlighting (description maybe sufficient)
-                        example: 0
-                      schema:
-                        type: string
-                        description: Schema applied to calculate the rating
-                        example: Binary Votting
-                  additionalInformation:
-                    id: additionalInformation
-                    type: object
-                    properties:
-                      updateFrecuency:
-                        type: string
-                        description: ow often are updates expected
-                        example: yearly
+            base:
+              id: Base
+              type: object
+              required:
+                - name
+                - dateCreated
+                - size
+                - author
+                - license
+                - contentType
+                - contentUrls
+                - price
+              properties:
+                name:
+                  type: string
+                  description: Descriptive name of the Asset
+                  example: UK Weather information 2011
+                description:
+                  type: string
+                  description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                  example: Weather information of UK including temperature and humidity
+                size:
+                  type: string
+                  description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
+                  example: 3.1gb
+                author:
+                  type: string
+                  description: Name of the entity generating this data.
+                  example: Met Office
+                license:
+                  type: string
+                  description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
+                  example: CC-BY
+                copyrightHolder:
+                  type: string
+                  description: The party holding the legal copyright. Empty by default
+                  example: Met Office
+                encoding:
+                  type: string
+                  description: File encoding
+                  example: UTF-8
+                compression:
+                  type: string
+                  description: File compression
+                  example: zip
+                contentType:
+                  type: string
+                  description: File format if applicable
+                  example: text/csv
+                workExample:
+                  type: string
+                  description: Example of the concept of this asset. This example is part of the metadata, not an external link.
+                  example: stationId,latitude,longitude,datetime,temperature,humidity\n
+                      423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
+                contentUrls:
+                  type: array
+                  description: List of content urls resolving the ASSET files
+                  example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
+                links:
+                  type: array
+                  description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
+                  example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
+                            {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
+                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
+                inLanguage:
+                  type: string
+                  description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
+                  example: en
+                tags:
+                  type: string
+                  description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
+                  example: weather, uk, 2011, temperature, humidity
+                price:
+                  type: number
+                  description: Price of the asset.
+                  example: 10
+            curation:
+              id: Curation
+              type: object
+              properties:
+                rating:
+                  type: number
+                  description: Decimal values between 0 and 1. 0 is the default value
+                  example: 0
+                numVotes:
+                  type: integer
+                  description: any additional information worthy of highlighting (description maybe sufficient)
+                  example: 0
+                schema:
+                  type: string
+                  description: Schema applied to calculate the rating
+                  example: Binary Votting
+            additionalInformation:
+              id: additionalInformation
+              type: object
+              properties:
+                updateFrecuency:
+                  type: string
+                  description: ow often are updates expected
+                  example: yearly
     responses:
       201:
         description: Asset successfully registered.
@@ -317,121 +310,114 @@ def update(asset_id):
           required:
             - asset_id
             - publisherId
-            - metadata
+            - base
           properties:
             publisherId:
               description: Id of the asset's publisher.
               type: string
               example: '0x0234242345'
-            metadata:
-              schema:
-                id: MetadataUpdate
-                type: object
-                required:
-                  - base
-                properties:
-                  base:
-                    id: BaseUpdate
-                    type: object
-                    required:
-                      - name
-                      - size
-                      - author
-                      - license
-                      - contentType
-                      - contentUrls
-                      - price
-                    properties:
-                      name:
-                        type: string
-                        description: Descriptive name of the Asset
-                        example: UK Weather information 2011
-                      description:
-                        type: string
-                        description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
-                        example: Weather information of UK including temperature and humidity
-                      size:
-                        type: string
-                        description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
-                        example: 3.1gb
-                      author:
-                        type: string
-                        description: Name of the entity generating this data.
-                        example: Met Office
-                      license:
-                        type: string
-                        description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
-                        example: CC-BY
-                      copyrightHolder:
-                        type: string
-                        description: The party holding the legal copyright. Empty by default
-                        example: Met Office
-                      encoding:
-                        type: string
-                        description: File encoding
-                        example: UTF-8
-                      compression:
-                        type: string
-                        description: File compression
-                        example: zip
-                      contentType:
-                        type: string
-                        description: File format if applicable
-                        example: text/csv
-                      workExample:
-                        type: string
-                        description: Example of the concept of this asset. This example is part of the metadata, not an external link.
-                        example: stationId,latitude,longitude,datetime,temperature,humidity\n
-                            423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
-                      contentUrls:
-                        type: array
-                        description: List of content urls resolving the ASSET files
-                        example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
-                      links:
-                        type: array
-                        description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
-                        example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                                  {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                                  {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
-                      inLanguage:
-                        type: string
-                        description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
-                        example: en
-                      tags:
-                        type: string
-                        description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
-                        example: weather, uk, 2011, temperature, humidity
-                      price:
-                        type: number
-                        description: Price of the asset.
-                        example: 10
-                  curation:
-                    id: CurationUpdate
-                    type: object
-                    required:
-                      - rating
-                      - numVotes
-                    properties:
-                      rating:
-                        type: number
-                        description: Decimal values between 0 and 1. 0 is the default value
-                        example: 0
-                      numVotes:
-                        type: integer
-                        description: any additional information worthy of highlighting (description maybe sufficient)
-                        example: 0
-                      schema:
-                        type: string
-                        description: Schema applied to calculate the rating
-                        example: Binary Votting
-                  additionalInformation:
-                    id: additionalInformationUpdate
-                    type: object
-                    properties:
-                      updateFrecuency:
-                        type: string
-                        description: ow often are updates expected
-                        example: yearly
+            base:
+              id: BaseUpdate
+              type: object
+              required:
+                - name
+                - size
+                - author
+                - license
+                - contentType
+                - contentUrls
+                - price
+              properties:
+                name:
+                  type: string
+                  description: Descriptive name of the Asset
+                  example: UK Weather information 2011
+                description:
+                  type: string
+                  description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                  example: Weather information of UK including temperature and humidity
+                size:
+                  type: string
+                  description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
+                  example: 3.1gb
+                author:
+                  type: string
+                  description: Name of the entity generating this data.
+                  example: Met Office
+                license:
+                  type: string
+                  description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
+                  example: CC-BY
+                copyrightHolder:
+                  type: string
+                  description: The party holding the legal copyright. Empty by default
+                  example: Met Office
+                encoding:
+                  type: string
+                  description: File encoding
+                  example: UTF-8
+                compression:
+                  type: string
+                  description: File compression
+                  example: zip
+                contentType:
+                  type: string
+                  description: File format if applicable
+                  example: text/csv
+                workExample:
+                  type: string
+                  description: Example of the concept of this asset. This example is part of the metadata, not an external link.
+                  example: stationId,latitude,longitude,datetime,temperature,humidity\n
+                      423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
+                contentUrls:
+                  type: array
+                  description: List of content urls resolving the ASSET files
+                  example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
+                links:
+                  type: array
+                  description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
+                  example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
+                            {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
+                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
+                inLanguage:
+                  type: string
+                  description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
+                  example: en
+                tags:
+                  type: string
+                  description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
+                  example: weather, uk, 2011, temperature, humidity
+                price:
+                  type: number
+                  description: Price of the asset.
+                  example: 10
+            curation:
+              id: CurationUpdate
+              type: object
+              required:
+                - rating
+                - numVotes
+              properties:
+                rating:
+                  type: number
+                  description: Decimal values between 0 and 1. 0 is the default value
+                  example: 0
+                numVotes:
+                  type: integer
+                  description: any additional information worthy of highlighting (description maybe sufficient)
+                  example: 0
+                schema:
+                  type: string
+                  description: Schema applied to calculate the rating
+                  example: Binary Votting
+            additionalInformation:
+              id: additionalInformationUpdate
+              type: object
+              properties:
+                updateFrecuency:
+                  type: string
+                  description: ow often are updates expected
+                  example: yearly
     responses:
       200:
         description: Asset successfully updated.
