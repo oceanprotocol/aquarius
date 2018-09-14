@@ -86,6 +86,9 @@ Once you have your application running you can access to the documentation in:
 http://127.0.0.1:5000/api/v1/docs
 ```
 
+If you want to know more about the ontology of the metadata you can find all the informacion in the 
+[OEP-8](https://github.com/oceanprotocol/OEPs/tree/master/8).
+
 ## Configuration
 
 
