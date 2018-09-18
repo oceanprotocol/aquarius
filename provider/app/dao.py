@@ -1,10 +1,11 @@
 from oceandb_driver_interface import OceanDb
+import logging
 
 
 class Dao(object):
 
-    def __init__(self, config_file):
-        self.oceandb = OceanDb(config_file).plugin(config_file)
+    def __init__(self, config_file=None):
+        self.oceandb = OceanDb(config_file).plugin
 
     def get_assets(self):
         assets = self.oceandb.list()
@@ -13,7 +14,7 @@ class Dao(object):
             try:
                 asset_with_id.append(self.oceandb.read(asset['assetId']))
             except Exception as e:
-                print(str(e))
+                logging.error(str(e))
                 pass
         return asset_with_id
 
