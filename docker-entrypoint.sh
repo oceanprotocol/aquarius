@@ -1,8 +1,8 @@
 #!/bin/sh
 
-export CONFIG_FILE=oceandb.ini
-
+export CONFIG_FILE=/provider/oceandb.ini
+envsubst < /provider/oceandb.ini.template > /provider/oceandb.ini
 sleep 30
 
-gunicorn -b 0.0.0.0:5000 -w 1 provider.run:app
+gunicorn -b ${PROVIDER_HOST}:${PROVIDER_PORT} -w ${PROVICER_WORKERS} provider.run:app
 tail -f /dev/null
