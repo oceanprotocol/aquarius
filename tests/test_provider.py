@@ -6,23 +6,7 @@ from ocean_web3.acl import generate_encryption_keys, decode, decrypt
 from eth_account.messages import defunct_hash_message
 import json
 from provider.constants import BaseURLs
-
-json_consume = {"publisherId": "0x01",
-                "metadata": {
-                    "name": "testzkp",
-                    "links": "https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf",
-                    "size": "1.08MiB",
-                    "format": "pdf",
-                    "description": "description"
-                },
-                "assetId": "0x01"}
-
-json_request_consume = {
-    'requestId': "",
-    'consumerId': "",
-    'fixed_msg': "",
-    'sigEncJWT': ""
-}
+from tests.conftest import json_dict, json_request_consume
 
 ocean = OceanContractsWrapper()
 ocean.init_contracts()
@@ -63,9 +47,9 @@ def test_commit_access_requested(client):
     asset_id = market_concise.generateId('resource', transact={'from': provider_account})
     print("recource_id: %s" % asset_id)
     resource_price = 10
-    json_consume['assetId'] = ocean.web3.toHex(asset_id)
+    json_dict['assetId'] = ocean.web3.toHex(asset_id)
     client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata',
-                data=json.dumps(json_consume),
+                data=json.dumps(json_dict),
                 content_type='application/json')
 
     pubprivkey = generate_encryption_keys()
@@ -74,7 +58,6 @@ def test_commit_access_requested(client):
 
     market_concise.requestTokens(2000, transact={'from': provider_account})
     market_concise.requestTokens(2000, transact={'from': consumer_account})
-
 
     # 1. Provider register an asset
     market_concise.register(asset_id,
@@ -165,6 +148,9 @@ def test_commit_access_requested(client):
         content_type='application/json')
     print(post.data.decode('utf-8'))
     assert post.status_code == 200
+    while (acl_concise.statusOfAccessRequest(request_id) == 3) is False and i < 1000:
+        i += 1
+        time.sleep(0.1)
     assert acl_concise.statusOfAccessRequest(request_id) == 3
 
     buyer_balance = token.balanceOf(consumer_account)

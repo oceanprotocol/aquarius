@@ -1,23 +1,31 @@
+import pytz
+import json
+import logging
+import hashlib
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from provider.app.osmosis import generate_sasurl
 from ocean_web3.constants import OceanContracts
 from provider.myapp import app
-import json
 from ocean_web3.acl import decode
 from ocean_web3.ocean_contracts import OceanContractsWrapper
 from ocean_web3.config_parser import load_config_section
 from provider.constants import ConfigSections, BaseURLs
 from provider.app.dao import Dao
 from provider.app.filters import Filters
+from provider.log import setup_logging
 
+
+setup_logging()
 assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
-# Prepare OceanDB
-dao = Dao(config_file)
 # Prepare keeper contracts for on-chain access control
 keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
 res_conf = load_config_section(config_file, ConfigSections.RESOURCES)
+# Prepare OceanDB
+dao = Dao(config_file)
+
 provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.host'], res_conf['provider.port'])
 provider_url += BaseURLs.ASSETS_URL
 provider_address = None if not keeper_config['provider.address'] else keeper_config['provider.address']
@@ -69,7 +77,6 @@ def get_assets():
     query = dict()
     args.append(query)
     asset_with_id = dao.get_assets()
-
     asset_ids = [a['assetId'] for a in asset_with_id]
     resp_body = dict({'assetsIds': asset_ids})
     return jsonify(resp_body), 200
@@ -118,7 +125,7 @@ def register():
           required:
             - assetId
             - publisherId
-            - metadata
+            - base
           properties:
             assetId:
               description: ID of the asset.
@@ -128,71 +135,106 @@ def register():
               description: Id of the asset's publisher.
               type: string
               example: '0x0234242345'
-            metadata:
-              schema:
-                id: Metadata
-                type: object
-                required:
-                  - name
-                  - links
-                  - size
-                  - format
-                  - description
-                properties:
-                  name:
-                    type: string
-                    description: a few words describing the resource.
-                    example: Berling Climate NetCDF
-                  links:
-                    type: array
-                    description: links for data samples, or links to find out more information
-                    example: ["https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip","https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"]
-                  size:
-                    type: string
-                    description: size of data in MB, GB, or Tera bytes
-                    example: 0.000217GB
-                  format:
-                    type: string
-                    description: file format if applicable
-                    example: .zip
-                  description:
-                    type: string
-                    description: details of what the resource is. For a data set explain what the data represents and what it can be used for.
-                    example: Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.
-                  date:
-                    type: string
-                    description: date the resource was made available
-                    example: 01-01-2019
-                  labels:
-                    type: array
-                    description: labels can serve the role of multiple categories
-                    example: [climate, ocean, atmosphere, temperature]
-                  license:
-                    type: string
-                    example: propietary
-                  classification:
-                    type: string
-                    example: public
-                  industry:
-                    type: string
-                    example: Earth Sciences
-                  category:
-                    type: string
-                    description: can be assigned to a category in addition to having labels
-                    example: Climate
-                  note:
-                    type: string
-                    description: any additional information worthy of highlighting (description maybe sufficient)
-                  keywords:
-                    type: array
-                    description: can enhance search and find functions
-                    example: [climate, ocean, atmosphere, temperature]
-                  updateFrequency:
-                    type: string
-                    description: how often are updates expected (seldome, annual, quarterly, etc.), or is the resource static (never expected to get updated)
-                    example: static
-                  lifecycleStage:
-                    type: string
+            base:
+              id: Base
+              type: object
+              required:
+                - name
+                - dateCreated
+                - size
+                - author
+                - license
+                - contentType
+                - contentUrls
+                - price
+              properties:
+                name:
+                  type: string
+                  description: Descriptive name of the Asset
+                  example: UK Weather information 2011
+                description:
+                  type: string
+                  description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                  example: Weather information of UK including temperature and humidity
+                size:
+                  type: string
+                  description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
+                  example: 3.1gb
+                author:
+                  type: string
+                  description: Name of the entity generating this data.
+                  example: Met Office
+                license:
+                  type: string
+                  description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
+                  example: CC-BY
+                copyrightHolder:
+                  type: string
+                  description: The party holding the legal copyright. Empty by default
+                  example: Met Office
+                encoding:
+                  type: string
+                  description: File encoding
+                  example: UTF-8
+                compression:
+                  type: string
+                  description: File compression
+                  example: zip
+                contentType:
+                  type: string
+                  description: File format if applicable
+                  example: text/csv
+                workExample:
+                  type: string
+                  description: Example of the concept of this asset. This example is part of the metadata, not an external link.
+                  example: stationId,latitude,longitude,datetime,temperature,humidity\n
+                      423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
+                contentUrls:
+                  type: array
+                  description: List of content urls resolving the ASSET files
+                  example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
+                links:
+                  type: array
+                  description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
+                  example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
+                            {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
+                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
+                inLanguage:
+                  type: string
+                  description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
+                  example: en
+                tags:
+                  type: string
+                  description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
+                  example: weather, uk, 2011, temperature, humidity
+                price:
+                  type: number
+                  description: Price of the asset.
+                  example: 10
+            curation:
+              id: Curation
+              type: object
+              properties:
+                rating:
+                  type: number
+                  description: Decimal values between 0 and 1. 0 is the default value
+                  example: 0
+                numVotes:
+                  type: integer
+                  description: any additional information worthy of highlighting (description maybe sufficient)
+                  example: 0
+                schema:
+                  type: string
+                  description: Schema applied to calculate the rating
+                  example: Binary Votting
+            additionalInformation:
+              id: additionalInformation
+              type: object
+              properties:
+                updateFrecuency:
+                  type: string
+                  description: ow often are updates expected
+                  example: yearly
     responses:
       201:
         description: Asset successfully registered.
@@ -204,24 +246,23 @@ def register():
         description: Error
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-
-    required_attributes = ['assetId', 'metadata', 'publisherId', ]
-    required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
-
+    required_attributes = ['assetId', 'publisherId', 'base']
+    required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
+                                         'contentUrls']
     data = request.json
     if not data:
-        print('request body seems empty, expecting %s' % str(required_attributes))
+        logging.error('request body seems empty, expecting %s' % str(required_attributes))
         return 400
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     for attr in required_attributes:
         if attr not in data:
-            print('%s is required, got %s' % (attr, str(data)))
+            logging.error('%s is required, got %s' % (attr, str(data)))
             return '"%s" is required for registering an asset.' % attr, 400
 
-    for attr in required_metadata_attributes:
-        if attr not in data['metadata']:
-            print('%s metadata is required, got %s' % (attr, str(data['metadata'])))
+    for attr in required_metadata_base_attributes:
+        if attr not in data['base']:
+            logging.error('%s metadata is required, got %s' % (attr, str(data['base'])))
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
@@ -229,16 +270,20 @@ def register():
         return msg, 404
 
     _record = dict()
-    _record['metadata'] = data['metadata']
-    _record['publisherId'] = data['publisherId']
-    _record['assetId'] = data['assetId']
+    _record = data
+    _record['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(
+        tzinfo=pytz.UTC).isoformat()
+    _record['curation']['rating'] = 0.00
+    _record['curation']['numVotes'] = 0
+    _record['additionalInformation']['checksum'] = hashlib.sha3_256(json.dumps(data['base']).encode('UTF-8')).hexdigest()
+    # _record['publisherId'] = data['publisherId']
+    # _record['assetId'] = data['assetId']
     try:
-        # dao.register(_record)
         dao.register(_record, data['assetId'])
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
-        print('encounterd an error while saving the asset data to oceandb: %s' % str(err))
+        logging.error('encounterd an error while saving the asset data to oceandb: {}'.format(str(err)))
         return 'Some error: "%s"' % str(err), 500
 
 
@@ -263,78 +308,116 @@ def update(asset_id):
         schema:
           type: object
           required:
+            - asset_id
             - publisherId
-            - metadata
+            - base
           properties:
             publisherId:
               description: Id of the asset's publisher.
               type: string
               example: '0x0234242345'
-            metadata:
-              schema:
-                id: Metadata
-                type: object
-                required:
-                  - name
-                  - links
-                  - size
-                  - format
-                  - description
-                properties:
-                  name:
-                    type: string
-                    description: a few words describing the resource.
-                    example: Berling Climate NetCDF
-                  links:
-                    type: array
-                    description: links for data samples, or links to find out more information
-                    example: ["https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip","https://www.beringclimate.noaa.gov/cache/5b322cddd36bc.zip"]
-                  size:
-                    type: string
-                    description: size of data in MB, GB, or Tera bytes
-                    example: 0.000217GB
-                  format:
-                    type: string
-                    description: file format if applicable
-                    example: .zip
-                  description:
-                    type: string
-                    description: details of what the resource is. For a data set explain what the data represents and what it can be used for.
-                    example: Climate indices, atmosphere, ocean, fishery, biology, and sea ice data files.
-                  date:
-                    type: string
-                    description: date the resource was made available
-                    example: 01-01-2019
-                  labels:
-                    type: array
-                    description: labels can serve the role of multiple categories
-                    example: [climate, ocean, atmosphere, temperature]
-                  license:
-                    type: string
-                    example: propietary
-                  classification:
-                    type: string
-                    example: public
-                  industry:
-                    type: string
-                    example: Earth Sciences
-                  category:
-                    type: string
-                    description: can be assigned to a category in addition to having labels
-                    example: Climate
-                  note:
-                    type: string
-                    description: any additional information worthy of highlighting (description maybe sufficient)
-                  keywords:
-                    type: array
-                    description: can enhance search and find functions
-                    example: [climate, ocean, atmosphere, temperature]
-                  updateFrequency:
-                    type: string
-                    description: how often are updates expected (seldome, annual, quarterly, etc.), or is the resource static (never expected to get updated)
-                    example: static
-                  lifecycleStage:
-                    type: string
+            base:
+              id: BaseUpdate
+              type: object
+              required:
+                - name
+                - size
+                - author
+                - license
+                - contentType
+                - contentUrls
+                - price
+              properties:
+                name:
+                  type: string
+                  description: Descriptive name of the Asset
+                  example: UK Weather information 2011
+                description:
+                  type: string
+                  description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
+                  example: Weather information of UK including temperature and humidity
+                size:
+                  type: string
+                  description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
+                  example: 3.1gb
+                author:
+                  type: string
+                  description: Name of the entity generating this data.
+                  example: Met Office
+                license:
+                  type: string
+                  description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
+                  example: CC-BY
+                copyrightHolder:
+                  type: string
+                  description: The party holding the legal copyright. Empty by default
+                  example: Met Office
+                encoding:
+                  type: string
+                  description: File encoding
+                  example: UTF-8
+                compression:
+                  type: string
+                  description: File compression
+                  example: zip
+                contentType:
+                  type: string
+                  description: File format if applicable
+                  example: text/csv
+                workExample:
+                  type: string
+                  description: Example of the concept of this asset. This example is part of the metadata, not an external link.
+                  example: stationId,latitude,longitude,datetime,temperature,humidity\n
+                      423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
+                contentUrls:
+                  type: array
+                  description: List of content urls resolving the ASSET files
+                  example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
+                links:
+                  type: array
+                  description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
+                  example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
+                            {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
+                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
+                inLanguage:
+                  type: string
+                  description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
+                  example: en
+                tags:
+                  type: string
+                  description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
+                  example: weather, uk, 2011, temperature, humidity
+                price:
+                  type: number
+                  description: Price of the asset.
+                  example: 10
+            curation:
+              id: CurationUpdate
+              type: object
+              required:
+                - rating
+                - numVotes
+              properties:
+                rating:
+                  type: number
+                  description: Decimal values between 0 and 1. 0 is the default value
+                  example: 0
+                numVotes:
+                  type: integer
+                  description: any additional information worthy of highlighting (description maybe sufficient)
+                  example: 0
+                schema:
+                  type: string
+                  description: Schema applied to calculate the rating
+                  example: Binary Votting
+            additionalInformation:
+              id: additionalInformationUpdate
+              type: object
+              properties:
+                updateFrecuency:
+                  type: string
+                  description: ow often are updates expected
+                  example: yearly
     responses:
       200:
         description: Asset successfully updated.
@@ -345,7 +428,11 @@ def update(asset_id):
       500:
         description: Error
     """
-    required_attributes = ['metadata', 'publisherId', ]
+    required_attributes = ['base', 'publisherId', ]
+    required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
+                                         'contentUrls']
+    required_metadata_curation_attributes = ['rating', 'numVotes']
+
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
@@ -356,18 +443,25 @@ def update(asset_id):
         if attr not in data:
             return '"%s" is required for registering an asset.' % attr, 400
 
-    required_metadata_attributes = ['name', 'links', 'size', 'format', 'description']
-    for attr in required_metadata_attributes:
-        if attr not in data['metadata']:
+    for attr in required_metadata_base_attributes:
+        if attr not in data['base']:
+            logging.error('%s metadata is required, got %s' % (attr, str(data['base'])))
+            return '"%s" is required for registering an asset.' % attr, 400
+
+    for attr in required_metadata_curation_attributes:
+        if attr not in data['curation']:
+            logging.error('%s metadata is required, got %s' % (attr, str(data['curation'])))
             return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
     if msg:
         return msg, 404
 
+    date_created = dao.get(asset_id)['base']['dateCreated']
     _record = dict()
-    _record['metadata'] = data['metadata']
-    _record['publisherId'] = data['publisherId']
+    _record = data
+    _record['base']['dateCreated'] = date_created
+    _record['additionalInformation']['checksum'] = hashlib.sha3_256(json.dumps(data['base']).encode('UTF-8')).hexdigest()
     _record['assetId'] = asset_id
     try:
         dao.update(_record, asset_id)
@@ -460,17 +554,17 @@ def consume_resource(asset_id):
     # Get asset metadata record
     required_attributes = ['consumerId', 'fixed_msg', 'sigEncJWT', 'jwt']
     assert isinstance(request.json, dict), 'invalid payload format.'
-    print('got "consume" request: ', request.json)
+    logging.info('got "consume" request: %s' % request.json)
     data = request.json
     if not data:
-        print('Consume failed: data is empty.')
+        logging.error('Consume failed: data is empty.')
         return 'payload seems empty.', 400
 
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     for attr in required_attributes:
         if attr not in data:
-            print('Consume failed: required attr %s missing.' % attr)
+            logging.error('Consume failed: required attr %s missing.' % attr)
             return '"%s" is required for registering an asset.' % attr, 400
 
     contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
@@ -487,14 +581,16 @@ def consume_resource(asset_id):
                                                    transact={'from': ocean_contracts.account,
                                                              'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
-            print('reading asset from oceandb: ', asset_id)
-            url = dao.get(asset_id)['metadata']['links']
-            sasurl = generate_sasurl(url, resources_config['azure.account.name'],
-                                     resources_config['azure.account.key'],
-                                     resources_config['azure.container'])
-            return str(sasurl), 200
+            logging.info('reading asset from oceandb: %s' % asset_id)
+            urls = dao.get(asset_id)['base']['contentUrls']
+            url_list = []
+            for url in urls:
+                url_list.append(generate_sasurl(url, resources_config['azure.account.name'],
+                                                resources_config['azure.account.key'],
+                                                resources_config['azure.container']))
+            return jsonify(url_list), 200
         else:
-            print('resource server plugin is not supported: ', jwt['resource_server_plugin'])
+            logging.error('resource server plugin is not supported: %s' % jwt['resource_server_plugin'])
             return '"%s error generating the sasurl.' % asset_id, 404
     else:
         return '"%s error generating the sasurl.' % asset_id, 404

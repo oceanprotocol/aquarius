@@ -1,42 +1,6 @@
 import json
 from provider.constants import BaseURLs
-
-json_dict = {"publisherId": "0x1",
-             "metadata": {
-                 "name": "name",
-                 "links": ["link"],
-                 "size": "size",
-                 "format": "format",
-                 "description": "description"
-             },
-             "assetId": "001"
-             }
-json_dict_no_metadata = {"publisherId": "0x2"}
-json_dict_no_valid_metadata = {"publisherId": "0x4",
-                               "metadata": {
-                                   "name": "name"
-                               },
-                               "assetId": "002"
-                               }
-
-json_before = {"publisherId": "0x6",
-               "metadata": {
-                   "name": "name",
-                   "links": ["link"],
-                   "size": "size",
-                   "format": "format",
-                   "description": "description"
-               },
-               "assetId": "003"}
-json_update = {"publisherId": "0x6",
-               "metadata": {
-                   "name": "nameUpdated",
-                   "links": ["link"],
-                   "size": "size",
-                   "format": "format",
-                   "description": "description"
-               },
-               "assetId": "003"}
+from tests.conftest import json_dict, json_dict_no_metadata, json_dict_no_valid_metadata, json_before, json_update
 
 
 def test_create_asset(client):
@@ -47,7 +11,7 @@ def test_create_asset(client):
     rv = client.get(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
         content_type='application/json')
-    assert 'name' in json.loads(rv.data.decode('utf-8'))['metadata']['name']
+    assert json_dict['base']['name'] in json.loads(rv.data.decode('utf-8'))['base']['name']
     client.delete(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'])
 
 
@@ -76,5 +40,6 @@ def test_update_asset_metadata(client):
     rv = client.get(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'],
         content_type='application/json')
-    assert 'nameUpdated' in json.loads(rv.data.decode('utf-8'))['metadata']['name']
+    assert json_update['curation']['rating'] == json.loads(rv.data.decode('utf-8'))['curation']['rating']
+    assert json.loads(post.data.decode('utf-8'))['additionalInformation']['checksum'] != json.loads(rv.data.decode('utf-8'))['additionalInformation']['checksum']
     client.delete(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'])

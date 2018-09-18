@@ -90,8 +90,8 @@ azure-storage-file==1.3.1
 azure-storage-nspkg==3.0.0
 azure-storage-queue==1.3.0
 base58==0.2.5
-BigchainDB==1.3.0
-bigchaindb-driver==0.5.1
+# BigchainDB==1.3.0
+# bigchaindb-driver==0.5.1
 bumpversion==0.5.3
 certifi==2018.8.13
 cffi==1.11.5
@@ -101,7 +101,7 @@ codacy-coverage==1.3.11
 coincurve==8.0.2
 coloredlogs==10.0
 coverage==4.5.1
-cryptoconditions==0.6.0.dev1
+# cryptoconditions==0.6.0.dev1
 cryptography==2.3.1
 cytoolz==0.9.0.1
 eciespy==0.1.2
@@ -140,7 +140,7 @@ multidict==4.3.1
 multipipes==0.1.0
 oauthlib==2.1.0
 ocean-web3==0.1.2
-oceandb-bigchaindb-driver==0.1.3
+# oceandb-bigchaindb-driver==0.1.3
 oceandb-driver-interface==0.1.9
 oceandb-mongodb-driver==0.1.2
 parsimonious==0.8.0
@@ -177,7 +177,6 @@ singletonify==0.1.2.0
 six==1.11.0
 statsd==3.2.1
 toolz==0.9.0
-tox==3.2.1
 tqdm==4.25.0
 twine==1.11.0
 urllib3==1.23
@@ -187,4 +186,3 @@ web3==4.5.0
 websockets==5.0.1
 Werkzeug==0.14.1
 yarl==1.2.6
-
