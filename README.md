@@ -5,10 +5,7 @@
 > 🐋 Provide an off-chain database store for data assets metadata and registration and perform part of access control in collaboration with the keeper-contracts.
 > [oceanprotocol.com](https://oceanprotocol.com)
 
-[![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)](https://travis-ci.com/oceanprotocol/provider)
-[![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)](https://app.codacy.com/project/ocean-protocol/provider/dashboard)
-[![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)](https://pypi.org/project/ocean-provider/)
-[![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)](https://github.com/oceanprotocol/provider/graphs/contributors)
+[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/provider.svg)](https://hub.docker.com/r/oceanprotocol/provider/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)](https://travis-ci.com/oceanprotocol/provider) [![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)](https://app.codacy.com/project/ocean-protocol/provider/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)](https://pypi.org/project/ocean-provider/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)](https://github.com/oceanprotocol/provider/graphs/contributors)
 
 ---
 
