@@ -1,27 +1,56 @@
 FROM python:3.6-alpine
-
-MAINTAINER Ocean Protocol <devops@oceanprotocol.com>
+LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
 ARG VERSION
 
-RUN apk add --update \
-    python3 \
-    python3-dev \
-    py-pip \
+RUN apk add --no-cache --update\
+    build-base \
     gcc \
-    gmp gmp-dev \
+    gettext\
+    gmp \
+    gmp-dev \
     libffi-dev \
     openssl-dev \
-    build-base \
-  && pip install virtualenv \
-  && rm -rf /var/cache/apk/*
+    py-pip \
+    python3 \
+    python3-dev \
+  && pip install virtualenv
 
-COPY . provider
-WORKDIR provider
+COPY . /provider
+WORKDIR /provider
 
 RUN pip install -r requirements_dev.txt
-RUN chmod +x docker-entrypoint.sh
 
-ENTRYPOINT ["./docker-entrypoint.sh"]
+# oceandb.ini configuration file variables
+ENV DB_ENABLED='true'
+ENV DB_MODULE='bigchaindb'
+ENV DB_SECRET=''
+ENV DB_SCHEME='http'
+ENV DB_HOSTNAME='localhost'
+ENV DB_PORT='9984'
+ENV DB_APP_ID=''
+ENV DB_APP_KEY=''
+ENV DB_NAMESPACE='namespace'
+ENV DB_USERNAME=''
+ENV DB_PASSWORD=''
+ENV DB_NAME=''
+ENV DB_COLLECTION=''
+ENV KEEPER_HOST='http://127.0.0.1'
+ENV KEEPER_PORT='8545'
+ENV KEEPER_NETWORK='development'
+ENV MARKET_ADDRESS=''
+ENV AUTH_ADDRESS=''
+ENV TOKEN_ADDRESS=''
+ENV PROVIDER_ADDRESS=''
+ENV AZURE_ACCOUNT_NAME='testocnfiles'
+ENV AZURE_ACCOUNT_KEY='k2Vk4yfb88WNlWW+W54a8ytJm8MYO1GW9IgiV7TNGKSdmKyVNXzyhiRZ3U1OHRotj/vTYdhJj+ho30HPyJpuYQ=='
+ENV AZURE_CONTAINER='testfiles'
+ENV PROVIDER_SCHEME='http'
+ENV PROVIDER_HOST='0.0.0.0'
+ENV PROVIDER_PORT='5000'
+# docker-entrypoint.sh configuration file variables
+ENV PROVICER_WORKERS='1'
+
+ENTRYPOINT ["/provider/docker-entrypoint.sh"]
 
 EXPOSE 5000
