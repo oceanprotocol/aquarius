@@ -14,8 +14,8 @@ db.app_id = ${DB_APP_ID}
 db.app_key = ${DB_APP_KEY}
 db.namespace = ${DB_NAMESPACE}
 
-db.username=${DB_USERNAME}
-db.password=${DB_PASSWORD}
+; db.username=${DB_USERNAME}
+; db.password=${DB_PASSWORD}
 db.name=${DB_NAME}
 db.collection=${DB_COLLECTION}
 
