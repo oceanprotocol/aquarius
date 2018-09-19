@@ -10,5 +10,9 @@ CORS(app)
 if 'CONFIG_FILE' in os.environ and os.environ['CONFIG_FILE']:
     app.config['CONFIG_FILE'] = os.environ['CONFIG_FILE']
 else:
-    logging.error('A config file must be set in the environment variable "CONFIG_FILE".')
-    sys.exit(1)
+    try:
+        app.config['CONFIG_FILE'] = 'oceandb.ini'
+    except Exception as e:
+        logging.error('A config file must be set in the environment variable "CONFIG_FILE" or in oceandb.ini')
+        logging.error(e)
+        sys.exit(1)
