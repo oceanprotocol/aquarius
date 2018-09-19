@@ -490,8 +490,11 @@ def retire(asset_id):
         description: Error
     """
     try:
-        dao.delete(asset_id)
-        return '', 200
+        if dao.get(asset_id) is None:
+            return 'This asset id is not in OceanDB', 404
+        else:
+            dao.delete(asset_id)
+            return 'Succesfully deleted', 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
