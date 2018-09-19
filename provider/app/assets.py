@@ -1,20 +1,20 @@
-import pytz
+import hashlib
 import json
 import logging
-import hashlib
 from datetime import datetime
+import pytz
 from flask import Blueprint, jsonify, request
-from provider.app.osmosis import generate_sasurl
-from ocean_web3.constants import OceanContracts
-from provider.myapp import app
-from ocean_web3.acl import decode
-from ocean_web3.ocean_contracts import OceanContractsWrapper
-from ocean_web3.config_parser import load_config_section
-from provider.constants import ConfigSections, BaseURLs
+from squid_py.acl import decode
+from squid_py.config_parser import load_config_section
+from squid_py.constants import OCEAN_ACL_CONTRACT, OCEAN_MARKET_CONTRACT
+from squid_py.ocean_contracts import OceanContracts
+
 from provider.app.dao import Dao
 from provider.app.filters import Filters
+from provider.app.osmosis import generate_sasurl
+from provider.constants import ConfigSections, BaseURLs
 from provider.log import setup_logging
-
+from provider.myapp import app
 
 setup_logging()
 assets = Blueprint('assets', __name__)
@@ -29,8 +29,7 @@ dao = Dao(config_file)
 provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.host'], res_conf['provider.port'])
 provider_url += BaseURLs.ASSETS_URL
 provider_address = None if not keeper_config['provider.address'] else keeper_config['provider.address']
-ocean_contracts = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
-                                        provider_address)
+ocean_contracts = OceanContracts(config_path=config_file)
 
 ocean_contracts.init_contracts()
 # Prepare resources access configuration to download assets
@@ -43,19 +42,18 @@ def get_provider_address_filter():
     return {"address": account}
 
 
-ocn_for_filters = OceanContractsWrapper(keeper_config['keeper.host'], keeper_config['keeper.port'],
-                                        provider_address)
+ocn_for_filters = OceanContracts(config_path=config_file)
 ocn_for_filters.init_contracts()
 
 filters = Filters(ocean_contracts_wrapper=ocn_for_filters, config_file=config_file, api_url=provider_url)
-filter_access_consent = ocn_for_filters.watch_event(OceanContracts.OACL,
+filter_access_consent = ocn_for_filters.watch_event(OCEAN_ACL_CONTRACT,
                                                     'AccessConsentRequested',
                                                     filters.commit_access_request,
                                                     0.2,
                                                     fromBlock='latest',
                                                     filters=get_provider_address_filter())
 
-filter_payment = ocn_for_filters.watch_event(OceanContracts.OMKT,
+filter_payment = ocn_for_filters.watch_event(OCEAN_MARKET_CONTRACT,
                                              'PaymentReceived',
                                              filters.publish_encrypted_token,
                                              0.2,
@@ -140,7 +138,6 @@ def register():
               type: object
               required:
                 - name
-                - dateCreated
                 - size
                 - author
                 - license
@@ -275,7 +272,8 @@ def register():
         tzinfo=pytz.UTC).isoformat()
     _record['curation']['rating'] = 0.00
     _record['curation']['numVotes'] = 0
-    _record['additionalInformation']['checksum'] = hashlib.sha3_256(json.dumps(data['base']).encode('UTF-8')).hexdigest()
+    _record['additionalInformation']['checksum'] = hashlib.sha3_256(
+        json.dumps(data['base']).encode('UTF-8')).hexdigest()
     # _record['publisherId'] = data['publisherId']
     # _record['assetId'] = data['assetId']
     try:
@@ -461,7 +459,8 @@ def update(asset_id):
     _record = dict()
     _record = data
     _record['base']['dateCreated'] = date_created
-    _record['additionalInformation']['checksum'] = hashlib.sha3_256(json.dumps(data['base']).encode('UTF-8')).hexdigest()
+    _record['additionalInformation']['checksum'] = hashlib.sha3_256(
+        json.dumps(data['base']).encode('UTF-8')).hexdigest()
     _record['assetId'] = asset_id
     try:
         dao.update(_record, asset_id)
@@ -491,8 +490,11 @@ def retire(asset_id):
         description: Error
     """
     try:
-        dao.delete(asset_id)
-        return '', 200
+        if dao.get(asset_id) is None:
+            return 'This asset id is not in OceanDB', 404
+        else:
+            dao.delete(asset_id)
+            return 'Succesfully deleted', 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
@@ -567,7 +569,7 @@ def consume_resource(asset_id):
             logging.error('Consume failed: required attr %s missing.' % attr)
             return '"%s" is required for registering an asset.' % attr, 400
 
-    contract_instance = ocean_contracts.contracts[OceanContracts.OCEAN_ACL_CONTRACT][0]
+    contract_instance = ocean_contracts.contracts[OCEAN_ACL_CONTRACT][0]
     sig = ocean_contracts.split_signature(ocean_contracts.web3.toBytes(hexstr=data['sigEncJWT']))
     jwt = decode(data['jwt'])
 

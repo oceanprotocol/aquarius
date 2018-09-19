@@ -88,11 +88,12 @@ If you want to know more about the ontology of the metadata you can find all the
 
 ## Configuration
 
+You can pass the configuration using the CONFIG_FILE environment variable (recommended) or locating your configuration in oceandb.ini file.
 
 In the configuration there are now three sections:
 
 - oceandb: Contains different values to connect with oceandb. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
-- keeper-contracts: This section help you to connect with the network where you have deployed the contracts.
+- keeper-contracts: This section help you to connect with the network where you have deployed the contracts. You can find more information of how to configure [here](https://github.com/oceanprotocol/squid-py#quick-start).
     ```yaml
     [keeper-contracts]
     keeper.host=0.0.0.0

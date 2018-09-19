@@ -147,7 +147,7 @@ dependencies:
     - itsdangerous==0.24
     - jinja2==2.10
     - jsonschema==2.5.1
-    - keeper-contracts==0.0.1.5
+    - keeper-contracts==0.1.1
     - logstats==0.2.1
     - lru-dict==1.1.6
     - markupsafe==1.0
@@ -157,7 +157,7 @@ dependencies:
     - multidict==4.3.1
     - multipipes==0.1.0
     - oauthlib==2.1.0
-    - ocean-web3==0.1.2
+    - squid-py==0.1.2
     - oceandb-driver-interface==0.1.9
     - oceandb-mongodb-driver==0.1.2
     - parsimonious==0.8.0
