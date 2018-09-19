@@ -1,8 +1,8 @@
 import traceback
 from secrets import token_hex
-from ocean_web3.acl import encrypt, encode, generate_encoding_pair
+from squid_py.acl import encrypt, encode, generate_encoding_pair
 import time
-from ocean_web3.constants import OceanContracts
+from squid_py.constants import OCEAN_ACL_CONTRACT
 from provider.app.dao import Dao
 from werkzeug.contrib.cache import SimpleCache
 import logging
@@ -20,7 +20,7 @@ class Filters(object):
         logging.info('Keeper filters: got api url = "%s"' % self.api_url)
 
     def commit_access_request(self, event):
-        contract_instance = self.contracts[OceanContracts.OACL][0]
+        contract_instance = self.contracts[OCEAN_ACL_CONTRACT][0]
         try:
             res_id = self.web3.toHex(event['args']['_resourceId'])
             request_id = self.web3.toHex(event['args']['_id'])
@@ -68,7 +68,7 @@ class Filters(object):
             return e
 
     def publish_encrypted_token(self, event):
-        contract_instance = self.contracts[OceanContracts.OACL][0]
+        contract_instance = self.contracts[OCEAN_ACL_CONTRACT][0]
         try:
             request_id = self.web3.toHex(event['args']['_paymentId'])
             # check keeper for the status of this access request, if the status is not committed should be ignored.
