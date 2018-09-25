@@ -212,7 +212,7 @@ def register():
                 type:
                   type: string
                   description: Type of the Asset. Helps to filter by kind of asset, initially ("dataset", "algorithm", "container", "workflow", "other")
-                  example: Dataset
+                  example: dataset
             curation:
               id: Curation
               type: object
@@ -398,7 +398,7 @@ def update(asset_id):
                 type:
                   type: string
                   description: Type of the Asset. Helps to filter by kind of asset, initially ("dataset", "algorithm", "container", "workflow", "other")
-                  example: Dataset
+                  example: dataset
             curation:
               id: CurationUpdate
               type: object
