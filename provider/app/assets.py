@@ -144,6 +144,7 @@ def register():
                 - contentType
                 - contentUrls
                 - price
+                - type
               properties:
                 name:
                   type: string
@@ -208,6 +209,10 @@ def register():
                   type: number
                   description: Price of the asset.
                   example: 10
+                type:
+                  type: string
+                  description: Type of the Asset. Helps to filter by kind of asset, initially ("dataset", "algorithm", "container", "workflow", "other")
+                  example: Dataset
             curation:
               id: Curation
               type: object
@@ -245,7 +250,7 @@ def register():
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['assetId', 'publisherId', 'base']
     required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
-                                         'contentUrls']
+                                         'contentUrls', 'type']
     data = request.json
     if not data:
         logging.error('request body seems empty, expecting %s' % str(required_attributes))
@@ -325,6 +330,7 @@ def update(asset_id):
                 - contentType
                 - contentUrls
                 - price
+                - type
               properties:
                 name:
                   type: string
@@ -389,6 +395,10 @@ def update(asset_id):
                   type: number
                   description: Price of the asset.
                   example: 10
+                type:
+                  type: string
+                  description: Type of the Asset. Helps to filter by kind of asset, initially ("dataset", "algorithm", "container", "workflow", "other")
+                  example: Dataset
             curation:
               id: CurationUpdate
               type: object
@@ -428,7 +438,7 @@ def update(asset_id):
     """
     required_attributes = ['base', 'publisherId', ]
     required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
-                                         'contentUrls']
+                                         'contentUrls', 'type']
     required_metadata_curation_attributes = ['rating', 'numVotes']
 
     assert isinstance(request.json, dict), 'invalid payload format.'
