@@ -33,7 +33,8 @@ json_dict = {"publisherId": "0x1",
                  ],
                  "inLanguage": "en",
                  "tags": "weather, uk, 2011, temperature, humidity",
-                 "price": 10
+                 "price": 10,
+                 "type": "dataset"
              },
              "curation": {
                  "rating": 0,
@@ -74,8 +75,8 @@ json_before = {"publisherId": "0x6",
                    ],
                    "inLanguage": "en",
                    "tags": "weather, uk, 2011, temperature, humidity",
-                   "price": 50
-
+                   "price": 50,
+                   "type": "dataset"
                },
                "curation": {
                    "rating": 0,
@@ -109,8 +110,8 @@ json_update = {"publisherId": "0x6",
                    ],
                    "inLanguage": "en",
                    "tags": "weather, uk, 2011, temperature, humidity",
-                   "price": 50
-
+                   "price": 50,
+                   "type": "dataset"
                },
                "curation": {
                    "rating": 0.8,
