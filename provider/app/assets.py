@@ -527,6 +527,44 @@ def get_assets_metadata():
     return jsonify(json.dumps(assets_metadata)), 200
 
 
+@assets.route('/metadata/query', methods=['POST'])
+def query_metadata():
+    """Get a list of assets that match with the query executed.
+    ---
+    tags:
+      - assets
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          required:
+            - query
+          properties:
+            query:
+              type: string
+              description: Query to realize
+              example: {}
+    responses:
+      200:
+        description: successful action
+    """
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    required_attributes = ['query']
+    data = request.json
+    for attr in required_attributes:
+        if attr not in data:
+            logging.error('%s is required, got %s' % (attr, str(data)))
+            return '"%s" is required for registering an asset.' % attr, 400
+    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+    query_result = dao.query(data['query'])
+    return jsonify(json.dumps(query_result)), 200
+
+
 @assets.route('/metadata/consume/<asset_id>', methods=['POST'])
 def consume_resource(asset_id):
     """Allows download of asset data file from this provider.

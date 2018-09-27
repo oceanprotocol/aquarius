@@ -29,3 +29,9 @@ class Dao(object):
 
     def delete(self, asset_id):
         return self.oceandb.delete(asset_id)
+
+    def query(self, json_query):
+        query_list = []
+        for f in self.oceandb.query(json_query):
+            query_list.append(f)
+        return query_list
