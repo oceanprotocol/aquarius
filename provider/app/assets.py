@@ -2,8 +2,10 @@ import hashlib
 import json
 import logging
 from datetime import datetime
+
 import pytz
 from flask import Blueprint, jsonify, request
+from oceandb_driver_interface.search_model import QueryModel, FullTextModel
 from squid_py.acl import decode
 from squid_py.config_parser import load_config_section
 from squid_py.constants import OCEAN_ACL_CONTRACT, OCEAN_MARKET_CONTRACT
@@ -542,26 +544,49 @@ def query_metadata():
         description: Asset metadata.
         schema:
           type: object
-          required:
-            - query
           properties:
             query:
               type: string
               description: Query to realize
-              example: {}
+              example: {"value":1}
+            text:
+              type: string
+              description: Word to search in the document
+              example: Office
+            sort:
+              type: object
+              description: key or list of keys to sort the result
+              example: {"value":1}
+            offset:
+              type: int
+              description:
+              example: 100
+            page:
+              type: int
+              description:
+              example: 0
     responses:
       200:
         description: successful action
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-    required_attributes = ['query']
     data = request.json
-    for attr in required_attributes:
-        if attr not in data:
-            logging.error('%s is required, got %s' % (attr, str(data)))
-            return '"%s" is required for registering an asset.' % attr, 400
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
-    query_result = dao.query(data['query'])
+    if 'query' in data:
+        search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
+                                  offset=data.get('offset', 100),
+                                  page=data.get('page', 0))
+    elif 'text' in data:
+        search_model = FullTextModel(text=data.get('text'), sort=data.get('sort'),
+                                     offset=data.get('offset', 100),
+                                     page=data.get('page', 0))
+    else:
+        search_model = QueryModel(query={}, sort=data.get('sort'),
+                                  offset=data.get('offset', 100),
+                                  page=data.get('page', 0))
+    query_result = dao.query(search_model)
+    for i in query_result:
+        _sanitize_record(i)
     return jsonify(json.dumps(query_result)), 200
 
 

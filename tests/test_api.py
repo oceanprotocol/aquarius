@@ -58,6 +58,12 @@ def test_query_metadata(client):
     assert len(json.loads(client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/query',
                                       data=json.dumps({"query": {"publisherId": "0x1"}}),
                                       content_type='application/json').json)) == 1
+    assert len(json.loads(client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/query',
+                                      data=json.dumps({"text": "Office"}),
+                                      content_type='application/json').json)) == 2
+    assert len(json.loads(client.post(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/query',
+                                      data=json.dumps({"text": "0x1"}),
+                                      content_type='application/json').json)) == 1
     client.delete(BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post.data.decode('utf-8'))['assetId'])
     client.delete(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % json.loads(post2.data.decode('utf-8'))['assetId'])
