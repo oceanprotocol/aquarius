@@ -2,8 +2,10 @@ import hashlib
 import json
 import logging
 from datetime import datetime
+
 import pytz
 from flask import Blueprint, jsonify, request
+from oceandb_driver_interface.search_model import QueryModel, FullTextModel
 from squid_py.acl import decode
 from squid_py.config_parser import load_config_section
 from squid_py.constants import OCEAN_ACL_CONTRACT, OCEAN_MARKET_CONTRACT
@@ -525,6 +527,67 @@ def get_assets_metadata():
     assets_with_id = dao.get_assets()
     assets_metadata = {a['assetId']: a for a in assets_with_id}
     return jsonify(json.dumps(assets_metadata)), 200
+
+
+@assets.route('/metadata/query', methods=['POST'])
+def query_metadata():
+    """Get a list of assets that match with the query executed.
+    ---
+    tags:
+      - assets
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          properties:
+            query:
+              type: string
+              description: Query to realize
+              example: {"value":1}
+            text:
+              type: string
+              description: Word to search in the document
+              example: Office
+            sort:
+              type: object
+              description: key or list of keys to sort the result
+              example: {"value":1}
+            offset:
+              type: int
+              description:
+              example: 100
+            page:
+              type: int
+              description:
+              example: 0
+    responses:
+      200:
+        description: successful action
+    """
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+    if 'query' in data:
+        search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
+                                  offset=data.get('offset', 100),
+                                  page=data.get('page', 0))
+    elif 'text' in data:
+        search_model = FullTextModel(text=data.get('text'), sort=data.get('sort'),
+                                     offset=data.get('offset', 100),
+                                     page=data.get('page', 0))
+    else:
+        search_model = QueryModel(query={}, sort=data.get('sort'),
+                                  offset=data.get('offset', 100),
+                                  page=data.get('page', 0))
+    query_result = dao.query(search_model)
+    for i in query_result:
+        _sanitize_record(i)
+    return jsonify(json.dumps(query_result)), 200
 
 
 @assets.route('/metadata/consume/<asset_id>', methods=['POST'])

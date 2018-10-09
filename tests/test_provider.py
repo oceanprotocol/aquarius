@@ -160,4 +160,7 @@ def test_commit_access_requested(client):
         seller_balance, seller_balance_start, (seller_balance - seller_balance_start)))
     assert token.balanceOf(consumer_account) == buyer_balance_start - resource_price
     assert token.balanceOf(provider_account) == seller_balance_start + resource_price
+    client.delete(
+        BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % ocean.web3.toHex(asset_id)
+        )
     print('All good \/')

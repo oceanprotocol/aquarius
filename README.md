@@ -22,7 +22,7 @@
   - [Configuration](#configuration)
   - [Code style](#code-style)
   - [Testing](#testing)
-  - [New version](#version)
+  - [New Version](#new-version)
   - [License](#license)
 
 ---

@@ -1,5 +1,7 @@
-from oceandb_driver_interface import OceanDb
 import logging
+
+from oceandb_driver_interface import OceanDb
+from oceandb_driver_interface.search_model import QueryModel, FullTextModel
 
 
 class Dao(object):
@@ -29,3 +31,13 @@ class Dao(object):
 
     def delete(self, asset_id):
         return self.oceandb.delete(asset_id)
+
+    def query(self, query):
+        query_list = []
+        if isinstance(query, QueryModel):
+            for f in self.oceandb.query(query):
+                query_list.append(f)
+        elif isinstance(query, FullTextModel):
+            for f in self.oceandb.text_query(query):
+                query_list.append(f)
+        return query_list

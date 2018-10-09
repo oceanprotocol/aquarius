@@ -10,11 +10,17 @@ services:
     - backend
 
   keeper-contracts:
-    image: oceanprotocol/keeper-contracts
+    image: oceanprotocol/keeper-contracts:develop
     ports:
     - 8545:8545
     networks:
     - backend
+    environment:
+      LOCAL_CONTRACTS: "true"
+      DEPLOY_CONTRACTS: "true"
+      DATABASE_PATH: "/ganache-db"
+      REUSE_DATABASE: "false"
+      NETWORK_NAME: "ganache"
     volumes:
     - ./../venv/contracts:/keeper-contracts/artifacts/
 
