@@ -1,20 +1,21 @@
 import time
 from squid_py.constants import OCEAN_MARKET_CONTRACT, OCEAN_ACL_CONTRACT, OCEAN_TOKEN_CONTRACT
-from squid_py.ocean_contracts import OceanContracts
+# from squid_py.ocean_contracts import OceanContracts
+from squid_py.ocean import Ocean
 from squid_py.acl import generate_encryption_keys, decode, decrypt
 from eth_account.messages import defunct_hash_message
 import json
 from provider.constants import BaseURLs
 from tests.conftest import json_dict, json_request_consume
 
-ocean = OceanContracts()
-ocean.init_contracts()
+ocean = Ocean()
+# ocean.init_contracts()
 
-acl_concise = ocean.contracts[OCEAN_ACL_CONTRACT][0]
-acl = ocean.contracts[OCEAN_ACL_CONTRACT][1]
-market_concise = ocean.contracts[OCEAN_MARKET_CONTRACT][0]
-market = ocean.contracts[OCEAN_MARKET_CONTRACT][1]
-token = ocean.contracts[OCEAN_TOKEN_CONTRACT][0]
+acl_concise = ocean.auth.contract_concise
+acl = ocean.auth.contract
+market_concise = ocean.market.contract_concise
+market = ocean.market.contract
+token = ocean.token.contract_concise
 
 
 def get_events(event_filter, max_iterations=100, pause_duration=0.1):
@@ -69,7 +70,7 @@ def test_commit_access_requested(client):
                                             pubkey,
                                             expiry,
                                             transact={'from': consumer_account})
-    receipt = ocean.get_tx_receipt(req)
+    receipt = ocean.helper.get_tx_receipt(req)
     send_event = acl.events.AccessConsentRequested().processReceipt(receipt)
     request_id = send_event[0]['args']['_id']
 
@@ -78,7 +79,7 @@ def test_commit_access_requested(client):
     # assert send_event[0] in events
     assert acl_concise.statusOfAccessRequest(request_id) == 0 or acl_concise.statusOfAccessRequest(request_id) == 1
 
-    filter_token_published = ocean.watch_event(OCEAN_ACL_CONTRACT, 'EncryptedTokenPublished', process_enc_token, 0.25,
+    filter_token_published = ocean.helper.watch_event(acl, 'EncryptedTokenPublished', process_enc_token, 0.25,
                                                fromBlock='latest')  # , filters={"id": request_id})
 
     # 3. Provider commit the request in commit_access_request
@@ -135,7 +136,7 @@ def test_commit_access_requested(client):
 
     fixed_msg = defunct_hash_message(hexstr=ocean.web3.toHex(on_chain_enc_token))
 
-    sig = ocean.split_signature(signature)
+    sig = ocean.helper.split_signature(signature)
     json_request_consume['fixed_msg'] = ocean.web3.toHex(fixed_msg)
     json_request_consume['consumerId'] = consumer_account
     json_request_consume['sigEncJWT'] = ocean.web3.toHex(signature)

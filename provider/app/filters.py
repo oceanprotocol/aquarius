@@ -11,7 +11,7 @@ import logging
 class Filters(object):
 
     def __init__(self, ocean_contracts_wrapper, config_file, api_url):
-        self.contracts = ocean_contracts_wrapper.contracts
+        self.contracts = ocean_contracts_wrapper
         self.web3 = ocean_contracts_wrapper.web3
         self.dao = Dao(config_file)
         self.cache = SimpleCache()
@@ -20,7 +20,7 @@ class Filters(object):
         logging.info('Keeper filters: got api url = "%s"' % self.api_url)
 
     def commit_access_request(self, event):
-        contract_instance = self.contracts[OCEAN_ACL_CONTRACT][0]
+        contract_instance = self.contracts.auth.contract_concise
         try:
             res_id = self.web3.toHex(event['args']['_resourceId'])
             request_id = self.web3.toHex(event['args']['_id'])
@@ -68,7 +68,7 @@ class Filters(object):
             return e
 
     def publish_encrypted_token(self, event):
-        contract_instance = self.contracts[OCEAN_ACL_CONTRACT][0]
+        contract_instance = self.contracts.auth.contract_concise
         try:
             request_id = self.web3.toHex(event['args']['_paymentId'])
             # check keeper for the status of this access request, if the status is not committed should be ignored.
