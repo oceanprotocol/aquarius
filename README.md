@@ -1,11 +1,11 @@
-[![banner](docs/img/repo-banner@2x.png)](https://oceanprotocol.com)
+[![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-<h1 align="center">provider</h1>
+# provider
 
 > 🐋 Provide an off-chain database store for data assets metadata and registration and perform part of access control in collaboration with the keeper-contracts.
 > [oceanprotocol.com](https://oceanprotocol.com)
 
-[![Build Status](https://travis-ci.com/oceanprotocol/provider.svg?token=pA8zcB6SCxKW5MHpqs6L&branch=master)](https://travis-ci.com/oceanprotocol/provider)
+[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/provider.svg)](https://hub.docker.com/r/oceanprotocol/provider/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)](https://travis-ci.com/oceanprotocol/provider) [![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)](https://app.codacy.com/project/ocean-protocol/provider/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)](https://pypi.org/project/ocean-provider/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)](https://github.com/oceanprotocol/provider/graphs/contributors)
 
 ---
 
@@ -13,11 +13,37 @@
 
 ---
 
+## Table of Contents
 
-Get Started
-------------
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
+  - [API documentation](#api-documentation)
+  - [Configuration](#configuration)
+  - [Code style](#code-style)
+  - [Testing](#testing)
+  - [New Version](#new-version)
+  - [License](#license)
 
-The most simple way to start is:
+---
+
+
+## Features
+
+The Provider handles all non-blockchain related core functionality, including compute and storage interfaces, and connections to Ocean Keepers. Additionally, the Provider implements Ocean's Service Integrity and Orchestration capabilities, allowing for services to be requested, ordered, scheduled, verfied, and curated. 
+
+## Prerequisites
+
+You should have running a instance of BigchainDB and ganache-cli. 
+You can start running the docker-compose in the docker directory:
+
+```docker
+docker-compose up
+```
+
+## Quick Start
+
+The most simple way to start is (not for production):
 
 ```bash
 git clone git@github.com:oceanprotocol/provider.git
@@ -28,31 +54,46 @@ export CONFIG_FILE=oceandb.ini
 flask run
 ```
 
-Requirements
-------------
+The proper way to run the flask application is using a application server as gunicorn. This allow you to run using SSL, 
+you only need to generate your certificates and execute this command: 
 
-You should have running a instance of BigchainDB and ganache-cli. 
-You can start running the docker-compose in the docker directory:
-
-```docker
-docker-compose up
+```bash
+gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 provider.run:app
 ```
 
-API documentation
------------------
+Be aware of adding in the config file how you want to resolve your server:
+    
+```yaml
+provider.scheme = https
+provider.host = localhost
+provider.port = 5000
+```
+
+You can generate some certificates for testing running:
+
+```bash
+openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+```
+
+## API documentation
+
 Once you have your application running you can access to the documentation in:
 
 ```bash
 http://127.0.0.1:5000/api/v1/docs
 ```
 
-Configuration
--------------
+If you want to know more about the ontology of the metadata you can find all the information in the 
+[OEP-8](https://github.com/oceanprotocol/OEPs/tree/master/8).
+
+## Configuration
+
+You can pass the configuration using the CONFIG_FILE environment variable (recommended) or locating your configuration in oceandb.ini file.
 
 In the configuration there are now three sections:
 
 - oceandb: Contains different values to connect with oceandb. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
-- keeper-contracts: This section help you to connect with the network where you have deployed the contracts.
+- keeper-contracts: This section help you to connect with the network where you have deployed the contracts. You can find more information of how to configure [here](https://github.com/oceanprotocol/squid-py#quick-start).
     ```yaml
     [keeper-contracts]
     keeper.host=0.0.0.0
@@ -70,3 +111,35 @@ In the configuration there are now three sections:
     azure.account.key=k2Vk4yfb88WNlWW+W54a8ytJm8MYO1GW9IgiV7TNGKSdmKyVNXzyhiRZ3U1OHRotj/vTYdhJj+ho30HPyJpuYQ==
     azure.container=testfiles
     ```
+    
+
+## Code style
+
+The information about code style in python is documented in this two links [python-developer-guide](https://github.com/oceanprotocol/dev-ocean/blob/master/doc/development/python-developer-guide.md)
+and [python-style-guide](https://github.com/oceanprotocol/dev-ocean/blob/master/doc/development/python-style-guide.md).
+    
+## Testing
+
+Automatic tests are setup via Travis, executing `tox`.
+Our test use pytest framework.
+
+## New Version
+
+The `bumpversion.sh` script helps to bump the project version. You can execute the script using as first argument {major|minor|patch} to bump accordingly the version.
+
+## License
+
+```
+Copyright 2018 Ocean Protocol Foundation Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

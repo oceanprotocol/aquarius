@@ -1,0 +1,61 @@
+[oceandb]
+
+enabled = ${DB_ENABLED}
+module = ${DB_MODULE}
+;location of plugin class
+;module.path=venv/lib/python3.6/site-packages/oceandb_bigchaindb_driver/plugin.py
+secret = ${DB_SECRET}
+
+;--- local config ---
+db.scheme = ${DB_SCHEME}
+db.hostname = ${DB_HOSTNAME}
+db.port = ${DB_PORT}
+db.app_id = ${DB_APP_ID}
+db.app_key = ${DB_APP_KEY}
+db.namespace = ${DB_NAMESPACE}
+
+; db.username=${DB_USERNAME}
+; db.password=${DB_PASSWORD}
+db.name=${DB_NAME}
+db.collection=${DB_COLLECTION}
+
+; Do before to run with mongo
+; mongo test --eval 'db.createUser({user:"travis",pwd:"test",roles:["readWrite"]});'
+
+; enabled=true
+; module=mongodb
+; db.hostname=localhost
+; db.port=27017
+; db.username=travis
+; db.password=test
+; db.name=test
+; db.collection=protokeeper
+
+
+;--- remote config with access token ---
+;db.scheme=https
+;db.hostname=test.bigchaindb.com
+;db.port=
+;db.app_id=54ed26dd
+;db.app_key=d068996d8d5b1a66cfc61dc3a83fa7ee
+
+[keeper-contracts]
+keeper.host = ${KEEPER_HOST}
+keeper.port = ${KEEPER_PORT}
+keeper.network = ${KEEPER_NETWORK}
+
+;contracts.folder=venv/contracts
+market.address = ${MARKET_ADDRESS}
+auth.address = ${AUTH_ADDRESS}
+token.address = ${TOKEN_ADDRESS}
+provider.address = ${PROVIDER_ADDRESS}
+
+[resources]
+azure.account.name = ${AZURE_ACCOUNT_NAME}
+azure.account.key = ${AZURE_ACCOUNT_KEY}
+azure.container = ${AZURE_CONTAINER}
+
+; These consitute part of the provider url which is used in setting the `api_url` in the `OceanContractsWrapper`
+provider.scheme = ${PROVIDER_SCHEME}
+provider.host = ${PROVIDER_HOST}
+provider.port = ${PROVIDER_PORT}
