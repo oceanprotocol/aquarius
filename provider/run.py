@@ -5,7 +5,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask import jsonify
 # from squid_py.config_parser import load_config_section
 from squid_py.config import Config
-from provider.constants import BaseURLs, ConfigSections
+from provider.constants import BaseURLs
 
 
 @app.route("/spec")

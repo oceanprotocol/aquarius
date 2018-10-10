@@ -1,21 +1,20 @@
-import time
-from squid_py.constants import OCEAN_MARKET_CONTRACT, OCEAN_ACL_CONTRACT, OCEAN_TOKEN_CONTRACT
-# from squid_py.ocean_contracts import OceanContracts
-from squid_py.ocean import Ocean
-from squid_py.acl import generate_encryption_keys, decode, decrypt
-from eth_account.messages import defunct_hash_message
 import json
+import time
+
+from eth_account.messages import defunct_hash_message
+from squid_py.acl import generate_encryption_keys, decode, decrypt
+from squid_py.ocean import Ocean
+
 from provider.constants import BaseURLs
 from tests.conftest import json_dict, json_request_consume
 
 ocean = Ocean()
-# ocean.init_contracts()
 
-acl_concise = ocean.auth.contract_concise
-acl = ocean.auth.contract
-market_concise = ocean.market.contract_concise
-market = ocean.market.contract
-token = ocean.token.contract_concise
+acl_concise = ocean.contracts.auth.contract_concise
+acl = ocean.contracts.auth.contract
+market_concise = ocean.contracts.market.contract_concise
+market = ocean.contracts.market.contract
+token = ocean.contracts.token.contract_concise
 
 
 def get_events(event_filter, max_iterations=100, pause_duration=0.1):
@@ -80,7 +79,7 @@ def test_commit_access_requested(client):
     assert acl_concise.statusOfAccessRequest(request_id) == 0 or acl_concise.statusOfAccessRequest(request_id) == 1
 
     filter_token_published = ocean.helper.watch_event(acl, 'EncryptedTokenPublished', process_enc_token, 0.25,
-                                               fromBlock='latest')  # , filters={"id": request_id})
+                                                      fromBlock='latest')  # , filters={"id": request_id})
 
     # 3. Provider commit the request in commit_access_request
 
@@ -110,16 +109,6 @@ def test_commit_access_requested(client):
 
     print('buyer balance = ', token.balanceOf(consumer_account))
     print('seller balance = ', token.balanceOf(provider_account))
-
-    # tx_hashes = set()
-    # events = get_events(filter_payment)
-    # for ev in events:
-    #     tx_hashes.add(ev['transactionHash'])
-
-    # assert events
-    # assert send_payment in tx_hashes
-
-    # assert acl_concise.getTempPubKey(request_id, call={"from": provider_account}) == pubkey
 
     events = get_events(filter_token_published)
     assert events
@@ -163,5 +152,5 @@ def test_commit_access_requested(client):
     assert token.balanceOf(provider_account) == seller_balance_start + resource_price
     client.delete(
         BaseURLs.BASE_PROVIDER_URL + '/assets/metadata/%s' % ocean.web3.toHex(asset_id)
-        )
+    )
     print('All good \/')

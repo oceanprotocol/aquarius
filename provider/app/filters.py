@@ -2,7 +2,6 @@ import traceback
 from secrets import token_hex
 from squid_py.acl import encrypt, encode, generate_encoding_pair
 import time
-from squid_py.constants import OCEAN_ACL_CONTRACT
 from provider.app.dao import Dao
 from werkzeug.contrib.cache import SimpleCache
 import logging
@@ -11,7 +10,7 @@ import logging
 class Filters(object):
 
     def __init__(self, ocean_contracts_wrapper, config_file, api_url):
-        self.contracts = ocean_contracts_wrapper
+        self.contracts = ocean_contracts_wrapper.contracts
         self.web3 = ocean_contracts_wrapper.web3
         self.dao = Dao(config_file)
         self.cache = SimpleCache()
