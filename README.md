@@ -32,47 +32,60 @@
 
 The Provider handles all non-blockchain related core functionality, including compute and storage interfaces, and connections to Ocean Keepers. Additionally, the Provider implements Ocean's Service Integrity and Orchestration capabilities, allowing for services to be requested, ordered, scheduled, verfied, and curated. 
 
-## Prerequisites
+## Running Locally, for Dev and Test
 
-You should have running a instance of BigchainDB and ganache-cli. 
-You can start running the docker-compose in the docker directory:
+If you want to contribute to the development of the Provider, then you could do the following. (If you want to run a Provider in production, then you will have to do something else.)
 
-```docker
-docker-compose up
-```
-
-## Quick Start
-
-The most simple way to start is (not for production):
+First, clone this repository:
 
 ```bash
 git clone git@github.com:oceanprotocol/provider.git
 cd provider/
+```
 
+Then run some things that the Provider expects to be running:
+
+```bash
+cd docker
+docker-compose up
+```
+
+You can see what that runs by reading [docker/docker-compose.yml](docker/docker-compose.yml).
+Note that it runs MongoDB but the Provider can also work with BigchainDB or Elasticsearch.
+It also runs [Ganache](https://github.com/trufflesuite/ganache) with all [Ocean Protocol Keeper Contracts](https://github.com/oceanprotocol/keeper-contracts) and [Ganache CLI](https://github.com/trufflesuite/ganache-cli).
+
+The most simple way to start is:
+
+```bash
+pip install -r requirements_dev.txt
 export FLASK_APP=provider/run.py
 export CONFIG_FILE=oceandb.ini 
 flask run
 ```
 
-The proper way to run the flask application is using a application server as gunicorn. This allow you to run using SSL, 
-you only need to generate your certificates and execute this command: 
+That will use HTTP (i.e. not SSL/TLS).
+
+The proper way to run the Flask application is using an application server such as Gunicorn. This allow you to run using SSL/TLS.
+You can generate some certificates for testing by doing:
 
 ```bash
-gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 provider.run:app
+openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
 ```
 
-Be aware of adding in the config file how you want to resolve your server:
-    
+and when it asks for the Common Name (CN), answer `localhost`
+
+Then edit the config file `oceandb.ini` so that:
+
 ```yaml
 provider.scheme = https
 provider.host = localhost
 provider.port = 5000
 ```
 
-You can generate some certificates for testing running:
+Then execute this command:
 
 ```bash
-openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 provider.run:app
 ```
 
 ## API documentation
