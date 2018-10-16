@@ -77,13 +77,17 @@ openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 36
 
 ## API documentation
 
-Once you have your application running you can access to the documentation in:
+Once you have your application running you can get access to the documentation at:
 
 ```bash
-http://127.0.0.1:5000/api/v1/docs
+https://127.0.0.1:5000/api/v1/docs
 ```
 
-If you want to know more about the ontology of the metadata you can find all the information in the 
+(or `http` if you're using HTTP.)
+
+Tip: if your browser shows the swagger header across the top but says "Failed to load spec." then we found that, in Chrome, if we went to chrome://flags/#allow-insecure-localhost and toggled it to Enabled, then relaunched Chrome, it worked.
+
+If you want to know more about the ontology of the metadata, you can find all the information in
 [OEP-8](https://github.com/oceanprotocol/OEPs/tree/master/8).
 
 ## Configuration
