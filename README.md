@@ -57,9 +57,10 @@ It also runs [Ganache](https://github.com/trufflesuite/ganache) with all [Ocean 
 The most simple way to start is:
 
 ```bash
-pip install -r requirements_dev.txt
+pip install -r requirements_dev.txt # or requirements_conda.txt if using Conda
 export FLASK_APP=provider/run.py
-export CONFIG_FILE=oceandb.ini 
+export CONFIG_FILE=oceandb.ini
+./scripts/deploy
 flask run
 ```
 
