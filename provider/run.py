@@ -3,8 +3,9 @@ from provider.app.assets import assets
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask import jsonify
-from squid_py.config_parser import load_config_section
-from provider.constants import BaseURLs, ConfigSections
+# from squid_py.config_parser import load_config_section
+from squid_py.config import Config
+from provider.constants import BaseURLs
 
 
 @app.route("/spec")
@@ -15,8 +16,8 @@ def spec():
     return jsonify(swag)
 
 
-res_conf = load_config_section(app.config['CONFIG_FILE'], ConfigSections.RESOURCES)
-provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.host'], res_conf['provider.port'])
+config = Config(filename=app.config['CONFIG_FILE'])
+provider_url = config.provider_url
 # Call factory function to create our blueprint
 swaggerui_blueprint = get_swaggerui_blueprint(
     BaseURLs.SWAGGER_URL,

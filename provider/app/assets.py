@@ -7,60 +7,52 @@ import pytz
 from flask import Blueprint, jsonify, request
 from oceandb_driver_interface.search_model import QueryModel, FullTextModel
 from squid_py.acl import decode
-from squid_py.config_parser import load_config_section
-from squid_py.constants import OCEAN_ACL_CONTRACT, OCEAN_MARKET_CONTRACT
-from squid_py.ocean_contracts import OceanContracts
+from squid_py.config import Config
+from squid_py.ocean import Ocean
 
 from provider.app.dao import Dao
 from provider.app.filters import Filters
 from provider.app.osmosis import generate_sasurl
-from provider.constants import ConfigSections, BaseURLs
+from provider.constants import BaseURLs
 from provider.log import setup_logging
 from provider.myapp import app
+from provider.constants import ConfigSections
 
 setup_logging()
 assets = Blueprint('assets', __name__)
 
 config_file = app.config['CONFIG_FILE']
+config = Config(filename=config_file)
 # Prepare keeper contracts for on-chain access control
-keeper_config = load_config_section(config_file, ConfigSections.KEEPER_CONTRACTS)
-res_conf = load_config_section(config_file, ConfigSections.RESOURCES)
 # Prepare OceanDB
-dao = Dao(config_file)
-
-provider_url = '%s://%s:%s' % (res_conf['provider.scheme'], res_conf['provider.host'], res_conf['provider.port'])
+dao = Dao(config_file=config_file)
+provider_url = config.provider_url
 provider_url += BaseURLs.ASSETS_URL
-provider_address = None if not keeper_config['provider.address'] else keeper_config['provider.address']
-ocean_contracts = OceanContracts(config_path=config_file)
-
-ocean_contracts.init_contracts()
-# Prepare resources access configuration to download assets
-resources_config = load_config_section(config_file, ConfigSections.RESOURCES)
+provider_address = None if not config.get(ConfigSections.KEEPER_CONTRACTS, 'provider.address') else config.get(ConfigSections.KEEPER_CONTRACTS,
+                                                                                                  'provider.address')
+ocn = Ocean(config_file=config_file)
 
 
 def get_provider_address_filter():
-    account = ocean_contracts.web3.eth.accounts[0] if not keeper_config['provider.address'] \
-        else keeper_config['provider.address']
+    account = ocn.web3.eth.accounts[0] if not config.get(ConfigSections.KEEPER_CONTRACTS, 'provider.address') \
+        else config.get(ConfigSections.KEEPER_CONTRACTS, 'provider.address')
     return {"address": account}
 
 
-ocn_for_filters = OceanContracts(config_path=config_file)
-ocn_for_filters.init_contracts()
+filters = Filters(ocean_contracts_wrapper=ocn, config_file=config_file, api_url=provider_url)
+filter_access_consent = ocn.helper.watch_event(ocn.contracts.auth.contract,
+                                               'AccessConsentRequested',
+                                               filters.commit_access_request,
+                                               0.2,
+                                               fromBlock='latest',
+                                               filters=get_provider_address_filter())
 
-filters = Filters(ocean_contracts_wrapper=ocn_for_filters, config_file=config_file, api_url=provider_url)
-filter_access_consent = ocn_for_filters.watch_event(OCEAN_ACL_CONTRACT,
-                                                    'AccessConsentRequested',
-                                                    filters.commit_access_request,
-                                                    0.2,
-                                                    fromBlock='latest',
-                                                    filters=get_provider_address_filter())
-
-filter_payment = ocn_for_filters.watch_event(OCEAN_MARKET_CONTRACT,
-                                             'PaymentReceived',
-                                             filters.publish_encrypted_token,
-                                             0.2,
-                                             fromBlock='latest',
-                                             filters=get_provider_address_filter())
+filter_payment = ocn.helper.watch_event(ocn.contracts.market.contract,
+                                        'PaymentReceived',
+                                        filters.publish_encrypted_token,
+                                        0.2,
+                                        fromBlock='latest',
+                                        filters=get_provider_address_filter())
 
 
 @assets.route('', methods=['GET'])
@@ -642,27 +634,29 @@ def consume_resource(asset_id):
             logging.error('Consume failed: required attr %s missing.' % attr)
             return '"%s" is required for registering an asset.' % attr, 400
 
-    contract_instance = ocean_contracts.contracts[OCEAN_ACL_CONTRACT][0]
-    sig = ocean_contracts.split_signature(ocean_contracts.web3.toBytes(hexstr=data['sigEncJWT']))
+    contract_instance = ocn.contracts.auth.contract_concise
+    sig = ocn.helper.split_signature(ocn.web3.toBytes(hexstr=data['sigEncJWT']))
     jwt = decode(data['jwt'])
 
     if contract_instance.verifyAccessTokenDelivery(jwt['request_id'],  # requestId
-                                                   ocean_contracts.web3.toChecksumAddress(data['consumerId']),
+                                                   ocn.web3.toChecksumAddress(data['consumerId']),
                                                    # consumerId
                                                    data['fixed_msg'],
                                                    sig.v,  # sig.v
                                                    sig.r,  # sig.r
                                                    sig.s,  # sig.s
-                                                   transact={'from': ocean_contracts.account,
+                                                   transact={'from': ocn.web3.eth.accounts[0] if config.get(
+                                                       ConfigSections.KEEPER_CONTRACTS, 'provider.account') is '' else config.get(
+                                                       ConfigSections.KEEPER_CONTRACTS, 'provider.account'),
                                                              'gas': 4000000}):
         if jwt['resource_server_plugin'] == 'Azure':
             logging.info('reading asset from oceandb: %s' % asset_id)
             urls = dao.get(asset_id)['base']['contentUrls']
             url_list = []
             for url in urls:
-                url_list.append(generate_sasurl(url, resources_config['azure.account.name'],
-                                                resources_config['azure.account.key'],
-                                                resources_config['azure.container']))
+                url_list.append(generate_sasurl(url, config.get(ConfigSections.RESOURCES, 'azure.account.name'),
+                                                config.get(ConfigSections.RESOURCES, 'azure.account.key'),
+                                                config.get(ConfigSections.RESOURCES, 'azure.container')))
             return jsonify(url_list), 200
         else:
             logging.error('resource server plugin is not supported: %s' % jwt['resource_server_plugin'])
