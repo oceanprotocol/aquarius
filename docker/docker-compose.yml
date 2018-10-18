@@ -22,7 +22,11 @@ services:
       REUSE_DATABASE: "false"
       NETWORK_NAME: "ganache"
     volumes:
-    - ./../venv/contracts:/keeper-contracts/artifacts/
+    - artifacts:/keeper-contracts/artifacts/
 
 networks:
   backend:
+
+
+volumes:
+  artifacts:
