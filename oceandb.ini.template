@@ -40,8 +40,7 @@ db.collection=${DB_COLLECTION}
 ;db.app_key=d068996d8d5b1a66cfc61dc3a83fa7ee
 
 [keeper-contracts]
-keeper.host = ${KEEPER_HOST}
-keeper.port = ${KEEPER_PORT}
+keeper.url = ${KEEPER_URL}
 keeper.network = ${KEEPER_NETWORK}
 
 ;contracts.folder=venv/contracts
@@ -56,6 +55,4 @@ azure.account.key = ${AZURE_ACCOUNT_KEY}
 azure.container = ${AZURE_CONTAINER}
 
 ; These consitute part of the provider url which is used in setting the `api_url` in the `OceanContractsWrapper`
-provider.scheme = ${PROVIDER_SCHEME}
-provider.host = ${PROVIDER_HOST}
-provider.port = ${PROVIDER_PORT}
+provider.url = ${PROVIDER_URL}

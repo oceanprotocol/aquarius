@@ -78,9 +78,7 @@ and when it asks for the Common Name (CN), answer `localhost`
 Then edit the config file `oceandb.ini` so that:
 
 ```yaml
-provider.scheme = https
-provider.host = localhost
-provider.port = 5000
+provider.url = https://localhost:5000
 ```
 
 Then execute this command:
@@ -114,8 +112,7 @@ In the configuration there are now three sections:
 - keeper-contracts: This section help you to connect with the network where you have deployed the contracts. You can find more information of how to configure [here](https://github.com/oceanprotocol/squid-py#quick-start).
     ```yaml
     [keeper-contracts]
-    keeper.host=0.0.0.0
-    keeper.port=8545
+    keeper.url=0.0.0.0:8545
     #contracts.folder=venv/contracts
     market.address=0xbc0be3598a31715bac5235718f96bb242804e61e
     auth.address=0x6ba5f72e5399aa67db5b22ee791851937d4910f5

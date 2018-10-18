@@ -8,7 +8,7 @@ from squid_py.ocean import Ocean
 from provider.constants import BaseURLs
 from tests.conftest import json_dict, json_request_consume
 
-ocean = Ocean(config_file='oceandb.ini')
+ocean = Ocean(config_file='config_local.ini')
 
 acl_concise = ocean.contracts.auth.contract_concise
 acl = ocean.contracts.auth.contract
