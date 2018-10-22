@@ -59,7 +59,7 @@ The most simple way to start is:
 ```bash
 pip install -r requirements_dev.txt # or requirements_conda.txt if using Conda
 export FLASK_APP=provider/run.py
-export CONFIG_FILE=oceandb.ini
+export CONFIG_FILE=config.ini
 ./scripts/deploy
 flask run
 ```
@@ -75,7 +75,7 @@ openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 36
 
 and when it asks for the Common Name (CN), answer `localhost`
 
-Then edit the config file `oceandb.ini` so that:
+Then edit the config file `config.ini` so that:
 
 ```yaml
 provider.url = https://localhost:5000
@@ -104,27 +104,16 @@ If you want to know more about the ontology of the metadata, you can find all th
 
 ## Configuration
 
-You can pass the configuration using the CONFIG_FILE environment variable (recommended) or locating your configuration in oceandb.ini file.
+You can pass the configuration using the CONFIG_FILE environment variable (recommended) or locating your configuration in config.ini file.
 
 In the configuration there are now three sections:
 
 - oceandb: Contains different values to connect with oceandb. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
-- keeper-contracts: This section help you to connect with the network where you have deployed the contracts. You can find more information of how to configure [here](https://github.com/oceanprotocol/squid-py#quick-start).
-    ```yaml
-    [keeper-contracts]
-    keeper.url=0.0.0.0:8545
-    #contracts.folder=venv/contracts
-    market.address=0xbc0be3598a31715bac5235718f96bb242804e61e
-    auth.address=0x6ba5f72e5399aa67db5b22ee791851937d4910f5
-    token.address=0xfd83b273b395b1029c41bb32071500bf662e6a8a
-    provider.address=
-    ```
-- resources: This section have properties to connect with the different resourcer provideres. At the moment we are only using Azure but this is going to increase quickly.
+- resources: In this section we are showing the url in wich the provider is going to be deployed.
+
     ```yaml
     [resources]
-    azure.account.name=testocnfiles
-    azure.account.key=k2Vk4yfb88WNlWW+W54a8ytJm8MYO1GW9IgiV7TNGKSdmKyVNXzyhiRZ3U1OHRotj/vTYdhJj+ho30HPyJpuYQ==
-    azure.container=testfiles
+    provider.url = http://localhost:5000
     ```
     
 
