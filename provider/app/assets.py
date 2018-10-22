@@ -6,7 +6,6 @@ from datetime import datetime
 import pytz
 from flask import Blueprint, jsonify, request
 from oceandb_driver_interface.search_model import QueryModel, FullTextModel
-from squid_py.config import Config
 
 from provider.app.dao import Dao
 from provider.log import setup_logging
