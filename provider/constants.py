@@ -1,6 +1,5 @@
 class ConfigSections:
     OCEANBD = 'oceandb'
-    KEEPER_CONTRACTS = 'keeper-contracts'
     RESOURCES = 'resources'
 
 

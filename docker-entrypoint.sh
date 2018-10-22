@@ -14,5 +14,5 @@ auth=$(python -c "import sys, json; print(json.load(open('/usr/local/keeper-cont
 sed -i -e "/token.address =/c token.address = ${token}" /provider/oceandb.ini
 sed -i -e "/market.address =/c market.address = ${market}" /provider/oceandb.ini
 sed -i -e "/auth.address =/c auth.address = ${auth}" /provider/oceandb.ini
-gunicorn -b ${PROVIDER_URL#*://} -w ${PROVICER_WORKERS} provider.run:app
+gunicorn -b ${PROVIDER_URL#*://} -w ${PROVIDER_WORKERS} provider.run:app
 tail -f /dev/null
