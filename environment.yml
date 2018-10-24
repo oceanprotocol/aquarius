@@ -1,4 +1,4 @@
-name: ocn_provider
+name: ocn_aquarius
 channels:
   - defaults
 dependencies:

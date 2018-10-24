@@ -16,8 +16,8 @@ RUN apk add --no-cache --update\
     python3-dev \
   && pip install virtualenv
 
-COPY . /provider
-WORKDIR /provider
+COPY . /aquarius
+WORKDIR /aquarius
 
 RUN pip install -r requirements_dev.txt
 
@@ -33,10 +33,10 @@ ENV DB_APP_KEY=''
 ENV DB_NAMESPACE='namespace'
 ENV DB_NAME='test'
 ENV DB_COLLECTION='protokeeper'
-ENV PROVIDER_URL='http://0.0.0.0:5000'
+ENV AQUARIUS_URL='http://0.0.0.0:5000'
 # docker-entrypoint.sh configuration file variables
-ENV PROVIDER_WORKERS='1'
+ENV AQUARIUS_WORKERS='1'
 
-ENTRYPOINT ["/provider/docker-entrypoint.sh"]
+ENTRYPOINT ["/aquarius/docker-entrypoint.sh"]
 
 EXPOSE 5000

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CONFIG_FILE=/provider/config.ini
-envsubst < /provider/config.ini.template > /provider/config.ini
-gunicorn -b ${PROVIDER_URL#*://} -w ${PROVIDER_WORKERS} provider.run:app
+export CONFIG_FILE=/aquarius/config.ini
+envsubst < /aquarius/config.ini.template > /aquarius/config.ini
+gunicorn -b ${AQUARIUS_URL#*://} -w ${AQUARIUS_WORKERS} aquarius.run:app
 tail -f /dev/null

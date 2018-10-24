@@ -25,5 +25,5 @@ deploy:
   on:
     tags: true
     branch: master
-    repo: oceanprotocol/provider
+    repo: oceanprotocol/aquarius
     python: 3.6
