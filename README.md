@@ -1,15 +1,17 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-# provider
+# Aquarius
 
-> 🐋 Provide an off-chain database store for data assets metadata and registration and perform part of access control in collaboration with the keeper-contracts.
+> 🐋 Provide an off-chain database store for data assets metadata.
 > [oceanprotocol.com](https://oceanprotocol.com)
 
-[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/provider.svg)](https://hub.docker.com/r/oceanprotocol/provider/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/provider.svg)](https://travis-ci.com/oceanprotocol/provider) [![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)](https://app.codacy.com/project/ocean-protocol/provider/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-provider.svg)](https://pypi.org/project/ocean-provider/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/provider.svg)](https://github.com/oceanprotocol/provider/graphs/contributors)
+___"Aquarius is a constellation of the zodiac, situated between Capricornus and Pisces. Its name is Latin for "water-carrier" or "cup-carrier", and its symbol is Aquarius.svg , a representation of water. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path)."___
+
+[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/0fa4c47049434406ad80932712f7ee6f.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors)
 
 ---
 
-**🐲🦑 THERE BE DRAGONS AND SQUIDS. This is in alpha state and you can expect running into problems. If you run into them, please open up [a new issue](https://github.com/oceanprotocol/provider/issues). 🦑🐲**
+**🐲🦑 THERE BE DRAGONS AND SQUIDS. This is in alpha state and you can expect running into problems. If you run into them, please open up [a new issue](https://github.com/oceanprotocol/aquarius/issues). 🦑🐲**
 
 ---
 
@@ -30,20 +32,20 @@
 
 ## Features
 
-The Provider handles all non-blockchain related core functionality, including compute and storage interfaces, and connections to Ocean Keepers. Additionally, the Provider implements Ocean's Service Integrity and Orchestration capabilities, allowing for services to be requested, ordered, scheduled, verfied, and curated. 
+Aquarius handles all non-blockchain related core functionality, including compute and storage interfaces, and connections to Ocean Keepers. Additionally, the Aquarius implements Ocean's Service Integrity and Orchestration capabilities, allowing for services to be requested, ordered, scheduled, verfied, and curated. 
 
 ## Running Locally, for Dev and Test
 
-If you want to contribute to the development of the Provider, then you could do the following. (If you want to run a Provider in production, then you will have to do something else.)
+If you want to contribute to the development of the Aquarius, then you could do the following. (If you want to run a Aquarius in production, then you will have to do something else.)
 
 First, clone this repository:
 
 ```bash
-git clone git@github.com:oceanprotocol/provider.git
-cd provider/
+git clone git@github.com:oceanprotocol/aquarius.git
+cd aquarius/
 ```
 
-Then run some things that the Provider expects to be running:
+Then run some things that the Aquarius expects to be running:
 
 ```bash
 cd docker
@@ -51,14 +53,14 @@ docker-compose up
 ```
 
 You can see what that runs by reading [docker/docker-compose.yml](docker/docker-compose.yml).
-Note that it runs MongoDB but the Provider can also work with BigchainDB or Elasticsearch.
+Note that it runs MongoDB but the Aquarius can also work with BigchainDB or Elasticsearch.
 It also runs [Ganache](https://github.com/trufflesuite/ganache) with all [Ocean Protocol Keeper Contracts](https://github.com/oceanprotocol/keeper-contracts) and [Ganache CLI](https://github.com/trufflesuite/ganache-cli).
 
 The most simple way to start is:
 
 ```bash
 pip install -r requirements_dev.txt # or requirements_conda.txt if using Conda
-export FLASK_APP=provider/run.py
+export FLASK_APP=aquarius/run.py
 export CONFIG_FILE=config.ini
 ./scripts/deploy
 flask run
@@ -78,13 +80,13 @@ and when it asks for the Common Name (CN), answer `localhost`
 Then edit the config file `config.ini` so that:
 
 ```yaml
-provider.url = https://localhost:5000
+aquarius
 ```
 
 Then execute this command:
 
 ```bash
-gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 provider.run:app
+gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 aquarius.run:app
 ```
 
 ## API documentation
@@ -109,11 +111,11 @@ You can pass the configuration using the CONFIG_FILE environment variable (recom
 In the configuration there are now two sections:
 
 - oceandb: Contains different values to connect with oceandb. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
-- resources: In this section we are showing the url in wich the provider is going to be deployed.
+- resources: In this section we are showing the url in wich the aquarius is going to be deployed.
 
     ```yaml
     [resources]
-    provider.url = http://localhost:5000
+    aquarius.url = http://localhost:5000
     ```
     
 

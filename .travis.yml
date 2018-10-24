@@ -18,12 +18,12 @@ before_install:
 install: pip install -U tox-travis
 script: tox
 deploy:
-  provider: pypi
+  aquarius: pypi
   distributions: sdist bdist_wheel
   user: ${PYPI_USER}
   password: ${PYPI_PASSWORD}
   on:
     tags: true
     branch: master
-    repo: oceanprotocol/provider
+    repo: oceanprotocol/aquarius
     python: 3.6

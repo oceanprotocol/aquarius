@@ -7,9 +7,9 @@ import pytz
 from flask import Blueprint, jsonify, request
 from oceandb_driver_interface.search_model import QueryModel, FullTextModel
 
-from provider.app.dao import Dao
-from provider.log import setup_logging
-from provider.myapp import app
+from aquarius.app.dao import Dao
+from aquarius.log import setup_logging
+from aquarius.myapp import app
 
 setup_logging()
 assets = Blueprint('assets', __name__)

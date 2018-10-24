@@ -1,6 +1,6 @@
 import pytest
 
-from provider.run import app
+from aquarius.run import app
 
 app = app
 
