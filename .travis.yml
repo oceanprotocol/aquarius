@@ -18,7 +18,7 @@ before_install:
 install: pip install -U tox-travis
 script: tox
 deploy:
-  aquarius: pypi
+  provider: pypi
   distributions: sdist bdist_wheel
   user: ${PYPI_USER}
   password: ${PYPI_PASSWORD}
