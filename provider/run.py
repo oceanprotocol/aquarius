@@ -32,4 +32,8 @@ app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 
 if __name__ == '__main__':
-    app.run()
+    if isinstance(config.provider_url.split(':')[-1], int):
+        app.run(host=config.provider_url.split(':')[1],
+                port=config.provider_url.split(':')[-1])
+    else:
+        app.run()

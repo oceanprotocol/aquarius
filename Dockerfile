@@ -21,7 +21,7 @@ WORKDIR /provider
 
 RUN pip install -r requirements_dev.txt
 
-# oceandb.ini configuration file variables
+# config.ini configuration file variables
 ENV DB_ENABLED='true'
 ENV DB_MODULE='mongodb'
 ENV DB_SECRET=''
@@ -33,18 +33,9 @@ ENV DB_APP_KEY=''
 ENV DB_NAMESPACE='namespace'
 ENV DB_NAME='test'
 ENV DB_COLLECTION='protokeeper'
-ENV KEEPER_URL='http://127.0.0.1:8548'
-ENV KEEPER_NETWORK='development'
-#ENV MARKET_ADDRESS=''
-#ENV AUTH_ADDRESS=''
-#ENV TOKEN_ADDRESS=''
-ENV PROVIDER_ADDRESS=''
-ENV AZURE_ACCOUNT_NAME='testocnfiles'
-ENV AZURE_ACCOUNT_KEY='k2Vk4yfb88WNlWW+W54a8ytJm8MYO1GW9IgiV7TNGKSdmKyVNXzyhiRZ3U1OHRotj/vTYdhJj+ho30HPyJpuYQ=='
-ENV AZURE_CONTAINER='testfiles'
 ENV PROVIDER_URL='http://0.0.0.0:5000'
 # docker-entrypoint.sh configuration file variables
-ENV PROVICER_WORKERS='1'
+ENV PROVIDER_WORKERS='1'
 
 ENTRYPOINT ["/provider/docker-entrypoint.sh"]
 
