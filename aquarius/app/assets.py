@@ -23,7 +23,7 @@ def get_assets():
     """Get all assets ids.
     ---
     tags:
-      - assets
+      - ddo
     responses:
       200:
         description: successful action
@@ -32,19 +32,19 @@ def get_assets():
     query = dict()
     args.append(query)
     asset_with_id = dao.get_assets()
-    asset_ids = [a['assetId'] for a in asset_with_id]
-    resp_body = dict({'assetsIds': asset_ids})
+    asset_ids = [a['id'] for a in asset_with_id]
+    resp_body = dict({'ids': asset_ids})
     return jsonify(resp_body), 200
 
 
-@assets.route('/metadata/<asset_id>', methods=['GET'])
-def get(asset_id):
-    """Get metadata of a particular asset
+@assets.route('/ddo/<id>', methods=['GET'])
+def get_ddo(id):
+    """Get ddo of a particular asset.
     ---
     tags:
-      - assets
+      - ddo
     parameters:
-      - name: asset_id
+      - name: id
         in: path
         description: ID of the asset.
         required: true
@@ -56,144 +56,132 @@ def get(asset_id):
         description: This asset id is not in OceanDB
     """
     try:
-        asset_record = dao.get(asset_id)
+        asset_record = dao.get(id)
         return jsonify(asset_record), 200
     except Exception as e:
-        return '"%s asset_id is not in OceanDB' % asset_id, 404
+        return '"%s asset_id is not in OceanDB' % id, 404
 
 
-@assets.route('/metadata', methods=['POST'])
-def register():
-    """Register metadata of a new asset
+@assets.route('/metadata/<id>', methods=['GET'])
+def get_metadata(id):
+    """Get metadata of a particular asset
     ---
     tags:
-      - assets
+      - metadata
+    parameters:
+      - name: id
+        in: path
+        description: ID of the asset.
+        required: true
+        type: string
+    responses:
+      200:
+        description: successful operation
+      404:
+        description: This asset id is not in OceanDB
+    """
+    try:
+        asset_record = dao.get(id)
+        metadata = dict()
+        i = -1
+        for service in asset_record['service']:
+            i = i + 1
+            if service['type'] == 'Metadata':
+                metadata = asset_record['service'][i]
+        return jsonify(metadata), 200
+    except Exception as e:
+        return '"%s asset_id is not in OceanDB' % id, 404
+
+
+@assets.route('/ddo', methods=['POST'])
+def register():
+    """Register ddo of a new asset
+    ---
+    tags:
+      - ddo
     consumes:
       - application/json
     parameters:
       - in: body
         name: body
         required: true
-        description: Asset metadata.
+        description: Asset ddo.
         schema:
           type: object
           required:
-            - assetId
-            - publisherId
-            - base
+            - "@context"
+            - id
+            - publicKey
+            - authentication
+            - service
           properties:
-            assetId:
+            "@context":
+              description:
+              example: https://w3id.org/future-method/v1
+              type: string
+            id:
               description: ID of the asset.
-              example: '0x1298371984723941'
+              example: did:op:123456789abcdefghi
               type: string
-            publisherId:
-              description: Id of the asset's publisher.
-              type: string
-              example: '0x0234242345'
-            base:
-              id: Base
-              type: object
-              required:
-                - name
-                - size
-                - author
-                - license
-                - contentType
-                - contentUrls
-                - price
-                - type
-              properties:
-                name:
-                  type: string
-                  description: Descriptive name of the Asset
-                  example: UK Weather information 2011
-                description:
-                  type: string
-                  description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
-                  example: Weather information of UK including temperature and humidity
-                size:
-                  type: string
-                  description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
-                  example: 3.1gb
-                author:
-                  type: string
-                  description: Name of the entity generating this data.
-                  example: Met Office
-                license:
-                  type: string
-                  description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
-                  example: CC-BY
-                copyrightHolder:
-                  type: string
-                  description: The party holding the legal copyright. Empty by default
-                  example: Met Office
-                encoding:
-                  type: string
-                  description: File encoding
-                  example: UTF-8
-                compression:
-                  type: string
-                  description: File compression
-                  example: zip
-                contentType:
-                  type: string
-                  description: File format if applicable
-                  example: text/csv
-                workExample:
-                  type: string
-                  description: Example of the concept of this asset. This example is part of the metadata, not an external link.
-                  example: stationId,latitude,longitude,datetime,temperature,humidity\n
-                      423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
-                contentUrls:
+            publicKey:
                   type: array
-                  description: List of content urls resolving the ASSET files
-                  example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
-                links:
+                  description: List of publicKeys.
+                  example: [{"id": "did:op:123456789abcdefghi#keys-1"},
+                            {"type": "Ed25519VerificationKey2018"},
+                            {"owner": "did:op:123456789abcdefghi"},
+                            {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
+            authentication:
                   type: array
-                  description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
-                  example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                            {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
-                inLanguage:
-                  type: string
-                  description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
-                  example: en
-                tags:
-                  type: string
-                  description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
-                  example: weather, uk, 2011, temperature, humidity
-                price:
-                  type: number
-                  description: Price of the asset.
-                  example: 10
-                type:
-                  type: string
-                  description: Type of the Asset. Helps to filter by kind of asset, initially ("dataset", "algorithm", "container", "workflow", "other")
-                  example: dataset
-            curation:
-              id: Curation
-              type: object
-              properties:
-                rating:
-                  type: number
-                  description: Decimal values between 0 and 1. 0 is the default value
-                  example: 0
-                numVotes:
-                  type: integer
-                  description: any additional information worthy of highlighting (description maybe sufficient)
-                  example: 0
-                schema:
-                  type: string
-                  description: Schema applied to calculate the rating
-                  example: Binary Votting
-            additionalInformation:
-              id: additionalInformation
-              type: object
-              properties:
-                updateFrecuency:
-                  type: string
-                  description: ow often are updates expected
-                  example: yearly
+                  description: List with the authentications.
+                  example: [{"type": "RsaSignatureAuthentication2018"},
+                            {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+            service:
+                  type: array
+                  description: List of services.
+                  example: [{"type": "Consume",
+                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${pubKey}&serviceId={serviceId}&url={url}"},
+                            {"type": "Compute",
+                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                            {"type": "Metadata",
+                             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                             "metadata": {
+                               "base": {
+                                 "name": "UK Weather information 2011",
+                                 "type": "dataset",
+                                 "description": "Weather information of UK including temperature and humidity",
+                                 "size": "3.1gb",
+                                 "dateCreated": "2012-10-10T17:00:000Z",
+                                 "author": "Met Office",
+                                 "license": "CC-BY",
+                                 "copyrightHolder": "Met Office",
+                                 "encoding": "UTF-8",
+                                 "compression": "zip",
+                                 "contentType": "text/csv",
+                                 "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
+                                 "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
+                                 "links": [
+                                   {"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
+                                   {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
+                                   {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
+                                 ],
+                                 "inLanguage": "en",
+                                 "tags": "weather, uk, 2011, temperature, humidity",
+                                 "price": 10
+
+                               },
+                               "curation": {
+                                 "rating": 0.93,
+                                 "numVotes": 123,
+                                 "schema": "Binary Votting"
+                               },
+                               "additionalInformation" : {
+                                 "updateFrecuency": "yearly",
+                                 "structuredMarkup" : [
+                                   { "uri" : "http://skos.um.es/unescothes/C01194/jsonld", "mediaType" : "application/ld+json"},
+                                   { "uri" : "http://skos.um.es/unescothes/C01194/turtle", "mediaType" : "text/turtle"}]
+                               }
+                             }
+                           }]
     responses:
       201:
         description: Asset successfully registered.
@@ -205,7 +193,7 @@ def register():
         description: Error
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-    required_attributes = ['assetId', 'publisherId', 'base']
+    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'service']
     required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
                                          'contentUrls', 'type']
     data = request.json
@@ -219,10 +207,12 @@ def register():
             logging.error('%s is required, got %s' % (attr, str(data)))
             return '"%s" is required for registering an asset.' % attr, 400
 
-    for attr in required_metadata_base_attributes:
-        if attr not in data['base']:
-            logging.error('%s metadata is required, got %s' % (attr, str(data['base'])))
-            return '"%s" is required for registering an asset.' % attr, 400
+    for service in data['service']:
+        if service['type'] == 'Metadata':
+            for attr in required_metadata_base_attributes:
+                if attr not in service['metadata']['base']:
+                    logging.error('%s metadata is required, got %s' % (attr, str(service['metadata']['base'])))
+                    return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
     if msg:
@@ -230,14 +220,19 @@ def register():
 
     _record = dict()
     _record = data
-    _record['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(
-        tzinfo=pytz.UTC).isoformat()
-    _record['curation']['rating'] = 0.00
-    _record['curation']['numVotes'] = 0
-    _record['additionalInformation']['checksum'] = hashlib.sha3_256(
-        json.dumps(data['base']).encode('UTF-8')).hexdigest()
+    # Index to write in the metadata service
+    i = -1
+    for service in _record['service']:
+        i = i + 1
+        if service['type'] == 'Metadata':
+            _record['service'][i]['metadata']['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(
+                tzinfo=pytz.UTC).isoformat()
+            _record['service'][i]['metadata']['curation']['rating'] = 0.00
+            _record['service'][i]['metadata']['curation']['numVotes'] = 0
+            _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
+                json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
     try:
-        dao.register(_record, data['assetId'])
+        dao.register(_record, data['id'])
         # add new assetId to response
         return _sanitize_record(_record), 201
     except Exception as err:
@@ -245,145 +240,98 @@ def register():
         return 'Some error: "%s"' % str(err), 500
 
 
-@assets.route('/metadata/<asset_id>', methods=['PUT'])
-def update(asset_id):
-    """Update metadata of an asset
+@assets.route('/ddo/<did>', methods=['PUT'])
+def update(did):
+    """Update ddo of an existing asset
     ---
     tags:
-      - assets
+      - ddo
     consumes:
       - application/json
     parameters:
-      - name: asset_id
-        in: path
-        description: ID of the asset.
-        required: true
-        type: string
       - in: body
         name: body
         required: true
-        description: Asset metadata.
+        description: Asset ddo.
         schema:
           type: object
           required:
-            - asset_id
-            - publisherId
-            - base
+            - "@context"
+            - id
+            - publicKey
+            - authentication
+            - service
           properties:
-            publisherId:
-              description: Id of the asset's publisher.
+            "@context":
+              description:
+              example: https://w3id.org/future-method/v1
               type: string
-              example: '0x0234242345'
-            base:
-              id: BaseUpdate
-              type: object
-              required:
-                - name
-                - size
-                - author
-                - license
-                - contentType
-                - contentUrls
-                - price
-                - type
-              properties:
-                name:
-                  type: string
-                  description: Descriptive name of the Asset
-                  example: UK Weather information 2011
-                description:
-                  type: string
-                  description: Details of what the resource is. For a data set explain what the data represents and what it can be used for.
-                  example: Weather information of UK including temperature and humidity
-                size:
-                  type: string
-                  description: Size of the asset. In the absence of a unit (mb, kb etc.), KB will be assumed
-                  example: 3.1gb
-                author:
-                  type: string
-                  description: Name of the entity generating this data.
-                  example: Met Office
-                license:
-                  type: string
-                  description: Short name referencing to the license of the asset (e.g. Public Domain, CC-0, CC-BY, No License Specified, etc. ). If it's not specified "No License Specifiedified" by default.
-                  example: CC-BY
-                copyrightHolder:
-                  type: string
-                  description: The party holding the legal copyright. Empty by default
-                  example: Met Office
-                encoding:
-                  type: string
-                  description: File encoding
-                  example: UTF-8
-                compression:
-                  type: string
-                  description: File compression
-                  example: zip
-                contentType:
-                  type: string
-                  description: File format if applicable
-                  example: text/csv
-                workExample:
-                  type: string
-                  description: Example of the concept of this asset. This example is part of the metadata, not an external link.
-                  example: stationId,latitude,longitude,datetime,temperature,humidity\n
-                      423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68
-                contentUrls:
+            id:
+              description: ID of the asset.
+              example: did:op:123456789abcdefghi
+              type: string
+            publicKey:
                   type: array
-                  description: List of content urls resolving the ASSET files
-                  example: ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"]
-                links:
+                  description: List of publicKeys.
+                  example: [{"id": "did:op:123456789abcdefghi#keys-1"},
+                            {"type": "Ed25519VerificationKey2018"},
+                            {"owner": "did:op:123456789abcdefghi"},
+                            {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
+            authentication:
                   type: array
-                  description: Mapping of links for data samples, or links to find out more information. The key represents the topic of the link, the value is the proper link
-                  example: [{"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                            {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                            {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}]
-                inLanguage:
-                  type: string
-                  description: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard.
-                  example: en
-                tags:
-                  type: string
-                  description: Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas. Empty by default
-                  example: weather, uk, 2011, temperature, humidity
-                price:
-                  type: number
-                  description: Price of the asset.
-                  example: 10
-                type:
-                  type: string
-                  description: Type of the Asset. Helps to filter by kind of asset, initially ("dataset", "algorithm", "container", "workflow", "other")
-                  example: dataset
-            curation:
-              id: CurationUpdate
-              type: object
-              required:
-                - rating
-                - numVotes
-              properties:
-                rating:
-                  type: number
-                  description: Decimal values between 0 and 1. 0 is the default value
-                  example: 0
-                numVotes:
-                  type: integer
-                  description: any additional information worthy of highlighting (description maybe sufficient)
-                  example: 0
-                schema:
-                  type: string
-                  description: Schema applied to calculate the rating
-                  example: Binary Votting
-            additionalInformation:
-              id: additionalInformationUpdate
-              type: object
-              properties:
-                updateFrecuency:
-                  type: string
-                  description: ow often are updates expected
-                  example: yearly
+                  description: List with the authentications.
+                  example: [{"type": "RsaSignatureAuthentication2018"},
+                            {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+            service:
+                  type: array
+                  description: List of services.
+                  example: [{"type": "Consume",
+                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${pubKey}&serviceId={serviceId}&url={url}"},
+                            {"type": "Compute",
+                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                            {"type": "Metadata",
+                             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                             "metadata": {
+                               "base": {
+                                 "name": "UK Weather information 2011",
+                                 "type": "dataset",
+                                 "description": "Weather information of UK including temperature and humidity",
+                                 "size": "3.1gb",
+                                 "dateCreated": "2012-10-10T17:00:000Z",
+                                 "author": "Met Office",
+                                 "license": "CC-BY",
+                                 "copyrightHolder": "Met Office",
+                                 "encoding": "UTF-8",
+                                 "compression": "zip",
+                                 "contentType": "text/csv",
+                                 "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
+                                 "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
+                                 "links": [
+                                   {"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
+                                   {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
+                                   {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
+                                 ],
+                                 "inLanguage": "en",
+                                 "tags": "weather, uk, 2011, temperature, humidity",
+                                 "price": 10
+
+                               },
+                               "curation": {
+                                 "rating": 0.93,
+                                 "numVotes": 123,
+                                 "schema": "Binary Votting"
+                               },
+                               "additionalInformation" : {
+                                 "updateFrecuency": "yearly",
+                                 "structuredMarkup" : [
+                                   { "uri" : "http://skos.um.es/unescothes/C01194/jsonld", "mediaType" : "application/ld+json"},
+                                   { "uri" : "http://skos.um.es/unescothes/C01194/turtle", "mediaType" : "text/turtle"}]
+                               }
+                             }
+                           }]
     responses:
-      200:
-        description: Asset successfully updated.
+      201:
+        description: Asset successfully registered.
       400:
         description: One of the required attributes is missed.
       404:
@@ -391,7 +339,7 @@ def update(asset_id):
       500:
         description: Error
     """
-    required_attributes = ['base', 'publisherId', ]
+    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'service']
     required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
                                          'contentUrls', 'type']
     required_metadata_curation_attributes = ['rating', 'numVotes']
@@ -406,42 +354,47 @@ def update(asset_id):
         if attr not in data:
             return '"%s" is required for registering an asset.' % attr, 400
 
-    for attr in required_metadata_base_attributes:
-        if attr not in data['base']:
-            logging.error('%s metadata is required, got %s' % (attr, str(data['base'])))
-            return '"%s" is required for registering an asset.' % attr, 400
+    for service in data['service']:
+        if service['type'] == 'Metadata':
+            for attr in required_metadata_base_attributes:
+                if attr not in service['metadata']['base']:
+                    logging.error('%s metadata is required, got %s' % (attr, str(service['metadata']['base'])))
+                    return '"%s" is required for registering an asset.' % attr, 400
 
-    for attr in required_metadata_curation_attributes:
-        if attr not in data['curation']:
-            logging.error('%s metadata is required, got %s' % (attr, str(data['curation'])))
-            return '"%s" is required for registering an asset.' % attr, 400
+            for attr in required_metadata_curation_attributes:
+                if attr not in service['metadata']['curation']:
+                    logging.error('%s metadata is required, got %s' % (attr, str(service['metadata']['curation'])))
+                    return '"%s" is required for registering an asset.' % attr, 400
 
     msg = validate_asset_data(data)
     if msg:
         return msg, 404
 
-    date_created = dao.get(asset_id)['base']['dateCreated']
     _record = dict()
     _record = data
-    _record['base']['dateCreated'] = date_created
-    _record['additionalInformation']['checksum'] = hashlib.sha3_256(
-        json.dumps(data['base']).encode('UTF-8')).hexdigest()
-    _record['assetId'] = asset_id
+    # Index to write in the metadata service
+    i = -1
+    for service in _record['service']:
+        i = i + 1
+        if service['type'] == 'Metadata':
+            _record['service'][i]['metadata']['base']['dateCreated'] =  dao.get(did)['service'][i]['metadata']['base']['dateCreated']
+            _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
+                json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
     try:
-        dao.update(_record, asset_id)
+        dao.update(_record, did)
         return _sanitize_record(_record), 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
 
-@assets.route('/metadata/<asset_id>', methods=['DELETE'])
-def retire(asset_id):
+@assets.route('/ddo/<id>', methods=['DELETE'])
+def retire(id):
     """Retire metadata of an asset
     ---
     tags:
-      - assets
+      - ddo
     parameters:
-      - name: asset_id
+      - name: id
         in: path
         description: ID of the asset.
         required: true
@@ -455,21 +408,44 @@ def retire(asset_id):
         description: Error
     """
     try:
-        if dao.get(asset_id) is None:
+        if dao.get(id) is None:
             return 'This asset id is not in OceanDB', 404
         else:
-            dao.delete(asset_id)
+            dao.delete(id)
             return 'Succesfully deleted', 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
 
-@assets.route('/metadata', methods=['GET'])
-def get_assets_metadata():
-    """Get metadata of all assets.
+# @assets.route('/metadata', methods=['GET'])
+# def get_assets_metadata():
+#     """Get metadata of all assets.
+#     ---
+#     tags:
+#       - metadata
+#     responses:
+#       200:
+#         description: successful action
+#     """
+#     args = []
+#     query = dict()
+#     args.append(query)
+#     assets_with_id = dao.get_assets()
+#     assets_metadata = {a['id']: a for a in assets_with_id}
+#     metadata = dict()
+#     i = -1
+#     for asset in assets_metadata:
+#         i = i + 1
+#         if asset['type'] == 'Metadata':
+#             metadata = asset['service'][i]
+#     return jsonify(json.dumps(metadata)), 200
+
+@assets.route('/ddo', methods=['GET'])
+def get_asset_ddos():
+    """Get ddo of all assets.
     ---
     tags:
-      - assets
+      - ddo
     responses:
       200:
         description: successful action
@@ -478,16 +454,15 @@ def get_assets_metadata():
     query = dict()
     args.append(query)
     assets_with_id = dao.get_assets()
-    assets_metadata = {a['assetId']: a for a in assets_with_id}
+    assets_metadata = {a['id']: a for a in assets_with_id}
     return jsonify(json.dumps(assets_metadata)), 200
 
-
-@assets.route('/metadata/query', methods=['POST'])
-def query_metadata():
-    """Get a list of assets that match with the query executed.
+@assets.route('/ddo/query', methods=['POST'])
+def query_ddo():
+    """Get a list of ddo that match with the query executed.
     ---
     tags:
-      - assets
+      - ddo
     consumes:
       - application/json
     parameters:
