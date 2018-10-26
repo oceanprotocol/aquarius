@@ -377,7 +377,8 @@ def update(did):
     for service in _record['service']:
         i = i + 1
         if service['type'] == 'Metadata':
-            _record['service'][i]['metadata']['base']['dateCreated'] =  dao.get(did)['service'][i]['metadata']['base']['dateCreated']
+            _record['service'][i]['metadata']['base']['dateCreated'] = dao.get(did)['service'][i]['metadata']['base'][
+                'dateCreated']
             _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
                 json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
     try:
@@ -417,29 +418,6 @@ def retire(id):
         return 'Some error: "%s"' % str(err), 500
 
 
-# @assets.route('/metadata', methods=['GET'])
-# def get_assets_metadata():
-#     """Get metadata of all assets.
-#     ---
-#     tags:
-#       - metadata
-#     responses:
-#       200:
-#         description: successful action
-#     """
-#     args = []
-#     query = dict()
-#     args.append(query)
-#     assets_with_id = dao.get_assets()
-#     assets_metadata = {a['id']: a for a in assets_with_id}
-#     metadata = dict()
-#     i = -1
-#     for asset in assets_metadata:
-#         i = i + 1
-#         if asset['type'] == 'Metadata':
-#             metadata = asset['service'][i]
-#     return jsonify(json.dumps(metadata)), 200
-
 @assets.route('/ddo', methods=['GET'])
 def get_asset_ddos():
     """Get ddo of all assets.
@@ -456,6 +434,7 @@ def get_asset_ddos():
     assets_with_id = dao.get_assets()
     assets_metadata = {a['id']: a for a in assets_with_id}
     return jsonify(json.dumps(assets_metadata)), 200
+
 
 @assets.route('/ddo/query', methods=['POST'])
 def query_ddo():
