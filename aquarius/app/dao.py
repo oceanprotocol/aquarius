@@ -14,7 +14,7 @@ class Dao(object):
         asset_with_id = []
         for asset in assets:
             try:
-                asset_with_id.append(self.oceandb.read(asset['assetId']))
+                asset_with_id.append(self.oceandb.read(asset['id']))
             except Exception as e:
                 logging.error(str(e))
                 pass
