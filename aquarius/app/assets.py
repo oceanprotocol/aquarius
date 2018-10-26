@@ -59,6 +59,7 @@ def get_ddo(id):
         asset_record = dao.get(id)
         return jsonify(asset_record), 200
     except Exception as e:
+        logging.error(e)
         return '"%s asset_id is not in OceanDB' % id, 404
 
 
@@ -90,6 +91,7 @@ def get_metadata(id):
                 metadata = asset_record['service'][i]
         return jsonify(metadata), 200
     except Exception as e:
+        logging.error(e)
         return '"%s asset_id is not in OceanDB' % id, 404
 
 
@@ -377,8 +379,7 @@ def update(did):
     for service in _record['service']:
         i = i + 1
         if service['type'] == 'Metadata':
-            _record['service'][i]['metadata']['base']['dateCreated'] = dao.get(did)['service'][i]['metadata']['base'][
-                'dateCreated']
+            _record['service'][i]['metadata']['base']['dateCreated'] = _get_date(dao.get(did)['service'])
             _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
                 json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
     try:
@@ -505,3 +506,9 @@ def _sanitize_record(data_record):
 
 def validate_asset_data(data):
     return ''
+
+
+def _get_date(services):
+    for i in services:
+        if i['type'] == 'Metadata':
+            return i['metadata']['base']['dateCreated']
