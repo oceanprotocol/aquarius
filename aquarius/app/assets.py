@@ -332,8 +332,8 @@ def update(did):
                              }
                            }]
     responses:
-      201:
-        description: Asset successfully registered.
+      200:
+        description: Asset successfully updated.
       400:
         description: One of the required attributes is missed.
       404:
