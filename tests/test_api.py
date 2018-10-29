@@ -17,6 +17,21 @@ def test_create_ddo(client):
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])
 
 
+def test_upsert_ddo(client):
+    """Test creation of asset"""
+    put = client.put(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json_dict['id'],
+                       data=json.dumps(json_dict),
+                       content_type='application/json')
+    rv = client.get(
+        BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(put.data.decode('utf-8'))['id'],
+        content_type='application/json')
+    assert 201 == put.status_code
+    assert json_dict['id'] in json.loads(rv.data.decode('utf-8'))['id']
+    assert json_dict['@context'] in json.loads(rv.data.decode('utf-8'))['@context']
+    assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][2]['type']
+    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(put.data.decode('utf-8'))['id'])
+
+
 def test_post_with_no_ddo(client):
     post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                        data=json.dumps(json_dict_no_metadata),
@@ -35,13 +50,14 @@ def test_update_ddo(client):
     post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                        data=json.dumps(json_before),
                        content_type='application/json')
-    client.put(
+    put = client.put(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'],
         data=json.dumps(json_update),
         content_type='application/json')
     rv = client.get(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'],
         content_type='application/json')
+    assert 200 == put.status_code
     assert json_update['service'][2]['metadata']['curation']['numVotes'] == json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['curation']['numVotes']
     assert json.loads(post.data.decode('utf-8'))['service'][2]['metadata']['additionalInformation']['checksum'] != json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['additionalInformation']['checksum']
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])

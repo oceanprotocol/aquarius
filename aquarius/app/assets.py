@@ -332,6 +332,11 @@ def update(did):
                              }
                            }]
     responses:
+<<<<<<< Updated upstream
+=======
+      200:
+        description: Asset successfully updated.
+>>>>>>> Stashed changes
       201:
         description: Asset successfully registered.
       400:
@@ -374,17 +379,22 @@ def update(did):
 
     _record = dict()
     _record = data
-    # Index to write in the metadata service
-    i = -1
-    for service in _record['service']:
-        i = i + 1
-        if service['type'] == 'Metadata':
-            _record['service'][i]['metadata']['base']['dateCreated'] = _get_date(dao.get(did)['service'])
-            _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
-                json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
     try:
-        dao.update(_record, did)
-        return _sanitize_record(_record), 200
+
+        if dao.get(did) is None:
+            register()
+            return _sanitize_record(_record), 201
+        else:
+            # Index to write in the metadata service
+            i = -1
+            for service in _record['service']:
+                i = i + 1
+                if service['type'] == 'Metadata':
+                    _record['service'][i]['metadata']['base']['dateCreated'] = _get_date(dao.get(did)['service'])
+                    _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
+                        json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
+            dao.update(_record, did)
+            return _sanitize_record(_record), 200
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
