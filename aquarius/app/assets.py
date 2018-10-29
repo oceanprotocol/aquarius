@@ -332,11 +332,8 @@ def update(did):
                              }
                            }]
     responses:
-<<<<<<< Updated upstream
-=======
       200:
         description: Asset successfully updated.
->>>>>>> Stashed changes
       201:
         description: Asset successfully registered.
       400:
@@ -447,6 +444,48 @@ def get_asset_ddos():
     return jsonify(json.dumps(assets_metadata)), 200
 
 
+@assets.route('/ddo/query', methods=['GET'])
+def query_text():
+    """Get a list of ddo that match with the text.
+    ---
+    tags:
+      - ddo
+    parameters:
+      - name: text
+        in: query
+        description: ID of the asset.
+        required: true
+        type: string
+      - name: sort
+        in: query
+        type: object
+        description: key or list of keys to sort the result
+        example: {"value":1}
+      - name: offset
+        in: query
+        type: int
+        description: Number of records per page
+        example: 100
+      - name: page
+        in: query
+        type: int
+        description: Page showed
+        example: 0
+    responses:
+      200:
+        description: successful action
+    """
+    data = request.args
+    assert isinstance(data, dict), 'invalid `args` type, should already formatted into a dict.'
+    search_model = FullTextModel(text=data.get('text', None), sort=data.get('sort', None),
+                                 offset=data.get('offset', 100),
+                                 page=data.get('page', 0))
+    query_result = dao.query(search_model)
+    for i in query_result:
+        _sanitize_record(i)
+    return jsonify(json.dumps(query_result)), 200
+
+
 @assets.route('/ddo/query', methods=['POST'])
 def query_ddo():
     """Get a list of ddo that match with the query executed.
@@ -467,21 +506,17 @@ def query_ddo():
               type: string
               description: Query to realize
               example: {"value":1}
-            text:
-              type: string
-              description: Word to search in the document
-              example: Office
             sort:
               type: object
               description: key or list of keys to sort the result
               example: {"value":1}
             offset:
               type: int
-              description:
+              description: Number of records per page
               example: 100
             page:
               type: int
-              description:
+              description: Page showed
               example: 0
     responses:
       200:
@@ -494,10 +529,6 @@ def query_ddo():
         search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
                                   offset=data.get('offset', 100),
                                   page=data.get('page', 0))
-    elif 'text' in data:
-        search_model = FullTextModel(text=data.get('text'), sort=data.get('sort'),
-                                     offset=data.get('offset', 100),
-                                     page=data.get('page', 0))
     else:
         search_model = QueryModel(query={}, sort=data.get('sort'),
                                   offset=data.get('offset', 100),
