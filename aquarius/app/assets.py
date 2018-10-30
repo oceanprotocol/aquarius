@@ -477,9 +477,10 @@ def query_text():
     """
     data = request.args
     assert isinstance(data, dict), 'invalid `args` type, should already formatted into a dict.'
-    search_model = FullTextModel(text=data.get('text', None), sort=data.get('sort', None),
-                                 offset=data.get('offset', 100),
-                                 page=data.get('page', 0))
+    search_model = FullTextModel(text=data.get('text', None),
+                                 sort=None if data.get('sort', None) is None else json.loads(data.get('sort', None)),
+                                 offset=int(data.get('offset', 100)),
+                                 page=int(data.get('page', 0)))
     query_result = dao.query(search_model)
     for i in query_result:
         _sanitize_record(i)
