@@ -3,7 +3,6 @@ from aquarius.app.assets import assets
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask import jsonify
-# from squid_py.config_parser import load_config_section
 from squid_py.config import Config
 from aquarius.constants import BaseURLs
 
