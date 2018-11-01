@@ -6,9 +6,6 @@ asn1crypto==0.24.0
 async-timeout==3.0.0
 attrdict==2.0.0
 attrs==18.1.0
-base58==0.2.5
-BigchainDB==1.3.0
-bigchaindb-driver==0.5.1
 bumpversion==0.5.3
 certifi==2018.8.13
 cffi==1.11.5
@@ -18,8 +15,6 @@ codacy-coverage==1.3.11
 coincurve==8.0.2
 coloredlogs==10.0
 coverage==4.5.1
-cryptoconditions==0.6.0.dev1
-cryptography==2.3.1
 cytoolz==0.9.0.1
 eciespy==0.1.2
 eth-abi==1.1.1
@@ -56,7 +51,7 @@ multidict==4.3.1
 multipipes==0.1.0
 oauthlib==2.1.0
 squid-py==0.2.1
-oceandb-bigchaindb-driver==0.1.3
+# oceandb-bigchaindb-driver==0.1.3
 oceandb-driver-interface==0.1.11
 oceandb-elasticsearch-driver==0.0.2
 oceandb-mongodb-driver==0.1.3
@@ -66,7 +61,6 @@ pkginfo==1.4.2
 pluggy==0.6.0
 py==1.5.4
 py-solc==3.1.0
-pyasn1==0.2.3
 pycodestyle==2.3.1
 pycparser==2.18
 pycryptodome==3.6.6
@@ -80,7 +74,6 @@ pysha3==1.0.2
 pytest==3.4.2
 pytest-runner==2.11.1
 python-dateutil==2.7.3
-python-rapidjson==0.6.3
 python-rapidjson-schema==0.1.1
 pytz==2018.5
 PyYAML==3.13
