@@ -168,7 +168,7 @@ python-rapidjson==0.6.3
 python-rapidjson-schema==0.1.1
 pytz==2018.5
 PyYAML==3.13
-requests==2.19.1
+requests==2.20.0
 requests-oauthlib==1.0.0
 requests-toolbelt==0.8.0
 rethinkdb==2.3.0.post6
