@@ -19,7 +19,7 @@ RUN apk add --no-cache --update\
 COPY . /aquarius
 WORKDIR /aquarius
 
-RUN pip install -r requirements_dev.txt
+RUN pip install -r requirements.txt
 
 # config.ini configuration file variables
 ENV DB_ENABLED='true'
