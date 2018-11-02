@@ -29,7 +29,7 @@ It also runs [Ganache](https://github.com/trufflesuite/ganache) with all [Ocean 
 The most simple way to start is:
 
 ```bash
-pip install -r requirements_dev.txt # or requirements_conda.txt if using Conda
+pip install -r requirements.txt
 export FLASK_APP=aquarius/run.py
 export CONFIG_FILE=config.ini
 ./scripts/deploy
