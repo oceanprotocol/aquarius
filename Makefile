@@ -47,11 +47,13 @@ clean-pyc: ## remove Python file artifacts
 clean-test: ## remove test and coverage artifacts
 	rm -fr .tox/
 	rm -f .coverage
+	rm -f coverage.xml
+	rm -f *.log
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
 lint: ## check style with flake8
-	flake8 secret_store_client tests
+	flake8 aquarius tests
 
 test: ## run tests quickly with the default Python
 	py.test
@@ -60,15 +62,15 @@ test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-	coverage run --source secret_store_client -m pytest
+	coverage run --source aquarius -m pytest
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/secret_store_client.rst
+	rm -f docs/aquarius.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ secret_store_client
+	sphinx-apidoc -o docs/ aquarius
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
