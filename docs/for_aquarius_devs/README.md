@@ -26,13 +26,23 @@ You can see what that runs by reading [docker/docker-compose.yml](docker/docker-
 Note that it runs MongoDB but the Aquarius can also work with BigchainDB or Elasticsearch.
 It also runs [Ganache](https://github.com/trufflesuite/ganache) with all [Ocean Protocol Keeper Contracts](https://github.com/oceanprotocol/keeper-contracts) and [Ganache CLI](https://github.com/trufflesuite/ganache-cli).
 
+Then install Aquarius's OS-level requirements:
+
+```bash
+sudo apt update
+sudo apt install python3-dev python3.7-dev libssl-dev
+```
+
+(Note: At the time of writing, `python3-dev` was for Python 3.6. `python3.7-dev` is needed if you want to test against Python 3.7 locally. BigchainDB needs `libssl-dev`.)
+
+Before installing Aquarius's Python package requirements, you should create and activate a virtualenv (or equivalent).
+
 The most simple way to start is:
 
 ```bash
 pip install -r requirements.txt
 export FLASK_APP=aquarius/run.py
 export CONFIG_FILE=config.ini
-./scripts/deploy
 flask run
 ```
 
