@@ -50,7 +50,6 @@ msrest==0.5.4
 multidict==4.3.1
 multipipes==0.1.0
 oauthlib==2.1.0
-squid-py==0.2.1
 # oceandb-bigchaindb-driver==0.1.3
 oceandb-driver-interface==0.1.11
 oceandb-elasticsearch-driver==0.0.2
