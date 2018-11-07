@@ -1,7 +1,15 @@
 import json
 
 from aquarius.constants import BaseURLs
+from aquarius.run import get_version
 from tests.conftest import json_dict, json_dict_no_metadata, json_dict_no_valid_metadata, json_before, json_update
+
+
+def test_version(client):
+    """Test version in root endpoint"""
+    rv = client.get('/')
+    assert json.loads(rv.data.decode('utf-8'))['software'] == 'Aquarius'
+    assert json.loads(rv.data.decode('utf-8'))['version'] == get_version()
 
 
 def test_create_ddo(client):

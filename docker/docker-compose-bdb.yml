@@ -48,14 +48,5 @@ services:
     networks:
     - backend
 
-  keeper-contracts:
-    image: oceanprotocol/keeper-contracts
-    ports:
-    - 8545:8545
-    networks:
-    - backend
-    volumes:
-    - ./../venv/contracts:/keeper-contracts/artifacts/
-
 networks:
   backend:
