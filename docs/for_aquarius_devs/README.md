@@ -24,7 +24,6 @@ docker-compose up
 
 You can see what that runs by reading [docker/docker-compose.yml](docker/docker-compose.yml).
 Note that it runs MongoDB but the Aquarius can also work with BigchainDB or Elasticsearch.
-It also runs [Ganache](https://github.com/trufflesuite/ganache) with all [Ocean Protocol Keeper Contracts](https://github.com/oceanprotocol/keeper-contracts) and [Ganache CLI](https://github.com/trufflesuite/ganache-cli).
 
 Then install Aquarius's OS-level requirements:
 
