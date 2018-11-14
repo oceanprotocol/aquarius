@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 import pytz
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
 from oceandb_driver_interface.search_model import QueryModel, FullTextModel
 
 from aquarius.app.dao import Dao
@@ -34,7 +34,7 @@ def get_assets():
     asset_with_id = dao.get_assets()
     asset_ids = [a['id'] for a in asset_with_id]
     resp_body = dict({'ids': asset_ids})
-    return _sanitize_record(resp_body), 200
+    return Response(_sanitize_record(resp_body), 200, content_type='application/json')
 
 
 @assets.route('/ddo/<id>', methods=['GET'])
@@ -57,7 +57,7 @@ def get_ddo(id):
     """
     try:
         asset_record = dao.get(id)
-        return _sanitize_record(asset_record), 200
+        return Response(_sanitize_record(asset_record), 200, content_type='application/json')
     except Exception as e:
         logging.error(e)
         return '"%s asset_id is not in OceanDB' % id, 404
@@ -89,7 +89,7 @@ def get_metadata(id):
             i = i + 1
             if service['type'] == 'Metadata':
                 metadata = asset_record['service'][i]
-        return _sanitize_record(metadata), 200
+        return Response(_sanitize_record(metadata), 200, content_type='application/json')
     except Exception as e:
         logging.error(e)
         return '"%s asset_id is not in OceanDB' % id, 404
@@ -236,7 +236,7 @@ def register():
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
-        return _sanitize_record(_record), 201
+        return Response(_sanitize_record(_record), 201, content_type='application/json')
     except Exception as err:
         logging.error('encounterd an error while saving the asset data to oceandb: {}'.format(str(err)))
         return 'Some error: "%s"' % str(err), 500
@@ -391,7 +391,7 @@ def update(did):
                     _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
                         json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
             dao.update(_record, did)
-            return _sanitize_record(_record), 200
+            return Response(_sanitize_record(_record), 200, content_type='application/json')
     except Exception as err:
         return 'Some error: "%s"' % str(err), 500
 
@@ -443,7 +443,7 @@ def get_asset_ddos():
     assets_metadata = {a['id']: a for a in assets_with_id}
     for i in assets_metadata:
         _sanitize_record(i)
-    return json.dumps(assets_metadata), 200
+    return Response(json.dumps(assets_metadata), 200, content_type='application/json')
 
 
 @assets.route('/ddo/query', methods=['GET'])
@@ -487,7 +487,7 @@ def query_text():
 
     for i in query_result:
         _sanitize_record(i)
-    return json.dumps(query_result), 200
+    return Response(json.dumps(query_result), 200, content_type='application/json')
 
 
 @assets.route('/ddo/query', methods=['POST'])
@@ -540,7 +540,7 @@ def query_ddo():
     query_result = dao.query(search_model)
     for i in query_result:
         _sanitize_record(i)
-    return json.dumps(query_result), 200
+    return Response(json.dumps(query_result), 200, content_type='application/json')
 
 
 def _sanitize_record(data_record):
