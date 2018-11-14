@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 import pytz
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 from oceandb_driver_interface.search_model import QueryModel, FullTextModel
 
 from aquarius.app.dao import Dao
@@ -34,7 +34,7 @@ def get_assets():
     asset_with_id = dao.get_assets()
     asset_ids = [a['id'] for a in asset_with_id]
     resp_body = dict({'ids': asset_ids})
-    return jsonify(resp_body), 200
+    return _sanitize_record(resp_body), 200
 
 
 @assets.route('/ddo/<id>', methods=['GET'])
@@ -57,7 +57,7 @@ def get_ddo(id):
     """
     try:
         asset_record = dao.get(id)
-        return jsonify(asset_record), 200
+        return _sanitize_record(asset_record), 200
     except Exception as e:
         logging.error(e)
         return '"%s asset_id is not in OceanDB' % id, 404
@@ -89,7 +89,7 @@ def get_metadata(id):
             i = i + 1
             if service['type'] == 'Metadata':
                 metadata = asset_record['service'][i]
-        return jsonify(metadata), 200
+        return _sanitize_record(metadata), 200
     except Exception as e:
         logging.error(e)
         return '"%s asset_id is not in OceanDB' % id, 404
@@ -441,7 +441,9 @@ def get_asset_ddos():
     args.append(query)
     assets_with_id = dao.get_assets()
     assets_metadata = {a['id']: a for a in assets_with_id}
-    return jsonify(json.dumps(assets_metadata)), 200
+    for i in assets_metadata:
+        _sanitize_record(i)
+    return json.dumps(assets_metadata), 200
 
 
 @assets.route('/ddo/query', methods=['GET'])
@@ -482,9 +484,10 @@ def query_text():
                                  offset=int(data.get('offset', 100)),
                                  page=int(data.get('page', 0)))
     query_result = dao.query(search_model)
+
     for i in query_result:
         _sanitize_record(i)
-    return jsonify(json.dumps(query_result)), 200
+    return json.dumps(query_result), 200
 
 
 @assets.route('/ddo/query', methods=['POST'])
@@ -537,7 +540,7 @@ def query_ddo():
     query_result = dao.query(search_model)
     for i in query_result:
         _sanitize_record(i)
-    return jsonify(json.dumps(query_result)), 200
+    return json.dumps(query_result), 200
 
 
 def _sanitize_record(data_record):
