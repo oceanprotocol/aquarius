@@ -83,14 +83,14 @@ def test_query_metadata(client):
                         content_type='application/json')
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps({"query": {}}),
-                                      content_type='application/json').json)) == 2
+                                      content_type='application/json').data.decode('utf-8'))) == 2
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps({"query": {"id": "did:op:123456789abcdefghi"}}),
-                                      content_type='application/json').json)) == 1
+                                      content_type='application/json').data.decode('utf-8'))) == 1
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query?text=Office',
-                                     ).json)) == 2
+                                     ).data.decode('utf-8'))) == 2
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query?text=112233445566778899',
-                                     ).json)) == 1
+                                     ).data.decode('utf-8'))) == 1
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])
     client.delete(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post2.data.decode('utf-8'))['id'])
