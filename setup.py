@@ -24,7 +24,6 @@ install_requirements = [
     # 'oceandb-bigchaindb-driver==0.1.3',
     'PyYAML==3.13',
     'pytz==2018.5',
-    'squid-py==0.2.1',  # Needed?
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
