@@ -21,7 +21,7 @@ install_requirements = [
     'oceandb-driver-interface==0.1.11',
     'oceandb-mongodb-driver==0.1.3',
     'oceandb-elasticsearch-driver==0.0.2',
-    # 'oceandb-bigchaindb-driver==0.1.3',
+    # 'oceandb-bigchaindb-driver==0.1.4',
     'PyYAML==3.13',
     'pytz==2018.5',
 ]
@@ -74,6 +74,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='0.1.3',
+    version='0.1.4',
     zip_safe=False,
 )
