@@ -1,6 +1,5 @@
 from aquarius.myapp import app
 from aquarius.app.assets import assets
-from aquarius.app.musicmap import musicmap
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask import jsonify
@@ -48,7 +47,6 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 
 # Register blueprint at URL
 app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
-app.register_blueprint(musicmap, url_prefix=BaseURLs.ASSETS_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 
 
