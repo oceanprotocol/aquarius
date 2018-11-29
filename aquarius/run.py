@@ -6,6 +6,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask import jsonify
 from aquarius.config import Config
 from aquarius.constants import BaseURLs
+from aquarius.constants import Metadata
 import configparser
 
 
@@ -18,7 +19,7 @@ def get_version():
 @app.route("/")
 def version():
     info = dict()
-    info['software'] = "Aquarius"
+    info['software'] = Metadata.TITLE
     info['version'] = get_version()
     return jsonify(info)
 
@@ -27,8 +28,10 @@ def version():
 def spec():
     swag = swagger(app)
     swag['info']['version'] = get_version()
-    swag['info']['title'] = "Aquarius"
-    swag['basePath'] = BaseURLs.BASE_AQUARIUS_URL
+    swag['info']['title'] = Metadata.TITLE
+    swag['info']['description'] = Metadata.DESCRIPTION
+    swag['basePath'] = BaseUrls.BASE_AQUARIUS_URL
+    swag['host'] = Metadata.HOST
     return jsonify(swag)
 
 
