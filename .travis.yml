@@ -27,3 +27,6 @@ deploy:
     branch: master
     repo: oceanprotocol/aquarius
     python: 3.6
+
+notifications:
+   email: false
