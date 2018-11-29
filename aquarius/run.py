@@ -29,7 +29,7 @@ def spec():
     swag['info']['version'] = get_version()
     swag['info']['title'] = Metadata.TITLE
     swag['info']['description'] = Metadata.DESCRIPTION
-    swag['basePath'] = BaseUrls.BASE_AQUARIUS_URL
+    swag['basePath'] = BaseURLs.BASE_AQUARIUS_URL
     swag['host'] = Metadata.HOST
     return jsonify(swag)
 
