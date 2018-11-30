@@ -20,7 +20,7 @@ dao = Dao(config_file=app.config['CONFIG_FILE'])
 
 @assets.route('', methods=['GET'])
 def get_assets():
-    """Get all assets ids.
+    """Get all asset IDs.
     ---
     tags:
       - ddo
@@ -39,7 +39,7 @@ def get_assets():
 
 @assets.route('/ddo/<id>', methods=['GET'])
 def get_ddo(id):
-    """Get ddo of a particular asset.
+    """Get DDO of a particular asset.
     ---
     tags:
       - ddo
@@ -53,7 +53,7 @@ def get_ddo(id):
       200:
         description: successful operation
       404:
-        description: This asset id is not in OceanDB
+        description: This asset ID is not in OceanDB
     """
     try:
         asset_record = dao.get(id)
@@ -77,9 +77,9 @@ def get_metadata(id):
         type: string
     responses:
       200:
-        description: successful operation
+        description: successful operation.
       404:
-        description: This asset id is not in OceanDB
+        description: This asset ID is not in OceanDB.
     """
     try:
         asset_record = dao.get(id)
@@ -97,7 +97,7 @@ def get_metadata(id):
 
 @assets.route('/ddo', methods=['POST'])
 def register():
-    """Register ddo of a new asset
+    """Register DDO of a new asset
     ---
     tags:
       - ddo
@@ -107,7 +107,7 @@ def register():
       - in: body
         name: body
         required: true
-        description: Asset ddo.
+        description: DDO of the asset.
         schema:
           type: object
           required:
@@ -127,14 +127,14 @@ def register():
               type: string
             publicKey:
                   type: array
-                  description: List of publicKeys.
+                  description: List of public keys.
                   example: [{"id": "did:op:123456789abcdefghi#keys-1"},
                             {"type": "Ed25519VerificationKey2018"},
                             {"owner": "did:op:123456789abcdefghi"},
                             {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
             authentication:
                   type: array
-                  description: List with the authentications.
+                  description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
                             {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
             service:
@@ -188,7 +188,7 @@ def register():
       201:
         description: Asset successfully registered.
       400:
-        description: One of the required attributes is missed.
+        description: One of the required attributes is missing.
       404:
         description: Invalid asset data.
       500:
@@ -238,13 +238,13 @@ def register():
         # add new assetId to response
         return Response(_sanitize_record(_record), 201, content_type='application/json')
     except Exception as err:
-        logging.error('encounterd an error while saving the asset data to oceandb: {}'.format(str(err)))
+        logging.error('encounterd an error while saving the asset data to OceanDB: {}'.format(str(err)))
         return 'Some error: "%s"' % str(err), 500
 
 
 @assets.route('/ddo/<did>', methods=['PUT'])
 def update(did):
-    """Update ddo of an existing asset
+    """Update DDO of an existing asset
     ---
     tags:
       - ddo
@@ -254,7 +254,7 @@ def update(did):
       - in: body
         name: body
         required: true
-        description: Asset ddo.
+        description: DDO of the asset.
         schema:
           type: object
           required:
@@ -274,14 +274,14 @@ def update(did):
               type: string
             publicKey:
                   type: array
-                  description: List of publicKeys.
+                  description: List of public keys.
                   example: [{"id": "did:op:123456789abcdefghi#keys-1"},
                             {"type": "Ed25519VerificationKey2018"},
                             {"owner": "did:op:123456789abcdefghi"},
                             {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
             authentication:
                   type: array
-                  description: List with the authentications.
+                  description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
                             {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
             service:
@@ -292,7 +292,7 @@ def update(did):
                             {"type": "Compute",
                              "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
                             {"type": "Metadata",
-                             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                             "serviceEndpoint": "http://myaquarius.org/api/v1/aquarius/assets/metadata/{did}",
                              "metadata": {
                                "base": {
                                  "name": "UK Weather information 2011",
@@ -309,9 +309,16 @@ def update(did):
                                  "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
                                  "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
                                  "links": [
-                                   {"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                                   {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                                   {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
+                                     {
+                                         "name": "Sample of Asset Data",
+                                         "type": "sample",
+                                         "url": "https://foo.com/sample.csv"
+                                     },
+                                     {
+                                         "name": "Data Format Definition",
+                                         "type": "format",
+                                         "AssetID": "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                                     }
                                  ],
                                  "inLanguage": "en",
                                  "tags": "weather, uk, 2011, temperature, humidity",
@@ -321,7 +328,7 @@ def update(did):
                                "curation": {
                                  "rating": 0.93,
                                  "numVotes": 123,
-                                 "schema": "Binary Votting"
+                                 "schema": "Binary Voting"
                                },
                                "additionalInformation" : {
                                  "updateFrecuency": "yearly",
@@ -337,7 +344,7 @@ def update(did):
       201:
         description: Asset successfully registered.
       400:
-        description: One of the required attributes is missed.
+        description: One of the required attributes is missing.
       404:
         description: Invalid asset data.
       500:
@@ -352,7 +359,7 @@ def update(did):
     data = request.json
     if not data:
         return 400
-    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+    assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
 
     for attr in required_attributes:
         if attr not in data:
@@ -412,13 +419,13 @@ def retire(id):
       200:
         description: successfully deleted
       404:
-        description: This asset id is not in OceanDB
+        description: This asset ID is not in OceanDB
       500:
         description: Error
     """
     try:
         if dao.get(id) is None:
-            return 'This asset id is not in OceanDB', 404
+            return 'This asset ID is not in OceanDB', 404
         else:
             dao.delete(id)
             return 'Succesfully deleted', 200
@@ -428,7 +435,7 @@ def retire(id):
 
 @assets.route('/ddo', methods=['GET'])
 def get_asset_ddos():
-    """Get ddo of all assets.
+    """Get DDO of all assets.
     ---
     tags:
       - ddo
@@ -448,7 +455,7 @@ def get_asset_ddos():
 
 @assets.route('/ddo/query', methods=['GET'])
 def query_text():
-    """Get a list of ddo that match with the text.
+    """Get a list of DDOs that match with the given text.
     ---
     tags:
       - ddo
@@ -461,7 +468,7 @@ def query_text():
       - name: sort
         in: query
         type: object
-        description: key or list of keys to sort the result
+        description: Key or list of keys to sort the result
         example: {"value":1}
       - name: offset
         in: query
@@ -492,7 +499,7 @@ def query_text():
 
 @assets.route('/ddo/query', methods=['POST'])
 def query_ddo():
-    """Get a list of ddo that match with the query executed.
+    """Get a list of DDOs that match with the executed query.
     ---
     tags:
       - ddo
@@ -512,7 +519,7 @@ def query_ddo():
               example: {"value":1}
             sort:
               type: object
-              description: key or list of keys to sort the result
+              description: Key or list of keys to sort the result
               example: {"value":1}
             offset:
               type: int
@@ -528,7 +535,7 @@ def query_ddo():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+    assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
     if 'query' in data:
         search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
                                   offset=data.get('offset', 100),
