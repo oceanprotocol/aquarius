@@ -15,15 +15,13 @@ git clone git@github.com:oceanprotocol/aquarius.git
 cd aquarius/
 ```
 
-Then run some things that the Aquarius expects to be running:
+Then run mongodb database that is a requirement for Aquarius. MongoDB can be installed directly using instructions from [official documentation](https://docs.mongodb.com/manual/installation/). Or if you have `docker` installed, you can run:
 
 ```bash
-cd docker
-docker-compose up
+docker run -d -p 27017:27017 mongo
 ```
 
-You can see what that runs by reading [docker/docker-compose.yml](docker/docker-compose.yml).
-Note that it runs MongoDB but the Aquarius can also work with BigchainDB or Elasticsearch.
+Note that it runs MongoDB but the Aquarius can also work with BigchainDB or Elasticsearch. If you want to run ElasticSearch or BigchainDB, update the file `config.ini` and run the Database engine with your preferred method.
 
 Then install Aquarius's OS-level requirements:
 
