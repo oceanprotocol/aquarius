@@ -11,5 +11,4 @@ class BaseURLs:
 
 class Metadata:
     TITLE = 'Aquarius'
-    DESCRIPTION = 'Aquarius provides an off-chain database store for metadata about data assets. When running with our Docker images, it is exposed under `http://localhost:5000`.'
-    HOST = 'myfancyaquarius.com'
+    DESCRIPTION = 'Aquarius provides an off-chain database store for metadata about data assets. When running with our Docker images, it is exposed under:'
