@@ -52,8 +52,8 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
-lint: ## check style with flake8
-	flake8 aquarius tests
+lint: ## check style with PyLint
+	pylint --errors-only aquarius tests
 
 test: ## run tests quickly with the default Python
 	py.test
