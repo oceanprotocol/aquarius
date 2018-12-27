@@ -60,7 +60,7 @@ def get_ddo(id):
         return Response(_sanitize_record(asset_record), 200, content_type='application/json')
     except Exception as e:
         logging.error(e)
-        return '"%s asset_id is not in OceanDB' % id, 404
+        return f'{id} asset_id is not in OceanDB', 404
 
 
 @assets.route('/metadata/<id>', methods=['GET'])
@@ -92,7 +92,7 @@ def get_metadata(id):
         return Response(_sanitize_record(metadata), 200, content_type='application/json')
     except Exception as e:
         logging.error(e)
-        return '"%s asset_id is not in OceanDB' % id, 404
+        return f'{id} asset_id is not in OceanDB', 404
 
 
 @assets.route('/ddo', methods=['POST'])
@@ -200,21 +200,22 @@ def register():
                                          'contentUrls', 'type']
     data = request.json
     if not data:
-        logging.error('request body seems empty, expecting %s' % str(required_attributes))
+        logging.error(f'request body seems empty, expecting {required_attributes}')
         return 400
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
 
     for attr in required_attributes:
         if attr not in data:
-            logging.error('%s is required, got %s' % (attr, str(data)))
-            return '"%s" is required for registering an asset.' % attr, 400
+            logging.error(f'{attr} is required, got {str(data)}')
+            return f'{attr} is required for registering an asset.', 400
 
     for service in data['service']:
         if service['type'] == 'Metadata':
             for attr in required_metadata_base_attributes:
                 if attr not in service['metadata']['base']:
-                    logging.error('%s metadata is required, got %s' % (attr, str(service['metadata']['base'])))
-                    return '"%s" is required for registering an asset.' % attr, 400
+                    logging.error('%s metadata is required, got %s' % (
+                    attr, str(service['metadata']['base'])))
+                    return f'{attr} is required for registering an asset.', 400
 
     msg = validate_asset_data(data)
     if msg:
@@ -227,19 +228,21 @@ def register():
     for service in _record['service']:
         i = i + 1
         if service['type'] == 'Metadata':
-            _record['service'][i]['metadata']['base']['dateCreated'] = datetime.utcnow().replace(microsecond=0).replace(
+            _record['service'][i]['metadata']['base']['dateCreated'] = datetime.utcnow().replace(
+                microsecond=0).replace(
                 tzinfo=pytz.UTC).isoformat()
             _record['service'][i]['metadata']['curation']['rating'] = 0.00
             _record['service'][i]['metadata']['curation']['numVotes'] = 0
-            _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
+            _record['service'][i]['metadata']['additionalInformation'][
+                'checksum'] = hashlib.sha3_256(
                 json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
         return Response(_sanitize_record(_record), 201, content_type='application/json')
     except Exception as err:
-        logging.error('encounterd an error while saving the asset data to OceanDB: {}'.format(str(err)))
-        return 'Some error: "%s"' % str(err), 500
+        logging.error(f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
+        return f'Some error: {str(err)}', 500
 
 
 @assets.route('/ddo/<did>', methods=['PUT'])
@@ -363,19 +366,21 @@ def update(did):
 
     for attr in required_attributes:
         if attr not in data:
-            return '"%s" is required for registering an asset.' % attr, 400
+            return f'{attr} is required for registering an asset.', 400
 
     for service in data['service']:
         if service['type'] == 'Metadata':
             for attr in required_metadata_base_attributes:
                 if attr not in service['metadata']['base']:
-                    logging.error('%s metadata is required, got %s' % (attr, str(service['metadata']['base'])))
-                    return '"%s" is required for registering an asset.' % attr, 400
+                    logging.error(
+                        f'{attr} metadata is required, got {str(service["metadata"]["base"])}')
+                    return f'{attr} is required for registering an asset.', 400
 
             for attr in required_metadata_curation_attributes:
                 if attr not in service['metadata']['curation']:
-                    logging.error('%s metadata is required, got %s' % (attr, str(service['metadata']['curation'])))
-                    return '"%s" is required for registering an asset.' % attr, 400
+                    logging.error(
+                        f'{attr} metadata is required, got {str(service["metadata"]["curation"])}')
+                    return f'{attr} is required for registering an asset.', 400
 
     msg = validate_asset_data(data)
     if msg:
@@ -394,13 +399,15 @@ def update(did):
             for service in _record['service']:
                 i = i + 1
                 if service['type'] == 'Metadata':
-                    _record['service'][i]['metadata']['base']['dateCreated'] = _get_date(dao.get(did)['service'])
-                    _record['service'][i]['metadata']['additionalInformation']['checksum'] = hashlib.sha3_256(
+                    _record['service'][i]['metadata']['base']['dateCreated'] = _get_date(
+                        dao.get(did)['service'])
+                    _record['service'][i]['metadata']['additionalInformation'][
+                        'checksum'] = hashlib.sha3_256(
                         json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
     except Exception as err:
-        return 'Some error: "%s"' % str(err), 500
+        return f'Some error: {str(err)}', 500
 
 
 @assets.route('/ddo/<id>', methods=['DELETE'])
@@ -430,7 +437,7 @@ def retire(id):
             dao.delete(id)
             return 'Succesfully deleted', 200
     except Exception as err:
-        return 'Some error: "%s"' % str(err), 500
+        return f'Some error: {str(err)}', 500
 
 
 @assets.route('/ddo', methods=['GET'])
@@ -487,7 +494,8 @@ def query_text():
     data = request.args
     assert isinstance(data, dict), 'invalid `args` type, should already formatted into a dict.'
     search_model = FullTextModel(text=data.get('text', None),
-                                 sort=None if data.get('sort', None) is None else json.loads(data.get('sort', None)),
+                                 sort=None if data.get('sort', None) is None else json.loads(
+                                     data.get('sort', None)),
                                  offset=int(data.get('offset', 100)),
                                  page=int(data.get('page', 0)))
     query_result = dao.query(search_model)
@@ -548,6 +556,27 @@ def query_ddo():
     for i in query_result:
         _sanitize_record(i)
     return Response(json.dumps(query_result), 200, content_type='application/json')
+
+
+@assets.route('/ddo', methods=['DELETE'])
+def retire_all():
+    """Retire metadata of an asset
+    ---
+    tags:
+      - ddo
+    responses:
+      200:
+        description: successfully deleted
+      500:
+        description: Error
+    """
+    try:
+        all_ids = [a['id'] for a in dao.get_assets()]
+        [dao.delete(i) for i in all_ids]
+        return 'All ddo successfully deleted', 200
+    except Exception as e:
+        logging.error(e)
+        return 'An error was found', 500
 
 
 def _sanitize_record(data_record):
