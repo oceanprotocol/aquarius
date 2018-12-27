@@ -572,7 +572,8 @@ def retire_all():
     """
     try:
         all_ids = [a['id'] for a in dao.get_assets()]
-        [dao.delete(i) for i in all_ids]
+        for i in all_ids:
+            dao.delete(i)
         return 'All ddo successfully deleted', 200
     except Exception as e:
         logging.error(e)
