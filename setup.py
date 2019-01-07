@@ -22,7 +22,7 @@ install_requirements = [
     'oceandb-mongodb-driver==0.1.3',
     'oceandb-elasticsearch-driver==0.0.2',
     # 'oceandb-bigchaindb-driver==0.1.4',
-    'PyYAML==3.13',
+    'PyYAML==4.2b',
     'pytz==2018.5',
 ]
 
