@@ -20,7 +20,7 @@ COPY . /aquarius
 WORKDIR /aquarius
 
 # Only install install_requirements, not dev_ or test_requirements
-RUN pip install -e .
+RUN pip install .
 
 # config.ini configuration file variables
 ENV DB_ENABLED='true'
