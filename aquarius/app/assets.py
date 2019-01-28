@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytz
 from flask import Blueprint, request, Response
-from oceandb_driver_interface.search_model import QueryModel, FullTextModel
+from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 
 from aquarius.app.dao import Dao
 from aquarius.log import setup_logging
@@ -16,6 +16,7 @@ assets = Blueprint('assets', __name__)
 
 # Prepare OceanDB
 dao = Dao(config_file=app.config['CONFIG_FILE'])
+logger = logging.getLogger('aquarius')
 
 
 @assets.route('', methods=['GET'])
@@ -59,7 +60,7 @@ def get_ddo(id):
         asset_record = dao.get(id)
         return Response(_sanitize_record(asset_record), 200, content_type='application/json')
     except Exception as e:
-        logging.error(e)
+        logger.error(e)
         return f'{id} asset_id is not in OceanDB', 404
 
 
@@ -91,7 +92,7 @@ def get_metadata(id):
                 metadata = asset_record['service'][i]
         return Response(_sanitize_record(metadata), 200, content_type='application/json')
     except Exception as e:
-        logging.error(e)
+        logger.error(e)
         return f'{id} asset_id is not in OceanDB', 404
 
 
@@ -115,6 +116,7 @@ def register():
             - id
             - publicKey
             - authentication
+            - proof
             - service
           properties:
             "@context":
@@ -137,53 +139,102 @@ def register():
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
                             {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+            proof:
+                  type: dictionary
+                  description: Information about the creation and creator of the asset.
+                  example:  {"type": "UUIDSignature",
+                             "created": "2016-02-08T16:02:20Z",
+                             "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
+                             "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+                            }
             service:
                   type: array
                   description: List of services.
-                  example: [{"type": "Consume",
-                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${pubKey}&serviceId={serviceId}&url={url}"},
+                  example: [{"type": "Access",
+                             "serviceEndpoint":
+                             "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${
+                             pubKey}&serviceId={serviceId}&url={url}"},
                             {"type": "Compute",
-                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
-                            {"type": "Metadata",
-                             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-                             "metadata": {
-                               "base": {
-                                 "name": "UK Weather information 2011",
-                                 "type": "dataset",
-                                 "description": "Weather information of UK including temperature and humidity",
-                                 "size": "3.1gb",
-                                 "dateCreated": "2012-10-10T17:00:000Z",
-                                 "author": "Met Office",
-                                 "license": "CC-BY",
-                                 "copyrightHolder": "Met Office",
-                                 "encoding": "UTF-8",
-                                 "compression": "zip",
-                                 "contentType": "text/csv",
-                                 "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                                 "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
-                                 "links": [
-                                   {"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                                   {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                                   {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
-                                 ],
+                             "serviceEndpoint":
+                             "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
+                             pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                           {"type": "Metadata",
+                            "serviceDefinitionId": "2",
+                            "serviceEndpoint":
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "metadata": {
+                                "base": {
+                                    "name": "UK Weather information 2011",
+                                    "type": "dataset",
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
+                                    "size": "3.1gb",
+                                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                                    "author": "Met Office",
+                                    "license": "CC-BY",
+                                    "copyrightHolder": "Met Office",
+                                    "encoding": "UTF-8",
+                                    "compression": "zip",
+                                    "contentType": "text/csv",
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity\n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "files": [
+                                        {
+                                            "url":
+                                            "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
+                                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                                            "contentLength": "4535431",
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                        },
+                                        {
+                                            "url":
+                                            "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
+                                            "checksum": "085340abffh21495345af97c6b0e761",
+                                            "contentLength": "12324"
+                                        },
+                                        {
+                                            "url":
+                                            "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
+                                        }
+                                    ],
+                                    "links": [
+                                        {
+                                            "name": "Sample of Asset Data",
+                                            "type": "sample",
+                                            "url": "https://foo.com/sample.csv"
+                                        },
+                                        {
+                                            "name": "Data Format Definition",
+                                            "type": "format",
+                                            "AssetID":
+                                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                                        }
+                                    ],
                                  "inLanguage": "en",
                                  "tags": "weather, uk, 2011, temperature, humidity",
                                  "price": 10
-
-                               },
-                               "curation": {
-                                 "rating": 0.93,
-                                 "numVotes": 123,
-                                 "schema": "Binary Votting"
-                               },
-                               "additionalInformation" : {
-                                 "updateFrecuency": "yearly",
-                                 "structuredMarkup" : [
-                                   { "uri" : "http://skos.um.es/unescothes/C01194/jsonld", "mediaType" : "application/ld+json"},
-                                   { "uri" : "http://skos.um.es/unescothes/C01194/turtle", "mediaType" : "text/turtle"}]
-                               }
-                             }
-                           }]
+                                },
+                                "curation": {
+                                    "rating": 0.93,
+                                    "numVotes": 123,
+                                    "schema": "Binary Voting"
+                                },
+                                "additionalInformation": {
+                                    "updateFrecuency": "yearly",
+                                    "structuredMarkup": [
+                                        {
+                                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                                            "mediaType": "application/ld+json"
+                                        },
+                                        {
+                                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
+                                            "mediaType": "text/turtle"
+                                        }
+                                    ]
+                                }
+                            }}]
     responses:
       201:
         description: Asset successfully registered.
@@ -195,31 +246,20 @@ def register():
         description: Error
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'service']
-    required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
-                                         'contentUrls', 'type']
+    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
+    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
+                                         'price', 'files', 'type']
     data = request.json
     if not data:
-        logging.error(f'request body seems empty, expecting {required_attributes}')
+        logger.error(f'request body seems empty, expecting {required_attributes}')
         return 400
-    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
-
-    for attr in required_attributes:
-        if attr not in data:
-            logging.error(f'{attr} is required, got {str(data)}')
-            return f'{attr} is required for registering an asset.', 400
-
-    for service in data['service']:
-        if service['type'] == 'Metadata':
-            for attr in required_metadata_base_attributes:
-                if attr not in service['metadata']['base']:
-                    logging.error('%s metadata is required, got %s' % (
-                    attr, str(service['metadata']['base'])))
-                    return f'{attr} is required for registering an asset.', 400
-
-    msg = validate_asset_data(data)
+    msg, status = check_required_attributes(required_attributes, data, 'register')
     if msg:
-        return msg, 404
+        return msg, status
+    msg, status = check_required_attributes(required_metadata_base_attributes,
+                                            _get_base_metadata(data['service']), 'register')
+    if msg:
+        return msg, status
 
     _record = dict()
     _record = data
@@ -241,7 +281,7 @@ def register():
         # add new assetId to response
         return Response(_sanitize_record(_record), 201, content_type='application/json')
     except Exception as err:
-        logging.error(f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
+        logger.error(f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
         return f'Some error: {str(err)}', 500
 
 
@@ -265,6 +305,7 @@ def update(did):
             - id
             - publicKey
             - authentication
+            - proof
             - service
           properties:
             "@context":
@@ -287,60 +328,102 @@ def update(did):
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
                             {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+            proof:
+                  type: dictionary
+                  description: Information about the creation and creator of the asset.
+                  example:  {"type": "UUIDSignature",
+                             "created": "2016-02-08T16:02:20Z",
+                             "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
+                             "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+                            }
             service:
                   type: array
                   description: List of services.
-                  example: [{"type": "Consume",
-                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${pubKey}&serviceId={serviceId}&url={url}"},
+                  example: [{"type": "Access",
+                             "serviceEndpoint":
+                             "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${
+                             pubKey}&serviceId={serviceId}&url={url}"},
                             {"type": "Compute",
-                             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
-                            {"type": "Metadata",
-                             "serviceEndpoint": "http://myaquarius.org/api/v1/aquarius/assets/metadata/{did}",
-                             "metadata": {
-                               "base": {
-                                 "name": "UK Weather information 2011",
-                                 "type": "dataset",
-                                 "description": "Weather information of UK including temperature and humidity",
-                                 "size": "3.1gb",
-                                 "dateCreated": "2012-10-10T17:00:000Z",
-                                 "author": "Met Office",
-                                 "license": "CC-BY",
-                                 "copyrightHolder": "Met Office",
-                                 "encoding": "UTF-8",
-                                 "compression": "zip",
-                                 "contentType": "text/csv",
-                                 "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                                 "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
-                                 "links": [
-                                     {
-                                         "name": "Sample of Asset Data",
-                                         "type": "sample",
-                                         "url": "https://foo.com/sample.csv"
-                                     },
-                                     {
-                                         "name": "Data Format Definition",
-                                         "type": "format",
-                                         "AssetID": "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
-                                     }
-                                 ],
+                             "serviceEndpoint":
+                             "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
+                             pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                           {"type": "Metadata",
+                            "serviceDefinitionId": "2",
+                            "serviceEndpoint":
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "metadata": {
+                                "base": {
+                                    "name": "UK Weather information 2011",
+                                    "type": "dataset",
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
+                                    "size": "3.1gb",
+                                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                                    "author": "Met Office",
+                                    "license": "CC-BY",
+                                    "copyrightHolder": "Met Office",
+                                    "encoding": "UTF-8",
+                                    "compression": "zip",
+                                    "contentType": "text/csv",
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity\n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "files": [
+                                        {
+                                            "url":
+                                            "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
+                                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                                            "contentLength": "4535431",
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                        },
+                                        {
+                                            "url":
+                                            "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
+                                            "checksum": "085340abffh21495345af97c6b0e761",
+                                            "contentLength": "12324"
+                                        },
+                                        {
+                                            "url":
+                                            "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
+                                        }
+                                    ],
+                                    "links": [
+                                        {
+                                            "name": "Sample of Asset Data",
+                                            "type": "sample",
+                                            "url": "https://foo.com/sample.csv"
+                                        },
+                                        {
+                                            "name": "Data Format Definition",
+                                            "type": "format",
+                                            "AssetID":
+                                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                                        }
+                                    ],
                                  "inLanguage": "en",
                                  "tags": "weather, uk, 2011, temperature, humidity",
                                  "price": 10
-
-                               },
-                               "curation": {
-                                 "rating": 0.93,
-                                 "numVotes": 123,
-                                 "schema": "Binary Voting"
-                               },
-                               "additionalInformation" : {
-                                 "updateFrecuency": "yearly",
-                                 "structuredMarkup" : [
-                                   { "uri" : "http://skos.um.es/unescothes/C01194/jsonld", "mediaType" : "application/ld+json"},
-                                   { "uri" : "http://skos.um.es/unescothes/C01194/turtle", "mediaType" : "text/turtle"}]
-                               }
-                             }
-                           }]
+                                },
+                                "curation": {
+                                    "rating": 0.93,
+                                    "numVotes": 123,
+                                    "schema": "Binary Voting"
+                                },
+                                "additionalInformation": {
+                                    "updateFrecuency": "yearly",
+                                    "structuredMarkup": [
+                                        {
+                                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                                            "mediaType": "application/ld+json"
+                                        },
+                                        {
+                                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
+                                            "mediaType": "text/turtle"
+                                        }
+                                    ]
+                                }
+                            }}]
     responses:
       200:
         description: Asset successfully updated.
@@ -353,38 +436,28 @@ def update(did):
       500:
         description: Error
     """
-    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'service']
-    required_metadata_base_attributes = ['name', 'size', 'author', 'license', 'contentType',
-                                         'contentUrls', 'type']
+    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
+    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
+                                         'price', 'files', 'type']
     required_metadata_curation_attributes = ['rating', 'numVotes']
 
     assert isinstance(request.json, dict), 'invalid payload format.'
+
     data = request.json
     if not data:
+        logger.error(f'request body seems empty, expecting {required_attributes}')
         return 400
-    assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
-
-    for attr in required_attributes:
-        if attr not in data:
-            return f'{attr} is required for registering an asset.', 400
-
-    for service in data['service']:
-        if service['type'] == 'Metadata':
-            for attr in required_metadata_base_attributes:
-                if attr not in service['metadata']['base']:
-                    logging.error(
-                        f'{attr} metadata is required, got {str(service["metadata"]["base"])}')
-                    return f'{attr} is required for registering an asset.', 400
-
-            for attr in required_metadata_curation_attributes:
-                if attr not in service['metadata']['curation']:
-                    logging.error(
-                        f'{attr} metadata is required, got {str(service["metadata"]["curation"])}')
-                    return f'{attr} is required for registering an asset.', 400
-
-    msg = validate_asset_data(data)
+    msg, status = check_required_attributes(required_attributes, data, 'update')
     if msg:
-        return msg, 404
+        return msg, status
+    msg, status = check_required_attributes(required_metadata_base_attributes,
+                                            _get_base_metadata(data['service']), 'update')
+    if msg:
+        return msg, status
+    msg, status = check_required_attributes(required_metadata_curation_attributes,
+                                            _get_curation_metadata(data['service']), 'update')
+    if msg:
+        return msg, status
 
     _record = dict()
     _record = data
@@ -576,7 +649,7 @@ def retire_all():
             dao.delete(i)
         return 'All ddo successfully deleted', 200
     except Exception as e:
-        logging.error(e)
+        logger.error(e)
         return 'An error was found', 500
 
 
@@ -586,11 +659,32 @@ def _sanitize_record(data_record):
     return json.dumps(data_record)
 
 
-def validate_asset_data(data):
-    return ''
+def check_required_attributes(required_attributes, data, method):
+    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+    logger.info('got %s request: %s' % (method, data))
+    if not data:
+        logger.error('%s request failed: data is empty.' % method)
+        return 'payload seems empty.', 400
+    for attr in required_attributes:
+        if attr not in data:
+            logger.error('%s request failed: required attr %s missing.' % (method, attr))
+            return '"%s" is required in the call to %s' % (attr, method), 400
+    return None, None
+
+
+def _get_metadata(services):
+    for service in services:
+        if service['type'] == 'Metadata':
+            return service['metadata']
+
+
+def _get_base_metadata(services):
+    return _get_metadata(services)['base']
+
+
+def _get_curation_metadata(services):
+    return _get_metadata(services)['curation']
 
 
 def _get_date(services):
-    for i in services:
-        if i['type'] == 'Metadata':
-            return i['metadata']['base']['dateCreated']
+    return _get_metadata(services)['base']['dateCreated']
