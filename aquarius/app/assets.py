@@ -84,12 +84,7 @@ def get_metadata(id):
     """
     try:
         asset_record = dao.get(id)
-        metadata = dict()
-        i = -1
-        for service in asset_record['service']:
-            i = i + 1
-            if service['type'] == 'Metadata':
-                metadata = asset_record['service'][i]
+        metadata = _get_metadata(asset_record['service'])
         return Response(_sanitize_record(metadata), 200, content_type='application/json')
     except Exception as e:
         logger.error(e)
@@ -158,16 +153,15 @@ def register():
                              "serviceEndpoint":
                              "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
                              pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
-                           {"type": "Metadata",
+                           {
+                            "type": "Metadata",
                             "serviceDefinitionId": "2",
-                            "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including
-                                    temperature and humidity",
+                                    "description": "Weather information of UK including temperature and humidity",
                                     "size": "3.1gb",
                                     "dateCreated": "2012-02-01T10:55:11+00:00",
                                     "author": "Met Office",
@@ -176,31 +170,23 @@ def register():
                                     "encoding": "UTF-8",
                                     "compression": "zip",
                                     "contentType": "text/csv",
-                                    "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity\n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
-                                    "files": [
-                                        {
-                                            "url":
-                                            "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
+                                    "workExample": "stationId,latitude,longitude,datetime,temperature,humidity/n423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
+                                    "files": [{
+                                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
                                             "checksum": "efb2c764274b745f5fc37f97c6b0e761",
                                             "contentLength": "4535431",
-                                            "resourceId":
-                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                         },
                                         {
-                                            "url":
-                                            "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
+                                            "url": "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
                                             "checksum": "085340abffh21495345af97c6b0e761",
                                             "contentLength": "12324"
                                         },
                                         {
-                                            "url":
-                                            "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
+                                            "url": "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
                                         }
                                     ],
-                                    "links": [
-                                        {
+                                    "links": [{
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
                                             "url": "https://foo.com/sample.csv"
@@ -208,13 +194,12 @@ def register():
                                         {
                                             "name": "Data Format Definition",
                                             "type": "format",
-                                            "AssetID":
-                                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                                            "AssetID": "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
-                                 "inLanguage": "en",
-                                 "tags": "weather, uk, 2011, temperature, humidity",
-                                 "price": 10
+                                    "inLanguage": "en",
+                                    "tags": "weather, uk, 2011, temperature, humidity",
+                                    "price": 10
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -223,8 +208,7 @@ def register():
                                 },
                                 "additionalInformation": {
                                     "updateFrecuency": "yearly",
-                                    "structuredMarkup": [
-                                        {
+                                    "structuredMarkup": [{
                                             "uri": "http://skos.um.es/unescothes/C01194/jsonld",
                                             "mediaType": "application/ld+json"
                                         },
@@ -234,7 +218,8 @@ def register():
                                         }
                                     ]
                                 }
-                            }}]
+                            }
+                        }]
     responses:
       201:
         description: Asset successfully registered.
@@ -347,16 +332,15 @@ def update(did):
                              "serviceEndpoint":
                              "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
                              pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
-                           {"type": "Metadata",
+                           {
+                            "type": "Metadata",
                             "serviceDefinitionId": "2",
-                            "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including
-                                    temperature and humidity",
+                                    "description": "Weather information of UK including temperature and humidity",
                                     "size": "3.1gb",
                                     "dateCreated": "2012-02-01T10:55:11+00:00",
                                     "author": "Met Office",
@@ -365,31 +349,23 @@ def update(did):
                                     "encoding": "UTF-8",
                                     "compression": "zip",
                                     "contentType": "text/csv",
-                                    "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity\n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
-                                    "files": [
-                                        {
-                                            "url":
-                                            "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
+                                    "workExample": "stationId,latitude,longitude,datetime,temperature,humidity/n423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
+                                    "files": [{
+                                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
                                             "checksum": "efb2c764274b745f5fc37f97c6b0e761",
                                             "contentLength": "4535431",
-                                            "resourceId":
-                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                         },
                                         {
-                                            "url":
-                                            "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
+                                            "url": "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
                                             "checksum": "085340abffh21495345af97c6b0e761",
                                             "contentLength": "12324"
                                         },
                                         {
-                                            "url":
-                                            "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
+                                            "url": "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
                                         }
                                     ],
-                                    "links": [
-                                        {
+                                    "links": [{
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
                                             "url": "https://foo.com/sample.csv"
@@ -397,13 +373,12 @@ def update(did):
                                         {
                                             "name": "Data Format Definition",
                                             "type": "format",
-                                            "AssetID":
-                                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                                            "AssetID": "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
-                                 "inLanguage": "en",
-                                 "tags": "weather, uk, 2011, temperature, humidity",
-                                 "price": 10
+                                    "inLanguage": "en",
+                                    "tags": "weather, uk, 2011, temperature, humidity",
+                                    "price": 10
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -412,8 +387,7 @@ def update(did):
                                 },
                                 "additionalInformation": {
                                     "updateFrecuency": "yearly",
-                                    "structuredMarkup": [
-                                        {
+                                    "structuredMarkup": [{
                                             "uri": "http://skos.um.es/unescothes/C01194/jsonld",
                                             "mediaType": "application/ld+json"
                                         },
@@ -423,7 +397,8 @@ def update(did):
                                         }
                                     ]
                                 }
-                            }}]
+                            }
+                        }]
     responses:
       200:
         description: Asset successfully updated.
@@ -572,7 +547,6 @@ def query_text():
                                  offset=int(data.get('offset', 100)),
                                  page=int(data.get('page', 0)))
     query_result = dao.query(search_model)
-
     for i in query_result:
         _sanitize_record(i)
     return Response(json.dumps(query_result), 200, content_type='application/json')
@@ -675,16 +649,16 @@ def check_required_attributes(required_attributes, data, method):
 def _get_metadata(services):
     for service in services:
         if service['type'] == 'Metadata':
-            return service['metadata']
+            return service
 
 
 def _get_base_metadata(services):
-    return _get_metadata(services)['base']
+    return _get_metadata(services)['metadata']['base']
 
 
 def _get_curation_metadata(services):
-    return _get_metadata(services)['curation']
+    return _get_metadata(services)['metadata']['curation']
 
 
 def _get_date(services):
-    return _get_metadata(services)['base']['dateCreated']
+    return _get_metadata(services)['metadata']['base']['dateCreated']
