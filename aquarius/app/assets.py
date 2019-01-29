@@ -38,57 +38,57 @@ def get_assets():
     return Response(_sanitize_record(resp_body), 200, content_type='application/json')
 
 
-@assets.route('/ddo/<id>', methods=['GET'])
-def get_ddo(id):
+@assets.route('/ddo/<did>', methods=['GET'])
+def get_ddo(did):
     """Get DDO of a particular asset.
     ---
     tags:
       - ddo
     parameters:
-      - name: id
+      - name: did
         in: path
-        description: ID of the asset.
+        description: DID of the asset.
         required: true
         type: string
     responses:
       200:
         description: successful operation
       404:
-        description: This asset ID is not in OceanDB
+        description: This asset DID is not in OceanDB
     """
     try:
-        asset_record = dao.get(id)
+        asset_record = dao.get(did)
         return Response(_sanitize_record(asset_record), 200, content_type='application/json')
     except Exception as e:
         logger.error(e)
-        return f'{id} asset_id is not in OceanDB', 404
+        return f'{did} asset DID is not in OceanDB', 404
 
 
-@assets.route('/metadata/<id>', methods=['GET'])
-def get_metadata(id):
+@assets.route('/metadata/<did>', methods=['GET'])
+def get_metadata(did):
     """Get metadata of a particular asset
     ---
     tags:
       - metadata
     parameters:
-      - name: id
+      - name: did
         in: path
-        description: ID of the asset.
+        description: DID of the asset.
         required: true
         type: string
     responses:
       200:
         description: successful operation.
       404:
-        description: This asset ID is not in OceanDB.
+        description: This asset DID is not in OceanDB.
     """
     try:
-        asset_record = dao.get(id)
+        asset_record = dao.get(did)
         metadata = _get_metadata(asset_record['service'])
         return Response(_sanitize_record(metadata), 200, content_type='application/json')
     except Exception as e:
         logger.error(e)
-        return f'{id} asset_id is not in OceanDB', 404
+        return f'{did} asset DID is not in OceanDB', 404
 
 
 @assets.route('/ddo', methods=['POST'])
@@ -458,31 +458,31 @@ def update(did):
         return f'Some error: {str(err)}', 500
 
 
-@assets.route('/ddo/<id>', methods=['DELETE'])
-def retire(id):
+@assets.route('/ddo/<did>', methods=['DELETE'])
+def retire(did):
     """Retire metadata of an asset
     ---
     tags:
       - ddo
     parameters:
-      - name: id
+      - name: did
         in: path
-        description: ID of the asset.
+        description: DID of the asset.
         required: true
         type: string
     responses:
       200:
         description: successfully deleted
       404:
-        description: This asset ID is not in OceanDB
+        description: This asset DID is not in OceanDB
       500:
         description: Error
     """
     try:
-        if dao.get(id) is None:
-            return 'This asset ID is not in OceanDB', 404
+        if dao.get(did) is None:
+            return 'This asset DID is not in OceanDB', 404
         else:
-            dao.delete(id)
+            dao.delete(did)
             return 'Succesfully deleted', 200
     except Exception as err:
         return f'Some error: {str(err)}', 500
