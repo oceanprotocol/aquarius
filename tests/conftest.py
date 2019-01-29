@@ -14,28 +14,23 @@ def client():
 json_dict = {
     "@context": "https://w3id.org/future-method/v1",
     "id": "did:op:123456789abcdefghi",
-
     "publicKey": [
         {
             "id": "did:op:123456789abcdefghi#keys-1",
             "type": "RsaVerificationKey2018",
             "owner": "did:op:123456789abcdefghi",
             "publicKeyPem": "-----BEGIN PUBLIC KEY...END PUBLIC KEY-----\r\n"
-        },
-        {
+        }, {
             "id": "did:op:123456789abcdefghi#keys-2",
             "type": "Ed25519VerificationKey2018",
             "owner": "did:op:123456789abcdefghi",
             "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
-        },
-        {
-            "id": "did:op:123456789abcdefghi#keys-3896708970",
+        }, {
+            "id": "did:op:123456789abcdefghi#keys-3",
             "type": "RsaPublicKeyExchangeKey2018",
             "owner": "did:op:123456789abcdefghi",
             "publicKeyPem": "-----BEGIN PUBLIC KEY...END PUBLIC KEY-----\r\n"
-        }
-    ],
-
+        }],
     "authentication": [
         {
             "type": "RsaSignatureAuthentication2018",
@@ -44,58 +39,274 @@ json_dict = {
         {
             "type": "ieee2410Authentication2018",
             "publicKey": "did:op:123456789abcdefghi#keys-2"
-        }
-    ],
-
+        }],
+    "proof": {
+        "type": "UUIDSignature",
+        "created": "2016-02-08T16:02:20Z",
+        "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
+        "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+    },
     "service": [
         {
-        "type": "Consume",
-        "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${pubKey}&serviceId={serviceId}&url={url}"
-    },
-        {
-        "type": "Compute",
-        "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
-    },
-        {
-        "type": "Metadata",
-        "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-        "metadata": {
-            "base": {
-                "name": "UK Weather information 2011",
-                "type": "dataset",
-                "description": "Weather information of UK including temperature and humidity",
-                "size": "3.1gb",
-                "dateCreated": "2012-10-10T17:00:000Z",
-                "author": "Met Office",
-                "license": "CC-BY",
-                "copyrightHolder": "Met Office",
-                "encoding": "UTF-8",
-                "compression": "zip",
-                "contentType": "text/csv",
-                "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
-                "links": [
-                    {"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                    {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                    {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
-                ],
-                "inLanguage": "en",
-                "tags": "weather, uk, 2011, temperature, humidity",
-                "price": 10
+            "type": "Access",
+            "serviceDefinitionId": "0",
+            "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
+                               "pubKey}&serviceId={serviceId}&url={url}",
+            "purchaseEndpoint": "http://mybrizo.org/api/v1/brizo/services/access/purchase?",
+            "templateId": "044852b2a670ade5407e78fb2863c51000000000000000000000000000000000",
+            "encryption": {
+                "type": "SecretStore",
+                "url": "http://secretstore.org:12001"
             },
-            "curation": {
-                "rating": 0.93,
-                "numVotes": 123,
-                "schema": "Binary Votting"
+            "serviceAgreementContract": {
+                "contractName": "ServiceAgreement",
+                "fulfillmentOperator": 1,
+                "events": [{
+                    "name": "ExecuteAgreement",
+                    "actorType": "consumer",
+                    "handler": {
+                        "moduleName": "payment",
+                        "functionName": "lockPayment",
+                        "version": "0.1"
+                    }
+                }]
             },
-            "additionalInformation": {
-                "updateFrecuency": "yearly",
-                "structuredMarkup": [
-                    {"uri": "http://skos.um.es/unescothes/C01194/jsonld", "mediaType": "application/ld+json"},
-                    {"uri": "http://skos.um.es/unescothes/C01194/turtle", "mediaType": "text/turtle"}]
+            "conditions": [
+                {
+                    "name": "lockPayment",
+                    "dependencies": [],
+                    "timeout": 0,
+                    "isTerminalCondition": 0,
+                    "conditionKey":
+                        "0x313d20f9cda19e1f5702af79e5ebfa7cb434918722f9b334000ea71cdaac1614",
+                    "contractName": "PaymentConditions",
+                    "functionName": "lockPayment",
+                    "index": 0,
+                    "parameters": [
+                        {
+                            "name": "assetId",
+                            "type": "bytes32",
+                            "value":
+                                "08a429b8529856d59867503f8056903a680935a76950bb9649785cc97869a43d"
+                        }, {
+                            "name": "price",
+                            "type": "uint256",
+                            "value": 10
+                        }
+                    ],
+                    "events": [{
+                        "name": "PaymentLocked",
+                        "actorType": "publisher",
+                        "handler": {
+                            "moduleName": "accessControl",
+                            "functionName": "grantAccess",
+                            "version": "0.1"
+                        }
+                    }]
+                }, {
+                    "name": "grantAccess",
+                    "dependencies": [{
+                        "name": "lockPayment",
+                        "timeout": 0
+                    }
+                    ],
+                    "timeout": 0,
+                    "isTerminalCondition": 0,
+                    "conditionKey":
+                        "0x38163b4835d3b0c780fcdf6a872e3e86f84393a0bda8e8b642df39a8d05c4c1a",
+                    "contractName": "AccessConditions",
+                    "functionName": "grantAccess",
+                    "index": 1,
+                    "parameters": [
+                        {
+                            "name": "assetId",
+                            "type": "bytes32",
+                            "value":
+                                "08a429b8529856d59867503f8056903a680935a76950bb9649785cc97869a43d"
+                        }, {
+                            "name": "documentKeyId",
+                            "type": "bytes32",
+                            "value":
+                                "08a429b8529856d59867503f8056903a680935a76950bb9649785cc97869a43d"
+                        }
+                    ],
+                    "events": [{
+                        "name": "AccessGranted",
+                        "actorType": "consumer",
+                        "handler": {
+                            "moduleName": "asset",
+                            "functionName": "consumeService",
+                            "version": "0.1"
+                        }
+                    }, {
+                        "name": "AccessGranted",
+                        "actorType": "publisher",
+                        "handler": {
+                            "moduleName": "payment",
+                            "functionName": "releasePayment",
+                            "version": "0.1"
+                        }
+                    }]
+                }, {
+                    "name": "releasePayment",
+                    "dependencies": [{
+                        "name": "grantAccess",
+                        "timeout": 0
+                    }
+                    ],
+                    "timeout": 0,
+                    "isTerminalCondition": 1,
+                    "conditionKey":
+                        "0x477f516713f4b0de54d0e0f4429f593c63f2dd2ca4789633e02a446c7978f3cb",
+                    "contractName": "PaymentConditions",
+                    "functionName": "releasePayment",
+                    "index": 2,
+                    "parameters": [
+                        {
+                            "name": "assetId",
+                            "type": "bytes32",
+                            "value":
+                                "08a429b8529856d59867503f8056903a680935a76950bb9649785cc97869a43d"
+                        }, {
+                            "name": "price",
+                            "type": "uint",
+                            "value": 10
+                        }
+                    ],
+                    "events": [{
+                        "name": "PaymentReleased",
+                        "actorType": "publisher",
+                        "handler": {
+                            "moduleName": "serviceAgreement",
+                            "functionName": "fulfillAgreement",
+                            "version": "0.1"
+                        }
+                    }]
+                }, {
+                    "name": "refundPayment",
+                    "dependencies": [{
+                        "name": "lockPayment",
+                        "timeout": 0
+                    }, {
+                        "name": "grantAccess",
+                        "timeout": 86400
+                    }
+                    ],
+                    "timeout": 1,
+                    "isTerminalCondition": 1,
+                    "conditionKey":
+                        "0x385d3af26f7c057688a4988fb784c392a97ce472a4feb4435968fed04809e8dc",
+                    "contractName": "PaymentConditions",
+                    "functionName": "refundPayment",
+                    "index": 3,
+                    "parameters": [
+                        {
+                            "name": "assetId",
+                            "type": "bytes32",
+                            "value":
+                                "08a429b8529856d59867503f8056903a680935a76950bb9649785cc97869a43d"
+                        }, {
+                            "name": "price",
+                            "type": "uint",
+                            "value": 10
+                        }
+                    ],
+                    "events": [{
+                        "name": "PaymentRefund",
+                        "actorType": "consumer",
+                        "handler": {
+                            "moduleName": "serviceAgreement",
+                            "functionName": "fulfillAgreement",
+                            "version": "0.1"
+                        }
+                    }]
+                }
+            ]
+
+        },
+        {
+            "type": "CloudCompute",
+            "serviceDefinitionId": "1",
+            "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
+                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}",
+            "templateId": "044852b2a670ade5407e78fb2863c51000000000000000000000000000000002"
+
+        },
+        {
+            "type": "Metadata",
+            "serviceDefinitionId": "2",
+            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+            "metadata": {
+                "base": {
+                    "name": "UK Weather information 2011",
+                    "type": "dataset",
+                    "description": "Weather information of UK including temperature and humidity",
+                    "size": "3.1gb",
+                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "author": "Met Office",
+                    "license": "CC-BY",
+                    "copyrightHolder": "Met Office",
+                    "encoding": "UTF-8",
+                    "compression": "zip",
+                    "contentType": "text/csv",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
+                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "files": [
+                        {
+                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
+                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                            "contentLength": "4535431",
+                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                        },
+                        {
+                            "url":
+                                "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
+                            "checksum": "085340abffh21495345af97c6b0e761",
+                            "contentLength": "12324"
+                        },
+                        {
+                            "url":
+                                "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
+                        }
+                    ],
+                    "links": [
+                        {
+                            "name": "Sample of Asset Data",
+                            "type": "sample",
+                            "url": "https://foo.com/sample.csv"
+                        },
+                        {
+                            "name": "Data Format Definition",
+                            "type": "format",
+                            "AssetID":
+                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                        }
+                    ],
+                    "inLanguage": "en",
+                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "price": 10
+                },
+                "curation": {
+                    "rating": 0.93,
+                    "numVotes": 123,
+                    "schema": "Binary Voting"
+                },
+                "additionalInformation": {
+                    "updateFrecuency": "yearly",
+                    "structuredMarkup": [
+                        {
+                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                            "mediaType": "application/ld+json"
+                        },
+                        {
+                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
+                            "mediaType": "text/turtle"
+                        }
+                    ]
+                }
             }
         }
-    }
     ]
 }
 json_dict_no_metadata = {"publisherId": "0x2"}
@@ -107,7 +318,6 @@ json_dict_no_valid_metadata = {"publisherId": "0x4",
 json_before = {
     "@context": "https://w3id.org/future-method/v1",
     "id": "did:op:112233445566778899",
-
     "publicKey": [
         {
             "id": "did:op:123456789abcdefghi#keys-1",
@@ -122,7 +332,6 @@ json_before = {
             "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
         }
     ],
-
     "authentication": [
         {
             "type": "RsaSignatureAuthentication2018",
@@ -133,62 +342,97 @@ json_before = {
             "publicKey": "did:op:123456789abcdefghi#keys-2"
         }
     ],
-
+    "proof": {
+        "type": "UUIDSignature",
+        "created": "2016-02-08T16:02:20Z",
+        "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
+        "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+    },
     "service": [
         {
-        "type": "Consume",
-        "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${pubKey}&serviceId={serviceId}&url={url}"
-    },
+            "type": "Consume",
+            "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
+                               "pubKey}&serviceId={serviceId}&url={url}"
+        },
         {
-        "type": "Compute",
-        "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
-    },
+            "type": "Compute",
+            "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
+                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
+        },
         {
-        "type": "Metadata",
-        "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-        "metadata": {
-            "base": {
-                "name": "UK Weather information 2011",
-                "type": "dataset",
-                "description": "Weather information of UK including temperature and humidity",
-                "size": "3.1gb",
-                "dateCreated": "2012-10-10T17:00:000Z",
-                "author": "Met Office",
-                "license": "CC-BY",
-                "copyrightHolder": "Met Office",
-                "encoding": "UTF-8",
-                "compression": "zip",
-                "contentType": "text/csv",
-                "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
-                "links": [
-                    {"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                    {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                    {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
-                ],
-                "inLanguage": "en",
-                "tags": "weather, uk, 2011, temperature, humidity",
-                "price": 10
-            },
-            "curation": {
-                "rating": 0.0,
-                "numVotes": 0,
-                "schema": "Binary Votting"
-            },
-            "additionalInformation": {
-                "updateFrecuency": "yearly",
-                "structuredMarkup": [
-                    {"uri": "http://skos.um.es/unescothes/C01194/jsonld", "mediaType": "application/ld+json"},
-                    {"uri": "http://skos.um.es/unescothes/C01194/turtle", "mediaType": "text/turtle"}]
+            "type": "Metadata",
+            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+            "metadata": {
+                "base": {
+                    "name": "UK Weather information 2011",
+                    "type": "dataset",
+                    "description": "Weather information of UK including temperature and humidity",
+                    "size": "3.1gb",
+                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "author": "Met Office",
+                    "license": "CC-BY",
+                    "copyrightHolder": "Met Office",
+                    "encoding": "UTF-8",
+                    "compression": "zip",
+                    "contentType": "text/csv",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
+                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "files": [
+                        {
+                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
+                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                            "contentLength": "4535431",
+                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                        },
+                        {
+                            "url":
+                                "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
+                            "checksum": "085340abffh21495345af97c6b0e761",
+                            "contentLength": "12324"
+                        },
+                        {
+                            "url":
+                                "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
+                        }
+                    ],
+                    "links": [
+                        {
+                            "name": "Sample of Asset Data",
+                            "type": "sample",
+                            "url": "https://foo.com/sample.csv"
+                        },
+                        {
+                            "name": "Data Format Definition",
+                            "type": "format",
+                            "AssetID":
+                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                        }
+                    ],
+                    "inLanguage": "en",
+                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "price": 10
+                },
+                "curation": {
+                    "rating": 0.0,
+                    "numVotes": 0,
+                    "schema": "Binary Votting"
+                },
+                "additionalInformation": {
+                    "updateFrecuency": "yearly",
+                    "structuredMarkup": [
+                        {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                         "mediaType": "application/ld+json"},
+                        {"uri": "http://skos.um.es/unescothes/C01194/turtle",
+                         "mediaType": "text/turtle"}]
+                }
             }
         }
-    }
     ]
 }
 json_update = {
     "@context": "https://w3id.org/future-method/v1",
     "id": "did:op:112233445566778899",
-
     "publicKey": [
         {
             "id": "did:op:123456789abcdefghi#keys-1",
@@ -203,7 +447,6 @@ json_update = {
             "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
         }
     ],
-
     "authentication": [
         {
             "type": "RsaSignatureAuthentication2018",
@@ -214,56 +457,92 @@ json_update = {
             "publicKey": "did:op:123456789abcdefghi#keys-2"
         }
     ],
-
+    "proof": {
+        "type": "UUIDSignature",
+        "created": "2016-02-08T16:02:20Z",
+        "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
+        "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+    },
     "service": [
         {
-        "type": "Consume",
-        "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${pubKey}&serviceId={serviceId}&url={url}"
-    },
+            "type": "Consume",
+            "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
+                               "pubKey}&serviceId={serviceId}&url={url}"
+        },
         {
-        "type": "Compute",
-        "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
-    },
+            "type": "Compute",
+            "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
+                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
+        },
         {
-        "type": "Metadata",
-        "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-        "metadata": {
-            "base": {
-                "name": "UK Weather information 2011",
-                "type": "dataset",
-                "description": "Weather information of UK including temperature and humidity",
-                "size": "3.1gb",
-                "dateCreated": "2012-10-10T17:00:000Z",
-                "author": "Met Office",
-                "license": "CC-BY",
-                "copyrightHolder": "Met Office",
-                "encoding": "UTF-8",
-                "compression": "zip",
-                "contentType": "text/pdf",
-                "workExample": "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                "contentUrls": ["https://testocnfiles.blob.core.windows.net/testfiles/testzkp.zip"],
-                "links": [
-                    {"sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"},
-                    {"sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"},
-                    {"fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"}
-                ],
-                "inLanguage": "en",
-                "tags": "weather, uk, 2011, temperature, humidity",
-                "price": 10
-            },
-            "curation": {
-                "rating": 8.0,
-                "numVotes": 1,
-                "schema": "Binary Votting"
-            },
-            "additionalInformation": {
-                "updateFrecuency": "yearly",
-                "structuredMarkup": [
-                    {"uri": "http://skos.um.es/unescothes/C01194/jsonld", "mediaType": "application/ld+json"},
-                    {"uri": "http://skos.um.es/unescothes/C01194/turtle", "mediaType": "text/turtle"}]
+            "type": "Metadata",
+            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+            "metadata": {
+                "base": {
+                    "name": "UK Weather information 2012",
+                    "type": "dataset",
+                    "description": "Weather information of UK including temperature and humidity",
+                    "size": "3.1gb",
+                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "author": "Met Office",
+                    "license": "CC-BY",
+                    "copyrightHolder": "Met Office",
+                    "encoding": "UTF-8",
+                    "compression": "zip",
+                    "contentType": "text/csv",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
+                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "files": [
+                        {
+                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
+                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                            "contentLength": "4535431",
+                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                        },
+                        {
+                            "url":
+                                "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
+                            "checksum": "085340abffh21495345af97c6b0e761",
+                            "contentLength": "12324"
+                        },
+                        {
+                            "url":
+                                "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
+                        }
+                    ],
+                    "links": [
+                        {
+                            "name": "Sample of Asset Data",
+                            "type": "sample",
+                            "url": "https://foo.com/sample.csv"
+                        },
+                        {
+                            "name": "Data Format Definition",
+                            "type": "format",
+                            "AssetID":
+                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                        }
+                    ],
+                    "inLanguage": "en",
+                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "price": 10
+                },
+                "curation": {
+                    "rating": 8.0,
+                    "numVotes": 1,
+                    "schema": "Binary Votting"
+                },
+                "additionalInformation": {
+                    "updateFrecuency": "yearly",
+                    "structuredMarkup": [
+                        {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                         "mediaType": "application/ld+json"},
+                        {"uri": "http://skos.um.es/unescothes/C01194/turtle",
+                         "mediaType": "text/turtle"}]
+                }
             }
         }
-    }
     ]
 }
 
