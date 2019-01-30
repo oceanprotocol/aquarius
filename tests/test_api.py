@@ -2,8 +2,8 @@ import json
 
 from aquarius.constants import BaseURLs
 from aquarius.run import get_version
-from tests.conftest import json_dict, json_dict_no_metadata, json_dict_no_valid_metadata, \
-    json_before, json_update
+from tests.conftest import (json_before, json_dict, json_dict_no_metadata,
+                            json_dict_no_valid_metadata, json_update)
 
 
 def test_version(client):
