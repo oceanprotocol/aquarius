@@ -252,24 +252,7 @@ json_dict = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
-                    "files": [
-                        {
-                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
-                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                            "contentLength": "4535431",
-                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                        },
-                        {
-                            "url":
-                                "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
-                            "checksum": "085340abffh21495345af97c6b0e761",
-                            "contentLength": "12324"
-                        },
-                        {
-                            "url":
-                                "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
-                        }
-                    ],
+                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
                             "name": "Sample of Asset Data",
@@ -378,24 +361,7 @@ json_before = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
-                    "files": [
-                        {
-                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
-                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                            "contentLength": "4535431",
-                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                        },
-                        {
-                            "url":
-                                "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
-                            "checksum": "085340abffh21495345af97c6b0e761",
-                            "contentLength": "12324"
-                        },
-                        {
-                            "url":
-                                "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
-                        }
-                    ],
+                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
                             "name": "Sample of Asset Data",
@@ -493,24 +459,7 @@ json_update = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
-                    "files": [
-                        {
-                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
-                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                            "contentLength": "4535431",
-                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                        },
-                        {
-                            "url":
-                                "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
-                            "checksum": "085340abffh21495345af97c6b0e761",
-                            "contentLength": "12324"
-                        },
-                        {
-                            "url":
-                                "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
-                        }
-                    ],
+                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
                             "name": "Sample of Asset Data",

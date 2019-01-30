@@ -156,12 +156,14 @@ def register():
                            {
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
-                            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "serviceEndpoint":
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including temperature and humidity",
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
                                     "size": "3.1gb",
                                     "dateCreated": "2012-02-01T10:55:11+00:00",
                                     "author": "Met Office",
@@ -170,22 +172,10 @@ def register():
                                     "encoding": "UTF-8",
                                     "compression": "zip",
                                     "contentType": "text/csv",
-                                    "workExample": "stationId,latitude,longitude,datetime,temperature,humidity/n423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                                    "files": [{
-                                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
-                                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                                            "contentLength": "4535431",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                                        },
-                                        {
-                                            "url": "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
-                                            "checksum": "085340abffh21495345af97c6b0e761",
-                                            "contentLength": "12324"
-                                        },
-                                        {
-                                            "url": "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
-                                        }
-                                    ],
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "links": [{
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
@@ -194,7 +184,8 @@ def register():
                                         {
                                             "name": "Data Format Definition",
                                             "type": "format",
-                                            "AssetID": "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                                            "AssetID":
+                                            "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
                                     "inLanguage": "en",
@@ -233,7 +224,7 @@ def register():
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
     required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
-                                         'price', 'files', 'type']
+                                         'price', 'encryptedFiles', 'type']
     data = request.json
     if not data:
         logger.error(f'request body seems empty, expecting {required_attributes}')
@@ -335,12 +326,14 @@ def update(did):
                            {
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
-                            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "serviceEndpoint":
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including temperature and humidity",
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
                                     "size": "3.1gb",
                                     "dateCreated": "2012-02-01T10:55:11+00:00",
                                     "author": "Met Office",
@@ -349,22 +342,10 @@ def update(did):
                                     "encoding": "UTF-8",
                                     "compression": "zip",
                                     "contentType": "text/csv",
-                                    "workExample": "stationId,latitude,longitude,datetime,temperature,humidity/n423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
-                                    "files": [{
-                                            "url": "234ab87234acbd09543085340abffh21983ddhiiee982143827423421",
-                                            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                                            "contentLength": "4535431",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                                        },
-                                        {
-                                            "url": "234ab87234acbd6894237582309543085340abffh21983ddhiiee982143827423421",
-                                            "checksum": "085340abffh21495345af97c6b0e761",
-                                            "contentLength": "12324"
-                                        },
-                                        {
-                                            "url": "80684089027358963495379879a543085340abffh21983ddhiiee982143827abcc2"
-                                        }
-                                    ],
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "links": [{
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
@@ -373,7 +354,8 @@ def update(did):
                                         {
                                             "name": "Data Format Definition",
                                             "type": "format",
-                                            "AssetID": "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                                            "AssetID":
+                                            "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
                                     "inLanguage": "en",
@@ -413,7 +395,7 @@ def update(did):
     """
     required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
     required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
-                                         'price', 'files', 'type']
+                                         'price', 'encryptedFiles', 'type']
     required_metadata_curation_attributes = ['rating', 'numVotes']
 
     assert isinstance(request.json, dict), 'invalid payload format.'
