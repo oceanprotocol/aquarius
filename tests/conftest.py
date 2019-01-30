@@ -252,7 +252,7 @@ json_dict = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
-                    "encryptedFiles": ["0xkasdhfkljhasdfkjasdhf"],
+                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
                             "name": "Sample of Asset Data",
@@ -361,7 +361,7 @@ json_before = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
-                    "encryptedFiles": ["0xkasdhfkljhasdfkjasdhf"],
+                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
                             "name": "Sample of Asset Data",
@@ -459,7 +459,7 @@ json_update = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
-                    "encryptedFiles": ["0xkasdhfkljhasdfkjasdhf"],
+                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
                             "name": "Sample of Asset Data",
