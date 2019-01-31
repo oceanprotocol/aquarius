@@ -74,9 +74,9 @@ def test_update_ddo(client):
     assert 200 == put.status_code
     assert json_update['service'][2]['metadata']['curation']['numVotes'] == \
            json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['curation']['numVotes']
-    assert json.loads(post.data.decode('utf-8'))['service'][2]['metadata']['additionalInformation'][
+    assert json.loads(post.data.decode('utf-8'))['service'][2]['metadata']['base'][
                'checksum'] != \
-           json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['additionalInformation'][
+           json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['base'][
                'checksum']
     client.delete(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])

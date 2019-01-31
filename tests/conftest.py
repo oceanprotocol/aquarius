@@ -268,7 +268,8 @@ json_dict = {
                     ],
                     "inLanguage": "en",
                     "tags": "weather, uk, 2011, temperature, humidity",
-                    "price": 10
+                    "price": 10,
+                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "curation": {
                     "rating": 0.93,
@@ -334,16 +335,19 @@ json_before = {
     "service": [
         {
             "type": "Consume",
+            "serviceDefinitionId": "0",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
+            "serviceDefinitionId": "1",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
             "type": "Metadata",
+            "serviceDefinitionId": "2",
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
             "metadata": {
                 "base": {
@@ -377,7 +381,8 @@ json_before = {
                     ],
                     "inLanguage": "en",
                     "tags": "weather, uk, 2011, temperature, humidity",
-                    "price": 10
+                    "price": 10,
+                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "curation": {
                     "rating": 0.0,
@@ -432,16 +437,19 @@ json_update = {
     "service": [
         {
             "type": "Consume",
+            "serviceDefinitionId": "0",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
+            "serviceDefinitionId": "1",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
             "type": "Metadata",
+            "serviceDefinitionId": "2",
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
             "metadata": {
                 "base": {
@@ -475,7 +483,8 @@ json_update = {
                     ],
                     "inLanguage": "en",
                     "tags": "weather, uk, 2011, temperature, humidity",
-                    "price": 10
+                    "price": 10,
+                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
                 },
                 "curation": {
                     "rating": 8.0,
