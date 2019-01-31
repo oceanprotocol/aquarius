@@ -190,7 +190,8 @@ def register():
                                     ],
                                     "inLanguage": "en",
                                     "tags": "weather, uk, 2011, temperature, humidity",
-                                    "price": 10
+                                    "price": 10,
+                                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -224,7 +225,7 @@ def register():
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
     required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
-                                         'price', 'encryptedFiles', 'type']
+                                         'price', 'encryptedFiles', 'type', 'checksum']
     data = request.json
     if not data:
         logger.error(f'request body seems empty, expecting {required_attributes}')
@@ -239,19 +240,13 @@ def register():
 
     _record = dict()
     _record = data
-    # Index to write in the metadata service
-    i = -1
     for service in _record['service']:
-        i = i + 1
         if service['type'] == 'Metadata':
-            _record['service'][i]['metadata']['base']['dateCreated'] = datetime.utcnow().replace(
-                microsecond=0).replace(
-                tzinfo=pytz.UTC).isoformat()
-            _record['service'][i]['metadata']['curation']['rating'] = 0.00
-            _record['service'][i]['metadata']['curation']['numVotes'] = 0
-            _record['service'][i]['metadata']['additionalInformation'][
-                'checksum'] = hashlib.sha3_256(
-                json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
+            service_id = int(service['serviceDefinitionId'])
+            _record['service'][service_id]['metadata']['base']['dateCreated'] = \
+                datetime.utcnow().replace(microsecond=0).replace(tzinfo=pytz.UTC).isoformat()
+            _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
+            _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -360,7 +355,8 @@ def update(did):
                                     ],
                                     "inLanguage": "en",
                                     "tags": "weather, uk, 2011, temperature, humidity",
-                                    "price": 10
+                                    "price": 10,
+                                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -395,7 +391,7 @@ def update(did):
     """
     required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
     required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
-                                         'price', 'encryptedFiles', 'type']
+                                         'price', 'encryptedFiles', 'type', 'checksum']
     required_metadata_curation_attributes = ['rating', 'numVotes']
 
     assert isinstance(request.json, dict), 'invalid payload format.'
@@ -424,16 +420,11 @@ def update(did):
             register()
             return _sanitize_record(_record), 201
         else:
-            # Index to write in the metadata service
-            i = -1
             for service in _record['service']:
-                i = i + 1
+                service_id = int(service['serviceDefinitionId'])
                 if service['type'] == 'Metadata':
-                    _record['service'][i]['metadata']['base']['dateCreated'] = _get_date(
+                    _record['service'][service_id]['metadata']['base']['dateCreated'] = _get_date(
                         dao.get(did)['service'])
-                    _record['service'][i]['metadata']['additionalInformation'][
-                        'checksum'] = hashlib.sha3_256(
-                        json.dumps(service['metadata']['base']).encode('UTF-8')).hexdigest()
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
     except Exception as err:
