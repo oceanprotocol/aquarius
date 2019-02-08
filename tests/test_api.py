@@ -1,5 +1,6 @@
 import json
 
+from aquarius.app.assets import _validate_date_format
 from aquarius.constants import BaseURLs
 from aquarius.run import get_version
 from tests.conftest import (json_before, json_dict, json_dict_no_metadata,
@@ -120,3 +121,14 @@ def test_delete_all(client):
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
                    'ids']) == 0
+
+
+def test_date_format_validator():
+    date = '2016-02-08T16:02:20Z'
+    assert _validate_date_format(date) == (None, None)
+
+
+def test_invalid_date():
+    date = 'XXXX'
+    assert _validate_date_format(date) == (
+        "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400)

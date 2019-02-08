@@ -13,6 +13,7 @@ def client():
 
 json_dict = {
     "@context": "https://w3id.org/future-method/v1",
+    "created": "2016-02-08T16:02:20Z",
     "id": "did:op:123456789abcdefghi",
     "publicKey": [
         {
@@ -301,6 +302,7 @@ json_dict_no_valid_metadata = {"publisherId": "0x4",
 
 json_before = {
     "@context": "https://w3id.org/future-method/v1",
+    "created": "2016-02-08T16:02:20Z",
     "id": "did:op:112233445566778899",
     "publicKey": [
         {
@@ -403,6 +405,7 @@ json_before = {
 }
 json_update = {
     "@context": "https://w3id.org/future-method/v1",
+    "created": "2016-02-08T16:02:20Z",
     "id": "did:op:112233445566778899",
     "publicKey": [
         {
