@@ -3,13 +3,6 @@
 module = ${DB_MODULE}
 db.hostname = ${DB_HOSTNAME}
 db.port = ${DB_PORT}
-db.username = ${DB_USERNAME}
-db.password = ${DB_PASSWORD}
-db.ssl = ${DB_SSL}
-db.verify_certs = ${DB_VERIFY_CERTS}
-db.ca_cert_path = ${DB_CA_CERTS}
-db.client_key = ${DB_CLIENT_KEY}
-db.client_cert_path = ${DB_CLIENT_CERT}
 
 ############################################# MONGODB #############################################
 db.name = ${DB_NAME}
