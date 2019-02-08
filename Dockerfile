@@ -23,17 +23,20 @@ WORKDIR /aquarius
 RUN pip install .
 
 # config.ini configuration file variables
-ENV DB_ENABLED='true'
 ENV DB_MODULE='mongodb'
-ENV DB_SECRET=''
-ENV DB_SCHEME='http'
 ENV DB_HOSTNAME='localhost'
 ENV DB_PORT='27017'
+#MONGO
+ENV DB_NAME='aquarius'
+ENV DB_COLLECTION='ddo'
+#ELASTIC
+ENV DB_INDEX='aquarius'
+#BDB
+ENV DB_SECRET=''
+ENV DB_SCHEME='http'
 ENV DB_APP_ID=''
 ENV DB_APP_KEY=''
 ENV DB_NAMESPACE='namespace'
-ENV DB_NAME='aquarius'
-ENV DB_COLLECTION='ddo'
 ENV AQUARIUS_URL='http://0.0.0.0:5000'
 # docker-entrypoint.sh configuration file variables
 ENV AQUARIUS_WORKERS='1'
