@@ -1,9 +1,7 @@
-import hashlib
 import json
 import logging
 from datetime import datetime
 
-import pytz
 from flask import Blueprint, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 
@@ -109,6 +107,7 @@ def register():
           required:
             - "@context"
             - id
+            - created
             - publicKey
             - authentication
             - proof
@@ -121,6 +120,10 @@ def register():
             id:
               description: ID of the asset.
               example: did:op:123456789abcdefghi
+              type: string
+            created:
+              description: date of ddo creation.
+              example: "2016-02-08T16:02:20Z"
               type: string
             publicKey:
                   type: array
@@ -165,7 +168,7 @@ def register():
                                     "description": "Weather information of UK including
                                     temperature and humidity",
                                     "size": "3.1gb",
-                                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                                    "dateCreated": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
@@ -191,7 +194,8 @@ def register():
                                     "inLanguage": "en",
                                     "tags": "weather, uk, 2011, temperature, humidity",
                                     "price": 10,
-                                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "checksum":
+                                    "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -223,7 +227,8 @@ def register():
         description: Error
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
+    required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
+                           'service']
     required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
                                          'price', 'encryptedFiles', 'type', 'checksum']
     data = request.json
@@ -237,6 +242,9 @@ def register():
                                             _get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
+    msg, status = _validate_date_format(data['created'])
+    if msg:
+        return msg, status
 
     _record = dict()
     _record = data
@@ -244,7 +252,7 @@ def register():
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
             _record['service'][service_id]['metadata']['base']['dateCreated'] = \
-                datetime.utcnow().replace(microsecond=0).replace(tzinfo=pytz.UTC).isoformat()
+                f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z'
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
     try:
@@ -273,6 +281,7 @@ def update(did):
           type: object
           required:
             - "@context"
+            - created
             - id
             - publicKey
             - authentication
@@ -286,6 +295,10 @@ def update(did):
             id:
               description: ID of the asset.
               example: did:op:123456789abcdefghi
+              type: string
+            created:
+              description: date of ddo creation.
+              example: "2016-02-08T16:02:20Z"
               type: string
             publicKey:
                   type: array
@@ -330,7 +343,7 @@ def update(did):
                                     "description": "Weather information of UK including
                                     temperature and humidity",
                                     "size": "3.1gb",
-                                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                                    "dateCreated": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
@@ -356,7 +369,8 @@ def update(did):
                                     "inLanguage": "en",
                                     "tags": "weather, uk, 2011, temperature, humidity",
                                     "price": 10,
-                                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "checksum":
+                                    "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -389,7 +403,8 @@ def update(did):
       500:
         description: Error
     """
-    required_attributes = ['@context', 'id', 'publicKey', 'authentication', 'proof', 'service']
+    required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
+                           'service']
     required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
                                          'price', 'encryptedFiles', 'type', 'checksum']
     required_metadata_curation_attributes = ['rating', 'numVotes']
@@ -635,3 +650,11 @@ def _get_curation_metadata(services):
 
 def _get_date(services):
     return _get_metadata(services)['metadata']['base']['dateCreated']
+
+
+def _validate_date_format(date):
+    try:
+        datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+        return None, None
+    except Exception:
+        return "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400
