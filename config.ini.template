@@ -14,8 +14,6 @@ db.index = ${DB_INDEX}
 ############################################### BDB ###############################################
 secret = ${DB_SECRET}
 db.scheme = ${DB_SCHEME}
-db.app_id = ${DB_APP_ID}
-db.app_key = ${DB_APP_KEY}
 db.namespace = ${DB_NAMESPACE}
 
 [resources]
