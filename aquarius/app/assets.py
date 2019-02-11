@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 from datetime import datetime
@@ -243,16 +244,17 @@ def register():
     if msg:
         return msg, status
     msg, status = _validate_date_format(data['created'])
-    if msg:
+    if status:
         return msg, status
-
     _record = dict()
-    _record = data
+    _record = copy.deepcopy(data)
+    _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     for service in _record['service']:
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
             _record['service'][service_id]['metadata']['base']['dateCreated'] = \
-                f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z'
+                datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
+                                  '%Y-%m-%dT%H:%M:%SZ')
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
     try:
@@ -426,9 +428,13 @@ def update(did):
                                             _get_curation_metadata(data['service']), 'update')
     if msg:
         return msg, status
+    msg, status = _validate_date_format(data['created'])
+    if msg:
+        return msg, status
 
     _record = dict()
-    _record = data
+    _record = copy.deepcopy(data)
+    _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     try:
 
         if dao.get(did) is None:
@@ -493,7 +499,8 @@ def get_asset_ddos():
     assets_metadata = {a['id']: a for a in assets_with_id}
     for i in assets_metadata:
         _sanitize_record(i)
-    return Response(json.dumps(assets_metadata), 200, content_type='application/json')
+    return Response(json.dumps(assets_metadata, default=_my_converter), 200,
+                    content_type='application/json')
 
 
 @assets.route('/ddo/query', methods=['GET'])
@@ -537,7 +544,8 @@ def query_text():
     query_result = dao.query(search_model)
     for i in query_result:
         _sanitize_record(i)
-    return Response(json.dumps(query_result), 200, content_type='application/json')
+    return Response(json.dumps(query_result, default=_my_converter), 200,
+                    content_type='application/json')
 
 
 @assets.route('/ddo/query', methods=['POST'])
@@ -590,7 +598,8 @@ def query_ddo():
     query_result = dao.query(search_model)
     for i in query_result:
         _sanitize_record(i)
-    return Response(json.dumps(query_result), 200, content_type='application/json')
+    return Response(json.dumps(query_result, default=_my_converter), 200,
+                    content_type='application/json')
 
 
 @assets.route('/ddo', methods=['DELETE'])
@@ -618,7 +627,7 @@ def retire_all():
 def _sanitize_record(data_record):
     if '_id' in data_record:
         data_record.pop('_id')
-    return json.dumps(data_record)
+    return json.dumps(data_record, default=_my_converter)
 
 
 def check_required_attributes(required_attributes, data, method):
@@ -658,3 +667,8 @@ def _validate_date_format(date):
         return None, None
     except Exception:
         return "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400
+
+
+def _my_converter(o):
+    if isinstance(o, datetime):
+        return o.strftime('%Y-%m-%dT%H:%M:%SZ')
