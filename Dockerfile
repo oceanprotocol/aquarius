@@ -34,8 +34,6 @@ ENV DB_INDEX='aquarius'
 #BDB
 ENV DB_SECRET=''
 ENV DB_SCHEME='http'
-ENV DB_APP_ID=''
-ENV DB_APP_KEY=''
 ENV DB_NAMESPACE='namespace'
 ENV AQUARIUS_URL='http://0.0.0.0:5000'
 # docker-entrypoint.sh configuration file variables
