@@ -96,12 +96,62 @@
     The request is waiting for the next data json:_
     ```json
     {
-      "query": {"field":"value"},
+      "query": {"name_of_query":["parameters"]},
       "sort": {"field":1},
       "offset": 100,
       "page": 0
     } 
     ```
+    Currently we are supporting the following queries:
+    - price
+        
+        Could receive one or two parameters. If you only pass one assumes that your query is going to start from 0 to your value.
+            
+        Next query:
+        `query:{"price":[0,10]}`
+        
+        It is transformed to:
+        `{"service.metadata.base.price":{"$gt": 0, "$lt": 10}}`
+        
+    - license
+        
+        It is going to retrieve all the documents with license that you are passing in the parameters, 
+        if you do not pass any value retrieve all.
+            
+        `{"license":["Public domain", "CC-YB"]}`
+        
+    - type
+        
+        It is going to check that the following service types are included in the ddo.
+        
+        `{"type":["Access", "Metadata"]}`
+    
+    - sample
+    
+        Check that the metadata include a sample that contains a link of type sample. Do not take parameters.
+        
+        `{"sample":[]}`
+        
+    - categories
+    
+        Retrieve all the values that contain one of the specifies categories.
+        
+        `{"categories":["weather", "meteorology"]}`
+        
+    - created
+    
+        Retrieve all the values that has been created after a specified date. 
+        The parameters available are 'today', 'lastWeek', 'lastMonth', 'lastYear'. If you pass more than one take the bigger interval.
+        If you do not pass any parameter retrieve everything.
+        
+        `{"created":["today"]}`
+        
+    - updatedFrequency
+    
+        Retrieve all the values that contain one of the specifies updated frecuencies.
+        
+        `{"updatedFrequency":["monthly"]}`
+    
 - **PUT /api/v1/aquarius/assets/ddo/{id}**  
   _Update ddo of an existing asset. You should pass a json similiar to the post with your update._
 - **DELETE /api/v1/aquarius/assets/ddo/{id}**  

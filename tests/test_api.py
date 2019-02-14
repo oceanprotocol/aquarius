@@ -95,7 +95,7 @@ def test_query_metadata(client):
                                       content_type='application/json').data.decode('utf-8'))) == 2
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps(
-                                          {"query": {"id": "did:op:123456789abcdefghi"}}),
+                                          {"query": {"price": [14, 16]}}),
                                       content_type='application/json').data.decode('utf-8'))) == 1
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query?text=Office',
                                      ).data.decode('utf-8'))) == 2
