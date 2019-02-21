@@ -19,8 +19,8 @@ install_requirements = [
     'flask-swagger-ui==3.6.0',
     'gunicorn==19.9.0',
     'oceandb-driver-interface==0.1.11',
-    'oceandb-mongodb-driver>=0.1.3',
-    'oceandb-elasticsearch-driver==0.0.3',
+    'oceandb-mongodb-driver==0.1.6',
+    'oceandb-elasticsearch-driver==0.0.4',
     # 'oceandb-bigchaindb-driver==0.1.4',
     'PyYAML==4.2b4',
     'pytz==2018.5',
@@ -73,6 +73,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='0.1.8',
+    version='0.1.9',
     zip_safe=False,
 )
