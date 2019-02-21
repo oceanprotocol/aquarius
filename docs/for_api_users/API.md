@@ -151,6 +151,12 @@
         Retrieve all the values that contain one of the specifies updated frecuencies.
         
         `{"updatedFrequency":["monthly"]}`
+        
+    - text 
+    
+        Retrieve all the values that match with the text sent.
+
+        `{"text":["weather"]}`
     
 - **PUT /api/v1/aquarius/assets/ddo/{id}**  
   _Update ddo of an existing asset. You should pass a json similiar to the post with your update._
