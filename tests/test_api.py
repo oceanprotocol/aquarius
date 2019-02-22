@@ -123,6 +123,26 @@ def test_delete_all(client):
                    'ids']) == 0
 
 
+def test_is_listed(client):
+    post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
+                       data=json.dumps(json_dict),
+                       content_type='application/json')
+    assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
+                   'ids']) == 1
+    json_dict['service'][2]['metadata']['curation']['isListed'] = False
+    client.put(
+        BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'],
+        data=json.dumps(json_dict),
+        content_type='application/json')
+    assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
+                   'ids']) == 0
+    assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
+                                      data=json.dumps(
+                                          {"query": {"price": [0, 16]}}),
+                                      content_type='application/json').data.decode('utf-8'))) == 0
+    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
+
+
 def test_date_format_validator():
     date = '2016-02-08T16:02:20Z'
     assert _validate_date_format(date) == (None, None)

@@ -31,7 +31,7 @@ def get_assets():
     args = []
     query = dict()
     args.append(query)
-    asset_with_id = dao.get_assets()
+    asset_with_id = dao.get_all_listed_assets()
     asset_ids = [a['id'] for a in asset_with_id]
     resp_body = dict({'ids': asset_ids})
     return Response(_sanitize_record(resp_body), 200, content_type='application/json')
@@ -257,6 +257,7 @@ def register():
                                   '%Y-%m-%dT%H:%M:%SZ')
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
+            _record['service'][service_id]['metadata']['curation']['isListed'] = True
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -495,7 +496,7 @@ def get_asset_ddos():
     args = []
     query = dict()
     args.append(query)
-    assets_with_id = dao.get_assets()
+    assets_with_id = dao.get_all_listed_assets()
     assets_metadata = {a['id']: a for a in assets_with_id}
     for i in assets_metadata:
         _sanitize_record(i)
@@ -615,7 +616,7 @@ def retire_all():
         description: Error
     """
     try:
-        all_ids = [a['id'] for a in dao.get_assets()]
+        all_ids = [a['id'] for a in dao.get_all_assets()]
         for i in all_ids:
             dao.delete(i)
         return 'All ddo successfully deleted', 200
