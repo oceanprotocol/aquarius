@@ -4,7 +4,7 @@ from aquarius.app.assets import _validate_date_format
 from aquarius.constants import BaseURLs
 from aquarius.run import get_version
 from tests.conftest import (json_before, json_dict, json_dict_no_metadata,
-                            json_dict_no_valid_metadata, json_update)
+                            json_dict_no_valid_metadata, json_update, json_valid)
 
 
 def test_version(client):
@@ -141,6 +141,18 @@ def test_is_listed(client):
                                           {"query": {"price": [0, 16]}}),
                                       content_type='application/json').data.decode('utf-8'))) == 0
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
+
+
+def test_validate(client):
+    post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/validate',
+                       data=json.dumps({}),
+                       content_type='application/json')
+    assert post.status_code == 200
+    assert post.data == b'[{"message":"\'base\' is a required property","path":""}]\n'
+    post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/validate',
+                       data=json.dumps(json_valid),
+                       content_type='application/json')
+    assert post.data
 
 
 def test_date_format_validator():
