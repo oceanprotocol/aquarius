@@ -643,7 +643,7 @@ def validate():
           type: object
     responses:
       200:
-        description: successfully deleted
+        description: successfully request.
       500:
         description: Error
     """
