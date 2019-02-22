@@ -3,7 +3,7 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
@@ -24,6 +24,7 @@ install_requirements = [
     # 'oceandb-bigchaindb-driver==0.1.4',
     'PyYAML==4.2b4',
     'pytz==2018.5',
+    'plecos===0.4.0'
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
