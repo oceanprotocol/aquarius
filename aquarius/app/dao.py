@@ -1,7 +1,7 @@
 import logging
 
 from oceandb_driver_interface import OceanDb
-from oceandb_driver_interface.search_model import QueryModel, FullTextModel
+from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 
 
 class Dao(object):
@@ -9,7 +9,19 @@ class Dao(object):
     def __init__(self, config_file=None):
         self.oceandb = OceanDb(config_file).plugin
 
-    def get_assets(self):
+    def get_all_listed_assets(self):
+        assets = self.oceandb.list()
+        asset_with_id = []
+        for asset in assets:
+            try:
+                if self.is_listed(asset['service']):
+                    asset_with_id.append(self.oceandb.read(asset['id']))
+            except Exception as e:
+                logging.error(str(e))
+                pass
+        return asset_with_id
+
+    def get_all_assets(self):
         assets = self.oceandb.list()
         asset_with_id = []
         for asset in assets:
@@ -21,7 +33,16 @@ class Dao(object):
         return asset_with_id
 
     def get(self, asset_id):
-        return self.oceandb.read(asset_id)
+        try:
+            asset = self.oceandb.read(asset_id)
+        except Exception:
+            asset = None
+        if asset is None:
+            return asset
+        elif self.is_listed(asset['service']):
+            return asset
+        else:
+            return None
 
     def register(self, record, asset_id):
         return self.oceandb.write(record, asset_id)
@@ -36,8 +57,16 @@ class Dao(object):
         query_list = []
         if isinstance(query, QueryModel):
             for f in self.oceandb.query(query):
-                query_list.append(f)
+                if self.is_listed(f['service']):
+                    query_list.append(f)
         elif isinstance(query, FullTextModel):
             for f in self.oceandb.text_query(query):
-                query_list.append(f)
+                if self.is_listed(f['service']):
+                    query_list.append(f)
         return query_list
+
+    @staticmethod
+    def is_listed(services):
+        for service in services:
+            if service['type'] == 'Metadata':
+                return service['metadata']['curation']['isListed']

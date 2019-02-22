@@ -92,7 +92,7 @@ json_dict = {
                         }, {
                             "name": "price",
                             "type": "uint256",
-                            "value": 10
+                            "value": "10"
                         }
                     ],
                     "events": [{
@@ -171,7 +171,7 @@ json_dict = {
                         }, {
                             "name": "price",
                             "type": "uint",
-                            "value": 10
+                            "value": "10"
                         }
                     ],
                     "events": [{
@@ -209,7 +209,7 @@ json_dict = {
                         }, {
                             "name": "price",
                             "type": "uint",
-                            "value": 10
+                            "value": "10"
                         }
                     ],
                     "events": [{
@@ -275,7 +275,8 @@ json_dict = {
                 "curation": {
                     "rating": 0.93,
                     "numVotes": 123,
-                    "schema": "Binary Voting"
+                    "schema": "Binary Voting",
+                    "isListed": True
                 },
                 "additionalInformation": {
                     "updateFrecuency": "yearly",
@@ -389,7 +390,8 @@ json_before = {
                 "curation": {
                     "rating": 0.0,
                     "numVotes": 0,
-                    "schema": "Binary Votting"
+                    "schema": "Binary Votting",
+                    "isListed": True
                 },
                 "additionalInformation": {
                     "updateFrecuency": "yearly",
@@ -492,7 +494,8 @@ json_update = {
                 "curation": {
                     "rating": 8.0,
                     "numVotes": 1,
-                    "schema": "Binary Votting"
+                    "schema": "Binary Votting",
+                    "isListed": True
                 },
                 "additionalInformation": {
                     "updateFrecuency": "yearly",
