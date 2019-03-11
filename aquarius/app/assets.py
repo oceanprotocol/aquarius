@@ -5,7 +5,7 @@ from datetime import datetime
 
 from flask import Blueprint, request, Response, jsonify
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
-from plecos.plecos import is_valid_dict, list_errors_dict
+from plecos.plecos import is_valid_dict, list_errors_dict_local
 
 from aquarius.app.dao import Dao
 from aquarius.log import setup_logging
@@ -654,10 +654,10 @@ def validate():
         return jsonify(True)
     else:
         error_list = list()
-        for err in list_errors_dict(data):
-            stack_path = list(err.relative_path)
+        for err in list_errors_dict_local(data):
+            stack_path = list(err[1].relative_path)
             stack_path = [str(p) for p in stack_path]
-            this_err_response = {'path': "/".join(stack_path), 'message': err.message}
+            this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
             error_list.append(this_err_response)
         res = jsonify(error_list)
         return res
