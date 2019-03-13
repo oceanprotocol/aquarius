@@ -1,6 +1,10 @@
+#  Copyright 2018 Ocean Protocol Foundation
+#  SPDX-License-Identifier: Apache-2.0
+
 import configparser
 import logging
 import os
+
 from aquarius.constants import ConfigSections
 
 DEFAULT_NAME_AQUARIUS_URL = 'http://localhost:5000'

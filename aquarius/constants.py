@@ -1,3 +1,6 @@
+#  Copyright 2018 Ocean Protocol Foundation
+#  SPDX-License-Identifier: Apache-2.0
+
 class ConfigSections:
     OCEANBD = 'oceandb'
     RESOURCES = 'resources'
@@ -11,4 +14,5 @@ class BaseURLs:
 
 class Metadata:
     TITLE = 'Aquarius'
-    DESCRIPTION = 'Aquarius provides an off-chain database store for metadata about data assets. When running with our Docker images, it is exposed under:'
+    DESCRIPTION = 'Aquarius provides an off-chain database store for metadata about data assets. ' \
+                  'When running with our Docker images, it is exposed under:'

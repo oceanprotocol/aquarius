@@ -1,3 +1,6 @@
+#  Copyright 2018 Ocean Protocol Foundation
+#  SPDX-License-Identifier: Apache-2.0
+
 import pytest
 
 from aquarius.run import app
@@ -635,17 +638,20 @@ json_valid = {
                 "type": "sample"
             },
             {
-                "url": "https://s3.amazonaws.com/datacommons-seeding-us-east/10_Monkey_Species_Small/links/sample/n8145.jpg",
+                "url": "https://s3.amazonaws.com/datacommons-seeding-us-east"
+                       "/10_Monkey_Species_Small/links/sample/n8145.jpg",
                 "name": "n8145.jpg",
                 "type": "sample"
             },
             {
-                "url": "https://s3.amazonaws.com/datacommons-seeding-us-east/10_Monkey_Species_Small/links/sample/n0113.jpg",
+                "url": "https://s3.amazonaws.com/datacommons-seeding-us-east"
+                       "/10_Monkey_Species_Small/links/sample/n0113.jpg",
                 "name": "n0113.jpg",
                 "type": "sample"
             },
             {
-                "url": "https://s3.amazonaws.com/datacommons-seeding-us-east/10_Monkey_Species_Small/links/sample/sample.zip",
+                "url": "https://s3.amazonaws.com/datacommons-seeding-us-east"
+                       "/10_Monkey_Species_Small/links/sample/sample.zip",
                 "name": "sample.zip",
                 "type": "sample"
             }

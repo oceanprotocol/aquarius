@@ -1,9 +1,12 @@
+#  Copyright 2018 Ocean Protocol Foundation
+#  SPDX-License-Identifier: Apache-2.0
+
 import copy
 import json
 import logging
 from datetime import datetime
 
-from flask import Blueprint, request, Response, jsonify
+from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 from plecos.plecos import is_valid_dict, list_errors_dict_local
 

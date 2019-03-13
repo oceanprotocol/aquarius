@@ -1,12 +1,16 @@
-from aquarius.myapp import app
-from aquarius.app.assets import assets
+#  Copyright 2018 Ocean Protocol Foundation
+#  SPDX-License-Identifier: Apache-2.0
+
+import configparser
+
+from flask import jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
-from flask import jsonify
+
+from aquarius.app.assets import assets
 from aquarius.config import Config
-from aquarius.constants import BaseURLs
-from aquarius.constants import Metadata
-import configparser
+from aquarius.constants import BaseURLs, Metadata
+from aquarius.myapp import app
 
 config = Config(filename=app.config['CONFIG_FILE'])
 aquarius_url = config.aquarius_url
