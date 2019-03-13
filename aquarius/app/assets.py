@@ -259,6 +259,7 @@ def register():
             _record['service'][service_id]['metadata']['base']['dateCreated'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
                                   '%Y-%m-%dT%H:%M:%SZ')
+            _record['service'][service_id]['metadata']['curation'] = {}
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
             _record['service'][service_id]['metadata']['curation']['isListed'] = True

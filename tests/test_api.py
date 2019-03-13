@@ -7,7 +7,7 @@ from aquarius.app.assets import _validate_date_format
 from aquarius.constants import BaseURLs
 from aquarius.run import get_version
 from tests.conftest import (json_before, json_dict, json_dict_no_metadata,
-                            json_dict_no_valid_metadata, json_update, json_valid)
+                            json_dict_no_valid_metadata, json_update, json_valid, json_dict2)
 
 
 def test_version(client):
@@ -36,7 +36,7 @@ def test_create_ddo(client):
 def test_upsert_ddo(client):
     """Test creation of asset"""
     put = client.put(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json_dict['id'],
-                     data=json.dumps(json_dict),
+                     data=json.dumps(json_dict2),
                      content_type='application/json')
     rv = client.get(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(put.data.decode('utf-8'))['id'],
@@ -132,10 +132,9 @@ def test_is_listed(client):
                        content_type='application/json')
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
                    'ids']) == 1
-    json_dict['service'][2]['metadata']['curation']['isListed'] = False
     client.put(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'],
-        data=json.dumps(json_dict),
+        data=json.dumps(json_dict2),
         content_type='application/json')
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
                    'ids']) == 0
