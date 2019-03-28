@@ -256,6 +256,14 @@ json_dict = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
+                    "files": [{
+                        "contentLength": "4535431",
+                        "contentType": "text/csv",
+                        "encoding": "UTF-8",
+                        "compression": "zip",
+                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
+                    }
+                    ],
                     "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
@@ -523,17 +531,22 @@ json_dict2 = {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity",
-                    "size": "3.1gb",
                     "dateCreated": "2012-02-01T10:55:11+00:00",
                     "author": "Met Office",
                     "license": "CC-BY",
                     "copyrightHolder": "Met Office",
-                    "encoding": "UTF-8",
                     "compression": "zip",
-                    "contentType": "text/csv",
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
+                    "files": [{
+                        "contentLength": "4535431",
+                        "contentType": "text/csv",
+                        "encoding": "UTF-8",
+                        "compression": "zip",
+                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                    }
+                    ],
                     "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
@@ -649,6 +662,14 @@ json_before = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
+                    "files": [{
+                        "contentLength": "4535431",
+                        "contentType": "text/csv",
+                        "encoding": "UTF-8",
+                        "compression": "zip",
+                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                    }
+                    ],
                     "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
@@ -753,6 +774,14 @@ json_update = {
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
                                    "humidity\n423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
+                    "files": [{
+                        "contentLength": "4535431",
+                        "contentType": "text/csv",
+                        "encoding": "UTF-8",
+                        "compression": "zip",
+                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                    }
+                    ],
                     "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                     "links": [
                         {
