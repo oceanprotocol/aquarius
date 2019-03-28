@@ -247,6 +247,9 @@ def register():
                                             _get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
+    msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
+    if msg:
+        return msg, status
     msg, status = _validate_date_format(data['created'])
     if status:
         return msg, status
@@ -432,6 +435,9 @@ def update(did):
         return msg, status
     msg, status = check_required_attributes(required_metadata_curation_attributes,
                                             _get_curation_metadata(data['service']), 'update')
+    if msg:
+        return msg, status
+    msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = _validate_date_format(data['created'])
@@ -683,6 +689,13 @@ def check_required_attributes(required_attributes, data, method):
         if attr not in data:
             logger.error('%s request failed: required attr %s missing.' % (method, attr))
             return '"%s" is required in the call to %s' % (attr, method), 400
+    return None, None
+
+
+def check_no_urls_in_files(base, method):
+    if 'files' in base and 'url' in base['files']:
+        logger.error('%s request failed: url is not allowed in files ' % method)
+        return '%s request failed: url is not allowed in files ' % method, 400
     return None, None
 
 
