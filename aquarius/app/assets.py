@@ -264,7 +264,7 @@ def register():
     for service in _record['service']:
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
-            _record['service'][service_id]['metadata']['base']['dateCreated'] = \
+            _record['service'][service_id]['metadata']['base']['datePublished'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
                                   '%Y-%m-%dT%H:%M:%SZ')
             _record['service'][service_id]['metadata']['curation'] = {}
@@ -467,7 +467,7 @@ def update(did):
             for service in _record['service']:
                 service_id = int(service['serviceDefinitionId'])
                 if service['type'] == 'Metadata':
-                    _record['service'][service_id]['metadata']['base']['dateCreated'] = _get_date(
+                    _record['service'][service_id]['metadata']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
@@ -727,7 +727,7 @@ def _get_curation_metadata(services):
 
 
 def _get_date(services):
-    return _get_metadata(services)['metadata']['base']['dateCreated']
+    return _get_metadata(services)['metadata']['base']['datePublished']
 
 
 def _validate_date_format(date):

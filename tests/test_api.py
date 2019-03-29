@@ -154,7 +154,7 @@ def test_validate(client):
     post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/validate',
                        data=json.dumps(json_valid),
                        content_type='application/json')
-    assert post.data
+    assert post.data == b'true\n'
 
 
 def test_date_format_validator():
