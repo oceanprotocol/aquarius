@@ -172,17 +172,22 @@ def register():
                                     "type": "dataset",
                                     "description": "Weather information of UK including
                                     temperature and humidity",
-                                    "size": "3.1gb",
                                     "dateCreated": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
-                                    "encoding": "UTF-8",
                                     "compression": "zip",
-                                    "contentType": "text/csv",
                                     "workExample": "stationId,latitude,longitude,datetime,
                                     temperature,humidity/n423432fsd,51.509865,-0.118092,
                                     2011-01-01T10:55:11+00:00,7.2,68",
+                                    "files": [{
+                                            "contentLength": "4535431",
+                                            "contentType": "text/csv",
+                                            "encoding": "UTF-8",
+                                            "compression": "zip",
+                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                    }
+                                    ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "links": [{
                                             "name": "Sample of Asset Data",
@@ -234,7 +239,7 @@ def register():
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
+    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
                                          'price', 'encryptedFiles', 'type', 'checksum']
     data = request.json
     if not data:
@@ -245,6 +250,9 @@ def register():
         return msg, status
     msg, status = check_required_attributes(required_metadata_base_attributes,
                                             _get_base_metadata(data['service']), 'register')
+    if msg:
+        return msg, status
+    msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = _validate_date_format(data['created'])
@@ -350,17 +358,23 @@ def update(did):
                                     "type": "dataset",
                                     "description": "Weather information of UK including
                                     temperature and humidity",
-                                    "size": "3.1gb",
                                     "dateCreated": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
-                                    "encoding": "UTF-8",
                                     "compression": "zip",
-                                    "contentType": "text/csv",
                                     "workExample": "stationId,latitude,longitude,datetime,
                                     temperature,humidity/n423432fsd,51.509865,-0.118092,
                                     2011-01-01T10:55:11+00:00,7.2,68",
+                                    "files": [{
+                                            "contentLength": "4535431",
+                                            "contentType": "text/csv",
+                                            "encoding": "UTF-8",
+                                            "compression": "zip",
+                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                    }
+                                    ],
+
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "links": [{
                                             "name": "Sample of Asset Data",
@@ -413,7 +427,7 @@ def update(did):
     """
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license', 'contentType',
+    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
                                          'price', 'encryptedFiles', 'type', 'checksum']
     required_metadata_curation_attributes = ['rating', 'numVotes']
 
@@ -432,6 +446,9 @@ def update(did):
         return msg, status
     msg, status = check_required_attributes(required_metadata_curation_attributes,
                                             _get_curation_metadata(data['service']), 'update')
+    if msg:
+        return msg, status
+    msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = _validate_date_format(data['created'])
@@ -683,6 +700,15 @@ def check_required_attributes(required_attributes, data, method):
         if attr not in data:
             logger.error('%s request failed: required attr %s missing.' % (method, attr))
             return '"%s" is required in the call to %s' % (attr, method), 400
+    return None, None
+
+
+def check_no_urls_in_files(base, method):
+    if 'files' in base:
+        for file in base['files']:
+            if 'url' in file:
+                logger.error('%s request failed: url is not allowed in files ' % method)
+                return '%s request failed: url is not allowed in files ' % method, 400
     return None, None
 
 
