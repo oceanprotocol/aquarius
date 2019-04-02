@@ -1,72 +1,40 @@
-[![banner](docs/img/repo-banner@2x.png)](https://oceanprotocol.com)
+[![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-<h1 align="center">provider</h1>
+# Aquarius
 
-> 🐋 Provide an off-chain database store for data assets metadata and registration and perform part of access control in collaboration with the keeper-contracts.
-> [oceanprotocol.com](https://oceanprotocol.com)
+> 🐋 Aquarius provides an off-chain database store for metadata about data assets.
+> It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
 
-[![Build Status](https://travis-ci.com/oceanprotocol/provider.svg?token=pA8zcB6SCxKW5MHpqs6L&branch=master)](https://travis-ci.com/oceanprotocol/provider)
+Note: Aquarius was formerly known as the Provider.
+
+___"Aquarius is a constellation of the zodiac, situated between Capricornus and Pisces. Its name is Latin for "water-carrier" or "cup-carrier. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path)."___
+
+[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/10c8fddd5e8547c29de4906410a16ae7.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors)
 
 ---
 
-**🐲🦑 THERE BE DRAGONS AND SQUIDS. This is in alpha state and you can expect running into problems. If you run into them, please open up [a new issue](https://github.com/oceanprotocol/provider/issues). 🦑🐲**
+**🐲🦑 THERE BE DRAGONS AND SQUIDS. This is in alpha state and you can expect running into problems. If you run into them, please open up [a new issue](https://github.com/oceanprotocol/aquarius/issues). 🦑🐲**
 
 ---
 
+## Aquarius Documentation
 
-Get Started
-------------
+* [for Aquarius operators](./docs/for_operators/README.md) (e.g. data marketplaces)
+* [for Aquarius API users](./docs/for_api_users/README.md) (e.g. squid-py developers)
+* [for Aquarius developers](./docs/for_aquarius_devs/README.md), i.e. the people working on Aquarius itself
 
-The most simple way to start is:
+## License
 
-```bash
-git clone git@github.com:oceanprotocol/provider.git
-cd provider/
+Copyright 2018 Ocean Protocol Foundation Ltd.
 
-export FLASK_APP=provider/run.py
-export CONFIG_FILE=oceandb.ini 
-flask run
-```
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-Requirements
-------------
+   http://www.apache.org/licenses/LICENSE-2.0
 
-You should have running a instance of BigchainDB and ganache-cli. 
-You can start running the docker-compose in the docker directory:
-
-```docker
-docker-compose up
-```
-
-API documentation
------------------
-Once you have your application running you can access to the documentation in:
-
-```bash
-http://127.0.0.1:5000/api/v1/docs
-```
-
-Configuration
--------------
-
-In the configuration there are now three sections:
-
-- oceandb: Contains different values to connect with oceandb. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
-- keeper-contracts: This section help you to connect with the network where you have deployed the contracts.
-    ```yaml
-    [keeper-contracts]
-    keeper.host=0.0.0.0
-    keeper.port=8545
-    #contracts.folder=venv/contracts
-    market.address=0xbc0be3598a31715bac5235718f96bb242804e61e
-    auth.address=0x6ba5f72e5399aa67db5b22ee791851937d4910f5
-    token.address=0xfd83b273b395b1029c41bb32071500bf662e6a8a
-    provider.address=
-    ```
-- resources: This section have properties to connect with the different resourcer provideres. At the moment we are only using Azure but this is going to increase quickly.
-    ```yaml
-    [resources]
-    azure.account.name=testocnfiles
-    azure.account.key=k2Vk4yfb88WNlWW+W54a8ytJm8MYO1GW9IgiV7TNGKSdmKyVNXzyhiRZ3U1OHRotj/vTYdhJj+ho30HPyJpuYQ==
-    azure.container=testfiles
-    ```
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

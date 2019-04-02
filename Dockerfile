@@ -1,27 +1,44 @@
 FROM python:3.6-alpine
-
-MAINTAINER Ocean Protocol <devops@oceanprotocol.com>
+LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
 ARG VERSION
 
-RUN apk add --update \
-    python3 \
-    python3-dev \
-    py-pip \
+RUN apk add --no-cache --update\
+    build-base \
     gcc \
-    gmp gmp-dev \
+    gettext\
+    gmp \
+    gmp-dev \
     libffi-dev \
     openssl-dev \
-    build-base \
-  && pip install virtualenv \
-  && rm -rf /var/cache/apk/*
+    py-pip \
+    python3 \
+    python3-dev \
+  && pip install virtualenv
 
-COPY . provider
-WORKDIR provider
+COPY . /aquarius
+WORKDIR /aquarius
 
-RUN pip install -r requirements_dev.txt
-RUN chmod +x docker-entrypoint.sh
+# Only install install_requirements, not dev_ or test_requirements
+RUN pip install .
 
-ENTRYPOINT ["./docker-entrypoint.sh"]
+# config.ini configuration file variables
+ENV DB_MODULE='mongodb'
+ENV DB_HOSTNAME='localhost'
+ENV DB_PORT='27017'
+#MONGO
+ENV DB_NAME='aquarius'
+ENV DB_COLLECTION='ddo'
+#ELASTIC
+ENV DB_INDEX='aquarius'
+#BDB
+ENV DB_SECRET=''
+ENV DB_SCHEME='http'
+ENV DB_NAMESPACE='namespace'
+ENV AQUARIUS_URL='http://0.0.0.0:5000'
+# docker-entrypoint.sh configuration file variables
+ENV AQUARIUS_WORKERS='1'
+
+ENTRYPOINT ["/aquarius/docker-entrypoint.sh"]
 
 EXPOSE 5000
