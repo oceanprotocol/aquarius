@@ -6,8 +6,8 @@ import json
 from aquarius.app.assets import _validate_date_format
 from aquarius.constants import BaseURLs
 from aquarius.run import get_version
-from tests.conftest import (json_before, json_dict, json_dict_no_metadata,
-                            json_dict_no_valid_metadata, json_update, json_valid, json_dict2)
+from tests.conftest import (json_before, json_dict, json_dict2, json_dict_no_metadata,
+                            json_dict_no_valid_metadata, json_update, json_valid)
 
 
 def test_version(client):
@@ -95,16 +95,18 @@ def test_query_metadata(client):
                         content_type='application/json')
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps({"query": {}}),
-                                      content_type='application/json').data.decode('utf-8'))) == 2
+                                      content_type='application/json').data.decode('utf-8'))[
+                   'result']) == 2
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps(
                                           {"query": {"price": [14, 16]}}),
-                                      content_type='application/json').data.decode('utf-8'))) == 1
+                                      content_type='application/json').data.decode('utf-8'))[
+                   'result']) == 1
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query?text=Office',
-                                     ).data.decode('utf-8'))) == 2
+                                     ).data.decode('utf-8'))['result']) == 2
     assert len(json.loads(
         client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query?text=112233445566778899',
-                   ).data.decode('utf-8'))) == 1
+                   ).data.decode('utf-8'))['result']) == 1
     client.delete(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])
     client.delete(
@@ -141,7 +143,8 @@ def test_is_listed(client):
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps(
                                           {"query": {"price": [0, 16]}}),
-                                      content_type='application/json').data.decode('utf-8'))) == 0
+                                      content_type='application/json').data.decode('utf-8'))[
+                   'result']) == 0
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
 
 

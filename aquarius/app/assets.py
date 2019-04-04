@@ -567,7 +567,8 @@ def query_text():
     query_result = dao.query(search_model)
     for i in query_result:
         _sanitize_record(i)
-    return Response(json.dumps(query_result, default=_my_converter), 200,
+    response = _make_paginate_response(query_result, search_model)
+    return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
 
 
@@ -621,7 +622,8 @@ def query_ddo():
     query_result = dao.query(search_model)
     for i in query_result:
         _sanitize_record(i)
-    return Response(json.dumps(query_result, default=_my_converter), 200,
+    response = _make_paginate_response(query_result, search_model)
+    return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
 
 
@@ -741,3 +743,12 @@ def _validate_date_format(date):
 def _my_converter(o):
     if isinstance(o, datetime):
         return o.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def _make_paginate_response(query_list_result, search_model):
+    result = dict()
+    result['result'] = query_list_result
+    result['page'] = search_model.page
+    result['total_pages'] = int(len(query_list_result) / search_model.offset) + 1
+    result['total_results'] = len(query_list_result)
+    return result
