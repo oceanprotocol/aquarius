@@ -96,17 +96,17 @@ def test_query_metadata(client):
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps({"query": {}}),
                                       content_type='application/json').data.decode('utf-8'))[
-                   'result']) == 2
+                   'results']) == 2
     assert len(json.loads(client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query',
                                       data=json.dumps(
                                           {"query": {"price": [14, 16]}}),
                                       content_type='application/json').data.decode('utf-8'))[
-                   'result']) == 1
+                   'results']) == 1
     assert len(json.loads(client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query?text=Office',
-                                     ).data.decode('utf-8'))['result']) == 2
+                                     ).data.decode('utf-8'))['results']) == 2
     assert len(json.loads(
         client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/query?text=112233445566778899',
-                   ).data.decode('utf-8'))['result']) == 1
+                   ).data.decode('utf-8'))['results']) == 1
     client.delete(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])
     client.delete(
@@ -144,7 +144,7 @@ def test_is_listed(client):
                                       data=json.dumps(
                                           {"query": {"price": [0, 16]}}),
                                       content_type='application/json').data.decode('utf-8'))[
-                   'result']) == 0
+                   'results']) == 0
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
 
 

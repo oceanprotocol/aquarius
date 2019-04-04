@@ -58,15 +58,18 @@ class Dao(object):
 
     def query(self, query):
         query_list = []
+        count = 0
         if isinstance(query, QueryModel):
-            for f in self.oceandb.query(query):
+            for f in self.oceandb.query(query)[0]:
                 if self.is_listed(f['service']):
                     query_list.append(f)
+            count = self.oceandb.query(query)[1]
         elif isinstance(query, FullTextModel):
-            for f in self.oceandb.text_query(query):
+            for f in self.oceandb.text_query(query)[0]:
                 if self.is_listed(f['service']):
                     query_list.append(f)
-        return query_list
+            count = self.oceandb.text_query(query)[1]
+        return query_list, count
 
     @staticmethod
     def is_listed(services):
