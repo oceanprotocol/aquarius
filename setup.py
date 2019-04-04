@@ -21,7 +21,7 @@ install_requirements = [
     'flask-swagger-ui==3.6.0',
     'gunicorn==19.9.0',
     'oceandb-driver-interface==0.1.11',
-    'oceandb-mongodb-driver==0.1.7',
+    'oceandb-mongodb-driver==0.1.8',
     'oceandb-elasticsearch-driver==0.0.4',
     # 'oceandb-bigchaindb-driver==0.1.4',
     'PyYAML==4.2b4',
