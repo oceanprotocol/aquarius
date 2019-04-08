@@ -563,7 +563,7 @@ def query_text():
                                  sort=None if data.get('sort', None) is None else json.loads(
                                      data.get('sort', None)),
                                  offset=int(data.get('offset', 100)),
-                                 page=int(data.get('page', 0)))
+                                 page=int(data.get('page', 1)))
     query_result = dao.query(search_model)
     for i in query_result[0]:
         _sanitize_record(i)
@@ -614,11 +614,11 @@ def query_ddo():
     if 'query' in data:
         search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
                                   offset=data.get('offset', 100),
-                                  page=data.get('page', 0))
+                                  page=data.get('page', 1))
     else:
         search_model = QueryModel(query={}, sort=data.get('sort'),
                                   offset=data.get('offset', 100),
-                                  page=data.get('page', 0))
+                                  page=data.get('page', 1))
     query_result = dao.query(search_model)
     for i in query_result[0]:
         _sanitize_record(i)
@@ -746,9 +746,12 @@ def _my_converter(o):
 
 
 def _make_paginate_response(query_list_result, search_model):
+    total = query_list_result[1]
+    offset = search_model.offset
     result = dict()
     result['results'] = query_list_result[0]
     result['page'] = search_model.page
-    result['total_pages'] = int(len(query_list_result) / search_model.offset) + 1
-    result['total_results'] = query_list_result[1]
+
+    result['total_pages'] = int(total / offset) + int(total % offset > 0)
+    result['total_results'] = total
     return result
