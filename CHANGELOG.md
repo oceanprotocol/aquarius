@@ -1,6 +1,19 @@
 History
 =======
 
+0.2.2 (April 9th, 2019)
+----------------------
+* Fix bug in search queries
+
+0.2.1 (April 5th, 2019)
+-----------------------
+Add the pagination in the search queries.
+
+0.2.0 (March 29th, 2019)
+------------------------
+* Include datePublished in the base following the changes in OEP8.
+* Plecos version 0.7.0
+
 0.1.11 (March 14th, 2019)
 -------------------------
 * Bugfix for curation attribute handling
