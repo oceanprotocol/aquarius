@@ -17,14 +17,14 @@ install_requirements = [
     'coloredlogs==10.0',
     'Flask==1.0.2',
     'Flask-Cors==3.0.6',
-    'flask-swagger==0.2.13',
-    'flask-swagger-ui==3.6.0',
+    'flask-swagger==0.2.14',
+    'flask-swagger-ui==3.20.9',
     'gunicorn==19.9.0',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.1.9',
     'oceandb-elasticsearch-driver==0.0.5',
     # 'oceandb-bigchaindb-driver==0.1.4',
-    'PyYAML==4.2b4',
+    'PyYAML==5.1',
     'pytz==2018.5',
     'plecos==0.7.0'
 ]
