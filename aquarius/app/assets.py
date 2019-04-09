@@ -255,7 +255,7 @@ def register():
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
-    msg, status = _validate_date_format(data['created'])
+    msg, status = validate_date_format(data['created'])
     if status:
         return msg, status
     _record = dict()
@@ -451,7 +451,7 @@ def update(did):
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
-    msg, status = _validate_date_format(data['created'])
+    msg, status = validate_date_format(data['created'])
     if msg:
         return msg, status
 
@@ -552,7 +552,7 @@ def query_text():
         in: query
         type: int
         description: Page showed
-        example: 0
+        example: 1
     responses:
       200:
         description: successful action
@@ -603,7 +603,7 @@ def query_ddo():
             page:
               type: int
               description: Page showed
-              example: 0
+              example: 1
     responses:
       200:
         description: successful action
@@ -732,11 +732,12 @@ def _get_date(services):
     return _get_metadata(services)['metadata']['base']['datePublished']
 
 
-def _validate_date_format(date):
+def validate_date_format(date):
     try:
         datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
         return None, None
-    except Exception:
+    except Exception as e:
+        logging.error(str(e))
         return "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400
 
 
