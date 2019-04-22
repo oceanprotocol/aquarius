@@ -19,6 +19,8 @@ install_requirements = [
     'Flask-Cors==3.0.6',
     'flask-swagger==0.2.14',
     'flask-swagger-ui==3.20.9',
+    'Jinja2>=2.10.1',
+    'requests>=2.21.0',
     'gunicorn==19.9.0',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.1.9',
