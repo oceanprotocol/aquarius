@@ -8,7 +8,8 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
-from plecos.plecos import is_valid_dict, list_errors_dict_local
+from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_errors_dict_local,
+                           list_errors_dict_remote)
 
 from aquarius.app.dao import Dao
 from aquarius.log import setup_logging
@@ -185,7 +186,8 @@ def register():
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
@@ -239,19 +241,16 @@ def register():
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
-                                         'price', 'encryptedFiles', 'type', 'checksum']
     data = request.json
     if not data:
-        logger.error(f'request body seems empty, expecting {required_attributes}')
+        logger.error(f'request body seems empty, expecting.')
         return 400
     msg, status = check_required_attributes(required_attributes, data, 'register')
     if msg:
         return msg, status
-    msg, status = check_required_attributes(required_metadata_base_attributes,
-                                            _get_base_metadata(data['service']), 'register')
-    if msg:
-        return msg, status
+    if not is_valid_dict_remote(_get_metadata(data['service'])['metadata']):
+        return jsonify(logger.error(
+            _list_errors(list_errors_dict_remote, _get_metadata(data['service'])['metadata']))), 400
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
@@ -371,7 +370,8 @@ def update(did):
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
 
@@ -427,12 +427,7 @@ def update(did):
     """
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
-                                         'price', 'encryptedFiles', 'type', 'checksum']
-    required_metadata_curation_attributes = ['rating', 'numVotes']
-
     assert isinstance(request.json, dict), 'invalid payload format.'
-
     data = request.json
     if not data:
         logger.error(f'request body seems empty, expecting {required_attributes}')
@@ -440,14 +435,9 @@ def update(did):
     msg, status = check_required_attributes(required_attributes, data, 'update')
     if msg:
         return msg, status
-    msg, status = check_required_attributes(required_metadata_base_attributes,
-                                            _get_base_metadata(data['service']), 'update')
-    if msg:
-        return msg, status
-    msg, status = check_required_attributes(required_metadata_curation_attributes,
-                                            _get_curation_metadata(data['service']), 'update')
-    if msg:
-        return msg, status
+    if not is_valid_dict_remote(_get_metadata(data['service'])['metadata']):
+        return jsonify(logger.error(
+            _list_errors(list_errors_dict_remote, _get_metadata(data['service'])['metadata']))), 400
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
@@ -673,17 +663,21 @@ def validate():
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
-    if is_valid_dict(data):
+    if is_valid_dict_local(data):
         return jsonify(True)
     else:
-        error_list = list()
-        for err in list_errors_dict_local(data):
-            stack_path = list(err[1].relative_path)
-            stack_path = [str(p) for p in stack_path]
-            this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
-            error_list.append(this_err_response)
-        res = jsonify(error_list)
+        res = jsonify(_list_errors(list_errors_dict_local, data))
         return res
+
+
+def _list_errors(list_errors_function, data):
+    error_list = list()
+    for err in list_errors_function(data):
+        stack_path = list(err[1].relative_path)
+        stack_path = [str(p) for p in stack_path]
+        this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
+        error_list.append(this_err_response)
+    return error_list
 
 
 def _sanitize_record(data_record):
@@ -725,7 +719,7 @@ def _get_base_metadata(services):
 
 
 def _get_curation_metadata(services):
-    return _get_metadata(services)['metadata']['curation']
+    return _get_metadata(services)['metadata']['base']['curation']
 
 
 def _get_date(services):

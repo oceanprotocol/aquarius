@@ -31,7 +31,7 @@ def test_create_ddo(client, base_ddo_url):
 def test_upsert_ddo(client_with_no_data, base_ddo_url):
     """Test creation of asset"""
     put = client_with_no_data.put(base_ddo_url + '/%s' % json_dict['id'],
-                                  data=json.dumps(json_dict2),
+                                  data=json.dumps(json_dict),
                                   content_type='application/json')
     rv = client_with_no_data.get(
         base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'],
@@ -72,11 +72,12 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
         content_type='application/json')
     assert 200 == put.status_code
-    assert json_update['service'][2]['metadata']['curation']['numVotes'] == \
-        json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['curation']['numVotes']
+    assert json_update['service'][2]['metadata']['base']['curation']['numVotes'] == \
+           json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['base']['curation'][
+               'numVotes']
     assert json.loads(post.data.decode('utf-8'))['service'][2]['metadata']['base'][
                'checksum'] != \
-        json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['base'][
+           json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['base'][
                'checksum']
     client.delete(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'])
@@ -106,8 +107,8 @@ def test_query_metadata(client, base_ddo_url):
                         content_type='application/json')
 
         response = json.loads(
-            client.get(base_ddo_url + '/query?text=Office&page=1&offset=5',)
-            .data.decode('utf-8')
+            client.get(base_ddo_url + '/query?text=Office&page=1&offset=5', )
+                .data.decode('utf-8')
         )
         assert response['page'] == 1
         assert response['total_pages'] == int(num_assets / 5) + int(num_assets % 5 > 0)
@@ -115,8 +116,8 @@ def test_query_metadata(client, base_ddo_url):
         assert len(response['results']) == 5
 
         response = json.loads(
-            client.get(base_ddo_url + '/query?text=Office&page=3&offset=5',)
-            .data.decode('utf-8')
+            client.get(base_ddo_url + '/query?text=Office&page=3&offset=5', )
+                .data.decode('utf-8')
         )
         assert response['page'] == 3
         assert response['total_pages'] == int(num_assets / 5) + int(num_assets % 5 > 0)
@@ -124,8 +125,8 @@ def test_query_metadata(client, base_ddo_url):
         assert len(response['results']) == num_assets - (5 * (response['total_pages'] - 1))
 
         response = json.loads(
-            client.get(base_ddo_url + '/query?text=Office&page=4&offset=5',)
-            .data.decode('utf-8')
+            client.get(base_ddo_url + '/query?text=Office&page=4&offset=5', )
+                .data.decode('utf-8')
         )
         assert response['page'] == 4
         assert response['total_pages'] == int(num_assets / 5) + int(num_assets % 5 > 0)
@@ -144,17 +145,19 @@ def test_delete_all(client_with_no_data, base_ddo_url):
     client_with_no_data.post(base_ddo_url,
                              data=json.dumps(json_update),
                              content_type='application/json')
-    assert len(json.loads(client_with_no_data.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
+    assert len(json.loads(
+        client_with_no_data.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
                    'ids']) == 2
     client_with_no_data.delete(base_ddo_url)
-    assert len(json.loads(client_with_no_data.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
+    assert len(json.loads(
+        client_with_no_data.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
                    'ids']) == 0
 
 
 def test_is_listed(client, base_ddo_url):
     assert len(json.loads(
         client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))['ids']
-    ) == 2
+               ) == 2
 
     client.put(
         base_ddo_url + '/%s' % json_dict['id'],
@@ -162,7 +165,7 @@ def test_is_listed(client, base_ddo_url):
         content_type='application/json')
     assert len(json.loads(
         client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))['ids']
-    ) == 1
+               ) == 1
     assert len(json.loads(
         client.post(base_ddo_url + '/query',
                     data=json.dumps({"query": {"price": [0, 16]}}),

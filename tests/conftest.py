@@ -273,19 +273,16 @@ json_dict = {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity",
-                    "size": "3.1gb",
-                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "dateCreated": "2012-02-01T10:55:11Z",
+                    "datePublished": "2019-03-29T13:01:30Z",
                     "author": "Met Office",
                     "license": "CC-BY",
                     "copyrightHolder": "Met Office",
-                    "encoding": "UTF-8",
-                    "compression": "zip",
-                    "contentType": "text/csv",
-                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity\n423432fsd,51.509865,-0.118092,"
-                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature, humidity /n"
+                                   "423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
-                        "contentLength": "4535431",
+                        "index": 0,
+                        "contentLength": 4535431,
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -302,27 +299,32 @@ json_dict = {
                         {
                             "name": "Data Format Definition",
                             "type": "format",
-                            "AssetID":
-                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                            "url": "https://foo.com/sample2.csv"
                         }
                     ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": 10,
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
-                },
-                "additionalInformation": {
-                    "updateFrecuency": "yearly",
-                    "structuredMarkup": [
-                        {
-                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                            "mediaType": "application/ld+json"
-                        },
-                        {
-                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
-                            "mediaType": "text/turtle"
-                        }
-                    ]
+                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262",
+                    "curation": {
+                        "rating": 0.0,
+                        "numVotes": 0,
+                        "schema": "Binary Votting",
+                        "isListed": True
+                    },
+                    "additionalInformation": {
+                        "updateFrecuency": "yearly",
+                        "structuredMarkup": [
+                            {
+                                "uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                                "mediaType": "application/ld+json"
+                            },
+                            {
+                                "uri": "http://skos.um.es/unescothes/C01194/turtle",
+                                "mediaType": "text/turtle"
+                            }
+                        ]
+                    }
                 }
             }
         }
@@ -559,16 +561,17 @@ json_dict2 = {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity",
-                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "dateCreated": "2012-02-01T10:55:11Z",
+                    "datePublished": "2012-02-01T10:55:11Z",
                     "author": "Met Office",
                     "license": "CC-BY",
                     "copyrightHolder": "Met Office",
-                    "compression": "zip",
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
-                        "contentLength": "4535431",
+                        "index": 0,
+                        "contentLength": 4535431,
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -585,33 +588,32 @@ json_dict2 = {
                         {
                             "name": "Data Format Definition",
                             "type": "format",
-                            "AssetID":
-                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                            "url": "https://foo.com/sample2.csv"
                         }
                     ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": 10,
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
-                },
-                "curation": {
-                    "rating": 0.93,
-                    "numVotes": 123,
-                    "schema": "Binary Voting",
-                    "isListed": False
-                },
-                "additionalInformation": {
-                    "updateFrecuency": "yearly",
-                    "structuredMarkup": [
-                        {
-                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                            "mediaType": "application/ld+json"
-                        },
-                        {
-                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
-                            "mediaType": "text/turtle"
-                        }
-                    ]
+                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262",
+                    "curation": {
+                        "rating": 0.93,
+                        "numVotes": 123,
+                        "schema": "Binary Voting",
+                        "isListed": False
+                    },
+                    "additionalInformation": {
+                        "updateFrecuency": "yearly",
+                        "structuredMarkup": [
+                            {
+                                "uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                                "mediaType": "application/ld+json"
+                            },
+                            {
+                                "uri": "http://skos.um.es/unescothes/C01194/turtle",
+                                "mediaType": "text/turtle"
+                            }
+                        ]
+                    }
                 }
             }
         }
@@ -679,19 +681,17 @@ json_before = {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity",
-                    "size": "3.1gb",
                     "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "datePublished": "2019-03-29T13:01:30Z",
                     "author": "Met Office",
                     "license": "CC-BY",
                     "copyrightHolder": "Met Office",
-                    "encoding": "UTF-8",
-                    "compression": "zip",
-                    "contentType": "text/csv",
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
-                        "contentLength": "4535431",
+                        "index": 0,
+                        "contentLength": 4535431,
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -708,28 +708,27 @@ json_before = {
                         {
                             "name": "Data Format Definition",
                             "type": "format",
-                            "AssetID":
-                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                            "url": "https://foo.com/sample2.csv"
                         }
                     ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": 10,
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
-                },
-                "curation": {
-                    "rating": 0.0,
-                    "numVotes": 0,
-                    "schema": "Binary Votting",
-                    "isListed": True
-                },
-                "additionalInformation": {
-                    "updateFrecuency": "yearly",
-                    "structuredMarkup": [
-                        {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                         "mediaType": "application/ld+json"},
-                        {"uri": "http://skos.um.es/unescothes/C01194/turtle",
-                         "mediaType": "text/turtle"}]
+                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262",
+                    "curation": {
+                        "rating": 0.0,
+                        "numVotes": 0,
+                        "schema": "Binary Votting",
+                        "isListed": True
+                    },
+                    "additionalInformation": {
+                        "updateFrecuency": "yearly",
+                        "structuredMarkup": [
+                            {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                             "mediaType": "application/ld+json"},
+                            {"uri": "http://skos.um.es/unescothes/C01194/turtle",
+                             "mediaType": "text/turtle"}]
+                    }
                 }
             }
         }
@@ -791,19 +790,17 @@ json_update = {
                     "name": "UK Weather information 2012",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity",
-                    "size": "3.1gb",
-                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "dateCreated": "2012-02-01T10:55:11Z",
+                    "datePublished": "2019-03-29T13:01:30Z",
                     "author": "Met Office",
                     "license": "CC-BY",
                     "copyrightHolder": "Met Office",
-                    "encoding": "UTF-8",
-                    "compression": "zip",
-                    "contentType": "text/csv",
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
-                        "contentLength": "4535431",
+                        "index": 0,
+                        "contentLength": 4535431,
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -820,102 +817,103 @@ json_update = {
                         {
                             "name": "Data Format Definition",
                             "type": "format",
-                            "AssetID":
-                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                            "url": "https://foo.com/sample2.csv"
                         }
                     ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": 15,
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
-                },
-                "curation": {
-                    "rating": 8.0,
-                    "numVotes": 1,
-                    "schema": "Binary Votting",
-                    "isListed": True
-                },
-                "additionalInformation": {
-                    "updateFrecuency": "yearly",
-                    "structuredMarkup": [
-                        {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                         "mediaType": "application/ld+json"},
-                        {"uri": "http://skos.um.es/unescothes/C01194/turtle",
-                         "mediaType": "text/turtle"}]
+                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264",
+                    "curation": {
+                        "rating": 8.0,
+                        "numVotes": 1,
+                        "schema": "Binary Votting",
+                        "isListed": True
+                    },
+                    "additionalInformation": {
+                        "updateFrecuency": "yearly",
+                        "structuredMarkup": [
+                            {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
+                             "mediaType": "application/ld+json"},
+                            {"uri": "http://skos.um.es/unescothes/C01194/turtle",
+                             "mediaType": "text/turtle"}]
+                    }
                 }
             }
         }
     ]
 }
 json_valid = {
-  "base": {
-    "name": "10 Monkey Species Small",
-    "dateCreated": "2012-02-01T10:55:11Z",
-    "author": "Mario",
-    "license": "CC0: Public Domain",
-    "price": 10,
-    "files": [
-      {
-        "contentType": "application/zip",
-        "encoding": "UTF-8",
-        "compression": "zip",
-        "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
-        "checksumType": "MD5",
-        "contentLength": 12057507,
-        "url": "https://s3.amazonaws.com/assets/training.zip"
-      },
-      {
-        "contentType": "text/txt",
-        "encoding": "UTF-8",
-        "compression": "none",
-        "checksum": "354d19c0733c47ef3a6cce5b633116b0",
-        "checksumType": "MD5",
-        "contentLength": 928,
-        "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
-      },
-      {
-        "contentType": "application/zip",
-        "url": "https://s3.amazonaws.com/datacommons/validation.zip"
-      }
-    ],
-    "checksum": "",
-    "categories": [
-      "image"
-    ],
-    "tags": [
-      "image data",
-      "classification",
-      "animals"
-    ],
-    "type": "dataset",
-    "description": "EXAMPLE ONLY ",
-    "copyrightHolder": "Unknown",
-    "workExample": "image path, id, label",
-    "links": [
-      {
-        "name": "example model",
-        "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
-      },
-      {
-        "name": "example code",
-        "type": "example code",
-        "url": "https://github.com/slothkong/CNN_classification_10_monkey_species"
-      },
-      {
-        "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
-        "name": "n5151.jpg",
-        "type": "discovery"
-      },
-      {
-        "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
-        "name": "sample.zip",
-        "type": "sample"
-      }
-    ],
-    "inLanguage": "en"
-  }
+    "base": {
+        "name": "10 Monkey Species Small",
+        "dateCreated": "2012-02-01T10:55:11Z",
+        "author": "Mario",
+        "license": "CC0: Public Domain",
+        "price": 10,
+        "files": [
+            {
+                "index": 0,
+                "contentType": "application/zip",
+                "encoding": "UTF-8",
+                "compression": "zip",
+                "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
+                "checksumType": "MD5",
+                "contentLength": 12057507,
+                "url": "https://s3.amazonaws.com/assets/training.zip"
+            },
+            {
+                "index": 1,
+                "contentType": "text/txt",
+                "encoding": "UTF-8",
+                "compression": "none",
+                "checksum": "354d19c0733c47ef3a6cce5b633116b0",
+                "checksumType": "MD5",
+                "contentLength": 928,
+                "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
+            },
+            {
+                "index": 2,
+                "contentType": "application/zip",
+                "url": "https://s3.amazonaws.com/datacommons/validation.zip"
+            }
+        ],
+        "checksum": "",
+        "categories": [
+            "image"
+        ],
+        "tags": [
+            "image data",
+            "classification",
+            "animals"
+        ],
+        "type": "dataset",
+        "description": "EXAMPLE ONLY ",
+        "copyrightHolder": "Unknown",
+        "workExample": "image path, id, label",
+        "links": [
+            {
+                "name": "example model",
+                "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
+            },
+            {
+                "name": "example code",
+                "type": "example code",
+                "url": "https://github.com/slothkong/CNN_classification_10_monkey_species"
+            },
+            {
+                "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
+                "name": "n5151.jpg",
+                "type": "discovery"
+            },
+            {
+                "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
+                "name": "sample.zip",
+                "type": "sample"
+            }
+        ],
+        "inLanguage": "en"
+    }
 }
-
 
 test_assets = []
 for i in range(10):
