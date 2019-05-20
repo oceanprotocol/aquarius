@@ -1,9 +1,13 @@
 History
 =======
 
+0.2.3 (May 20th, 2019)
+----------------------
+* Save price as a String.
+
 0.2.2 (April 9th, 2019)
 ----------------------
-* Fix bug in search queries
+* Fix bug in search queries.
 
 0.2.1 (April 5th, 2019)
 -----------------------
