@@ -185,7 +185,8 @@ def register():
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
@@ -264,6 +265,8 @@ def register():
     for service in _record['service']:
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
+            _record['service'][service_id]['metadata']['base']['price'] = str(
+                _record['service'][service_id]['metadata']['base']['price'])
             _record['service'][service_id]['metadata']['base']['datePublished'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
                                   '%Y-%m-%dT%H:%M:%SZ')
@@ -467,6 +470,8 @@ def update(did):
             for service in _record['service']:
                 service_id = int(service['serviceDefinitionId'])
                 if service['type'] == 'Metadata':
+                    _record['service'][service_id]['metadata']['base']['price'] = str(
+                        _record['service'][service_id]['metadata']['base']['price'])
                     _record['service'][service_id]['metadata']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
             dao.update(_record, did)
@@ -689,6 +694,12 @@ def validate():
 def _sanitize_record(data_record):
     if '_id' in data_record:
         data_record.pop('_id')
+    if 'service' in data_record:
+        for service in data_record['service']:
+            if service['type'] == 'Metadata':
+                service_id = int(service['serviceDefinitionId'])
+                data_record['service'][service_id]['metadata']['base']['price'] = int(
+                    data_record['service'][service_id]['metadata']['base']['price'])
     return json.dumps(data_record, default=_my_converter)
 
 

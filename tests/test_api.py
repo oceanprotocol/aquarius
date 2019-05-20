@@ -89,7 +89,7 @@ def test_query_metadata(client, base_ddo_url):
                    'results']) == 2
     assert len(json.loads(client.post(base_ddo_url + '/query',
                                       data=json.dumps(
-                                          {"query": {"price": [14, 16]}}),
+                                          {"query": {"price": ["14", "16"]}}),
                                       content_type='application/json').data.decode('utf-8'))[
                    'results']) == 1
     assert len(json.loads(client.get(base_ddo_url + '/query?text=Office',
@@ -165,7 +165,7 @@ def test_is_listed(client, base_ddo_url):
     ) == 1
     assert len(json.loads(
         client.post(base_ddo_url + '/query',
-                    data=json.dumps({"query": {"price": [0, 16]}}),
+                    data=json.dumps({"query": {"price": ["0", "16"]}}),
                     content_type='application/json').data.decode('utf-8')
     )['results']) == 1
 
