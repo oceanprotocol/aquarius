@@ -93,11 +93,10 @@ def test_query_metadata(client, base_ddo_url):
                                       content_type='application/json').data.decode('utf-8'))[
                    'results']) == 1
     assert len(json.loads(client.get(base_ddo_url + '/query?text=Office',
-                                     ).data.decode('utf-8'))['results']) == 2
+                                     ).data.decode('utf-8'))['results']) == 1
     assert len(json.loads(
         client.get(base_ddo_url + '/query?text=112233445566778899',
                    ).data.decode('utf-8'))['results']) == 1
-
     try:
         num_assets = len(test_assets) + 2
         for a in test_assets:
@@ -106,7 +105,7 @@ def test_query_metadata(client, base_ddo_url):
                         content_type='application/json')
 
         response = json.loads(
-            client.get(base_ddo_url + '/query?text=Office&page=1&offset=5',)
+            client.get(base_ddo_url + '/query?text=white&page=1&offset=5',)
             .data.decode('utf-8')
         )
         assert response['page'] == 1
@@ -115,7 +114,7 @@ def test_query_metadata(client, base_ddo_url):
         assert len(response['results']) == 5
 
         response = json.loads(
-            client.get(base_ddo_url + '/query?text=Office&page=3&offset=5',)
+            client.get(base_ddo_url + '/query?text=white&page=3&offset=5',)
             .data.decode('utf-8')
         )
         assert response['page'] == 3
@@ -124,7 +123,7 @@ def test_query_metadata(client, base_ddo_url):
         assert len(response['results']) == num_assets - (5 * (response['total_pages'] - 1))
 
         response = json.loads(
-            client.get(base_ddo_url + '/query?text=Office&page=4&offset=5',)
+            client.get(base_ddo_url + '/query?text=white&page=4&offset=5',)
             .data.decode('utf-8')
         )
         assert response['page'] == 4
