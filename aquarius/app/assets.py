@@ -274,6 +274,12 @@ def register():
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
+        if service['type'] == 'Access':
+            service_id = int(service['serviceDefinitionId'])
+            for condition in _record['service'][service_id]['conditions']:
+                for parameter in condition['parameters']:
+                    if parameter['name'] == 'price':
+                        parameter['value'] = str(parameter['value'])
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -474,6 +480,12 @@ def update(did):
                         _record['service'][service_id]['metadata']['base']['price'])
                     _record['service'][service_id]['metadata']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
+                if service['type'] == 'Access':
+                    service_id = int(service['serviceDefinitionId'])
+                    for condition in _record['service'][service_id]['conditions']:
+                        for parameter in condition['parameters']:
+                            if parameter['name'] == 'price':
+                                parameter['value'] = str(parameter['value'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
     except Exception as err:

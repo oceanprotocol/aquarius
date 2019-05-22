@@ -1,6 +1,10 @@
 History
 =======
 
+0.2.4 (May 22th, 2019)
+----------------------
+* Fix bug in the condition price type.
+
 0.2.3 (May 20th, 2019)
 ----------------------
 * Save price as a String.
