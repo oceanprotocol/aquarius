@@ -123,7 +123,7 @@ json_dict = {
                         }, {
                             "name": "price",
                             "type": "uint256",
-                            "value": "10"
+                            "value": 88888880000000000000000000000000
                         }
                     ],
                     "events": [{
@@ -202,7 +202,7 @@ json_dict = {
                         }, {
                             "name": "price",
                             "type": "uint",
-                            "value": "10"
+                            "value": 88888880000000000000000000000000
                         }
                     ],
                     "events": [{
@@ -240,7 +240,7 @@ json_dict = {
                         }, {
                             "name": "price",
                             "type": "uint",
-                            "value": "10"
+                            "value": 88888880000000000000000000000000
                         }
                     ],
                     "events": [{
@@ -308,7 +308,7 @@ json_dict = {
                     ],
                     "inLanguage": "en",
                     "tags": "weather, uk, 2011, temperature, humidity",
-                    "price": 10,
+                    "price": 88888880000000000000000000000000,
                     "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "additionalInformation": {
@@ -591,7 +591,7 @@ json_dict2 = {
                     ],
                     "inLanguage": "en",
                     "tags": "weather, uk, 2011, temperature, humidity",
-                    "price": 10,
+                    "price": 88888880000000000000,
                     "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "curation": {
@@ -714,7 +714,7 @@ json_before = {
                     ],
                     "inLanguage": "en",
                     "tags": "weather, uk, 2011, temperature, humidity",
-                    "price": 10,
+                    "price": 88888880000000000000,
                     "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "curation": {
