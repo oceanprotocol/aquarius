@@ -276,9 +276,9 @@ def register():
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
         if service['type'] == 'Access':
             service_id = int(service['serviceDefinitionId'])
-            for condition in _record['service'][service_id]['conditions']:
+            for condition in _record['service'][service_id]['serviceAgreementTemplate']['conditions']:
                 for parameter in condition['parameters']:
-                    if parameter['name'] == 'price':
+                    if parameter['name'] == '_amount':
                         parameter['value'] = str(parameter['value'])
     try:
         dao.register(_record, data['id'])
@@ -482,9 +482,9 @@ def update(did):
                         dao.get(did)['service'])
                 if service['type'] == 'Access':
                     service_id = int(service['serviceDefinitionId'])
-                    for condition in _record['service'][service_id]['conditions']:
+                    for condition in _record['service'][service_id]['serviceAgreementTemplate']['conditions']:
                         for parameter in condition['parameters']:
-                            if parameter['name'] == 'price':
+                            if parameter['name'] == '_amount':
                                 parameter['value'] = str(parameter['value'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
