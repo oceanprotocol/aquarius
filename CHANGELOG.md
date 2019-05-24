@@ -1,11 +1,15 @@
 History
 =======
 
-0.2.5 (May 22th, 2019)
+0.2.5 (May 24th, 2019)
+----------------------
+* Update elasticsearch plugin
+
+0.2.5 (May 22nd, 2019)
 ----------------------
 * Fix error related with the ddo version.
 
-0.2.4 (May 22th, 2019)
+0.2.4 (May 22nd, 2019)
 ----------------------
 * Fix bug in the condition price type.
 
