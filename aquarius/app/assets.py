@@ -276,7 +276,8 @@ def register():
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
         if service['type'] == 'Access':
             service_id = int(service['serviceDefinitionId'])
-            for condition in _record['service'][service_id]['serviceAgreementTemplate']['conditions']:
+            for condition in _record['service'][service_id]['serviceAgreementTemplate'][
+                'conditions']:
                 for parameter in condition['parameters']:
                     if parameter['name'] == '_amount':
                         parameter['value'] = str(parameter['value'])
@@ -380,7 +381,8 @@ def update(did):
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
 
@@ -712,6 +714,13 @@ def _sanitize_record(data_record):
                 service_id = int(service['serviceDefinitionId'])
                 data_record['service'][service_id]['metadata']['base']['price'] = int(
                     data_record['service'][service_id]['metadata']['base']['price'])
+            if service['type'] == 'Access':
+                service_id = int(service['serviceDefinitionId'])
+                for condition in data_record['service'][service_id]['serviceAgreementTemplate'][
+                    'conditions']:
+                    for parameter in condition['parameters']:
+                        if parameter['name'] == '_amount':
+                            parameter['value'] = int(parameter['value'])
     return json.dumps(data_record, default=_my_converter)
 
 
