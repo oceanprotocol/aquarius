@@ -263,8 +263,6 @@ def register():
     for service in _record['service']:
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
-            _record['service'][service_id]['metadata']['base']['price'] = str(
-                _record['service'][service_id]['metadata']['base']['price'])
             _record['service'][service_id]['metadata']['base']['datePublished'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
                                   '%Y-%m-%dT%H:%M:%SZ')
@@ -272,13 +270,6 @@ def register():
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
-        if service['type'] == 'Access':
-            service_id = int(service['serviceDefinitionId'])
-            for condition in _record['service'][service_id]['serviceAgreementTemplate'][
-                'conditions']:
-                for parameter in condition['parameters']:
-                    if parameter['name'] == '_amount':
-                        parameter['value'] = str(parameter['value'])
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -464,17 +455,8 @@ def update(did):
             for service in _record['service']:
                 service_id = int(service['serviceDefinitionId'])
                 if service['type'] == 'Metadata':
-                    _record['service'][service_id]['metadata']['base']['price'] = str(
-                        _record['service'][service_id]['metadata']['base']['price'])
                     _record['service'][service_id]['metadata']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
-                if service['type'] == 'Access':
-                    service_id = int(service['serviceDefinitionId'])
-                    for condition in _record['service'][service_id]['serviceAgreementTemplate'][
-                        'conditions']:
-                        for parameter in condition['parameters']:
-                            if parameter['name'] == '_amount':
-                                parameter['value'] = str(parameter['value'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
     except Exception as err:
@@ -699,19 +681,6 @@ def _list_errors(list_errors_function, data):
 def _sanitize_record(data_record):
     if '_id' in data_record:
         data_record.pop('_id')
-    if 'service' in data_record:
-        for service in data_record['service']:
-            if service['type'] == 'Metadata':
-                service_id = int(service['serviceDefinitionId'])
-                data_record['service'][service_id]['metadata']['base']['price'] = int(
-                    data_record['service'][service_id]['metadata']['base']['price'])
-            if service['type'] == 'Access':
-                service_id = int(service['serviceDefinitionId'])
-                for condition in data_record['service'][service_id]['serviceAgreementTemplate'][
-                    'conditions']:
-                    for parameter in condition['parameters']:
-                        if parameter['name'] == '_amount':
-                            parameter['value'] = int(parameter['value'])
     return json.dumps(data_record, default=_my_converter)
 
 
