@@ -8,7 +8,8 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
-from plecos.plecos import is_valid_dict, list_errors_dict_local
+from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_errors_dict_local,
+                           list_errors_dict_remote)
 
 from aquarius.app.dao import Dao
 from aquarius.log import setup_logging
@@ -240,19 +241,16 @@ def register():
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
-                                         'price', 'encryptedFiles', 'type', 'checksum']
     data = request.json
     if not data:
-        logger.error(f'request body seems empty, expecting {required_attributes}')
+        logger.error(f'request body seems empty.')
         return 400
     msg, status = check_required_attributes(required_attributes, data, 'register')
     if msg:
         return msg, status
-    msg, status = check_required_attributes(required_metadata_base_attributes,
-                                            _get_base_metadata(data['service']), 'register')
-    if msg:
-        return msg, status
+    if not is_valid_dict_remote(_get_metadata(data['service'])['metadata']):
+        return jsonify(logger.error(
+            _list_errors(list_errors_dict_remote, _get_metadata(data['service'])['metadata']))), 400
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
@@ -438,12 +436,7 @@ def update(did):
     """
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
-                                         'price', 'encryptedFiles', 'type', 'checksum']
-    required_metadata_curation_attributes = ['rating', 'numVotes']
-
     assert isinstance(request.json, dict), 'invalid payload format.'
-
     data = request.json
     if not data:
         logger.error(f'request body seems empty, expecting {required_attributes}')
@@ -451,26 +444,19 @@ def update(did):
     msg, status = check_required_attributes(required_attributes, data, 'update')
     if msg:
         return msg, status
-    msg, status = check_required_attributes(required_metadata_base_attributes,
-                                            _get_base_metadata(data['service']), 'update')
-    if msg:
-        return msg, status
-    msg, status = check_required_attributes(required_metadata_curation_attributes,
-                                            _get_curation_metadata(data['service']), 'update')
-    if msg:
-        return msg, status
+    if not is_valid_dict_remote(_get_metadata(data['service'])['metadata']):
+        return jsonify(logger.error(
+            _list_errors(list_errors_dict_remote, _get_metadata(data['service'])['metadata']))), 400
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = validate_date_format(data['created'])
     if msg:
         return msg, status
-
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     try:
-
         if dao.get(did) is None:
             register()
             return _sanitize_record(_record), 201
@@ -484,7 +470,8 @@ def update(did):
                         dao.get(did)['service'])
                 if service['type'] == 'Access':
                     service_id = int(service['serviceDefinitionId'])
-                    for condition in _record['service'][service_id]['serviceAgreementTemplate']['conditions']:
+                    for condition in _record['service'][service_id]['serviceAgreementTemplate'][
+                        'conditions']:
                         for parameter in condition['parameters']:
                             if parameter['name'] == '_amount':
                                 parameter['value'] = str(parameter['value'])
@@ -692,17 +679,21 @@ def validate():
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
-    if is_valid_dict(data):
+    if is_valid_dict_local(data):
         return jsonify(True)
     else:
-        error_list = list()
-        for err in list_errors_dict_local(data):
-            stack_path = list(err[1].relative_path)
-            stack_path = [str(p) for p in stack_path]
-            this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
-            error_list.append(this_err_response)
-        res = jsonify(error_list)
+        res = jsonify(_list_errors(list_errors_dict_local, data))
         return res
+
+
+def _list_errors(list_errors_function, data):
+    error_list = list()
+    for err in list_errors_function(data):
+        stack_path = list(err[1].relative_path)
+        stack_path = [str(p) for p in stack_path]
+        this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
+        error_list.append(this_err_response)
+    return error_list
 
 
 def _sanitize_record(data_record):

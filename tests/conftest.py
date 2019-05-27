@@ -127,7 +127,7 @@ json_dict = {
               {
                 "name": "_amount",
                 "type": "uint256",
-                "value": 888000000000000000000000000000000
+                "value": "888000000000000000000000000000000"
               }
             ]
           },
@@ -191,7 +191,7 @@ json_dict = {
               {
                 "name": "_amount",
                 "type": "uint256",
-                "value": 888000000000000000000000000000000
+                "value": "888000000000000000000000000000000"
               },
               {
                 "name": "_receiver",
@@ -227,28 +227,28 @@ json_dict = {
           "type": "dataset",
           "description": "Introduce the main concepts and vision behind ocean protocol",
           "dateCreated": "2012-10-10T17:00:000Z",
+          "datePublished": "2012-10-10T17:00:000Z",
           "author": "Ocean Protocol Foundation Ltd.",
           "license": "CC-BY",
           "copyrightHolder": "Ocean Protocol Foundation Ltd.",
-          "compression": "",
           "workExample": "Text PDF",
           "inLanguage": "en",
           "categories": [
             "white-papers"
           ],
           "tags": ["data exchange", "sharing", "curation", "bonding curve"],
-          "price": 888000000000000000000000000000000,
+          "price": "888000000000000000000000000000000",
           "files": [
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
               "checksumType": "MD5",
-              "contentLength": "4535431",
+              "contentLength": 4535431,
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 0
             },
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-              "contentLength": "4535431",
+              "contentLength": 4535431,
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 1
             },
@@ -258,13 +258,13 @@ json_dict = {
           ],
           "links": [
             {
-              "sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
             },
             {
-              "sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
             },
             {
-              "fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
             }
           ],
           "checksum": "6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
@@ -484,28 +484,28 @@ json_dict2 = {
           "type": "dataset",
           "description": "Introduce the main concepts and vision behind ocean protocol",
           "dateCreated": "2012-10-10T17:00:000Z",
+          "datePublished": "2012-10-10T17:00:000Z",
           "author": "Ocean Protocol Foundation Ltd.",
           "license": "CC-BY",
           "copyrightHolder": "Ocean Protocol Foundation Ltd.",
-          "compression": "",
           "workExample": "Text PDF",
           "inLanguage": "en",
           "categories": [
             "white-papers"
           ],
           "tags": ["data exchange", "sharing", "curation", "bonding curve"],
-          "price": 888000000000000000000000000000000,
+          "price": "888000000000000000000000000000000",
           "files": [
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
               "checksumType": "MD5",
-              "contentLength": "4535431",
+              "contentLength": 4535431,
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 0
             },
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-              "contentLength": "4535431",
+              "contentLength": 4535431,
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 1
             },
@@ -515,13 +515,13 @@ json_dict2 = {
           ],
           "links": [
             {
-              "sample1": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
             },
             {
-              "sample2": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
             },
             {
-              "fieldsDescription": "http://data.ceda.ac.uk/badc/ukcp09/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
             }
           ],
           "checksum": "6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
@@ -619,19 +619,17 @@ json_before = {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity",
-                    "size": "3.1gb",
                     "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "datePublished": "2012-02-01T10:55:11+00:00",
                     "author": "Met Office",
                     "license": "CC-BY",
                     "copyrightHolder": "Met Office",
-                    "encoding": "UTF-8",
-                    "compression": "zip",
-                    "contentType": "text/csv",
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
-                        "contentLength": "4535431",
+                        "index": 0,
+                        "contentLength": 4535431,
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -648,13 +646,12 @@ json_before = {
                         {
                             "name": "Data Format Definition",
                             "type": "format",
-                            "AssetID":
-                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                            "url": "https://foo.com/sample2.csv"
                         }
                     ],
                     "inLanguage": "en",
                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
-                    "price": 88888880000000000000,
+                    "price": "88888880000000000000",
                     "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "curation": {
@@ -731,19 +728,17 @@ json_update = {
                     "name": "UK Weather information 2012",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity and white",
-                    "size": "3.1gb",
-                    "dateCreated": "2012-02-01T10:55:11+00:00",
+                    "dateCreated": "2012-02-01T10:55:11Z",
+                    "datePublished": "2012-02-01T10:55:11Z",
                     "author": "Met Office",
                     "license": "CC-BY",
                     "copyrightHolder": "Met Office",
-                    "encoding": "UTF-8",
-                    "compression": "zip",
-                    "contentType": "text/csv",
                     "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity\n423432fsd,51.509865,-0.118092,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
                                    "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
-                        "contentLength": "4535431",
+                        "index": 0,
+                        "contentLength": 4535431,
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -760,13 +755,12 @@ json_update = {
                         {
                             "name": "Data Format Definition",
                             "type": "format",
-                            "AssetID":
-                                "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
+                            "url": "https://foo.com/sample2.csv"
                         }
                     ],
                     "inLanguage": "en",
                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
-                    "price": 15,
+                    "price": "15",
                     "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
                 },
                 "curation": {
@@ -793,9 +787,10 @@ json_valid = {
     "dateCreated": "2012-02-01T10:55:11Z",
     "author": "Mario",
     "license": "CC0: Public Domain",
-    "price": 10,
+    "price": "10",
     "files": [
       {
+        "index": 0,
         "contentType": "application/zip",
         "encoding": "UTF-8",
         "compression": "zip",
@@ -805,6 +800,7 @@ json_valid = {
         "url": "https://s3.amazonaws.com/assets/training.zip"
       },
       {
+        "index": 1,
         "contentType": "text/txt",
         "encoding": "UTF-8",
         "compression": "none",
@@ -814,6 +810,7 @@ json_valid = {
         "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
       },
       {
+        "index": 2,
         "contentType": "application/zip",
         "url": "https://s3.amazonaws.com/datacommons/validation.zip"
       }
