@@ -236,7 +236,7 @@ json_dict = {
           "categories": [
             "white-papers"
           ],
-          "tags": "data exchange sharing curation bonding curve",
+          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
           "price": 888000000000000000000000000000000,
           "files": [
             {
@@ -493,7 +493,7 @@ json_dict2 = {
           "categories": [
             "white-papers"
           ],
-          "tags": "data exchange sharing curation bonding curve",
+          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
           "price": 888000000000000000000000000000000,
           "files": [
             {
@@ -653,7 +653,7 @@ json_before = {
                         }
                     ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": 88888880000000000000,
                     "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
@@ -765,7 +765,7 @@ json_update = {
                         }
                     ],
                     "inLanguage": "en",
-                    "tags": "weather, uk, 2011, temperature, humidity",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": 15,
                     "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
                 },

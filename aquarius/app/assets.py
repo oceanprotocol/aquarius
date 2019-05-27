@@ -203,7 +203,7 @@ def register():
                                         }
                                     ],
                                     "inLanguage": "en",
-                                    "tags": "weather, uk, 2011, temperature, humidity",
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                                     "price": 10,
                                     "checksum":
                                     "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
@@ -400,7 +400,7 @@ def update(did):
                                         }
                                     ],
                                     "inLanguage": "en",
-                                    "tags": "weather, uk, 2011, temperature, humidity",
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                                     "price": 10,
                                     "checksum":
                                     "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
