@@ -28,7 +28,7 @@ install_requirements = [
     # 'oceandb-bigchaindb-driver==0.1.4',
     'PyYAML==5.1',
     'pytz==2018.5',
-    'plecos==0.7.6'
+    'plecos==0.7.7'
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
@@ -78,6 +78,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='0.2.6',
+    version='0.2.7',
     zip_safe=False,
 )

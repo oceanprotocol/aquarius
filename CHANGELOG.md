@@ -1,6 +1,10 @@
 History
 =======
 
+0.2.7 (May 28th, 2019)
+----------------------
+* Update plecos version
+
 0.2.5 (May 24th, 2019)
 ----------------------
 * Update elasticsearch plugin
