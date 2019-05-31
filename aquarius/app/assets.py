@@ -121,11 +121,11 @@ def register():
           properties:
             "@context":
               description:
-              example: https://w3id.org/future-method/v1
+              example: https://w3id.org/did/v1
               type: string
             id:
               description: ID of the asset.
-              example: did:op:123456789abcdefghi
+              example: did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e429
               type: string
             created:
               description: date of ddo creation.
@@ -134,39 +134,40 @@ def register():
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id": "did:op:123456789abcdefghi#keys-1"},
-                            {"type": "Ed25519VerificationKey2018"},
-                            {"owner": "did:op:123456789abcdefghi"},
-                            {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
+                  example: [{"id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
+                            {"type": "EthereumECDSAKey"},
+                            {"owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+                            {"publicKey": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
-                  example:  {"type": "UUIDSignature",
+                  example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
-                             "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
-                             "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+                             "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
+                             "signatureValue": "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
                   description: List of services.
-                  example: [{"type": "Access",
-                             "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${
-                             pubKey}&serviceId={serviceId}&url={url}"},
-                            {"type": "Compute",
-                             "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
-                             pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                  example: [{"type": "Authorization",
+                              "serviceEndpoint": "http://localhost:12001",
+                              "service": "SecretStore",
+                              "serviceDefinitionId": "0"
+                            },
+                            {"type": "Access",
+                             "serviceDefinitionId": "1",
+                             "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
+                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"
+                             },
                            {
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
                             "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
@@ -174,18 +175,19 @@ def register():
                                     "description": "Weather information of UK including
                                     temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
+                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
-                                    "compression": "zip",
                                     "workExample": "stationId,latitude,longitude,datetime,
                                     temperature,humidity/n423432fsd,51.509865,-0.118092,
                                     2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": "4535431",
+                                            "contentLength": 4535431,
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
+                                            "index" :0,
                                             "resourceId":
                                             "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
@@ -195,19 +197,13 @@ def register():
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
                                             "url": "https://foo.com/sample.csv"
-                                        },
-                                        {
-                                            "name": "Data Format Definition",
-                                            "type": "format",
-                                            "AssetID":
-                                            "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
                                     "inLanguage": "en",
                                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
-                                    "price": 10,
+                                    "price": "10",
                                     "checksum":
-                                    "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -248,9 +244,6 @@ def register():
     msg, status = check_required_attributes(required_attributes, data, 'register')
     if msg:
         return msg, status
-    if not is_valid_dict_remote(_get_metadata(data['service'])['metadata']):
-        return jsonify(logger.error(
-            _list_errors(list_errors_dict_remote, _get_metadata(data['service'])['metadata']))), 400
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
@@ -266,10 +259,17 @@ def register():
             _record['service'][service_id]['metadata']['base']['datePublished'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
                                   '%Y-%m-%dT%H:%M:%SZ')
+            _record['service'][service_id]['metadata']['base']['dateCreated'] = \
+                datetime.strptime(_record['service'][service_id]['metadata']['base']['dateCreated'],
+                                  '%Y-%m-%dT%H:%M:%SZ')
             _record['service'][service_id]['metadata']['curation'] = {}
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
+        return jsonify(logger.error(
+            _list_errors(list_errors_dict_remote,
+                         _get_metadata(_record['service'])['metadata']))), 400
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -288,6 +288,11 @@ def update(did):
     consumes:
       - application/json
     parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
       - in: body
         name: body
         required: true
@@ -305,11 +310,11 @@ def update(did):
           properties:
             "@context":
               description:
-              example: https://w3id.org/future-method/v1
+              example: https://w3id.org/did/v1
               type: string
             id:
               description: ID of the asset.
-              example: did:op:123456789abcdefghi
+              example: did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e429
               type: string
             created:
               description: date of ddo creation.
@@ -318,39 +323,39 @@ def update(did):
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id": "did:op:123456789abcdefghi#keys-1"},
-                            {"type": "Ed25519VerificationKey2018"},
-                            {"owner": "did:op:123456789abcdefghi"},
-                            {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
+                  example: [{"id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
+                            {"type": "EthereumECDSAKey"},
+                            {"owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+                            {"publicKey": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
-                  example:  {"type": "UUIDSignature",
+                  example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
-                             "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
-                             "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+                             "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
+                             "signatureValue": "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
                   description: List of services.
                   example: [{"type": "Access",
-                             "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${
-                             pubKey}&serviceId={serviceId}&url={url}"},
-                            {"type": "Compute",
-                             "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
-                             pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                             "serviceDefinitionId": "1",
+                             "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
+                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"},
+                            {"type": "Authorization",
+                              "serviceEndpoint": "http://localhost:12001",
+                              "service": "SecretStore",
+                              "serviceDefinitionId": "0"
+                            },
                            {
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
                             "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
@@ -358,41 +363,35 @@ def update(did):
                                     "description": "Weather information of UK including
                                     temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
+                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
-                                    "compression": "zip",
                                     "workExample": "stationId,latitude,longitude,datetime,
                                     temperature,humidity/n423432fsd,51.509865,-0.118092,
                                     2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": "4535431",
+                                            "contentLength": 4535431,
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
+                                            "index" :0,
                                             "resourceId":
                                             "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
-
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "links": [{
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
                                             "url": "https://foo.com/sample.csv"
-                                        },
-                                        {
-                                            "name": "Data Format Definition",
-                                            "type": "format",
-                                            "AssetID":
-                                            "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
                                     "inLanguage": "en",
                                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
-                                    "price": 10,
+                                    "price": "10",
                                     "checksum":
-                                    "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -435,9 +434,6 @@ def update(did):
     msg, status = check_required_attributes(required_attributes, data, 'update')
     if msg:
         return msg, status
-    if not is_valid_dict_remote(_get_metadata(data['service'])['metadata']):
-        return jsonify(logger.error(
-            _list_errors(list_errors_dict_remote, _get_metadata(data['service'])['metadata']))), 400
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
@@ -447,6 +443,10 @@ def update(did):
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
+        return jsonify(logger.error(
+            _list_errors(list_errors_dict_remote,
+                         _get_metadata(_record['service'])['metadata']))), 400
     try:
         if dao.get(did) is None:
             register()

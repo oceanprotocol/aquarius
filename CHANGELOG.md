@@ -1,6 +1,10 @@
 History
 =======
 
+0.2.8 (May 31st, 2019)
+----------------------
+* Fix small bugs.
+
 0.2.7 (May 28th, 2019)
 ----------------------
 * Update plecos version
