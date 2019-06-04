@@ -134,21 +134,24 @@ def register():
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
+                  example: [{"id":
+                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
                             {"type": "EthereumECDSAKey"},
                             {"owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
+                            {"publicKey":
+                            "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
                   example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
                              "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
-                             "signatureValue": "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
+                             "signatureValue":
+                             "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
@@ -160,14 +163,17 @@ def register():
                             },
                             {"type": "Access",
                              "serviceDefinitionId": "1",
-                             "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
-                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"
+                             "serviceEndpoint":
+                             "http://localhost:8030/api/v1/brizo/services/consume",
+                             "purchaseEndpoint":
+                             "http://localhost:8030/api/v1/brizo/services/access/initialize"
                              },
                            {
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
                             "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
+                            :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
@@ -267,9 +273,11 @@ def register():
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
     if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
-        return jsonify(logger.error(
+        logger.error(
             _list_errors(list_errors_dict_remote,
-                         _get_metadata(_record['service'])['metadata']))), 400
+                         _get_metadata(_record['service'])['metadata']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['metadata'])), 400
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -323,29 +331,34 @@ def update(did):
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
+                  example: [{"id":
+                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
                             {"type": "EthereumECDSAKey"},
                             {"owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
+                            {"publicKey":
+                            "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
                   example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
                              "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
-                             "signatureValue": "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
+                             "signatureValue":
+                             "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
                   description: List of services.
                   example: [{"type": "Access",
                              "serviceDefinitionId": "1",
-                             "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
-                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"},
+                             "serviceEndpoint":
+                             "http://localhost:8030/api/v1/brizo/services/consume",
+                             "purchaseEndpoint":
+                             "http://localhost:8030/api/v1/brizo/services/access/initialize"},
                             {"type": "Authorization",
                               "serviceEndpoint": "http://localhost:12001",
                               "service": "SecretStore",
@@ -355,7 +368,8 @@ def update(did):
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
                             "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
+                            :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
@@ -444,9 +458,10 @@ def update(did):
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
-        return jsonify(logger.error(
-            _list_errors(list_errors_dict_remote,
-                         _get_metadata(_record['service'])['metadata']))), 400
+        logger.error(_list_errors(list_errors_dict_remote,
+                                  _get_metadata(_record['service'])['metadata']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['metadata'])), 400
     try:
         if dao.get(did) is None:
             register()
