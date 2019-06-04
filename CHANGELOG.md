@@ -1,6 +1,10 @@
 History
 =======
 
+0.2.8 (June 4th, 2019)
+----------------------
+* Return errors when parameters are not ok.
+
 0.2.8 (May 31st, 2019)
 ----------------------
 * Fix small bugs.
