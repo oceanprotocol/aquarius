@@ -24,7 +24,7 @@ def test_create_ddo(client, base_ddo_url):
         content_type='application/json')
     assert json_dict['id'] in json.loads(rv.data.decode('utf-8'))['id']
     assert json_dict['@context'] in json.loads(rv.data.decode('utf-8'))['@context']
-    assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][2][
+    assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][0][
         'type']
 
 
@@ -39,7 +39,7 @@ def test_upsert_ddo(client_with_no_data, base_ddo_url):
     assert 201 == put.status_code
     assert json_dict['id'] in json.loads(rv.data.decode('utf-8'))['id']
     assert json_dict['@context'] in json.loads(rv.data.decode('utf-8'))['@context']
-    assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][2][
+    assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][0][
         'type']
     client_with_no_data.delete(
         base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'])
@@ -73,10 +73,10 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
         content_type='application/json')
     assert 200 == put.status_code
     assert json_update['service'][2]['metadata']['curation']['numVotes'] == \
-        json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['curation']['numVotes']
-    assert json.loads(post.data.decode('utf-8'))['service'][2]['metadata']['base'][
+        json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['curation']['numVotes']
+    assert json.loads(post.data.decode('utf-8'))['service'][0]['metadata']['base'][
                'checksum'] != \
-        json.loads(rv.data.decode('utf-8'))['service'][2]['metadata']['base'][
+        json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['base'][
                'checksum']
     client.delete(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'])

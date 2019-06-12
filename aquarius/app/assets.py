@@ -272,6 +272,7 @@ def register():
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
+    _record['service'] = _reorder_services(_record['service'])
     if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
         logger.error(
             _list_errors(list_errors_dict_remote,
@@ -457,6 +458,7 @@ def update(did):
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
+    _record['service'] = _reorder_services(_record['service'])
     if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
         logger.error(_list_errors(list_errors_dict_remote,
                                   _get_metadata(_record['service'])['metadata']))
@@ -763,3 +765,19 @@ def _make_paginate_response(query_list_result, search_model):
     result['total_pages'] = int(total / offset) + int(total % offset > 0)
     result['total_results'] = total
     return result
+
+
+def _reorder_services(services):
+    result = []
+    service_id = '0'
+    for service in services:
+        if service['type'] == 'Metadata':
+            service_id = service['serviceDefinitionId']
+            service['serviceDefinitionId'] = '0'
+            result.append(service)
+    for service in services:
+        if service['type'] != 'Metadata':
+            if service['serviceDefinitionId'] == '0':
+                service['serviceDefinitionId'] = service_id
+            result.append(service)
+    return sorted(result, key=lambda k: k['serviceDefinitionId'])
