@@ -1,7 +1,12 @@
 History
 =======
 
-0.2.8 (June 4th, 2019)
+0.3.0 (June 4th, 2019)
+----------------------
+* Reorder services to have the metadata the first in the array.
+* Small bugs and upgrade of plugins.
+
+0.2.9 (June 4th, 2019)
 ----------------------
 * Return errors when parameters are not ok.
 
@@ -13,7 +18,7 @@ History
 ----------------------
 * Update plecos version
 
-0.2.5 (May 24th, 2019)
+0.2.6 (May 24th, 2019)
 ----------------------
 * Update elasticsearch plugin
 
