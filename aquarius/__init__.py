@@ -3,4 +3,4 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 __author__ = """OceanProtocol"""
-__version__ = '0.2.9'
+__version__ = '0.2.10'
