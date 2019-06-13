@@ -470,9 +470,8 @@ def update(did):
             return _sanitize_record(_record), 201
         else:
             for service in _record['service']:
-                service_id = int(service['serviceDefinitionId'])
                 if service['type'] == 'Metadata':
-                    _record['service'][service_id]['metadata']['base']['datePublished'] = _get_date(
+                    _record['service'][0]['metadatsa']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
@@ -769,15 +768,10 @@ def _make_paginate_response(query_list_result, search_model):
 
 def _reorder_services(services):
     result = []
-    service_id = '0'
     for service in services:
         if service['type'] == 'Metadata':
-            service_id = service['serviceDefinitionId']
-            service['serviceDefinitionId'] = '0'
             result.append(service)
     for service in services:
         if service['type'] != 'Metadata':
-            if service['serviceDefinitionId'] == '0':
-                service['serviceDefinitionId'] = service_id
             result.append(service)
-    return sorted(result, key=lambda k: k['serviceDefinitionId'])
+    return result
