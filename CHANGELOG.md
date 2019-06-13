@@ -1,7 +1,11 @@
 History
 =======
 
-0.3.0 (June 4th, 2019)
+0.3.1 (June 13th, 2019)
+----------------------
+* Not change serviceDefinitionId when reordering the metadata.
+
+0.3.0 (June 12th, 2019)
 ----------------------
 * Reorder services to have the metadata the first in the array.
 * Small bugs and upgrade of plugins.
