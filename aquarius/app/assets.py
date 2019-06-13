@@ -471,7 +471,7 @@ def update(did):
         else:
             for service in _record['service']:
                 if service['type'] == 'Metadata':
-                    _record['service'][0]['metadatsa']['base']['datePublished'] = _get_date(
+                    _record['service'][0]['metadata']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
