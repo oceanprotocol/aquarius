@@ -1,6 +1,10 @@
 History
 =======
 
+0.3.2 (June 20th, 2019)
+----------------------
+* Support datePublished and dateCreated queries in elastic.
+
 0.3.1 (June 13th, 2019)
 ----------------------
 * Not change serviceDefinitionId when reordering the metadata.
