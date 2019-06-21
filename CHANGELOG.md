@@ -1,6 +1,10 @@
 History
 =======
 
+0.3.3 (June 21st, 2019)
+----------------------
+* Fix bug text query in elastic
+
 0.3.2 (June 20th, 2019)
 ----------------------
 * Support datePublished and dateCreated queries in elastic.
