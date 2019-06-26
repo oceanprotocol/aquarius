@@ -14,6 +14,7 @@ from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_error
 from aquarius.app.dao import Dao
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from aquarius.config import Config
 
 setup_logging()
 assets = Blueprint('assets', __name__)
@@ -262,6 +263,10 @@ def register():
     for service in _record['service']:
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
+            if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
+                if _record['service'][service_id]['metadata']['base']['price'] != 0:
+                    logger.warning('Priced assets are not supported in this marketplace')
+                    return 'Priced assets are not supported in this marketplace', 400
             _record['service'][service_id]['metadata']['base']['datePublished'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
                                   '%Y-%m-%dT%H:%M:%SZ')

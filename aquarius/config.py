@@ -10,6 +10,7 @@ from aquarius.constants import ConfigSections
 DEFAULT_NAME_AQUARIUS_URL = 'http://localhost:5000'
 
 NAME_AQUARIUS_URL = 'aquarius.url'
+ALLOW_FREE_ASSETS_ONLY = 'allowFreeAssetsOnly'
 
 environ_names = {
     NAME_AQUARIUS_URL: ['AQUARIUS_URL', 'Aquarius URL'],
@@ -58,6 +59,10 @@ class Config(configparser.ConfigParser):
     @property
     def aquarius_url(self):
         return self.get(self._section_name, NAME_AQUARIUS_URL)
+
+    @property
+    def allow_free_assets_only(self):
+        return self.get(self._section_name, ALLOW_FREE_ASSETS_ONLY)
 
     # static methods
 
