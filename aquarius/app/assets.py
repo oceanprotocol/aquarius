@@ -476,6 +476,10 @@ def update(did):
         else:
             for service in _record['service']:
                 if service['type'] == 'Metadata':
+                    if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
+                        if _record['service'][0]['metadata']['base']['price'] != 0:
+                            logger.warning('Priced assets are not supported in this marketplace')
+                            return 'Priced assets are not supported in this marketplace', 400
                     _record['service'][0]['metadata']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
             dao.update(_record, did)
