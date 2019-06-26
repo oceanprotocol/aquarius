@@ -264,7 +264,7 @@ def register():
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
-                if _record['service'][service_id]['metadata']['base']['price'] != 0:
+                if _record['service'][service_id]['metadata']['base']['price'] != "0":
                     logger.warning('Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
             _record['service'][service_id]['metadata']['base']['datePublished'] = \
@@ -477,7 +477,7 @@ def update(did):
             for service in _record['service']:
                 if service['type'] == 'Metadata':
                     if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
-                        if _record['service'][0]['metadata']['base']['price'] != 0:
+                        if _record['service'][0]['metadata']['base']['price'] != "0":
                             logger.warning('Priced assets are not supported in this marketplace')
                             return 'Priced assets are not supported in this marketplace', 400
                     _record['service'][0]['metadata']['base']['datePublished'] = _get_date(

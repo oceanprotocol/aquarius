@@ -1,6 +1,10 @@
 History
 =======
 
+0.3.4 (June 26st, 2019)
+----------------------
+* Allow free asset only for commons marketplaces.
+
 0.3.3 (June 21st, 2019)
 ----------------------
 * Fix bug text query in elastic
