@@ -1,6 +1,11 @@
 History
 =======
 
+0.3.5 (June 28st, 2019)
+----------------------
+* Create mapping for elastic plugin.
+* Update swagger doc.
+
 0.3.4 (June 26st, 2019)
 ----------------------
 * Allow free asset only for commons marketplaces.
