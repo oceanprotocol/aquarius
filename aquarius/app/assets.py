@@ -12,9 +12,9 @@ from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_error
                            list_errors_dict_remote)
 
 from aquarius.app.dao import Dao
+from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from aquarius.config import Config
 
 setup_logging()
 assets = Blueprint('assets', __name__)
@@ -136,14 +136,14 @@ def register():
                   type: array
                   description: List of public keys.
                   example: [{"id":
-                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
-                            {"type": "EthereumECDSAKey"},
-                            {"owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
+                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "type": "EthereumECDSAKey",
+                            "owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
-                  example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey":
+                  example: [{"type": "RsaSignatureAuthentication2018",
+                            "publicKey":
                             "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
@@ -338,14 +338,14 @@ def update(did):
                   type: array
                   description: List of public keys.
                   example: [{"id":
-                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"},
-                            {"type": "EthereumECDSAKey"},
-                            {"owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
+                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "type": "EthereumECDSAKey",
+                            "owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
-                  example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey":
+                  example: [{"type": "RsaSignatureAuthentication2018",
+                            "publicKey":
                             "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
