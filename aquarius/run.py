@@ -3,7 +3,6 @@
 
 import configparser
 
-from elasticsearch import Elasticsearch
 from flask import jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -11,7 +10,6 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from aquarius.app.assets import assets
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
-from aquarius.mapping import mapping
 from aquarius.myapp import app
 
 config = Config(filename=app.config['CONFIG_FILE'])
@@ -52,9 +50,6 @@ swaggerui_blueprint = get_swaggerui_blueprint(
     },
 )
 
-if config.module == 'elasticsearch':
-    elastic_con = Elasticsearch([config.db_url], verify_certs=False)
-    elastic_con.indices.create(index=config.get('oceandb', 'db.index'), ignore=400, body=mapping)
 # Register blueprint at URL
 app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
