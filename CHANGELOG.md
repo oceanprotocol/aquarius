@@ -1,6 +1,11 @@
 History
 =======
 
+0.3.6 (Jul 2nd, 2019)
+----------------------
+* Retry connection when elastic is not up.
+* Move mapping when elastic start.
+
 0.3.5 (June 28st, 2019)
 ----------------------
 * Create mapping for elastic plugin.
