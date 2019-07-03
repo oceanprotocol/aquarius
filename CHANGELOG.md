@@ -1,6 +1,10 @@
 History
 =======
 
+0.3.7 (Jul 3rd, 2019)
+----------------------
+* Add health check endpoint.
+
 0.3.6 (Jul 2nd, 2019)
 ----------------------
 * Retry connection when elastic is not up.
