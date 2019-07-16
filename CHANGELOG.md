@@ -1,6 +1,10 @@
 History
 =======
 
+0.3.8 (Jul 16th, 2019)
+----------------------
+* Fix search by type.
+
 0.3.7 (Jul 3rd, 2019)
 ----------------------
 * Add health check endpoint.
