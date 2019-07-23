@@ -8,7 +8,7 @@ from aquarius.constants import BaseURLs
 from aquarius.run import get_status, get_version
 from tests.conftest import (json_before, json_dict, json_dict2, json_dict_no_metadata,
                             json_dict_no_valid_metadata, json_update, json_valid, test_assets)
-
+from web3 import Web3
 
 def test_version(client):
     """Test version in root endpoint"""
@@ -198,3 +198,22 @@ def test_invalid_date():
     date = 'XXXX'
     assert validate_date_format(date) == (
         "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400)
+
+
+def test_delete_with_signature(client, base_ddo_url, web3):
+    rv = client.get(
+        base_ddo_url + '/%s' % json_dict['id'],
+        content_type='application/json')
+    import hashlib
+    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
+                                        json.loads(rv.data.decode('utf-8'))['proof'][
+                                            'created']).encode(
+        'utf-8')).hexdigest()
+
+    signature = web3.personal.sign(
+        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )
+
+    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % rv['id'],
+                  headers={'signature': signature})
+
