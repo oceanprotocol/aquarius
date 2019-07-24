@@ -4,13 +4,14 @@
 import copy
 import json
 import logging
+import hashlib
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_errors_dict_local,
                            list_errors_dict_remote)
-from web3 import Web3
+from web3 import Web3, HTTPProvider
 
 from aquarius.app.dao import Dao
 from aquarius.config import Config
@@ -23,7 +24,7 @@ assets = Blueprint('assets', __name__)
 # Prepare OceanDB
 dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
-web3 = Web3('http://localhost:8545')
+web3 = Web3(HTTPProvider('http://localhost:8545'))
 
 
 @assets.route('', methods=['GET'])
@@ -462,8 +463,6 @@ def update(did):
     msg, status = validate_date_format(data['created'])
     if msg:
         return msg, status
-    # if not _is_the_creator(dao.get(did), signature=signature):
-    #     return 'You can not update this ddo', 400
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
@@ -478,6 +477,8 @@ def update(did):
             register()
             return _sanitize_record(_record), 201
         else:
+            if not _is_the_creator(dao.get(did), signature=request.headers.get('signature')):
+                return 'You can not update this ddo', 400
             for service in _record['service']:
                 if service['type'] == 'Metadata':
                     if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
@@ -793,8 +794,8 @@ def _reorder_services(services):
 
 
 def _is_the_creator(ddo, signature):
-    if ddo['proof']['creator'] == web3.personal.ecRecover(
-            message=ddo['id'] + ':' + ddo['proof']['created'],
-            signature=signature):
+    if web3.toChecksumAddress(ddo['proof']['creator']) == web3.toChecksumAddress(web3.personal.ecRecover(
+            message='0x' + hashlib.sha3_256((ddo['id'] + ':' +ddo['proof']['created']).encode('utf-8')).hexdigest(),
+            signature=signature)):
         return True
     return False

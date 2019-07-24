@@ -8,7 +8,7 @@ from aquarius.constants import BaseURLs
 from aquarius.run import get_status, get_version
 from tests.conftest import (json_before, json_dict, json_dict2, json_dict_no_metadata,
                             json_dict_no_valid_metadata, json_update, json_valid, test_assets)
-from web3 import Web3
+
 
 def test_version(client):
     """Test version in root endpoint"""
@@ -34,7 +34,7 @@ def test_create_ddo(client, base_ddo_url):
         'type']
 
 
-def test_upsert_ddo(client_with_no_data, base_ddo_url):
+def test_upsert_ddo(client_with_no_data, base_ddo_url, web3):
     """Test creation of asset"""
     put = client_with_no_data.put(base_ddo_url + '/%s' % json_dict['id'],
                                   data=json.dumps(json_dict2),
@@ -47,8 +47,19 @@ def test_upsert_ddo(client_with_no_data, base_ddo_url):
     assert json_dict['@context'] in json.loads(rv.data.decode('utf-8'))['@context']
     assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][0][
         'type']
+
+    import hashlib
+    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
+                                        json.loads(rv.data.decode('utf-8'))['proof'][
+                                            'created']).encode('utf-8')).hexdigest()
+
+    signature = web3.personal.sign(
+        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )
+
     client_with_no_data.delete(
-        base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'])
+        base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'],
+        headers={'signature': signature})
 
 
 def test_post_with_no_ddo(client, base_ddo_url):
@@ -214,6 +225,6 @@ def test_delete_with_signature(client, base_ddo_url, web3):
         msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
     )
 
-    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % rv['id'],
+    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % rv.json['id'],
                   headers={'signature': signature})
 
