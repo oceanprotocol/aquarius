@@ -81,10 +81,20 @@ def test_update_ddo(client_with_no_data, base_ddo_url, web3):
     post = client.post(base_ddo_url,
                        data=json.dumps(json_before),
                        content_type='application/json')
+
+    import hashlib
+    msg_hash = '0x' + hashlib.sha3_256((json.loads(post.data.decode('utf-8'))['id'] + ':' +
+                                        json.loads(post.data.decode('utf-8'))['proof'][
+                                            'created']).encode('utf-8')).hexdigest()
+
+    signature = web3.personal.sign(
+        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )
+
     put = client.put(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
         data=json.dumps(json_update),
-        content_type='application/json')
+        content_type='application/json', headers={'signature': signature})
     rv = client.get(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
         content_type='application/json')
@@ -95,15 +105,6 @@ def test_update_ddo(client_with_no_data, base_ddo_url, web3):
                'checksum'] != \
            json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['base'][
                'checksum']
-
-    import hashlib
-    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
-                                        json.loads(rv.data.decode('utf-8'))['proof'][
-                                            'created']).encode('utf-8')).hexdigest()
-
-    signature = web3.personal.sign(
-        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
-    )
 
     client.delete(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
@@ -190,15 +191,27 @@ def test_delete_all(client_with_no_data, base_ddo_url):
                    'ids']) == 0
 
 
-def test_is_listed(client, base_ddo_url):
+def test_is_listed(client, base_ddo_url, web3):
     assert len(json.loads(
-        client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))['ids']
-               ) == 2
+        client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))['ids']) == 2
+    rv = client.get(
+        base_ddo_url + '/%s' % json_dict['id'],
+        content_type='application/json')
+
+    import hashlib
+    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
+                                        json.loads(rv.data.decode('utf-8'))['proof'][
+                                            'created']).encode('utf-8')).hexdigest()
+
+    signature = web3.personal.sign(
+        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )
 
     client.put(
         base_ddo_url + '/%s' % json_dict['id'],
         data=json.dumps(json_dict2),
-        content_type='application/json')
+        content_type='application/json',
+        headers={'signature': signature})
     assert len(json.loads(
         client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))['ids']
                ) == 1
