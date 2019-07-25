@@ -76,7 +76,7 @@ def test_post_with_no_valid_ddo(client, base_ddo_url):
     assert 400 == post.status_code
 
 
-def test_update_ddo(client_with_no_data, base_ddo_url):
+def test_update_ddo(client_with_no_data, base_ddo_url, web3):
     client = client_with_no_data
     post = client.post(base_ddo_url,
                        data=json.dumps(json_before),
@@ -95,11 +95,22 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
                'checksum'] != \
            json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['base'][
                'checksum']
+
+    import hashlib
+    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
+                                        json.loads(rv.data.decode('utf-8'))['proof'][
+                                            'created']).encode('utf-8')).hexdigest()
+
+    signature = web3.personal.sign(
+        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )
+
     client.delete(
-        base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'])
+        base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
+        headers={'signature': signature})
 
 
-def test_query_metadata(client, base_ddo_url):
+def test_query_metadata(client, base_ddo_url, web3):
     assert len(json.loads(client.post(base_ddo_url + '/query',
                                       data=json.dumps({"query": {}}),
                                       content_type='application/json').data.decode('utf-8'))[
@@ -150,7 +161,17 @@ def test_query_metadata(client, base_ddo_url):
 
     finally:
         for a in test_assets:
-            client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % a['id'])
+            import hashlib
+            msg_hash = '0x' + hashlib.sha3_256(
+                (a['id'] + ':' + a['proof']['created']).encode('utf-8')).hexdigest()
+
+            signature = web3.personal.sign(
+                msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'),
+                'node0'
+            )
+
+            client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % a['id'],
+                          headers={'signature': signature})
 
 
 def test_delete_all(client_with_no_data, base_ddo_url):
@@ -227,4 +248,3 @@ def test_delete_with_signature(client, base_ddo_url, web3):
 
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % rv.json['id'],
                   headers={'signature': signature})
-

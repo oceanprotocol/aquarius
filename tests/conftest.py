@@ -4,7 +4,7 @@ import copy
 import json
 
 import pytest
-from web3 import Web3, HTTPProvider
+from web3 import HTTPProvider, Web3
 
 from aquarius.constants import BaseURLs
 from aquarius.run import app
@@ -25,6 +25,7 @@ def client_with_no_data():
 
 @pytest.fixture
 def client():
+    web3 = Web3(HTTPProvider('http://localhost:8545'))
     client = app.test_client()
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
     post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
@@ -36,11 +37,29 @@ def client():
 
     yield client
 
+    import hashlib
+    msg_hash = '0x' + hashlib.sha3_256((json.loads(post.data.decode('utf-8'))['id'] + ':' +
+                                        json.loads(post.data.decode('utf-8'))['proof'][
+                                            'created']).encode(
+        'utf-8')).hexdigest()
+    msg_hash2 = '0x' + hashlib.sha3_256((json.loads(post2.data.decode('utf-8'))['id'] + ':' +
+                                         json.loads(post2.data.decode('utf-8'))['proof'][
+                                             'created']).encode(
+        'utf-8')).hexdigest()
+
+    signature = web3.personal.sign(
+        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )
+    signature2 = web3.personal.sign(
+        msg_hash2, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )
+
     client.delete(
-        BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])
+        BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'],
+        headers={'signature': signature})
     client.delete(
         BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post2.data.decode('utf-8'))[
-            'id'])
+            'id'], headers={'signature': signature2})
 
 
 @pytest.fixture
@@ -169,7 +188,7 @@ json_dict = {
                                 "name": "_documentId",
                                 "type": "bytes32",
                                 "value":
-                                  "0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"
+                                    "0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"
                             },
                             {
                                 "name": "_grantee",
@@ -310,7 +329,7 @@ json_dict = {
         "created": "2019-05-22T08:44:27Z",
         "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
         "signatureValue":
-          "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
+            "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
     }
 }
 json_dict2 = {
@@ -433,7 +452,7 @@ json_dict2 = {
                                 "name": "_documentId",
                                 "type": "bytes32",
                                 "value":
-                                  "0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"
+                                    "0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"
                             },
                             {
                                 "name": "_grantee",
@@ -575,7 +594,7 @@ json_dict2 = {
         "created": "2019-05-22T08:44:27Z",
         "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
         "signatureValue":
-          "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
+            "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
     }
 }
 json_dict_no_metadata = {"publisherId": "0x2"}
@@ -615,7 +634,7 @@ json_before = {
     "proof": {
         "type": "UUIDSignature",
         "created": "2016-02-08T16:02:20Z",
-        "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
+        "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
         "signatureValue": "QNB13Y7Q9...1tzjn4w=="
     },
     "service": [
@@ -724,7 +743,7 @@ json_update = {
     "proof": {
         "type": "UUIDSignature",
         "created": "2016-02-08T16:02:20Z",
-        "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
+        "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
         "signatureValue": "QNB13Y7Q9...1tzjn4w=="
     },
     "service": [
@@ -748,7 +767,8 @@ json_update = {
                 "base": {
                     "name": "UK Weather information 2012",
                     "type": "dataset",
-                    "description": "Weather information of UK including temperature and humidity and white",
+                    "description": "Weather information of UK including temperature and humidity "
+                                   "and white",
                     "dateCreated": "2012-02-01T10:55:11Z",
                     "datePublished": "2012-02-01T10:55:11Z",
                     "author": "Met Office",
