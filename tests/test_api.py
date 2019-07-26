@@ -1,6 +1,7 @@
 #  Copyright 2018 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
 
+import hashlib
 import json
 
 from aquarius.app.assets import validate_date_format
@@ -48,14 +49,9 @@ def test_upsert_ddo(client_with_no_data, base_ddo_url, web3):
     assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][0][
         'type']
 
-    import hashlib
-    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
-                                        json.loads(rv.data.decode('utf-8'))['proof'][
-                                            'created']).encode('utf-8')).hexdigest()
-
-    signature = web3.personal.sign(
-        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
-    )
+    signature = generate_signature(json.loads(rv.data.decode('utf-8'))['id'],
+                                   json.loads(rv.data.decode('utf-8'))['proof'][
+                                       'created'], web3)
 
     client_with_no_data.delete(
         base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'],
@@ -82,14 +78,9 @@ def test_update_ddo(client_with_no_data, base_ddo_url, web3):
                        data=json.dumps(json_before),
                        content_type='application/json')
 
-    import hashlib
-    msg_hash = '0x' + hashlib.sha3_256((json.loads(post.data.decode('utf-8'))['id'] + ':' +
-                                        json.loads(post.data.decode('utf-8'))['proof'][
-                                            'created']).encode('utf-8')).hexdigest()
-
-    signature = web3.personal.sign(
-        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
-    )
+    signature = generate_signature(json.loads(post.data.decode('utf-8'))['id'],
+                                   json.loads(post.data.decode('utf-8'))['proof'][
+                                       'created'], web3)
 
     put = client.put(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
@@ -162,14 +153,7 @@ def test_query_metadata(client, base_ddo_url, web3):
 
     finally:
         for a in test_assets:
-            import hashlib
-            msg_hash = '0x' + hashlib.sha3_256(
-                (a['id'] + ':' + a['proof']['created']).encode('utf-8')).hexdigest()
-
-            signature = web3.personal.sign(
-                msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'),
-                'node0'
-            )
+            signature = generate_signature(a['id'], a['proof']['created'], web3)
 
             client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % a['id'],
                           headers={'signature': signature})
@@ -198,14 +182,9 @@ def test_is_listed(client, base_ddo_url, web3):
         base_ddo_url + '/%s' % json_dict['id'],
         content_type='application/json')
 
-    import hashlib
-    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
-                                        json.loads(rv.data.decode('utf-8'))['proof'][
-                                            'created']).encode('utf-8')).hexdigest()
-
-    signature = web3.personal.sign(
-        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
-    )
+    signature = generate_signature(json.loads(rv.data.decode('utf-8'))['id'],
+                                   json.loads(rv.data.decode('utf-8'))['proof'][
+                                       'created'], web3)
 
     client.put(
         base_ddo_url + '/%s' % json_dict['id'],
@@ -249,15 +228,17 @@ def test_delete_with_signature(client, base_ddo_url, web3):
     rv = client.get(
         base_ddo_url + '/%s' % json_dict['id'],
         content_type='application/json')
-    import hashlib
-    msg_hash = '0x' + hashlib.sha3_256((json.loads(rv.data.decode('utf-8'))['id'] + ':' +
-                                        json.loads(rv.data.decode('utf-8'))['proof'][
-                                            'created']).encode(
-        'utf-8')).hexdigest()
 
-    signature = web3.personal.sign(
-        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
-    )
+    signature = generate_signature(json.loads(rv.data.decode('utf-8'))['id'],
+                                   json.loads(rv.data.decode('utf-8'))['proof'][
+                                       'created'], web3)
 
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % rv.json['id'],
                   headers={'signature': signature})
+
+
+def generate_signature(did, date, web3):
+    msg_hash = '0x' + hashlib.sha3_256((did + ':' + date).encode('utf-8')).hexdigest()
+    return web3.personal.sign(
+        msg_hash, web3.toChecksumAddress('0x00bd138abd70e2f00903268f3db08f2d25677c9e'), 'node0'
+    )

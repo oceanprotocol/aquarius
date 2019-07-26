@@ -8,16 +8,21 @@ dist: xenial
 
 sudo: false
 
-env:
-  - ES_VERSION=6.6.2 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
+services:
+  - docker
 
+before_install:
+  - git clone https://github.com/oceanprotocol/barge
+  - cd barge
+  - export KEEPER_VERSION=v0.10.3
+  - rm -rf "${HOME}/.ocean/keeper-contracts/artifacts"
+  - bash -x start_ocean.sh --latest --no-brizo --no-faucet --no-secret-store --no-pleuston --local-spree-node 2>&1 > start_ocean.log &
+  - docker stop ocean_aquarius_1
+  - cd ..
 
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - wget ${ES_DOWNLOAD_URL}
-  - tar -xzf elasticsearch-${ES_VERSION}.tar.gz
-  - ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
   - pip install -U tox-travis
 script:
   - wget -q --waitretry=1 --retry-connrefused -T 10 -O - http://127.0.0.1:9200
