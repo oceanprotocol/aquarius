@@ -24,7 +24,7 @@ assets = Blueprint('assets', __name__)
 # Prepare OceanDB
 dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
-web3 = Web3(HTTPProvider('http://localhost:8545'))
+web3 = Web3(HTTPProvider(Config.keeper_url))
 
 
 @assets.route('', methods=['GET'])

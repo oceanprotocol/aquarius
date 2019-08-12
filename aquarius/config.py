@@ -10,6 +10,7 @@ from aquarius.constants import ConfigSections
 DEFAULT_NAME_AQUARIUS_URL = 'http://localhost:5000'
 
 NAME_AQUARIUS_URL = 'aquarius.url'
+NAME_KEEPER_URL = 'keeper.url'
 ALLOW_FREE_ASSETS_ONLY = 'allowFreeAssetsOnly'
 MODULE = 'module'
 DB_HOSTNAME = 'db.hostname'
@@ -62,6 +63,10 @@ class Config(configparser.ConfigParser):
 
     @property
     def aquarius_url(self):
+        return self.get(self._section_name, NAME_AQUARIUS_URL)
+
+    @property
+    def keeper_url(self):
         return self.get(self._section_name, NAME_AQUARIUS_URL)
 
     @property
