@@ -221,8 +221,8 @@ json_dict = {
     {
       "type": "Metadata",
       "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-      "metadata": {
-        "base": {
+      "attributes": {
+        "main": {
           "name": "Ocean protocol white paper",
           "type": "dataset",
           "description": "Introduce the main concepts and vision behind ocean protocol",
@@ -241,19 +241,24 @@ json_dict = {
           "files": [
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+              "contentType": "text/csv",
               "checksumType": "MD5",
-              "contentLength": 4535431,
+              "contentLength": "4535431",
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 0
             },
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-              "contentLength": 4535431,
+              "contentType": "text/csv",
+
+              "contentLength": "4535431",
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 1
             },
             {
-              "index": 2
+              "index": 2,
+              "contentType": "text/csv",
+
             }
           ],
           "links": [
@@ -267,7 +272,7 @@ json_dict = {
               "url": "http://data.ceda.ac.uk/badc/ukcp09/"
             }
           ],
-          "checksum": "6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
+          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
           "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
         "curation": {
@@ -478,8 +483,8 @@ json_dict2 = {
     {
       "type": "Metadata",
       "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-      "metadata": {
-        "base": {
+      "attributes": {
+        "main": {
           "name": "Ocean protocol white paper",
           "type": "dataset",
           "description": "Introduce the main concepts and vision behind ocean protocol",
@@ -498,19 +503,22 @@ json_dict2 = {
           "files": [
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+              "contentType": "text/csv",
               "checksumType": "MD5",
-              "contentLength": 4535431,
+              "contentLength": "4535431",
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 0
             },
             {
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-              "contentLength": 4535431,
+              "contentType": "text/csv",
+              "contentLength": "4535431",
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 1
             },
             {
-              "index": 2
+              "index": 2,
+              "contentType": "text/csv",
             }
           ],
           "links": [
@@ -524,7 +532,7 @@ json_dict2 = {
               "url": "http://data.ceda.ac.uk/badc/ukcp09/"
             }
           ],
-          "checksum": "6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
+          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
           "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
         "curation": {
@@ -559,7 +567,7 @@ json_dict2 = {
 }
 json_dict_no_metadata = {"publisherId": "0x2"}
 json_dict_no_valid_metadata = {"publisherId": "0x4",
-                               "base": {},
+                               "main": {},
                                "assetId": "002"
                                }
 
@@ -614,8 +622,8 @@ json_before = {
             "type": "Metadata",
             "serviceDefinitionId": "2",
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-            "metadata": {
-                "base": {
+            "attributes": {
+                "main": {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity",
@@ -629,7 +637,7 @@ json_before = {
                                    "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
                         "index": 0,
-                        "contentLength": 4535431,
+                        "contentLength": "4535431",
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -652,7 +660,7 @@ json_before = {
                     "inLanguage": "en",
                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": "88888880000000000000",
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "curation": {
                     "rating": 0.0,
@@ -723,8 +731,8 @@ json_update = {
             "type": "Metadata",
             "serviceDefinitionId": "2",
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-            "metadata": {
-                "base": {
+            "attributes": {
+                "main": {
                     "name": "UK Weather information 2012",
                     "type": "dataset",
                     "description": "Weather information of UK including temperature and humidity and white",
@@ -738,7 +746,7 @@ json_update = {
                                    "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
                         "index": 0,
-                        "contentLength": 4535431,
+                        "contentLength": "4535431",
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
@@ -761,7 +769,7 @@ json_update = {
                     "inLanguage": "en",
                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": "15",
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
+                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
                 },
                 "curation": {
                     "rating": 8.0,
@@ -782,7 +790,7 @@ json_update = {
     ]
 }
 json_valid = {
-  "base": {
+  "main": {
     "name": "10 Monkey Species Small",
     "dateCreated": "2012-02-01T10:55:11Z",
     "author": "Mario",
@@ -796,7 +804,7 @@ json_valid = {
         "compression": "zip",
         "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
         "checksumType": "MD5",
-        "contentLength": 12057507,
+        "contentLength": "12057507",
         "url": "https://s3.amazonaws.com/assets/training.zip"
       },
       {
@@ -806,7 +814,7 @@ json_valid = {
         "compression": "none",
         "checksum": "354d19c0733c47ef3a6cce5b633116b0",
         "checksumType": "MD5",
-        "contentLength": 928,
+        "contentLength": "928",
         "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
       },
       {
@@ -815,7 +823,10 @@ json_valid = {
         "url": "https://s3.amazonaws.com/datacommons/validation.zip"
       }
     ],
-    "checksum": "",
+    "type": "dataset",
+  },
+  "additionalInformation":{
+    "description": "EXAMPLE ONLY ",
     "categories": [
       "image"
     ],
@@ -824,9 +835,6 @@ json_valid = {
       "classification",
       "animals"
     ],
-    "type": "dataset",
-    "description": "EXAMPLE ONLY ",
-    "copyrightHolder": "Unknown",
     "workExample": "image path, id, label",
     "links": [
       {
@@ -849,6 +857,7 @@ json_valid = {
         "type": "sample"
       }
     ],
+    "copyrightHolder": "Unknown",
     "inLanguage": "en"
   }
 }

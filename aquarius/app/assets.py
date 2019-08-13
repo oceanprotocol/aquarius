@@ -175,22 +175,16 @@ def register():
                             "serviceEndpoint":
                             "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                             :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-                            "metadata": {
-                                "base": {
+                            "attributes": {
+                                "main": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including
-                                    temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
                                     "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
-                                    "copyrightHolder": "Met Office",
-                                    "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": 4535431,
+                                            "contentLength": "4535431",
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
@@ -200,14 +194,6 @@ def register():
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "links": [{
-                                            "name": "Sample of Asset Data",
-                                            "type": "sample",
-                                            "url": "https://foo.com/sample.csv"
-                                        }
-                                    ],
-                                    "inLanguage": "en",
-                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                                     "price": "10",
                                     "checksum":
                                     "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
@@ -218,16 +204,20 @@ def register():
                                     "schema": "Binary Voting"
                                 },
                                 "additionalInformation": {
-                                    "updateFrecuency": "yearly",
-                                    "structuredMarkup": [{
-                                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                                            "mediaType": "application/ld+json"
-                                        },
-                                        {
-                                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
-                                            "mediaType": "text/turtle"
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
+                                    "copyrightHolder": "Met Office",
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "inLanguage": "en",
+                                    "links": [{
+                                            "name": "Sample of Asset Data",
+                                            "type": "sample",
+                                            "url": "https://foo.com/sample.csv"
                                         }
-                                    ]
+                                    ],
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"]
                                 }
                             }
                         }]
@@ -251,7 +241,7 @@ def register():
     msg, status = check_required_attributes(required_attributes, data, 'register')
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
+    msg, status = check_no_urls_in_files(_get_main_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = validate_date_format(data['created'])
@@ -264,26 +254,26 @@ def register():
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
-                if _record['service'][service_id]['metadata']['base']['price'] != "0":
+                if _record['service'][service_id]['attributes']['main']['price'] != "0":
                     logger.warning('Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
-            _record['service'][service_id]['metadata']['base']['datePublished'] = \
+            _record['service'][service_id]['attributes']['main']['datePublished'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
                                   '%Y-%m-%dT%H:%M:%SZ')
-            _record['service'][service_id]['metadata']['base']['dateCreated'] = \
-                datetime.strptime(_record['service'][service_id]['metadata']['base']['dateCreated'],
+            _record['service'][service_id]['attributes']['main']['dateCreated'] = \
+                datetime.strptime(_record['service'][service_id]['attributes']['main']['dateCreated'],
                                   '%Y-%m-%dT%H:%M:%SZ')
-            _record['service'][service_id]['metadata']['curation'] = {}
-            _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
-            _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
-            _record['service'][service_id]['metadata']['curation']['isListed'] = True
+            _record['service'][service_id]['attributes']['curation'] = {}
+            _record['service'][service_id]['attributes']['curation']['rating'] = 0.00
+            _record['service'][service_id]['attributes']['curation']['numVotes'] = 0
+            _record['service'][service_id]['attributes']['curation']['isListed'] = True
     _record['service'] = _reorder_services(_record['service'])
-    if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
         logger.error(
             _list_errors(list_errors_dict_remote,
-                         _get_metadata(_record['service'])['metadata']))
+                         _get_metadata(_record['service'])['attributes']))
         return jsonify(_list_errors(list_errors_dict_remote,
-                                    _get_metadata(_record['service'])['metadata'])), 400
+                                    _get_metadata(_record['service'])['attributes'])), 400
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -376,22 +366,16 @@ def update(did):
                             "serviceEndpoint":
                             "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                             :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-                            "metadata": {
-                                "base": {
+                            "attributes": {
+                                "main": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including
-                                    temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
                                     "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
-                                    "copyrightHolder": "Met Office",
-                                    "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": 4535431,
+                                            "contentLength": "4535431",
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
@@ -401,14 +385,6 @@ def update(did):
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "links": [{
-                                            "name": "Sample of Asset Data",
-                                            "type": "sample",
-                                            "url": "https://foo.com/sample.csv"
-                                        }
-                                    ],
-                                    "inLanguage": "en",
-                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                                     "price": "10",
                                     "checksum":
                                     "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
@@ -419,16 +395,20 @@ def update(did):
                                     "schema": "Binary Voting"
                                 },
                                 "additionalInformation": {
-                                    "updateFrecuency": "yearly",
-                                    "structuredMarkup": [{
-                                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                                            "mediaType": "application/ld+json"
-                                        },
-                                        {
-                                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
-                                            "mediaType": "text/turtle"
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
+                                    "links": [{
+                                            "name": "Sample of Asset Data",
+                                            "type": "sample",
+                                            "url": "https://foo.com/sample.csv"
                                         }
-                                    ]
+                                    ],
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "inLanguage": "en",
+                                    "copyrightHolder": "Met Office",
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"]
                                 }
                             }
                         }]
@@ -454,7 +434,7 @@ def update(did):
     msg, status = check_required_attributes(required_attributes, data, 'update')
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
+    msg, status = check_no_urls_in_files(_get_main_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = validate_date_format(data['created'])
@@ -464,11 +444,11 @@ def update(did):
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     _record['service'] = _reorder_services(_record['service'])
-    if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
         logger.error(_list_errors(list_errors_dict_remote,
-                                  _get_metadata(_record['service'])['metadata']))
+                                  _get_metadata(_record['service'])['attributes']))
         return jsonify(_list_errors(list_errors_dict_remote,
-                                    _get_metadata(_record['service'])['metadata'])), 400
+                                    _get_metadata(_record['service'])['attributes'])), 400
     try:
         if dao.get(did) is None:
             register()
@@ -477,10 +457,10 @@ def update(did):
             for service in _record['service']:
                 if service['type'] == 'Metadata':
                     if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
-                        if _record['service'][0]['metadata']['base']['price'] != "0":
+                        if _record['service'][0]['attributes']['main']['price'] != "0":
                             logger.warning('Priced assets are not supported in this marketplace')
                             return 'Priced assets are not supported in this marketplace', 400
-                    _record['service'][0]['metadata']['base']['datePublished'] = _get_date(
+                    _record['service'][0]['attributes']['main']['datePublished'] = _get_date(
                         dao.get(did)['service'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
@@ -722,9 +702,9 @@ def check_required_attributes(required_attributes, data, method):
     return None, None
 
 
-def check_no_urls_in_files(base, method):
-    if 'files' in base:
-        for file in base['files']:
+def check_no_urls_in_files(main, method):
+    if 'files' in main:
+        for file in main['files']:
             if 'url' in file:
                 logger.error('%s request failed: url is not allowed in files ' % method)
                 return '%s request failed: url is not allowed in files ' % method, 400
@@ -737,16 +717,16 @@ def _get_metadata(services):
             return service
 
 
-def _get_base_metadata(services):
-    return _get_metadata(services)['metadata']['base']
+def _get_main_metadata(services):
+    return _get_metadata(services)['attributes']['main']
 
 
 def _get_curation_metadata(services):
-    return _get_metadata(services)['metadata']['curation']
+    return _get_metadata(services)['attributes']['curation']
 
 
 def _get_date(services):
-    return _get_metadata(services)['metadata']['base']['datePublished']
+    return _get_metadata(services)['attributes']['main']['datePublished']
 
 
 def validate_date_format(date):

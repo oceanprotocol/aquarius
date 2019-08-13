@@ -1,6 +1,12 @@
 History
 =======
 
+0.4.0 (Aug 13th, 2019)
+----------------------
+* Update to the new DDO structure with main instead of base.
+* OEP7 changes (https://github.com/oceanprotocol/OEPs/tree/master/7/v0.2)
+* OEP8 changes(https://github.com/oceanprotocol/OEPs/tree/master/8/v0.4)
+
 0.3.8 (Jul 16th, 2019)
 ----------------------
 * Fix search by type.
