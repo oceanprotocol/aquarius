@@ -78,11 +78,11 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
         content_type='application/json')
     assert 200 == put.status_code
-    assert json_update['service'][2]['metadata']['curation']['numVotes'] == \
-           json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['curation']['numVotes']
-    assert json.loads(post.data.decode('utf-8'))['service'][0]['metadata']['base'][
+    assert json_update['service'][2]['attributes']['curation']['numVotes'] == \
+           json.loads(rv.data.decode('utf-8'))['service'][0]['attributes']['curation']['numVotes']
+    assert json.loads(post.data.decode('utf-8'))['service'][0]['attributes']['main'][
                'checksum'] != \
-           json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['base'][
+           json.loads(rv.data.decode('utf-8'))['service'][0]['attributes']['main'][
                'checksum']
     client.delete(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'])
@@ -182,7 +182,7 @@ def test_validate(client_with_no_data, base_ddo_url):
                                     data=json.dumps({}),
                                     content_type='application/json')
     assert post.status_code == 200
-    assert post.data == b'[{"message":"\'base\' is a required property","path":""}]\n'
+    assert post.data == b'[{"message":"\'main\' is a required property","path":""}]\n'
     post = client_with_no_data.post(base_ddo_url + '/validate',
                                     data=json.dumps(json_valid),
                                     content_type='application/json')

@@ -24,11 +24,11 @@ install_requirements = [
     'gunicorn==19.9.0',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.1.10',
-    'oceandb-elasticsearch-driver==0.1.5',
+    'oceandb-elasticsearch-driver==0.2.0',
     # 'oceandb-bigchaindb-driver==0.1.4',
     'PyYAML==5.1',
     'pytz==2018.5',
-    'plecos==0.7.8'
+    'plecos==0.7.9'
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
