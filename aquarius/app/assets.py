@@ -179,18 +179,12 @@ def register():
                                 "main": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including
-                                    temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
                                     "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
-                                    "copyrightHolder": "Met Office",
-                                    "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": 4535431,
+                                            "contentLength": "4535431",
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
@@ -200,14 +194,6 @@ def register():
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "links": [{
-                                            "name": "Sample of Asset Data",
-                                            "type": "sample",
-                                            "url": "https://foo.com/sample.csv"
-                                        }
-                                    ],
-                                    "inLanguage": "en",
-                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                                     "price": "10",
                                     "checksum":
                                     "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
@@ -218,16 +204,20 @@ def register():
                                     "schema": "Binary Voting"
                                 },
                                 "additionalInformation": {
-                                    "updateFrecuency": "yearly",
-                                    "structuredMarkup": [{
-                                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                                            "mediaType": "application/ld+json"
-                                        },
-                                        {
-                                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
-                                            "mediaType": "text/turtle"
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
+                                    "copyrightHolder": "Met Office",
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "inLanguage": "en",
+                                    "links": [{
+                                            "name": "Sample of Asset Data",
+                                            "type": "sample",
+                                            "url": "https://foo.com/sample.csv"
                                         }
-                                    ]
+                                    ],
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"]
                                 }
                             }
                         }]
@@ -380,18 +370,12 @@ def update(did):
                                 "main": {
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
-                                    "description": "Weather information of UK including
-                                    temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
                                     "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
-                                    "copyrightHolder": "Met Office",
-                                    "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": 4535431,
+                                            "contentLength": "4535431",
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
@@ -401,14 +385,6 @@ def update(did):
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "links": [{
-                                            "name": "Sample of Asset Data",
-                                            "type": "sample",
-                                            "url": "https://foo.com/sample.csv"
-                                        }
-                                    ],
-                                    "inLanguage": "en",
-                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                                     "price": "10",
                                     "checksum":
                                     "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
@@ -419,16 +395,20 @@ def update(did):
                                     "schema": "Binary Voting"
                                 },
                                 "additionalInformation": {
-                                    "updateFrecuency": "yearly",
-                                    "structuredMarkup": [{
-                                            "uri": "http://skos.um.es/unescothes/C01194/jsonld",
-                                            "mediaType": "application/ld+json"
-                                        },
-                                        {
-                                            "uri": "http://skos.um.es/unescothes/C01194/turtle",
-                                            "mediaType": "text/turtle"
+                                    "description": "Weather information of UK including
+                                    temperature and humidity",
+                                    "links": [{
+                                            "name": "Sample of Asset Data",
+                                            "type": "sample",
+                                            "url": "https://foo.com/sample.csv"
                                         }
-                                    ]
+                                    ],
+                                    "workExample": "stationId,latitude,longitude,datetime,
+                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                    "inLanguage": "en",
+                                    "copyrightHolder": "Met Office",
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"]
                                 }
                             }
                         }]
