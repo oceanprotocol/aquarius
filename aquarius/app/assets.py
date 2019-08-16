@@ -160,10 +160,10 @@ def register():
                   example: [{"type": "authorization",
                               "serviceEndpoint": "http://localhost:12001",
                               "service": "SecretStore",
-                              "index": "0"
+                              "index": 0
                             },
                             {"type": "access",
-                             "index": "1",
+                             "index": 1,
                              "serviceEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/consume",
                              "purchaseEndpoint":
@@ -171,7 +171,7 @@ def register():
                              },
                            {
                             "type": "metadata",
-                            "index": "2",
+                            "index": 2,
                             "serviceEndpoint":
                             "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                             :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
@@ -350,7 +350,7 @@ def update(did):
                   type: array
                   description: List of services.
                   example: [{"type": "access",
-                             "index": "1",
+                             "index": 1,
                              "serviceEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/consume",
                              "purchaseEndpoint":
@@ -358,11 +358,11 @@ def update(did):
                             {"type": "authorization",
                               "serviceEndpoint": "http://localhost:12001",
                               "service": "SecretStore",
-                              "index": "0"
+                              "index": 0
                             },
                            {
                             "type": "metadata",
-                            "index": "2",
+                            "index": 2,
                             "serviceEndpoint":
                             "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                             :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",

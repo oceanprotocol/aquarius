@@ -64,13 +64,13 @@ json_dict = {
       "type": "authorization",
       "serviceEndpoint": "http://localhost:12001",
       "service": "SecretStore",
-      "index": "0"
+      "index": 0
     },
     {
       "type": "access",
       "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
       "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
-      "index": "1",
+      "index": 1,
       "templateId": "0x208aca4B0316C9996F085cbD57E01c11Bc0E7cb1",
       "name": "dataAssetAccessServiceAgreement",
       "creator": "",
@@ -296,7 +296,7 @@ json_dict = {
           ]
         }
       },
-      "index": "2"
+      "index": 2
     }
   ],
   "proof": {
@@ -328,13 +328,13 @@ json_dict2 = {
       "type": "authorization",
       "serviceEndpoint": "http://localhost:12001",
       "service": "SecretStore",
-      "index": "0"
+      "index": 0
     },
     {
       "type": "access",
       "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
       "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
-      "index": "1",
+      "index": 1,
       "templateId": "0x208aca4B0316C9996F085cbD57E01c11Bc0E7cb1",
       "name": "dataAssetAccessServiceAgreement",
       "creator": "",
@@ -560,7 +560,7 @@ json_dict2 = {
           ]
         }
       },
-      "index": "2"
+      "index": 2
     }
   ],
   "proof": {
@@ -613,19 +613,19 @@ json_before = {
     "service": [
         {
             "type": "Consume",
-            "index": "0",
+            "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
-            "index": "1",
+            "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
             "type": "metadata",
-            "index": "2",
+            "index": 2,
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
             "attributes": {
                 "main": {
@@ -722,19 +722,19 @@ json_update = {
     "service": [
         {
             "type": "Consume",
-            "index": "0",
+            "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
-            "index": "1",
+            "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
             "type": "metadata",
-            "index": "2",
+            "index": 2,
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
             "attributes": {
                 "main": {
