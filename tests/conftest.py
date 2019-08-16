@@ -61,16 +61,16 @@ json_dict = {
   ],
   "service": [
     {
-      "type": "Authorization",
+      "type": "authorization",
       "serviceEndpoint": "http://localhost:12001",
       "service": "SecretStore",
-      "serviceDefinitionId": "0"
+      "index": 0
     },
     {
-      "type": "Access",
+      "type": "access",
       "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
       "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
-      "serviceDefinitionId": "1",
+      "index": 1,
       "templateId": "0x208aca4B0316C9996F085cbD57E01c11Bc0E7cb1",
       "name": "dataAssetAccessServiceAgreement",
       "creator": "",
@@ -219,24 +219,16 @@ json_dict = {
       }
     },
     {
-      "type": "Metadata",
+      "type": "metadata",
       "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
       "attributes": {
         "main": {
           "name": "Ocean protocol white paper",
           "type": "dataset",
-          "description": "Introduce the main concepts and vision behind ocean protocol",
           "dateCreated": "2012-10-10T17:00:00Z",
           "datePublished": "2012-10-10T17:00:00Z",
           "author": "Ocean Protocol Foundation Ltd.",
           "license": "CC-BY",
-          "copyrightHolder": "Ocean Protocol Foundation Ltd.",
-          "workExample": "Text PDF",
-          "inLanguage": "en",
-          "categories": [
-            "white-papers"
-          ],
-          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
           "price": "888000000000000000000000000000000",
           "files": [
             {
@@ -261,17 +253,6 @@ json_dict = {
 
             }
           ],
-          "links": [
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
-            },
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
-            },
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
-            }
-          ],
           "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
           "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
@@ -281,6 +262,27 @@ json_dict = {
           "schema": "Binary Voting"
         },
         "additionalInformation": {
+          "description": "Introduce the main concepts and vision behind ocean protocol",
+          "copyrightHolder": "Ocean Protocol Foundation Ltd.",
+          "workExample": "Text PDF",
+          "inLanguage": "en",
+          "categories": [
+            "white-papers"
+          ],
+          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
+          "links": [
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-daily/"
+            },
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-averages-25km/"
+            },
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
+            }
+          ],
           "updateFrequency": "yearly",
           "structuredMarkup": [
             {
@@ -294,7 +296,7 @@ json_dict = {
           ]
         }
       },
-      "serviceDefinitionId": "2"
+      "index": 2
     }
   ],
   "proof": {
@@ -323,16 +325,16 @@ json_dict2 = {
   ],
   "service": [
     {
-      "type": "Authorization",
+      "type": "authorization",
       "serviceEndpoint": "http://localhost:12001",
       "service": "SecretStore",
-      "serviceDefinitionId": "0"
+      "index": 0
     },
     {
-      "type": "Access",
+      "type": "access",
       "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
       "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
-      "serviceDefinitionId": "1",
+      "index": 1,
       "templateId": "0x208aca4B0316C9996F085cbD57E01c11Bc0E7cb1",
       "name": "dataAssetAccessServiceAgreement",
       "creator": "",
@@ -481,24 +483,17 @@ json_dict2 = {
       }
     },
     {
-      "type": "Metadata",
+      "type": "metadata",
       "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
       "attributes": {
         "main": {
           "name": "Ocean protocol white paper",
           "type": "dataset",
-          "description": "Introduce the main concepts and vision behind ocean protocol",
           "dateCreated": "2012-10-10T17:00:00Z",
           "datePublished": "2012-10-10T17:00:00Z",
           "author": "Ocean Protocol Foundation Ltd.",
           "license": "CC-BY",
-          "copyrightHolder": "Ocean Protocol Foundation Ltd.",
-          "workExample": "Text PDF",
-          "inLanguage": "en",
-          "categories": [
-            "white-papers"
-          ],
-          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
+
           "price": "888000000000000000000000000000000",
           "files": [
             {
@@ -521,17 +516,6 @@ json_dict2 = {
               "contentType": "text/csv",
             }
           ],
-          "links": [
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
-            },
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
-            },
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
-            }
-          ],
           "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
           "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
@@ -542,6 +526,27 @@ json_dict2 = {
           "isListed": False
         },
         "additionalInformation": {
+          "description": "Introduce the main concepts and vision behind ocean protocol",
+          "copyrightHolder": "Ocean Protocol Foundation Ltd.",
+          "workExample": "Text PDF",
+          "inLanguage": "en",
+          "categories": [
+            "white-papers"
+          ],
+          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
+          "links": [
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-daily/"
+            },
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-averages-25km/"
+            },
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
+            }
+          ],
           "updateFrequency": "yearly",
           "structuredMarkup": [
             {
@@ -555,7 +560,7 @@ json_dict2 = {
           ]
         }
       },
-      "serviceDefinitionId": "2"
+      "index": 2
     }
   ],
   "proof": {
@@ -608,19 +613,19 @@ json_before = {
     "service": [
         {
             "type": "Consume",
-            "serviceDefinitionId": "0",
+            "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
-            "serviceDefinitionId": "1",
+            "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
-            "type": "Metadata",
-            "serviceDefinitionId": "2",
+            "type": "metadata",
+            "index": 2,
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
             "attributes": {
                 "main": {
@@ -717,19 +722,19 @@ json_update = {
     "service": [
         {
             "type": "Consume",
-            "serviceDefinitionId": "0",
+            "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
-            "serviceDefinitionId": "1",
+            "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
-            "type": "Metadata",
-            "serviceDefinitionId": "2",
+            "type": "metadata",
+            "index": 2,
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
             "attributes": {
                 "main": {

@@ -1,6 +1,11 @@
 History
 =======
 
+0.4.1 (Aug 16th, 2019)
+----------------------
+* Change serviceDefinitionId to index
+* Type of services have to be lowercase
+
 0.4.0 (Aug 13th, 2019)
 ----------------------
 * Update to the new DDO structure with main instead of base.

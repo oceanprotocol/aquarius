@@ -76,6 +76,6 @@ class Dao(object):
     @staticmethod
     def is_listed(services):
         for service in services:
-            if service['type'] == 'Metadata':
+            if service['type'] == 'metadata':
                 if 'curation' in service['attributes'] and 'isListed' in service['attributes']['curation']:
                     return service['attributes']['curation']['isListed']

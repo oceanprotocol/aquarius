@@ -157,21 +157,21 @@ def register():
             service:
                   type: array
                   description: List of services.
-                  example: [{"type": "Authorization",
+                  example: [{"type": "authorization",
                               "serviceEndpoint": "http://localhost:12001",
                               "service": "SecretStore",
-                              "serviceDefinitionId": "0"
+                              "index": 0
                             },
-                            {"type": "Access",
-                             "serviceDefinitionId": "1",
+                            {"type": "access",
+                             "index": 1,
                              "serviceEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/consume",
                              "purchaseEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/access/initialize"
                              },
                            {
-                            "type": "Metadata",
-                            "serviceDefinitionId": "2",
+                            "type": "metadata",
+                            "index": 2,
                             "serviceEndpoint":
                             "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                             :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
@@ -251,8 +251,8 @@ def register():
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     for service in _record['service']:
-        if service['type'] == 'Metadata':
-            service_id = int(service['serviceDefinitionId'])
+        if service['type'] == 'metadata':
+            service_id = int(service['index'])
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
                 if _record['service'][service_id]['attributes']['main']['price'] != "0":
                     logger.warning('Priced assets are not supported in this marketplace')
@@ -349,20 +349,20 @@ def update(did):
             service:
                   type: array
                   description: List of services.
-                  example: [{"type": "Access",
-                             "serviceDefinitionId": "1",
+                  example: [{"type": "access",
+                             "index": 1,
                              "serviceEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/consume",
                              "purchaseEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/access/initialize"},
-                            {"type": "Authorization",
+                            {"type": "authorization",
                               "serviceEndpoint": "http://localhost:12001",
                               "service": "SecretStore",
-                              "serviceDefinitionId": "0"
+                              "index": 0
                             },
                            {
-                            "type": "Metadata",
-                            "serviceDefinitionId": "2",
+                            "type": "metadata",
+                            "index": 2,
                             "serviceEndpoint":
                             "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                             :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
@@ -455,7 +455,7 @@ def update(did):
             return _sanitize_record(_record), 201
         else:
             for service in _record['service']:
-                if service['type'] == 'Metadata':
+                if service['type'] == 'metadata':
                     if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
                         if _record['service'][0]['attributes']['main']['price'] != "0":
                             logger.warning('Priced assets are not supported in this marketplace')
@@ -713,7 +713,7 @@ def check_no_urls_in_files(main, method):
 
 def _get_metadata(services):
     for service in services:
-        if service['type'] == 'Metadata':
+        if service['type'] == 'metadata':
             return service
 
 
@@ -758,9 +758,9 @@ def _make_paginate_response(query_list_result, search_model):
 def _reorder_services(services):
     result = []
     for service in services:
-        if service['type'] == 'Metadata':
+        if service['type'] == 'metadata':
             result.append(service)
     for service in services:
-        if service['type'] != 'Metadata':
+        if service['type'] != 'metadata':
             result.append(service)
     return result
