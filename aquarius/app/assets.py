@@ -12,6 +12,7 @@ from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_errors_dict_local,
                            list_errors_dict_remote)
 from web3 import Web3, HTTPProvider
+from eth_account.messages import defunct_hash_message
 
 from aquarius.app.dao import Dao
 from aquarius.config import Config
@@ -263,6 +264,7 @@ def register():
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
+    _record['updated'] = _record['created']
     for service in _record['service']:
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
@@ -477,7 +479,7 @@ def update(did):
             register()
             return _sanitize_record(_record), 201
         else:
-            if not _is_the_creator(dao.get(did), signature=request.headers.get('signature')):
+            if not _is_the_creator(dao.get(did), proof=data['proof']):
                 return 'You can not update this ddo', 400
             for service in _record['service']:
                 if service['type'] == 'Metadata':
@@ -499,12 +501,32 @@ def retire(did):
     ---
     tags:
       - ddo
+    consumes:
+      - application/json
     parameters:
       - name: did
         in: path
         description: DID of the asset.
         required: true
         type: string
+      - in: body
+        name: body
+        required: true
+        description: DDO of the asset.
+        schema:
+          type: object
+          required:
+            - proof
+          properties:
+            proof:
+                  type: dictionary
+                  description: Information about the creation and creator of the asset.
+                  example:  {"type": "DDOIntegritySignature",
+                             "updated": "2016-02-08T16:02:20Z",
+                             "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
+                             "signatureValue":
+                             "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
+                            }
     responses:
       200:
         description: successfully deleted
@@ -513,11 +535,17 @@ def retire(did):
       500:
         description: Error
     """
+    required_attributes = ['proof']
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    if not data:
+        logger.error(f'request body seems empty, expecting {required_attributes}')
+        return 400
     try:
         if dao.get(did) is None:
             return 'This asset DID is not in OceanDB', 404
         else:
-            if not _is_the_creator(dao.get(did), signature=request.headers.get('signature')):
+            if not _is_the_creator(dao.get(did), proof=data['proof']):
                 return 'You can not delete this ddo', 400
             dao.delete(did)
             return 'Succesfully deleted', 200
@@ -793,9 +821,10 @@ def _reorder_services(services):
     return result
 
 
-def _is_the_creator(ddo, signature):
-    if web3.toChecksumAddress(ddo['proof']['creator']) == web3.toChecksumAddress(web3.personal.ecRecover(
-            message='0x' + hashlib.sha3_256((ddo['id'] + ':' +ddo['proof']['created']).encode('utf-8')).hexdigest(),
-            signature=signature)):
+def _is_the_creator(ddo, proof):
+    message = ddo['id'] + ':' + ddo['updated']
+    message_hash = defunct_hash_message(text=message)
+    address_recovered = web3.eth.account.recoverHash(message_hash, signature=proof['signatureValue'])
+    if web3.toChecksumAddress(ddo['proof']['creator']) == web3.toChecksumAddress(address_recovered):
         return True
     return False

@@ -23,7 +23,7 @@ WORKDIR /aquarius
 RUN pip install .
 
 # config.ini configuration file variables
-ENV DB_MODULE='mongodb'
+ENV DB_MODULE='elasticsearch'
 ENV DB_HOSTNAME='localhost'
 ENV DB_PORT='27017'
 #MONGO
