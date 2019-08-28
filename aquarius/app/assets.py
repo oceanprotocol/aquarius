@@ -194,9 +194,7 @@ def register():
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "price": "10",
-                                    "checksum":
-                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "price": "10"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -268,12 +266,12 @@ def register():
             _record['service'][service_id]['attributes']['curation']['numVotes'] = 0
             _record['service'][service_id]['attributes']['curation']['isListed'] = True
     _record['service'] = _reorder_services(_record['service'])
-    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-        logger.error(
-            _list_errors(list_errors_dict_remote,
-                         _get_metadata(_record['service'])['attributes']))
-        return jsonify(_list_errors(list_errors_dict_remote,
-                                    _get_metadata(_record['service'])['attributes'])), 400
+    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+    #     logger.error(
+    #         _list_errors(list_errors_dict_remote,
+    #                      _get_metadata(_record['service'])['attributes']))
+    #     return jsonify(_list_errors(list_errors_dict_remote,
+    #                                 _get_metadata(_record['service'])['attributes'])), 400
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -385,9 +383,7 @@ def update(did):
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "price": "10",
-                                    "checksum":
-                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "price": "10"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -444,11 +440,11 @@ def update(did):
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     _record['service'] = _reorder_services(_record['service'])
-    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-        logger.error(_list_errors(list_errors_dict_remote,
-                                  _get_metadata(_record['service'])['attributes']))
-        return jsonify(_list_errors(list_errors_dict_remote,
-                                    _get_metadata(_record['service'])['attributes'])), 400
+    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+    #     logger.error(_list_errors(list_errors_dict_remote,
+    #                               _get_metadata(_record['service'])['attributes']))
+    #     return jsonify(_list_errors(list_errors_dict_remote,
+    #                                 _get_metadata(_record['service'])['attributes'])), 400
     try:
         if dao.get(did) is None:
             register()
@@ -693,6 +689,7 @@ def check_required_attributes(required_attributes, data, method):
     assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
     logger.info('got %s request: %s' % (method, data))
     if not data:
+        logger.error('%s request failed: data is empty.' % method)
         logger.error('%s request failed: data is empty.' % method)
         return 'payload seems empty.', 400
     for attr in required_attributes:
