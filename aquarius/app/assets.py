@@ -180,7 +180,6 @@ def register():
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
                                     "dateCreated": "2012-02-01T10:55:11Z",
-                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "files": [{
@@ -255,9 +254,6 @@ def register():
                 if _record['service'][service_id]['attributes']['main']['price'] != "0":
                     logger.warning('Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
-            _record['service'][service_id]['attributes']['main']['datePublished'] = \
-                datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
-                                  '%Y-%m-%dT%H:%M:%SZ')
             _record['service'][service_id]['attributes']['main']['dateCreated'] = \
                 datetime.strptime(_record['service'][service_id]['attributes']['main']['dateCreated'],
                                   '%Y-%m-%dT%H:%M:%SZ')
@@ -369,7 +365,6 @@ def update(did):
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
                                     "dateCreated": "2012-02-01T10:55:11Z",
-                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "files": [{
@@ -456,8 +451,6 @@ def update(did):
                         if _record['service'][0]['attributes']['main']['price'] != "0":
                             logger.warning('Priced assets are not supported in this marketplace')
                             return 'Priced assets are not supported in this marketplace', 400
-                    _record['service'][0]['attributes']['main']['datePublished'] = _get_date(
-                        dao.get(did)['service'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
     except Exception as err:
@@ -720,10 +713,6 @@ def _get_main_metadata(services):
 
 def _get_curation_metadata(services):
     return _get_metadata(services)['attributes']['curation']
-
-
-def _get_date(services):
-    return _get_metadata(services)['attributes']['main']['datePublished']
 
 
 def validate_date_format(date):
