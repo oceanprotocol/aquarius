@@ -180,7 +180,6 @@ def register():
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
                                     "dateCreated": "2012-02-01T10:55:11Z",
-                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "files": [{
@@ -194,9 +193,7 @@ def register():
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "price": "10",
-                                    "checksum":
-                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "price": "10"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -257,9 +254,6 @@ def register():
                 if _record['service'][service_id]['attributes']['main']['price'] != "0":
                     logger.warning('Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
-            _record['service'][service_id]['attributes']['main']['datePublished'] = \
-                datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
-                                  '%Y-%m-%dT%H:%M:%SZ')
             _record['service'][service_id]['attributes']['main']['dateCreated'] = \
                 datetime.strptime(_record['service'][service_id]['attributes']['main']['dateCreated'],
                                   '%Y-%m-%dT%H:%M:%SZ')
@@ -268,12 +262,12 @@ def register():
             _record['service'][service_id]['attributes']['curation']['numVotes'] = 0
             _record['service'][service_id]['attributes']['curation']['isListed'] = True
     _record['service'] = _reorder_services(_record['service'])
-    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-        logger.error(
-            _list_errors(list_errors_dict_remote,
-                         _get_metadata(_record['service'])['attributes']))
-        return jsonify(_list_errors(list_errors_dict_remote,
-                                    _get_metadata(_record['service'])['attributes'])), 400
+    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+    #     logger.error(
+    #         _list_errors(list_errors_dict_remote,
+    #                      _get_metadata(_record['service'])['attributes']))
+    #     return jsonify(_list_errors(list_errors_dict_remote,
+    #                                 _get_metadata(_record['service'])['attributes'])), 400
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -371,7 +365,6 @@ def update(did):
                                     "name": "UK Weather information 2011",
                                     "type": "dataset",
                                     "dateCreated": "2012-02-01T10:55:11Z",
-                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "files": [{
@@ -385,9 +378,7 @@ def update(did):
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                    "price": "10",
-                                    "checksum":
-                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "price": "10"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -444,11 +435,11 @@ def update(did):
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     _record['service'] = _reorder_services(_record['service'])
-    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-        logger.error(_list_errors(list_errors_dict_remote,
-                                  _get_metadata(_record['service'])['attributes']))
-        return jsonify(_list_errors(list_errors_dict_remote,
-                                    _get_metadata(_record['service'])['attributes'])), 400
+    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+    #     logger.error(_list_errors(list_errors_dict_remote,
+    #                               _get_metadata(_record['service'])['attributes']))
+    #     return jsonify(_list_errors(list_errors_dict_remote,
+    #                                 _get_metadata(_record['service'])['attributes'])), 400
     try:
         if dao.get(did) is None:
             register()
@@ -460,8 +451,6 @@ def update(did):
                         if _record['service'][0]['attributes']['main']['price'] != "0":
                             logger.warning('Priced assets are not supported in this marketplace')
                             return 'Priced assets are not supported in this marketplace', 400
-                    _record['service'][0]['attributes']['main']['datePublished'] = _get_date(
-                        dao.get(did)['service'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
     except Exception as err:
@@ -694,6 +683,7 @@ def check_required_attributes(required_attributes, data, method):
     logger.info('got %s request: %s' % (method, data))
     if not data:
         logger.error('%s request failed: data is empty.' % method)
+        logger.error('%s request failed: data is empty.' % method)
         return 'payload seems empty.', 400
     for attr in required_attributes:
         if attr not in data:
@@ -723,10 +713,6 @@ def _get_main_metadata(services):
 
 def _get_curation_metadata(services):
     return _get_metadata(services)['attributes']['curation']
-
-
-def _get_date(services):
-    return _get_metadata(services)['attributes']['main']['datePublished']
 
 
 def validate_date_format(date):
