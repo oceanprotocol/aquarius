@@ -1,6 +1,11 @@
 History
 =======
 
+
+0.4.2 (Aug 29th, 2019)
+----------------------
+* Fix to allow new ddos schemas
+
 0.4.1 (Aug 16th, 2019)
 ----------------------
 * Change serviceDefinitionId to index
