@@ -42,12 +42,12 @@ dev_requirements = [
 ]
 
 test_requirements = [
-    'codacy-coverage==1.3.11',
-    'coverage==4.5.1',
-    'mccabe==0.6.1',
-    'pylint==2.2.2',
-    'pytest==3.4.2',
-    'tox==3.2.1',
+    'codacy-coverage',
+    'coverage',
+    'mccabe',
+    'pylint',
+    'pytest',
+    'tox',
 ]
 
 setup(
