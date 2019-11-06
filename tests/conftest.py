@@ -29,6 +29,8 @@ def client():
     post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                        data=json.dumps(json_update),
                        content_type='application/json')
+    if post.status_code not in (200, 201):
+        raise AssertionError(f'register asset failed: {post}')
     post2 = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                         data=json.dumps(json_dict),
                         content_type='application/json')
@@ -240,19 +242,22 @@ json_dict = {
           "price": "888000000000000000000000000000000",
           "files": [
             {
-              "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+              "contentType": "application/zip",
+              "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
               "checksumType": "MD5",
               "contentLength": 4535431,
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 0
             },
             {
-              "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+              "contentType": "application/zip",
+              "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
               "contentLength": 4535431,
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 1
             },
             {
+              "contentType": "text/text",
               "index": 2
             }
           ],
@@ -267,7 +272,7 @@ json_dict = {
               "url": "http://data.ceda.ac.uk/badc/ukcp09/"
             }
           ],
-          "checksum": "6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
+          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
           "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
         "curation": {
@@ -497,6 +502,7 @@ json_dict2 = {
           "price": "888000000000000000000000000000000",
           "files": [
             {
+              "contentType": "application/zip",
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
               "checksumType": "MD5",
               "contentLength": 4535431,
@@ -504,12 +510,14 @@ json_dict2 = {
               "index": 0
             },
             {
+              "contentType": "application/zip",
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
               "contentLength": 4535431,
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 1
             },
             {
+              "contentType": "text/text",
               "index": 2
             }
           ],
@@ -524,7 +532,7 @@ json_dict2 = {
               "url": "http://data.ceda.ac.uk/badc/ukcp09/"
             }
           ],
-          "checksum": "6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
+          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
           "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
         "curation": {
@@ -652,7 +660,7 @@ json_before = {
                     "inLanguage": "en",
                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": "88888880000000000000",
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
                 "curation": {
                     "rating": 0.0,
@@ -761,7 +769,7 @@ json_update = {
                     "inLanguage": "en",
                     "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": "15",
-                    "checksum": "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
+                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
                 },
                 "curation": {
                     "rating": 8.0,
@@ -815,7 +823,6 @@ json_valid = {
         "url": "https://s3.amazonaws.com/datacommons/validation.zip"
       }
     ],
-    "checksum": "",
     "categories": [
       "image"
     ],

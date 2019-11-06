@@ -39,6 +39,8 @@ def test_upsert_ddo(client_with_no_data, base_ddo_url):
     put = client_with_no_data.put(base_ddo_url + '/%s' % json_dict['id'],
                                   data=json.dumps(json_dict2),
                                   content_type='application/json')
+    assert put.status_code in (200, 201), 'Failed to register/update asset.'
+
     rv = client_with_no_data.get(
         base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'],
         content_type='application/json')
@@ -70,14 +72,16 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
     post = client.post(base_ddo_url,
                        data=json.dumps(json_before),
                        content_type='application/json')
+    assert post.status_code in (200, 201), 'Failed to register asset.'
+
     put = client.put(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
         data=json.dumps(json_update),
         content_type='application/json')
+    assert 200 == put.status_code, 'Failed to update asset'
     rv = client.get(
         base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
         content_type='application/json')
-    assert 200 == put.status_code
     assert json_update['service'][2]['metadata']['curation']['numVotes'] == \
            json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['curation']['numVotes']
     assert json.loads(post.data.decode('utf-8'))['service'][0]['metadata']['base'][
