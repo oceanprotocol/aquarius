@@ -38,8 +38,10 @@ class Dao(object):
     def get(self, asset_id):
         try:
             asset = self.oceandb.read(asset_id)
-        except Exception:
+        except Exception as e:
+            logging.error(str(e))
             asset = None
+
         if asset is None:
             return asset
         elif self.is_listed(asset['service']):
@@ -59,17 +61,21 @@ class Dao(object):
     def query(self, query):
         query_list = []
         if isinstance(query, QueryModel):
-            for f in self.oceandb.query(query):
-                if self.is_listed(f['service']):
-                    query_list.append(f)
+            query_result, count = self.oceandb.query(query)
         elif isinstance(query, FullTextModel):
-            for f in self.oceandb.text_query(query):
-                if self.is_listed(f['service']):
-                    query_list.append(f)
-        return query_list
+            query_result, count = self.oceandb.text_query(query)
+        else:
+            raise TypeError('Unrecognized `query` type %s' % type(query))
+
+        for f in query_result:
+            if self.is_listed(f['service']):
+                query_list.append(f)
+
+        return query_list, count
 
     @staticmethod
     def is_listed(services):
         for service in services:
             if service['type'] == 'Metadata':
-                return service['metadata']['curation']['isListed']
+                if 'curation' in service['metadata'] and 'isListed' in service['metadata']['curation']:
+                    return service['metadata']['curation']['isListed']

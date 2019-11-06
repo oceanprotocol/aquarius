@@ -10,6 +10,10 @@ from aquarius.constants import ConfigSections
 DEFAULT_NAME_AQUARIUS_URL = 'http://localhost:5000'
 
 NAME_AQUARIUS_URL = 'aquarius.url'
+ALLOW_FREE_ASSETS_ONLY = 'allowFreeAssetsOnly'
+MODULE = 'module'
+DB_HOSTNAME = 'db.hostname'
+DB_PORT = 'db.port'
 
 environ_names = {
     NAME_AQUARIUS_URL: ['AQUARIUS_URL', 'Aquarius URL'],
@@ -29,6 +33,7 @@ class Config(configparser.ConfigParser):
 
         self.read_dict(config_defaults)
         self._section_name = ConfigSections.RESOURCES
+        self._oceandb_name = ConfigSections.OCEANBD
         self._logger = kwargs.get('logger', logging.getLogger(__name__))
         self._logger.debug('Config: loading config file %s', filename)
 
@@ -58,6 +63,19 @@ class Config(configparser.ConfigParser):
     @property
     def aquarius_url(self):
         return self.get(self._section_name, NAME_AQUARIUS_URL)
+
+    @property
+    def allow_free_assets_only(self):
+        return self.get(self._section_name, ALLOW_FREE_ASSETS_ONLY)
+
+    @property
+    def db_url(self):
+        return self.get(self._oceandb_name, DB_HOSTNAME) + ":" + self.get(self._oceandb_name,
+                                                                          DB_PORT)
+
+    @property
+    def module(self):
+        return self.get(self._oceandb_name, MODULE)
 
     # static methods
 

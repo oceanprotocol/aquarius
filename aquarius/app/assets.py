@@ -8,9 +8,11 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
-from plecos.plecos import is_valid_dict, list_errors_dict_local
+from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_errors_dict_local,
+                           list_errors_dict_remote)
 
 from aquarius.app.dao import Dao
+from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 
@@ -120,11 +122,11 @@ def register():
           properties:
             "@context":
               description:
-              example: https://w3id.org/future-method/v1
+              example: https://w3id.org/did/v1
               type: string
             id:
               description: ID of the asset.
-              example: did:op:123456789abcdefghi
+              example: did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e429
               type: string
             created:
               description: date of ddo creation.
@@ -133,39 +135,46 @@ def register():
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id": "did:op:123456789abcdefghi#keys-1"},
-                            {"type": "Ed25519VerificationKey2018"},
-                            {"owner": "did:op:123456789abcdefghi"},
-                            {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
+                  example: [{"id":
+                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "type": "EthereumECDSAKey",
+                            "owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
-                  example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+                  example: [{"type": "RsaSignatureAuthentication2018",
+                            "publicKey":
+                            "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
-                  example:  {"type": "UUIDSignature",
+                  example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
-                             "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
-                             "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+                             "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
+                             "signatureValue":
+                             "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
                   description: List of services.
-                  example: [{"type": "Access",
+                  example: [{"type": "Authorization",
+                              "serviceEndpoint": "http://localhost:12001",
+                              "service": "SecretStore",
+                              "serviceDefinitionId": "0"
+                            },
+                            {"type": "Access",
+                             "serviceDefinitionId": "1",
                              "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${
-                             pubKey}&serviceId={serviceId}&url={url}"},
-                            {"type": "Compute",
-                             "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
-                             pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                             "http://localhost:8030/api/v1/brizo/services/consume",
+                             "purchaseEndpoint":
+                             "http://localhost:8030/api/v1/brizo/services/access/initialize"
+                             },
                            {
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
                             "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
+                            :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
@@ -173,19 +182,21 @@ def register():
                                     "description": "Weather information of UK including
                                     temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
+                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
-                                    "compression": "zip",
                                     "workExample": "stationId,latitude,longitude,datetime,
                                     temperature,humidity/n423432fsd,51.509865,-0.118092,
                                     2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": "4535431",
+                                            "contentLength": 4535431,
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "index" :0,
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
@@ -193,19 +204,13 @@ def register():
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
                                             "url": "https://foo.com/sample.csv"
-                                        },
-                                        {
-                                            "name": "Data Format Definition",
-                                            "type": "format",
-                                            "AssetID":
-                                            "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
                                     "inLanguage": "en",
-                                    "tags": "weather, uk, 2011, temperature, humidity",
-                                    "price": 10,
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
+                                    "price": "10",
                                     "checksum":
-                                    "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -239,23 +244,17 @@ def register():
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
-                                         'price', 'encryptedFiles', 'type', 'checksum']
     data = request.json
     if not data:
-        logger.error(f'request body seems empty, expecting {required_attributes}')
+        logger.error(f'request body seems empty.')
         return 400
     msg, status = check_required_attributes(required_attributes, data, 'register')
-    if msg:
-        return msg, status
-    msg, status = check_required_attributes(required_metadata_base_attributes,
-                                            _get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
-    msg, status = _validate_date_format(data['created'])
+    msg, status = validate_date_format(data['created'])
     if status:
         return msg, status
     _record = dict()
@@ -264,13 +263,27 @@ def register():
     for service in _record['service']:
         if service['type'] == 'Metadata':
             service_id = int(service['serviceDefinitionId'])
+            if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
+                if _record['service'][service_id]['metadata']['base']['price'] != "0":
+                    logger.warning('Priced assets are not supported in this marketplace')
+                    return 'Priced assets are not supported in this marketplace', 400
             _record['service'][service_id]['metadata']['base']['datePublished'] = \
                 datetime.strptime(f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z',
+                                  '%Y-%m-%dT%H:%M:%SZ')
+            _record['service'][service_id]['metadata']['base']['dateCreated'] = \
+                datetime.strptime(_record['service'][service_id]['metadata']['base']['dateCreated'],
                                   '%Y-%m-%dT%H:%M:%SZ')
             _record['service'][service_id]['metadata']['curation'] = {}
             _record['service'][service_id]['metadata']['curation']['rating'] = 0.00
             _record['service'][service_id]['metadata']['curation']['numVotes'] = 0
             _record['service'][service_id]['metadata']['curation']['isListed'] = True
+    _record['service'] = _reorder_services(_record['service'])
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
+        logger.error(
+            _list_errors(list_errors_dict_remote,
+                         _get_metadata(_record['service'])['metadata']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['metadata'])), 400
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -289,6 +302,11 @@ def update(did):
     consumes:
       - application/json
     parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
       - in: body
         name: body
         required: true
@@ -306,11 +324,11 @@ def update(did):
           properties:
             "@context":
               description:
-              example: https://w3id.org/future-method/v1
+              example: https://w3id.org/did/v1
               type: string
             id:
               description: ID of the asset.
-              example: did:op:123456789abcdefghi
+              example: did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e429
               type: string
             created:
               description: date of ddo creation.
@@ -319,39 +337,45 @@ def update(did):
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id": "did:op:123456789abcdefghi#keys-1"},
-                            {"type": "Ed25519VerificationKey2018"},
-                            {"owner": "did:op:123456789abcdefghi"},
-                            {"publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"}]
+                  example: [{"id":
+                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "type": "EthereumECDSAKey",
+                            "owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
-                  example: [{"type": "RsaSignatureAuthentication2018"},
-                            {"publicKey": "did:op:123456789abcdefghi#keys-1"}]
+                  example: [{"type": "RsaSignatureAuthentication2018",
+                            "publicKey":
+                            "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
-                  example:  {"type": "UUIDSignature",
+                  example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
-                             "creator": "did:example:8uQhQMGzWxR8vw5P3UWH1ja",
-                             "signatureValue": "QNB13Y7Q9...1tzjn4w=="
+                             "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
+                             "signatureValue":
+                             "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
                   description: List of services.
                   example: [{"type": "Access",
+                             "serviceDefinitionId": "1",
                              "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${
-                             pubKey}&serviceId={serviceId}&url={url}"},
-                            {"type": "Compute",
-                             "serviceEndpoint":
-                             "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${
-                             pubKey}&serviceId={serviceId}&algo={algo}&container={container}"},
+                             "http://localhost:8030/api/v1/brizo/services/consume",
+                             "purchaseEndpoint":
+                             "http://localhost:8030/api/v1/brizo/services/access/initialize"},
+                            {"type": "Authorization",
+                              "serviceEndpoint": "http://localhost:12001",
+                              "service": "SecretStore",
+                              "serviceDefinitionId": "0"
+                            },
                            {
                             "type": "Metadata",
                             "serviceDefinitionId": "2",
                             "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
+                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
+                            :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "metadata": {
                                 "base": {
                                     "name": "UK Weather information 2011",
@@ -359,40 +383,35 @@ def update(did):
                                     "description": "Weather information of UK including
                                     temperature and humidity",
                                     "dateCreated": "2012-02-01T10:55:11Z",
+                                    "datePublished": "2012-02-01T10:55:11Z",
                                     "author": "Met Office",
                                     "license": "CC-BY",
                                     "copyrightHolder": "Met Office",
-                                    "compression": "zip",
                                     "workExample": "stationId,latitude,longitude,datetime,
                                     temperature,humidity/n423432fsd,51.509865,-0.118092,
                                     2011-01-01T10:55:11+00:00,7.2,68",
                                     "files": [{
-                                            "contentLength": "4535431",
+                                            "contentLength": 4535431,
                                             "contentType": "text/csv",
                                             "encoding": "UTF-8",
                                             "compression": "zip",
-                                            "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                                            "index" :0,
+                                            "resourceId":
+                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
-
                                     "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "links": [{
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
                                             "url": "https://foo.com/sample.csv"
-                                        },
-                                        {
-                                            "name": "Data Format Definition",
-                                            "type": "format",
-                                            "AssetID":
-                                            "4d517500da0acb0d65a716f61330969334630363ce4a6a9d39691026ac7908ea"
                                         }
                                     ],
                                     "inLanguage": "en",
-                                    "tags": "weather, uk, 2011, temperature, humidity",
-                                    "price": 10,
+                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
+                                    "price": "10",
                                     "checksum":
-                                    "38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
+                                    "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                                 },
                                 "curation": {
                                     "rating": 0.93,
@@ -427,12 +446,7 @@ def update(did):
     """
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
-    required_metadata_base_attributes = ['name', 'dateCreated', 'author', 'license',
-                                         'price', 'encryptedFiles', 'type', 'checksum']
-    required_metadata_curation_attributes = ['rating', 'numVotes']
-
     assert isinstance(request.json, dict), 'invalid payload format.'
-
     data = request.json
     if not data:
         logger.error(f'request body seems empty, expecting {required_attributes}')
@@ -440,34 +454,33 @@ def update(did):
     msg, status = check_required_attributes(required_attributes, data, 'update')
     if msg:
         return msg, status
-    msg, status = check_required_attributes(required_metadata_base_attributes,
-                                            _get_base_metadata(data['service']), 'update')
-    if msg:
-        return msg, status
-    msg, status = check_required_attributes(required_metadata_curation_attributes,
-                                            _get_curation_metadata(data['service']), 'update')
-    if msg:
-        return msg, status
     msg, status = check_no_urls_in_files(_get_base_metadata(data['service']), 'register')
     if msg:
         return msg, status
-    msg, status = _validate_date_format(data['created'])
+    msg, status = validate_date_format(data['created'])
     if msg:
         return msg, status
-
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
+    _record['service'] = _reorder_services(_record['service'])
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['metadata']):
+        logger.error(_list_errors(list_errors_dict_remote,
+                                  _get_metadata(_record['service'])['metadata']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['metadata'])), 400
     try:
-
         if dao.get(did) is None:
             register()
             return _sanitize_record(_record), 201
         else:
             for service in _record['service']:
-                service_id = int(service['serviceDefinitionId'])
                 if service['type'] == 'Metadata':
-                    _record['service'][service_id]['metadata']['base']['datePublished'] = _get_date(
+                    if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
+                        if _record['service'][0]['metadata']['base']['price'] != "0":
+                            logger.warning('Priced assets are not supported in this marketplace')
+                            return 'Priced assets are not supported in this marketplace', 400
+                    _record['service'][0]['metadata']['base']['datePublished'] = _get_date(
                         dao.get(did)['service'])
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
@@ -552,7 +565,7 @@ def query_text():
         in: query
         type: int
         description: Page showed
-        example: 0
+        example: 1
     responses:
       200:
         description: successful action
@@ -563,11 +576,12 @@ def query_text():
                                  sort=None if data.get('sort', None) is None else json.loads(
                                      data.get('sort', None)),
                                  offset=int(data.get('offset', 100)),
-                                 page=int(data.get('page', 0)))
+                                 page=int(data.get('page', 1)))
     query_result = dao.query(search_model)
-    for i in query_result:
+    for i in query_result[0]:
         _sanitize_record(i)
-    return Response(json.dumps(query_result, default=_my_converter), 200,
+    response = _make_paginate_response(query_result, search_model)
+    return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
 
 
@@ -602,7 +616,7 @@ def query_ddo():
             page:
               type: int
               description: Page showed
-              example: 0
+              example: 1
     responses:
       200:
         description: successful action
@@ -613,15 +627,16 @@ def query_ddo():
     if 'query' in data:
         search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
                                   offset=data.get('offset', 100),
-                                  page=data.get('page', 0))
+                                  page=data.get('page', 1))
     else:
         search_model = QueryModel(query={}, sort=data.get('sort'),
                                   offset=data.get('offset', 100),
-                                  page=data.get('page', 0))
+                                  page=data.get('page', 1))
     query_result = dao.query(search_model)
-    for i in query_result:
+    for i in query_result[0]:
         _sanitize_record(i)
-    return Response(json.dumps(query_result, default=_my_converter), 200,
+    response = _make_paginate_response(query_result, search_model)
+    return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
 
 
@@ -671,17 +686,21 @@ def validate():
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
-    if is_valid_dict(data):
+    if is_valid_dict_local(data):
         return jsonify(True)
     else:
-        error_list = list()
-        for err in list_errors_dict_local(data):
-            stack_path = list(err[1].relative_path)
-            stack_path = [str(p) for p in stack_path]
-            this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
-            error_list.append(this_err_response)
-        res = jsonify(error_list)
+        res = jsonify(_list_errors(list_errors_dict_local, data))
         return res
+
+
+def _list_errors(list_errors_function, data):
+    error_list = list()
+    for err in list_errors_function(data):
+        stack_path = list(err[1].relative_path)
+        stack_path = [str(p) for p in stack_path]
+        this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
+        error_list.append(this_err_response)
+    return error_list
 
 
 def _sanitize_record(data_record):
@@ -730,14 +749,38 @@ def _get_date(services):
     return _get_metadata(services)['metadata']['base']['datePublished']
 
 
-def _validate_date_format(date):
+def validate_date_format(date):
     try:
         datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
         return None, None
-    except Exception:
+    except Exception as e:
+        logging.error(str(e))
         return "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400
 
 
 def _my_converter(o):
     if isinstance(o, datetime):
         return o.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def _make_paginate_response(query_list_result, search_model):
+    total = query_list_result[1]
+    offset = search_model.offset
+    result = dict()
+    result['results'] = query_list_result[0]
+    result['page'] = search_model.page
+
+    result['total_pages'] = int(total / offset) + int(total % offset > 0)
+    result['total_results'] = total
+    return result
+
+
+def _reorder_services(services):
+    result = []
+    for service in services:
+        if service['type'] == 'Metadata':
+            result.append(service)
+    for service in services:
+        if service['type'] != 'Metadata':
+            result.append(service)
+    return result
