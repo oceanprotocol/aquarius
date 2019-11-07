@@ -262,12 +262,14 @@ def register():
             _record['service'][service_id]['attributes']['curation']['numVotes'] = 0
             _record['service'][service_id]['attributes']['curation']['isListed'] = True
     _record['service'] = _reorder_services(_record['service'])
-    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-    #     logger.error(
-    #         _list_errors(list_errors_dict_remote,
-    #                      _get_metadata(_record['service'])['attributes']))
-    #     return jsonify(_list_errors(list_errors_dict_remote,
-    #                                 _get_metadata(_record['service'])['attributes'])), 400
+
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+        logger.error(
+            _list_errors(list_errors_dict_remote,
+                         _get_metadata(_record['service'])['attributes']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['attributes'])), 400
+
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -435,11 +437,12 @@ def update(did):
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     _record['service'] = _reorder_services(_record['service'])
-    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-    #     logger.error(_list_errors(list_errors_dict_remote,
-    #                               _get_metadata(_record['service'])['attributes']))
-    #     return jsonify(_list_errors(list_errors_dict_remote,
-    #                                 _get_metadata(_record['service'])['attributes'])), 400
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+        logger.error(_list_errors(list_errors_dict_remote,
+                                  _get_metadata(_record['service'])['attributes']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['attributes'])), 400
+
     try:
         if dao.get(did) is None:
             register()
@@ -549,6 +552,7 @@ def query_text():
     query_result = dao.query(search_model)
     for i in query_result[0]:
         _sanitize_record(i)
+
     response = _make_paginate_response(query_result, search_model)
     return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
@@ -604,6 +608,7 @@ def query_ddo():
     query_result = dao.query(search_model)
     for i in query_result[0]:
         _sanitize_record(i)
+
     response = _make_paginate_response(query_result, search_model)
     return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
@@ -655,6 +660,7 @@ def validate():
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
+
     if is_valid_dict_local(data):
         return jsonify(True)
     else:
@@ -685,10 +691,12 @@ def check_required_attributes(required_attributes, data, method):
         logger.error('%s request failed: data is empty.' % method)
         logger.error('%s request failed: data is empty.' % method)
         return 'payload seems empty.', 400
+
     for attr in required_attributes:
         if attr not in data:
             logger.error('%s request failed: required attr %s missing.' % (method, attr))
             return '"%s" is required in the call to %s' % (attr, method), 400
+
     return None, None
 
 
@@ -746,7 +754,9 @@ def _reorder_services(services):
     for service in services:
         if service['type'] == 'metadata':
             result.append(service)
+
     for service in services:
         if service['type'] != 'metadata':
             result.append(service)
+
     return result

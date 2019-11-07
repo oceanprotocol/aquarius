@@ -29,6 +29,8 @@ def client():
     post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                        data=json.dumps(json_update),
                        content_type='application/json')
+    if post.status_code not in (200, 201):
+        raise AssertionError(f'register asset failed: {post}')
     post2 = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                         data=json.dumps(json_dict),
                         content_type='application/json')
