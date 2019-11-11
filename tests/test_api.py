@@ -10,6 +10,25 @@ from tests.conftest import (json_before, json_dict, json_dict2, json_dict_no_met
                             json_dict_no_valid_metadata, json_update, json_valid, test_assets)
 
 
+def run_request_get_data(client_method, url, data=None):
+    _response = run_request(client_method, url, data)
+    if _response and _response.data:
+        return json.loads(_response.data.decode('utf-8'))
+
+    return None
+
+
+def run_request(client_method, url, data=None):
+    if data is None:
+        _response = client_method(url, content_type='application/json')
+    else:
+        _response = client_method(
+            url, data=json.dumps(data), content_type='application/json'
+        )
+
+    return _response
+
+
 def test_version(client):
     """Test version in root endpoint"""
     rv = client.get('/')
@@ -25,13 +44,10 @@ def test_health(client):
 
 def test_create_ddo(client, base_ddo_url):
     """Test creation of asset"""
-    rv = client.get(
-        base_ddo_url + '/%s' % json_dict['id'],
-        content_type='application/json')
-    assert json_dict['id'] in json.loads(rv.data.decode('utf-8'))['id']
-    assert json_dict['@context'] in json.loads(rv.data.decode('utf-8'))['@context']
-    assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][0][
-        'type']
+    rv = run_request_get_data(client.get, base_ddo_url + '/%s' % json_dict['id'])
+    assert json_dict['id'] in rv['id']
+    assert json_dict['@context'] in rv['@context']
+    assert json_dict['service'][2]['type'] in rv['service'][0]['type']
 
 
 def test_upsert_ddo(client_with_no_data, base_ddo_url):
@@ -41,14 +57,14 @@ def test_upsert_ddo(client_with_no_data, base_ddo_url):
                                   content_type='application/json')
     assert put.status_code in (200, 201), 'Failed to register/update asset.'
 
-    rv = client_with_no_data.get(
-        base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'],
-        content_type='application/json')
+    rv = run_request_get_data(
+        client_with_no_data.get,
+        base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id']
+    )
     assert 201 == put.status_code
-    assert json_dict['id'] in json.loads(rv.data.decode('utf-8'))['id']
-    assert json_dict['@context'] in json.loads(rv.data.decode('utf-8'))['@context']
-    assert json_dict['service'][2]['type'] in json.loads(rv.data.decode('utf-8'))['service'][0][
-        'type']
+    assert json_dict['id'] in rv['id']
+    assert json_dict['@context'] in rv['@context']
+    assert json_dict['service'][2]['type'] in rv['service'][0]['type']
     client_with_no_data.delete(
         base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'])
 
@@ -69,44 +85,44 @@ def test_post_with_no_valid_ddo(client, base_ddo_url):
 
 def test_update_ddo(client_with_no_data, base_ddo_url):
     client = client_with_no_data
-    post = client.post(base_ddo_url,
-                       data=json.dumps(json_before),
-                       content_type='application/json')
-    assert post.status_code in (200, 201), 'Failed to register asset.'
-
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
     put = client.put(
-        base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
+        base_ddo_url + '/%s' % post['id'],
         data=json.dumps(json_update),
         content_type='application/json')
     assert 200 == put.status_code, 'Failed to update asset'
     rv = client.get(
-        base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'],
+        base_ddo_url + '/%s' % post['id'],
         content_type='application/json')
-    assert json_update['service'][2]['metadata']['curation']['numVotes'] == \
-           json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['curation']['numVotes']
-    assert json.loads(post.data.decode('utf-8'))['service'][0]['metadata']['base'][
-               'checksum'] != \
-           json.loads(rv.data.decode('utf-8'))['service'][0]['metadata']['base'][
-               'checksum']
+    assert json_update['service'][2]['attributes']['curation']['numVotes'] == \
+           json.loads(rv.data.decode('utf-8'))['service'][0]['attributes']['curation']['numVotes']
+
     client.delete(
-        base_ddo_url + '/%s' % json.loads(post.data.decode('utf-8'))['id'])
+        base_ddo_url + '/%s' % post['id'])
 
 
 def test_query_metadata(client, base_ddo_url):
-    assert len(json.loads(client.post(base_ddo_url + '/query',
-                                      data=json.dumps({"query": {}}),
-                                      content_type='application/json').data.decode('utf-8'))[
-                   'results']) == 2
-    assert len(json.loads(client.post(base_ddo_url + '/query',
-                                      data=json.dumps(
-                                          {"query": {"price": ["14", "16"]}}),
-                                      content_type='application/json').data.decode('utf-8'))[
-                   'results']) == 1
-    assert len(json.loads(client.get(base_ddo_url + '/query?text=Office',
-                                     ).data.decode('utf-8'))['results']) == 1
-    assert len(json.loads(
-        client.get(base_ddo_url + '/query?text=112233445566778899',
-                   ).data.decode('utf-8'))['results']) == 1
+    results = json.loads(client.post(
+        base_ddo_url + '/query',
+        data=json.dumps({"query": {}}),
+        content_type='application/json')
+                         .data.decode('utf-8'))['results']
+    assert len(results) == 2
+
+    assert len(
+        run_request_get_data(client.post, base_ddo_url + '/query',
+                             {"query": {"price": ["14", "16"]}}
+                             )['results']
+    ) == 1
+    assert len(
+        run_request_get_data(client.get, base_ddo_url + '/query?text=Office'
+                             )['results']
+    ) == 1
+    assert len(
+        run_request_get_data(client.get,
+                             base_ddo_url + '/query?text=112233445566778899')['results']
+    ) == 1
+
     try:
         num_assets = len(test_assets) + 2
         for a in test_assets:
@@ -114,28 +130,19 @@ def test_query_metadata(client, base_ddo_url):
                         data=json.dumps(a),
                         content_type='application/json')
 
-        response = json.loads(
-            client.get(base_ddo_url + '/query?text=white&page=1&offset=5', )
-                .data.decode('utf-8')
-        )
+        response = run_request_get_data(client.get, base_ddo_url + '/query?text=white&page=1&offset=5')
         assert response['page'] == 1
         assert response['total_pages'] == int(num_assets / 5) + int(num_assets % 5 > 0)
         assert response['total_results'] == num_assets
         assert len(response['results']) == 5
 
-        response = json.loads(
-            client.get(base_ddo_url + '/query?text=white&page=3&offset=5', )
-                .data.decode('utf-8')
-        )
+        response = run_request_get_data(client.get, base_ddo_url + '/query?text=white&page=3&offset=5')
         assert response['page'] == 3
         assert response['total_pages'] == int(num_assets / 5) + int(num_assets % 5 > 0)
         assert response['total_results'] == num_assets
         assert len(response['results']) == num_assets - (5 * (response['total_pages'] - 1))
 
-        response = json.loads(
-            client.get(base_ddo_url + '/query?text=white&page=4&offset=5', )
-                .data.decode('utf-8')
-        )
+        response = run_request_get_data(client.get, base_ddo_url + '/query?text=white&page=4&offset=5')
         assert response['page'] == 4
         assert response['total_pages'] == int(num_assets / 5) + int(num_assets % 5 > 0)
         assert response['total_results'] == num_assets
@@ -147,49 +154,26 @@ def test_query_metadata(client, base_ddo_url):
 
 
 def test_delete_all(client_with_no_data, base_ddo_url):
-    client_with_no_data.post(base_ddo_url,
-                             data=json.dumps(json_dict),
-                             content_type='application/json')
-    client_with_no_data.post(base_ddo_url,
-                             data=json.dumps(json_update),
-                             content_type='application/json')
-    assert len(json.loads(
-        client_with_no_data.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
-                   'ids']) == 2
+    run_request(client_with_no_data.post, base_ddo_url, data=json_dict)
+    run_request(client_with_no_data.post, base_ddo_url, data=json_update)
+    assert len(run_request_get_data(client_with_no_data.get, BaseURLs.BASE_AQUARIUS_URL + '/assets')['ids']) == 2
     client_with_no_data.delete(base_ddo_url)
-    assert len(json.loads(
-        client_with_no_data.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))[
-                   'ids']) == 0
+    assert len(run_request_get_data(client_with_no_data.get, BaseURLs.BASE_AQUARIUS_URL + '/assets')['ids']) == 0
 
 
 def test_is_listed(client, base_ddo_url):
-    assert len(json.loads(
-        client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))['ids']
-               ) == 2
+    assert len(run_request_get_data(client.get, BaseURLs.BASE_AQUARIUS_URL + '/assets')['ids']) == 2
 
-    client.put(
-        base_ddo_url + '/%s' % json_dict['id'],
-        data=json.dumps(json_dict2),
-        content_type='application/json')
-    assert len(json.loads(
-        client.get(BaseURLs.BASE_AQUARIUS_URL + '/assets').data.decode('utf-8'))['ids']
-               ) == 1
-    assert len(json.loads(
-        client.post(base_ddo_url + '/query',
-                    data=json.dumps({"query": {"price": ["14", "16"]}}),
-                    content_type='application/json').data.decode('utf-8')
-    )['results']) == 1
+    run_request(client.put, base_ddo_url + '/%s' % json_dict['id'], data=json_dict2)
+    assert len(run_request_get_data(client.get, BaseURLs.BASE_AQUARIUS_URL + '/assets')['ids']) == 1
+    assert len(run_request_get_data(client.post, base_ddo_url + '/query', data={"query": {"price": ["14", "16"]}})['results']) == 1
 
 
 def test_validate(client_with_no_data, base_ddo_url):
-    post = client_with_no_data.post(base_ddo_url + '/validate',
-                                    data=json.dumps({}),
-                                    content_type='application/json')
+    post = run_request(client_with_no_data.post, base_ddo_url + '/validate', data={})
     assert post.status_code == 200
-    assert post.data == b'[{"message":"\'base\' is a required property","path":""}]\n'
-    post = client_with_no_data.post(base_ddo_url + '/validate',
-                                    data=json.dumps(json_valid),
-                                    content_type='application/json')
+    assert post.data == b'[{"message":"\'main\' is a required property","path":""}]\n'
+    post = run_request(client_with_no_data.post, base_ddo_url + '/validate', data=json_valid)
     assert post.data == b'true\n'
 
 

@@ -23,12 +23,11 @@ install_requirements = [
     'requests>=2.21.0',
     'gunicorn==19.9.0',
     'oceandb-driver-interface==0.2.0',
-    'oceandb-mongodb-driver==0.1.10',
-    'oceandb-elasticsearch-driver==0.1.5',
-    # 'oceandb-bigchaindb-driver==0.1.4',
+    'oceandb-mongodb-driver==0.2.0',
+    'oceandb-elasticsearch-driver==0.2.1',
     'PyYAML==5.1',
     'pytz==2018.5',
-    'plecos==0.7.10'
+    'plecos==1.0.0'
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
@@ -42,10 +41,10 @@ dev_requirements = [
 ]
 
 test_requirements = [
-    'codacy-coverage',
-    'coverage',
-    'mccabe',
-    'pylint',
+    'codacy-coverage==1.3.11',
+    'coverage==4.5.1',
+    'mccabe==0.6.1',
+    'pylint==2.2.2',
     'pytest',
     'tox',
 ]
@@ -78,6 +77,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='0.3.9',
+    version='1.0.0',
     zip_safe=False,
 )

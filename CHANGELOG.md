@@ -1,6 +1,22 @@
 History
 =======
 
+
+0.4.2 (Aug 29th, 2019)
+----------------------
+* Fix to allow new ddos schemas
+
+0.4.1 (Aug 16th, 2019)
+----------------------
+* Change serviceDefinitionId to index
+* Type of services have to be lowercase
+
+0.4.0 (Aug 13th, 2019)
+----------------------
+* Update to the new DDO structure with main instead of base.
+* OEP7 changes (https://github.com/oceanprotocol/OEPs/tree/master/7/v0.2)
+* OEP8 changes(https://github.com/oceanprotocol/OEPs/tree/master/8/v0.4)
+
 0.3.8 (Jul 16th, 2019)
 ----------------------
 * Fix search by type.

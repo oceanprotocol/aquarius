@@ -63,16 +63,16 @@ json_dict = {
   ],
   "service": [
     {
-      "type": "Authorization",
+      "type": "authorization",
       "serviceEndpoint": "http://localhost:12001",
       "service": "SecretStore",
-      "serviceDefinitionId": "0"
+      "index": 0
     },
     {
-      "type": "Access",
+      "type": "access",
       "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
       "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
-      "serviceDefinitionId": "1",
+      "index": 1,
       "templateId": "0x208aca4B0316C9996F085cbD57E01c11Bc0E7cb1",
       "name": "dataAssetAccessServiceAgreement",
       "creator": "",
@@ -221,17 +221,49 @@ json_dict = {
       }
     },
     {
-      "type": "Metadata",
+      "type": "metadata",
       "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-      "metadata": {
-        "base": {
+      "attributes": {
+        "main": {
           "name": "Ocean protocol white paper",
           "type": "dataset",
-          "description": "Introduce the main concepts and vision behind ocean protocol",
           "dateCreated": "2012-10-10T17:00:00Z",
           "datePublished": "2012-10-10T17:00:00Z",
           "author": "Ocean Protocol Foundation Ltd.",
           "license": "CC-BY",
+          "price": "888000000000000000000000000000000",
+          "files": [
+            {
+              "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+              "contentType": "text/csv",
+              "checksumType": "MD5",
+              "contentLength": "4535431",
+              "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
+              "index": 0
+            },
+            {
+              "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+              "contentType": "text/csv",
+
+              "contentLength": "4535431",
+              "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
+              "index": 1
+            },
+            {
+              "index": 2,
+              "contentType": "text/csv",
+
+            }
+          ]
+        },
+        "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0",
+        "curation": {
+          "rating": 0.93,
+          "numVotes": 123,
+          "schema": "Binary Voting"
+        },
+        "additionalInformation": {
+          "description": "Introduce the main concepts and vision behind ocean protocol",
           "copyrightHolder": "Ocean Protocol Foundation Ltd.",
           "workExample": "Text PDF",
           "inLanguage": "en",
@@ -239,48 +271,19 @@ json_dict = {
             "white-papers"
           ],
           "tags": ["data exchange", "sharing", "curation", "bonding curve"],
-          "price": "888000000000000000000000000000000",
-          "files": [
-            {
-              "contentType": "application/zip",
-              "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
-              "checksumType": "MD5",
-              "contentLength": 4535431,
-              "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
-              "index": 0
-            },
-            {
-              "contentType": "application/zip",
-              "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
-              "contentLength": 4535431,
-              "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
-              "index": 1
-            },
-            {
-              "contentType": "text/text",
-              "index": 2
-            }
-          ],
           "links": [
             {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-daily/"
             },
             {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-averages-25km/"
             },
             {
               "url": "http://data.ceda.ac.uk/badc/ukcp09/"
             }
           ],
-          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
-          "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
-        },
-        "curation": {
-          "rating": 0.93,
-          "numVotes": 123,
-          "schema": "Binary Voting"
-        },
-        "additionalInformation": {
           "updateFrequency": "yearly",
           "structuredMarkup": [
             {
@@ -294,7 +297,7 @@ json_dict = {
           ]
         }
       },
-      "serviceDefinitionId": "2"
+      "index": 2
     }
   ],
   "proof": {
@@ -323,16 +326,16 @@ json_dict2 = {
   ],
   "service": [
     {
-      "type": "Authorization",
+      "type": "authorization",
       "serviceEndpoint": "http://localhost:12001",
       "service": "SecretStore",
-      "serviceDefinitionId": "0"
+      "index": 0
     },
     {
-      "type": "Access",
+      "type": "access",
       "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
       "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
-      "serviceDefinitionId": "1",
+      "index": 1,
       "templateId": "0x208aca4B0316C9996F085cbD57E01c11Bc0E7cb1",
       "name": "dataAssetAccessServiceAgreement",
       "creator": "",
@@ -481,60 +484,43 @@ json_dict2 = {
       }
     },
     {
-      "type": "Metadata",
+      "type": "metadata",
       "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-      "metadata": {
-        "base": {
+      "attributes": {
+        "main": {
           "name": "Ocean protocol white paper",
           "type": "dataset",
-          "description": "Introduce the main concepts and vision behind ocean protocol",
           "dateCreated": "2012-10-10T17:00:00Z",
           "datePublished": "2012-10-10T17:00:00Z",
           "author": "Ocean Protocol Foundation Ltd.",
           "license": "CC-BY",
-          "copyrightHolder": "Ocean Protocol Foundation Ltd.",
-          "workExample": "Text PDF",
-          "inLanguage": "en",
-          "categories": [
-            "white-papers"
-          ],
-          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
+
           "price": "888000000000000000000000000000000",
           "files": [
             {
               "contentType": "application/zip",
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+              "contentType": "text/csv",
               "checksumType": "MD5",
-              "contentLength": 4535431,
+              "contentLength": "4535431",
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 0
             },
             {
               "contentType": "application/zip",
               "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-              "contentLength": 4535431,
+              "contentType": "text/csv",
+              "contentLength": "4535431",
               "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
               "index": 1
             },
             {
-              "contentType": "text/text",
-              "index": 2
+              "index": 2,
+              "contentType": "text/csv",
             }
           ],
-          "links": [
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/"
-            },
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
-            },
-            {
-              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
-            }
-          ],
-          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
-          "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
+        "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0",
         "curation": {
           "rating": 0.93,
           "numVotes": 123,
@@ -542,6 +528,27 @@ json_dict2 = {
           "isListed": False
         },
         "additionalInformation": {
+          "description": "Introduce the main concepts and vision behind ocean protocol",
+          "copyrightHolder": "Ocean Protocol Foundation Ltd.",
+          "workExample": "Text PDF",
+          "inLanguage": "en",
+          "categories": [
+            "white-papers"
+          ],
+          "tags": ["data exchange", "sharing", "curation", "bonding curve"],
+          "links": [
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-daily/"
+            },
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
+                     "-averages-25km/"
+            },
+            {
+              "url": "http://data.ceda.ac.uk/badc/ukcp09/"
+            }
+          ],
           "updateFrequency": "yearly",
           "structuredMarkup": [
             {
@@ -555,7 +562,7 @@ json_dict2 = {
           ]
         }
       },
-      "serviceDefinitionId": "2"
+      "index": 2
     }
   ],
   "proof": {
@@ -567,7 +574,7 @@ json_dict2 = {
 }
 json_dict_no_metadata = {"publisherId": "0x2"}
 json_dict_no_valid_metadata = {"publisherId": "0x4",
-                               "base": {},
+                               "main": {},
                                "assetId": "002"
                                }
 
@@ -608,60 +615,40 @@ json_before = {
     "service": [
         {
             "type": "Consume",
-            "serviceDefinitionId": "0",
+            "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
-            "serviceDefinitionId": "1",
+            "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
-            "type": "Metadata",
-            "serviceDefinitionId": "2",
+            "type": "metadata",
+            "index": 2,
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-            "metadata": {
-                "base": {
+            "attributes": {
+                "main": {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
-                    "description": "Weather information of UK including temperature and humidity",
                     "dateCreated": "2012-10-10T17:00:00Z",
                     "datePublished": "2012-10-10T17:00:00Z",
                     "author": "Met Office",
                     "license": "CC-BY",
-                    "copyrightHolder": "Met Office",
-                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity /n 423432fsd,51.509865,-0.118092,"
-                                   "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
                         "index": 0,
-                        "contentLength": 4535431,
+                        "contentLength": "4535431",
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
                         "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
                     }
                     ],
-                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
-                    "links": [
-                        {
-                            "name": "Sample of Asset Data",
-                            "type": "sample",
-                            "url": "https://foo.com/sample.csv"
-                        },
-                        {
-                            "name": "Data Format Definition",
-                            "type": "format",
-                            "url": "https://foo.com/sample2.csv"
-                        }
-                    ],
-                    "inLanguage": "en",
-                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": "88888880000000000000",
-                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
+                "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                 "curation": {
                     "rating": 0.0,
                     "numVotes": 0,
@@ -669,12 +656,33 @@ json_before = {
                     "isListed": True
                 },
                 "additionalInformation": {
-                    "updateFrecuency": "yearly",
+                    "description": "Weather information of UK including temperature and humidity",
+                    "copyrightHolder": "Met Office",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
+                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "inLanguage": "en",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
+                    "updateFrequency": "yearly",
                     "structuredMarkup": [
                         {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
                          "mediaType": "application/ld+json"},
                         {"uri": "http://skos.um.es/unescothes/C01194/turtle",
-                         "mediaType": "text/turtle"}]
+                         "mediaType": "text/turtle"}
+                    ],
+                    "links": [
+                      {
+                        "name": "Sample of Asset Data",
+                        "type": "sample",
+                        "url": "https://foo.com/sample.csv"
+                      },
+                      {
+                        "name": "Data Format Definition",
+                        "type": "format",
+                        "url": "https://foo.com/sample2.csv"
+                      }
+                    ]
+
                 }
             }
         }
@@ -717,60 +725,39 @@ json_update = {
     "service": [
         {
             "type": "Consume",
-            "serviceDefinitionId": "0",
+            "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
             "type": "Compute",
-            "serviceDefinitionId": "1",
+            "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
         },
         {
-            "type": "Metadata",
-            "serviceDefinitionId": "2",
+            "type": "metadata",
+            "index": 2,
             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/{did}",
-            "metadata": {
-                "base": {
+            "attributes": {
+                "main": {
                     "name": "UK Weather information 2012",
                     "type": "dataset",
-                    "description": "Weather information of UK including temperature and humidity and white",
                     "dateCreated": "2012-02-01T10:55:11Z",
                     "datePublished": "2012-02-01T10:55:11Z",
                     "author": "Met Office",
                     "license": "CC-BY",
-                    "copyrightHolder": "Met Office",
-                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity /n 423432fsd,51.509865,-0.118092,"
-                                   "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
                         "index": 0,
-                        "contentLength": 4535431,
+                        "contentLength": "4535431",
                         "contentType": "text/csv",
                         "encoding": "UTF-8",
                         "compression": "zip",
                         "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                    }
-                    ],
-                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
-                    "links": [
-                        {
-                            "name": "Sample of Asset Data",
-                            "type": "sample",
-                            "url": "https://foo.com/sample.csv"
-                        },
-                        {
-                            "name": "Data Format Definition",
-                            "type": "format",
-                            "url": "https://foo.com/sample2.csv"
-                        }
-                    ],
-                    "inLanguage": "en",
-                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
+                    }],
                     "price": "15",
-                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
                 },
+                "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                 "curation": {
                     "rating": 8.0,
                     "numVotes": 1,
@@ -778,19 +765,39 @@ json_update = {
                     "isListed": True
                 },
                 "additionalInformation": {
+                    "description": "Weather information of UK including temperature and humidity and white",
+                    "copyrightHolder": "Met Office",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
+                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "inLanguage": "en",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "updateFrecuency": "yearly",
                     "structuredMarkup": [
                         {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
                          "mediaType": "application/ld+json"},
                         {"uri": "http://skos.um.es/unescothes/C01194/turtle",
-                         "mediaType": "text/turtle"}]
+                         "mediaType": "text/turtle"}
+                    ],
+                    "links": [
+                      {
+                        "name": "Sample of Asset Data",
+                        "type": "sample",
+                        "url": "https://foo.com/sample.csv"
+                      },
+                      {
+                        "name": "Data Format Definition",
+                        "type": "format",
+                        "url": "https://foo.com/sample2.csv"
+                      }
+                    ]
                 }
             }
         }
     ]
 }
 json_valid = {
-  "base": {
+  "main": {
     "name": "10 Monkey Species Small",
     "dateCreated": "2012-02-01T10:55:11Z",
     "author": "Mario",
@@ -804,7 +811,7 @@ json_valid = {
         "compression": "zip",
         "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
         "checksumType": "MD5",
-        "contentLength": 12057507,
+        "contentLength": "12057507",
         "url": "https://s3.amazonaws.com/assets/training.zip"
       },
       {
@@ -814,7 +821,7 @@ json_valid = {
         "compression": "none",
         "checksum": "354d19c0733c47ef3a6cce5b633116b0",
         "checksumType": "MD5",
-        "contentLength": 928,
+        "contentLength": "928",
         "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
       },
       {
@@ -823,6 +830,10 @@ json_valid = {
         "url": "https://s3.amazonaws.com/datacommons/validation.zip"
       }
     ],
+    "type": "dataset",
+  },
+  "additionalInformation":{
+    "description": "EXAMPLE ONLY ",
     "categories": [
       "image"
     ],
@@ -831,9 +842,6 @@ json_valid = {
       "classification",
       "animals"
     ],
-    "type": "dataset",
-    "description": "EXAMPLE ONLY ",
-    "copyrightHolder": "Unknown",
     "workExample": "image path, id, label",
     "links": [
       {
@@ -856,6 +864,7 @@ json_valid = {
         "type": "sample"
       }
     ],
+    "copyrightHolder": "Unknown",
     "inLanguage": "en"
   }
 }
