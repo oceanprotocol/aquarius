@@ -29,6 +29,8 @@ def client():
     post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                        data=json.dumps(json_update),
                        content_type='application/json')
+    if post.status_code not in (200, 201):
+        raise AssertionError(f'register asset failed: {post}')
     post2 = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
                         data=json.dumps(json_dict),
                         content_type='application/json')
@@ -252,10 +254,9 @@ json_dict = {
               "contentType": "text/csv",
 
             }
-          ],
-          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
-          "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
+          ]
         },
+        "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0",
         "curation": {
           "rating": 0.93,
           "numVotes": 123,
@@ -516,9 +517,8 @@ json_dict2 = {
               "contentType": "text/csv",
             }
           ],
-          "checksum": "0x6d78a905bd54d373f71940f8b441bb2ef10758a47dab5b94a94becd688a9e58c",
-          "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0"
         },
+        "encryptedFiles": "<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{\"url\": \"https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"checksumType\": \"MD5\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt\", \"checksum\": \"efb2c764274b745f5fc37f97c6b0e761\", \"contentLength\": \"4535431\", \"resourceId\": \"access-log2018-02-13-15-17-29-18386C502CAEA932\"}, {\"url\": \"http://ipv4.download.thinkbroadband.com/5MB.zip\"}]!!0",
         "curation": {
           "rating": 0.93,
           "numVotes": 123,
@@ -631,15 +631,10 @@ json_before = {
                 "main": {
                     "name": "UK Weather information 2011",
                     "type": "dataset",
-                    "description": "Weather information of UK including temperature and humidity",
                     "dateCreated": "2012-10-10T17:00:00Z",
                     "datePublished": "2012-10-10T17:00:00Z",
                     "author": "Met Office",
                     "license": "CC-BY",
-                    "copyrightHolder": "Met Office",
-                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity /n 423432fsd,51.509865,-0.118092,"
-                                   "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
                         "index": 0,
                         "contentLength": "4535431",
@@ -649,24 +644,9 @@ json_before = {
                         "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
                     }
                     ],
-                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
-                    "links": [
-                        {
-                            "name": "Sample of Asset Data",
-                            "type": "sample",
-                            "url": "https://foo.com/sample.csv"
-                        },
-                        {
-                            "name": "Data Format Definition",
-                            "type": "format",
-                            "url": "https://foo.com/sample2.csv"
-                        }
-                    ],
-                    "inLanguage": "en",
-                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "price": "88888880000000000000",
-                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85262"
                 },
+                "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                 "curation": {
                     "rating": 0.0,
                     "numVotes": 0,
@@ -674,12 +654,33 @@ json_before = {
                     "isListed": True
                 },
                 "additionalInformation": {
-                    "updateFrecuency": "yearly",
+                    "description": "Weather information of UK including temperature and humidity",
+                    "copyrightHolder": "Met Office",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
+                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "inLanguage": "en",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
+                    "updateFrequency": "yearly",
                     "structuredMarkup": [
                         {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
                          "mediaType": "application/ld+json"},
                         {"uri": "http://skos.um.es/unescothes/C01194/turtle",
-                         "mediaType": "text/turtle"}]
+                         "mediaType": "text/turtle"}
+                    ],
+                    "links": [
+                      {
+                        "name": "Sample of Asset Data",
+                        "type": "sample",
+                        "url": "https://foo.com/sample.csv"
+                      },
+                      {
+                        "name": "Data Format Definition",
+                        "type": "format",
+                        "url": "https://foo.com/sample2.csv"
+                      }
+                    ]
+
                 }
             }
         }
@@ -740,15 +741,10 @@ json_update = {
                 "main": {
                     "name": "UK Weather information 2012",
                     "type": "dataset",
-                    "description": "Weather information of UK including temperature and humidity and white",
                     "dateCreated": "2012-02-01T10:55:11Z",
                     "datePublished": "2012-02-01T10:55:11Z",
                     "author": "Met Office",
                     "license": "CC-BY",
-                    "copyrightHolder": "Met Office",
-                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
-                                   "humidity /n 423432fsd,51.509865,-0.118092,"
-                                   "2011-01-01T10:55:11+00:00,7.2,68",
                     "files": [{
                         "index": 0,
                         "contentLength": "4535431",
@@ -756,26 +752,10 @@ json_update = {
                         "encoding": "UTF-8",
                         "compression": "zip",
                         "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                    }
-                    ],
-                    "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
-                    "links": [
-                        {
-                            "name": "Sample of Asset Data",
-                            "type": "sample",
-                            "url": "https://foo.com/sample.csv"
-                        },
-                        {
-                            "name": "Data Format Definition",
-                            "type": "format",
-                            "url": "https://foo.com/sample2.csv"
-                        }
-                    ],
-                    "inLanguage": "en",
-                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
+                    }],
                     "price": "15",
-                    "checksum": "0x38803b9e6f04fce3fba4b124524672592264d31847182c689095a081c9e85264"
                 },
+                "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                 "curation": {
                     "rating": 8.0,
                     "numVotes": 1,
@@ -783,12 +763,32 @@ json_update = {
                     "isListed": True
                 },
                 "additionalInformation": {
+                    "description": "Weather information of UK including temperature and humidity and white",
+                    "copyrightHolder": "Met Office",
+                    "workExample": "stationId,latitude,longitude,datetime,temperature,"
+                                   "humidity /n 423432fsd,51.509865,-0.118092,"
+                                   "2011-01-01T10:55:11+00:00,7.2,68",
+                    "inLanguage": "en",
+                    "tags": ["weather", "uk", "2011", "temperature", "humidity"],
                     "updateFrecuency": "yearly",
                     "structuredMarkup": [
                         {"uri": "http://skos.um.es/unescothes/C01194/jsonld",
                          "mediaType": "application/ld+json"},
                         {"uri": "http://skos.um.es/unescothes/C01194/turtle",
-                         "mediaType": "text/turtle"}]
+                         "mediaType": "text/turtle"}
+                    ],
+                    "links": [
+                      {
+                        "name": "Sample of Asset Data",
+                        "type": "sample",
+                        "url": "https://foo.com/sample.csv"
+                      },
+                      {
+                        "name": "Data Format Definition",
+                        "type": "format",
+                        "url": "https://foo.com/sample2.csv"
+                      }
+                    ]
                 }
             }
         }

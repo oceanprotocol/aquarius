@@ -135,24 +135,23 @@ def register():
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id":
-                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                  example: [{"id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "type": "EthereumECDSAKey",
                             "owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018",
-                            "publicKey":
-                            "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
+                            "publicKey": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
                   example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
                              "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
-                             "signatureValue":
-                             "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
+                             "signatureValue": "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5
+                                                f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b7034360
+                                                72598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
@@ -166,15 +165,13 @@ def register():
                              "index": 1,
                              "serviceEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/consume",
-                             "purchaseEndpoint":
-                             "http://localhost:8030/api/v1/brizo/services/access/initialize"
+                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"
                              },
                            {
                             "type": "metadata",
                             "index": 2,
-                            "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
-                            :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
+                                                :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "attributes": {
                                 "main": {
                                     "name": "UK Weather information 2011",
@@ -192,9 +189,9 @@ def register():
                                             "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
-                                    "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "price": "10"
                                 },
+                                "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                 "curation": {
                                     "rating": 0.93,
                                     "numVotes": 123,
@@ -202,11 +199,11 @@ def register():
                                 },
                                 "additionalInformation": {
                                     "description": "Weather information of UK including
-                                    temperature and humidity",
+                                                    temperature and humidity",
                                     "copyrightHolder": "Met Office",
                                     "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                                    2011-01-01T10:55:11+00:00,7.2,68",
                                     "inLanguage": "en",
                                     "links": [{
                                             "name": "Sample of Asset Data",
@@ -262,12 +259,14 @@ def register():
             _record['service'][service_id]['attributes']['curation']['numVotes'] = 0
             _record['service'][service_id]['attributes']['curation']['isListed'] = True
     _record['service'] = _reorder_services(_record['service'])
-    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-    #     logger.error(
-    #         _list_errors(list_errors_dict_remote,
-    #                      _get_metadata(_record['service'])['attributes']))
-    #     return jsonify(_list_errors(list_errors_dict_remote,
-    #                                 _get_metadata(_record['service'])['attributes'])), 400
+
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+        logger.error(
+            _list_errors(list_errors_dict_remote,
+                         _get_metadata(_record['service'])['attributes']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['attributes'])), 400
+
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
@@ -321,34 +320,31 @@ def update(did):
             publicKey:
                   type: array
                   description: List of public keys.
-                  example: [{"id":
-                  "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                  example: [{"id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "type": "EthereumECDSAKey",
                             "owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
             authentication:
                   type: array
                   description: List of authentication mechanisms.
                   example: [{"type": "RsaSignatureAuthentication2018",
-                            "publicKey":
-                            "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
+                            "publicKey": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
             proof:
                   type: dictionary
                   description: Information about the creation and creator of the asset.
                   example:  {"type": "DDOIntegritySignature",
                              "created": "2016-02-08T16:02:20Z",
                              "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
-                             "signatureValue":
-                             "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b703436072598c3a81ec88be28bfe33b61554a471b"
+                             "signatureValue": "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a
+                                                5f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b70343
+                                                6072598c3a81ec88be28bfe33b61554a471b"
                             }
             service:
                   type: array
                   description: List of services.
                   example: [{"type": "access",
                              "index": 1,
-                             "serviceEndpoint":
-                             "http://localhost:8030/api/v1/brizo/services/consume",
-                             "purchaseEndpoint":
-                             "http://localhost:8030/api/v1/brizo/services/access/initialize"},
+                             "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
+                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"},
                             {"type": "authorization",
                               "serviceEndpoint": "http://localhost:12001",
                               "service": "SecretStore",
@@ -357,9 +353,8 @@ def update(did):
                            {
                             "type": "metadata",
                             "index": 2,
-                            "serviceEndpoint":
-                            "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
-                            :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+                            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
+                                                :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "attributes": {
                                 "main": {
                                     "name": "UK Weather information 2011",
@@ -377,9 +372,9 @@ def update(did):
                                             "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
-                                    "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                     "price": "10"
                                 },
+                                "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                 "curation": {
                                     "rating": 0.93,
                                     "numVotes": 123,
@@ -387,7 +382,7 @@ def update(did):
                                 },
                                 "additionalInformation": {
                                     "description": "Weather information of UK including
-                                    temperature and humidity",
+                                                    temperature and humidity",
                                     "links": [{
                                             "name": "Sample of Asset Data",
                                             "type": "sample",
@@ -395,8 +390,8 @@ def update(did):
                                         }
                                     ],
                                     "workExample": "stationId,latitude,longitude,datetime,
-                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
-                                    2011-01-01T10:55:11+00:00,7.2,68",
+                                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
+                                                    2011-01-01T10:55:11+00:00,7.2,68",
                                     "inLanguage": "en",
                                     "copyrightHolder": "Met Office",
                                     "tags": ["weather", "uk", "2011", "temperature", "humidity"]
@@ -435,11 +430,12 @@ def update(did):
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
     _record['service'] = _reorder_services(_record['service'])
-    # if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-    #     logger.error(_list_errors(list_errors_dict_remote,
-    #                               _get_metadata(_record['service'])['attributes']))
-    #     return jsonify(_list_errors(list_errors_dict_remote,
-    #                                 _get_metadata(_record['service'])['attributes'])), 400
+    if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
+        logger.error(_list_errors(list_errors_dict_remote,
+                                  _get_metadata(_record['service'])['attributes']))
+        return jsonify(_list_errors(list_errors_dict_remote,
+                                    _get_metadata(_record['service'])['attributes'])), 400
+
     try:
         if dao.get(did) is None:
             register()
@@ -549,6 +545,7 @@ def query_text():
     query_result = dao.query(search_model)
     for i in query_result[0]:
         _sanitize_record(i)
+
     response = _make_paginate_response(query_result, search_model)
     return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
@@ -604,6 +601,7 @@ def query_ddo():
     query_result = dao.query(search_model)
     for i in query_result[0]:
         _sanitize_record(i)
+
     response = _make_paginate_response(query_result, search_model)
     return Response(json.dumps(response, default=_my_converter), 200,
                     content_type='application/json')
@@ -655,6 +653,7 @@ def validate():
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
+
     if is_valid_dict_local(data):
         return jsonify(True)
     else:
@@ -685,10 +684,12 @@ def check_required_attributes(required_attributes, data, method):
         logger.error('%s request failed: data is empty.' % method)
         logger.error('%s request failed: data is empty.' % method)
         return 'payload seems empty.', 400
+
     for attr in required_attributes:
         if attr not in data:
             logger.error('%s request failed: required attr %s missing.' % (method, attr))
             return '"%s" is required in the call to %s' % (attr, method), 400
+
     return None, None
 
 
@@ -746,7 +747,9 @@ def _reorder_services(services):
     for service in services:
         if service['type'] == 'metadata':
             result.append(service)
+
     for service in services:
         if service['type'] != 'metadata':
             result.append(service)
+
     return result
