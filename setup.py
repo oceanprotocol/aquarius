@@ -45,8 +45,8 @@ test_requirements = [
     'coverage==4.5.1',
     'mccabe==0.6.1',
     'pylint==2.2.2',
-    'pytest==3.4.2',
-    'tox==3.2.1',
+    'pytest',
+    'tox',
 ]
 
 setup(
