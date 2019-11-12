@@ -23,6 +23,8 @@ assets = Blueprint('assets', __name__)
 dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
 
+DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+
 
 @assets.route('', methods=['GET'])
 def get_assets():
@@ -243,7 +245,7 @@ def register():
         return msg, status
     _record = dict()
     _record = copy.deepcopy(data)
-    _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
+    _record['created'] = datetime.strptime(data['created'], DATETIME_FORMAT)
     for service in _record['service']:
         if service['type'] == 'metadata':
             service_id = int(service['index'])
@@ -252,8 +254,13 @@ def register():
                     logger.warning('Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
             _record['service'][service_id]['attributes']['main']['dateCreated'] = \
-                datetime.strptime(_record['service'][service_id]['attributes']['main']['dateCreated'],
-                                  '%Y-%m-%dT%H:%M:%SZ')
+                datetime.strptime(
+                    _record['service'][service_id]['attributes']['main']['dateCreated'],
+                    DATETIME_FORMAT
+                )
+            _record['service'][service_id]['attributes']['main']['datePublished'] = \
+                datetime.strptime(get_timestamp(), DATETIME_FORMAT)
+
             _record['service'][service_id]['attributes']['curation'] = {}
             _record['service'][service_id]['attributes']['curation']['rating'] = 0.00
             _record['service'][service_id]['attributes']['curation']['numVotes'] = 0
@@ -428,7 +435,7 @@ def update(did):
         return msg, status
     _record = dict()
     _record = copy.deepcopy(data)
-    _record['created'] = datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%SZ')
+    _record['created'] = datetime.strptime(data['created'], DATETIME_FORMAT)
     _record['service'] = _reorder_services(_record['service'])
     if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
         logger.error(_list_errors(list_errors_dict_remote,
@@ -716,18 +723,23 @@ def _get_curation_metadata(services):
     return _get_metadata(services)['attributes']['curation']
 
 
+def get_timestamp():
+    """Return the current system timestamp."""
+    return f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z'
+
+
 def validate_date_format(date):
     try:
-        datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+        datetime.strptime(date, DATETIME_FORMAT)
         return None, None
     except Exception as e:
         logging.error(str(e))
-        return "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400
+        return f"Incorrect data format, should be '{DATETIME_FORMAT}'", 400
 
 
 def _my_converter(o):
     if isinstance(o, datetime):
-        return o.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return o.strftime(DATETIME_FORMAT)
 
 
 def _make_paginate_response(query_list_result, search_model):
