@@ -102,12 +102,25 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
 
 
 def test_query_metadata(client, base_ddo_url):
-    results = json.loads(client.post(
-        base_ddo_url + '/query',
-        data=json.dumps({"query": {}}),
-        content_type='application/json')
-                         .data.decode('utf-8'))['results']
-    assert len(results) == 2
+
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {}})['results']) == 2
+
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {'text': "UK"}})['results']) == 1
+
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {'text': "weather"}})['results']) == 1
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) == 1
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {'text': "uK"}})['results']) == 1
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {'text': ["UK", "temperature"]}})['results']) == 1
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {'text': ["ocean protocol", "Vision", "paper"]}})['results']) == 1
+    assert len(run_request_get_data(
+        client.post, base_ddo_url + '/query', {"query": {'text': ["UK", "oceAN"]}})['results']) == 2
 
     assert len(
         run_request_get_data(client.post, base_ddo_url + '/query',
