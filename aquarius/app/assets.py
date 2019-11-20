@@ -434,6 +434,10 @@ def update(did):
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], DATETIME_FORMAT)
     _record['service'] = _reorder_services(_record['service'])
+    services = {s['type']: s for s in _record['service']}
+    metadata_main = services['metadata']['attributes']['main']
+    metadata_main['dateCreated'] = datetime.strptime(metadata_main['dateCreated'], DATETIME_FORMAT)
+    metadata_main['datePublished'] = datetime.strptime(metadata_main['datePublished'], DATETIME_FORMAT)
     if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
         logger.error(_list_errors(list_errors_dict_remote,
                                   _get_metadata(_record['service'])['attributes']))
