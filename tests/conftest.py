@@ -19,6 +19,7 @@ def base_ddo_url():
 @pytest.fixture
 def client_with_no_data():
     client = app.test_client()
+    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
     yield client
 
 

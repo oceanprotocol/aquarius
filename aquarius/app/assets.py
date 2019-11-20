@@ -36,9 +36,6 @@ def get_assets():
       200:
         description: successful action
     """
-    args = []
-    query = dict()
-    args.append(query)
     asset_with_id = dao.get_all_listed_assets()
     asset_ids = [a['id'] for a in asset_with_id]
     resp_body = dict({'ids': asset_ids})
@@ -435,8 +432,12 @@ def update(did):
         return msg, status
     _record = dict()
     _record = copy.deepcopy(data)
-    _record['created'] = datetime.strptime(data['created'], DATETIME_FORMAT)
+    _record['created'] = format_timestamp(data['created'])
     _record['service'] = _reorder_services(_record['service'])
+    services = {s['type']: s for s in _record['service']}
+    metadata_main = services['metadata']['attributes']['main']
+    metadata_main['dateCreated'] = format_timestamp(metadata_main['dateCreated'])
+    metadata_main['datePublished'] = format_timestamp(metadata_main['datePublished'])
     if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
         logger.error(_list_errors(list_errors_dict_remote,
                                   _get_metadata(_record['service'])['attributes']))
@@ -726,6 +727,10 @@ def _get_curation_metadata(services):
 def get_timestamp():
     """Return the current system timestamp."""
     return f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z'
+
+
+def format_timestamp(timestamp):
+    return f'{datetime.strptime(timestamp, DATETIME_FORMAT).replace(microsecond=0).isoformat()}Z'
 
 
 def validate_date_format(date):

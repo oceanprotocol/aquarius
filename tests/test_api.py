@@ -94,8 +94,15 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
     rv = client.get(
         base_ddo_url + '/%s' % post['id'],
         content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
     assert json_update['service'][2]['attributes']['curation']['numVotes'] == \
-           json.loads(rv.data.decode('utf-8'))['service'][0]['attributes']['curation']['numVotes']
+        fetched_ddo['service'][0]['attributes']['curation']['numVotes']
+
+    put = client.put(
+        base_ddo_url + '/%s' % post['id'],
+        data=json.dumps(fetched_ddo),
+        content_type='application/json')
+    assert 200 == put.status_code, 'Failed to update asset without changes.'
 
     client.delete(
         base_ddo_url + '/%s' % post['id'])
