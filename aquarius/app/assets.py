@@ -36,9 +36,6 @@ def get_assets():
       200:
         description: successful action
     """
-    args = []
-    query = dict()
-    args.append(query)
     asset_with_id = dao.get_all_listed_assets()
     asset_ids = [a['id'] for a in asset_with_id]
     resp_body = dict({'ids': asset_ids})
