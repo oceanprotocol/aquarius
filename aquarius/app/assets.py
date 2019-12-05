@@ -8,8 +8,12 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
-from plecos.plecos import (is_valid_dict_local, is_valid_dict_remote, list_errors_dict_local,
-                           list_errors_dict_remote)
+from plecos.plecos import (
+    is_valid_dict_local,
+    is_valid_dict_remote,
+    list_errors_dict_local,
+    list_errors_dict_remote
+)
 
 from aquarius.app.dao import Dao
 from aquarius.config import Config
@@ -240,42 +244,46 @@ def register():
     msg, status = validate_date_format(data['created'])
     if status:
         return msg, status
+
+    if not is_valid_dict_local(_get_metadata(data['service'])['attributes']):
+        errors = _list_errors(list_errors_dict_local,
+                              _get_metadata(data['service'])['attributes'])
+        logger.error(errors)
+
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = datetime.strptime(data['created'], DATETIME_FORMAT)
     for service in _record['service']:
         if service['type'] == 'metadata':
-            service_id = int(service['index'])
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
-                if _record['service'][service_id]['attributes']['main']['price'] != "0":
+                if service['attributes']['main']['price'] != "0":
                     logger.warning('Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
-            _record['service'][service_id]['attributes']['main']['dateCreated'] = \
+            service['attributes']['main']['dateCreated'] = \
                 datetime.strptime(
-                    _record['service'][service_id]['attributes']['main']['dateCreated'],
+                    service['attributes']['main']['dateCreated'],
                     DATETIME_FORMAT
                 )
-            _record['service'][service_id]['attributes']['main']['datePublished'] = \
+            service['attributes']['main']['datePublished'] = \
                 datetime.strptime(get_timestamp(), DATETIME_FORMAT)
 
-            _record['service'][service_id]['attributes']['curation'] = {}
-            _record['service'][service_id]['attributes']['curation']['rating'] = 0.00
-            _record['service'][service_id]['attributes']['curation']['numVotes'] = 0
-            _record['service'][service_id]['attributes']['curation']['isListed'] = True
+            service['attributes']['curation'] = {}
+            service['attributes']['curation']['rating'] = 0.00
+            service['attributes']['curation']['numVotes'] = 0
+            service['attributes']['curation']['isListed'] = True
     _record['service'] = _reorder_services(_record['service'])
 
     if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
-        logger.error(
-            _list_errors(list_errors_dict_remote,
-                         _get_metadata(_record['service'])['attributes']))
-        return jsonify(_list_errors(list_errors_dict_remote,
-                                    _get_metadata(_record['service'])['attributes'])), 400
+        errors = _list_errors(list_errors_dict_remote,
+                              _get_metadata(_record['service'])['attributes'])
+        logger.error(errors)
+        return jsonify(errors), 400
 
     try:
         dao.register(_record, data['id'])
         # add new assetId to response
         return Response(_sanitize_record(_record), 201, content_type='application/json')
-    except Exception as err:
+    except (KeyError, Exception) as err:
         logger.error(f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
         return f'Some error: {str(err)}', 500
 
@@ -452,12 +460,12 @@ def update(did):
             for service in _record['service']:
                 if service['type'] == 'metadata':
                     if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
-                        if _record['service'][0]['attributes']['main']['price'] != "0":
+                        if service['attributes']['main']['price'] != "0":
                             logger.warning('Priced assets are not supported in this marketplace')
                             return 'Priced assets are not supported in this marketplace', 400
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
-    except Exception as err:
+    except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
 
@@ -487,7 +495,7 @@ def retire(did):
         else:
             dao.delete(did)
             return 'Succesfully deleted', 200
-    except Exception as err:
+    except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
 
