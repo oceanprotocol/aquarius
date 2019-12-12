@@ -252,7 +252,7 @@ def register():
 
     _record = dict()
     _record = copy.deepcopy(data)
-    _record['created'] = datetime.strptime(data['created'], DATETIME_FORMAT)
+    _record['created'] = format_timestamp(data['created'])
     for service in _record['service']:
         if service['type'] == 'metadata':
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
@@ -260,12 +260,9 @@ def register():
                     logger.warning('Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
             service['attributes']['main']['dateCreated'] = \
-                datetime.strptime(
-                    service['attributes']['main']['dateCreated'],
-                    DATETIME_FORMAT
-                )
+                format_timestamp(service['attributes']['main']['dateCreated'])
             service['attributes']['main']['datePublished'] = \
-                datetime.strptime(get_timestamp(), DATETIME_FORMAT)
+                get_timestamp()
 
             service['attributes']['curation'] = {}
             service['attributes']['curation']['rating'] = 0.00
