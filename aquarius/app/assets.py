@@ -506,9 +506,6 @@ def get_asset_ddos():
       200:
         description: successful action
     """
-    args = []
-    query = dict()
-    args.append(query)
     assets_with_id = dao.get_all_listed_assets()
     assets_metadata = {a['id']: a for a in assets_with_id}
     for i in assets_metadata:
