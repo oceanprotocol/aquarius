@@ -245,11 +245,6 @@ def register():
     if status:
         return msg, status
 
-    if not is_valid_dict_local(_get_metadata(data['service'])['attributes']):
-        errors = _list_errors(list_errors_dict_local,
-                              _get_metadata(data['service'])['attributes'])
-        logger.error(errors)
-
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
