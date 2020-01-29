@@ -245,11 +245,6 @@ def register():
     if status:
         return msg, status
 
-    if not is_valid_dict_local(_get_metadata(data['service'])['attributes']):
-        errors = _list_errors(list_errors_dict_local,
-                              _get_metadata(data['service'])['attributes'])
-        logger.error(errors)
-
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
@@ -506,9 +501,6 @@ def get_asset_ddos():
       200:
         description: successful action
     """
-    args = []
-    query = dict()
-    args.append(query)
     assets_with_id = dao.get_all_listed_assets()
     assets_metadata = {a['id']: a for a in assets_with_id}
     for i in assets_metadata:
