@@ -1,13 +1,18 @@
 #  Copyright 2018 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
-
+import copy
 import json
+
+from plecos import plecos
 
 from aquarius.app.assets import validate_date_format
 from aquarius.constants import BaseURLs
 from aquarius.run import get_status, get_version
-from tests.conftest import (json_before, json_dict, json_dict2, json_dict_no_metadata,
-                            json_dict_no_valid_metadata, json_update, json_valid, test_assets)
+from tests.ddo_samples_invalid import json_dict_no_metadata, json_dict_no_valid_metadata
+from tests.ddos.ddo_sample1 import json_dict
+from tests.ddos.ddo_sample2 import json_dict2
+from tests.ddos.ddo_sample_algorithm import algorithm_ddo_sample
+from tests.ddos.ddo_sample_updates import json_before, json_update, json_valid
 
 
 def run_request_get_data(client_method, url, data=None):
@@ -108,7 +113,7 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
         base_ddo_url + '/%s' % post['id'])
 
 
-def test_query_metadata(client, base_ddo_url):
+def test_query_metadata(client, base_ddo_url, test_assets):
 
     assert len(run_request_get_data(
         client.post, base_ddo_url + '/query', {"query": {}})['results']) == 2
@@ -206,3 +211,17 @@ def test_invalid_date():
     date = 'XXXX'
     assert validate_date_format(date) == (
         "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400)
+
+
+def test_algorithm_ddo(client, base_ddo_url):
+    _algorithm_ddo_sample = copy.deepcopy(algorithm_ddo_sample)
+    metadata = _algorithm_ddo_sample['service'][0]['attributes']
+    if not plecos.is_valid_dict_local(metadata):
+        print(f'algorithm ddo is not valid: {plecos.list_errors_dict_local(metadata)}')
+        raise AssertionError('algorithm ddo failed to validate.')
+
+    metadata['main']['files'][0].pop('url')
+    post = client.post(base_ddo_url,
+                       data=json.dumps(_algorithm_ddo_sample),
+                       content_type='application/json')
+    assert post.status_code in (200, 201)
