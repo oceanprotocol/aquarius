@@ -27,7 +27,7 @@ install_requirements = [
     'oceandb-elasticsearch-driver==0.2.3',
     'PyYAML==5.1',
     'pytz==2018.5',
-    'plecos==1.0.0'
+    'plecos==1.0.2'
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
@@ -77,6 +77,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='1.0.6',
+    version='1.0.7',
     zip_safe=False,
 )
