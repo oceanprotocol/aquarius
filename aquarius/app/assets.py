@@ -19,16 +19,18 @@ from aquarius.app.dao import Dao
 from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from web3 import Web3, HTTPProvider
+from eth_account.messages import defunct_hash_message
 
 setup_logging()
 assets = Blueprint('assets', __name__)
+web3 = Web3(HTTPProvider(Config.keeper_url))
 
 # Prepare OceanDB
 dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
-
 
 @assets.route('', methods=['GET'])
 def get_assets():
@@ -461,6 +463,88 @@ def update(did):
         return f'Some error: {str(err)}', 500
 
 
+@assets.route('/ddo/transferownership/<did>', methods=['PUT'])
+def transferownership(did):
+    """Update DDO of an existing asset
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - signature
+            - owner
+            - newowner
+          properties:
+            "signature":
+              description: Signature of the old owner to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "owner":
+              description: The owner ethereum address.
+              type: string
+              example: "0xC41808BBef371AD5CFc76466dDF9dEe228d2BdAA"
+            "newowner":
+              description: The new owner ethereum address.
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Asset successfully transfered.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'owner',
+        'newowner'
+    ]
+    msg, status = check_required_attributes(required_attributes, data, 'transferownership')
+    if msg:
+        return msg, status
+    if web3.isAddress(data['owner'])==False:
+      return f'Owner is not a valid address', 500
+    if web3.isAddress(data['newowner'])==False:
+      return f'New owner is not a valid address', 500
+    if compare_addresses(data['owner'],data['newowner']):
+      return f'New owner must be different than owner', 500
+    signer=getsigneraddress(data['owner'],data['signature'])
+    logger.info('got %s as a original signer' % signer)    
+    if compare_addresses(signer,data['owner'])==False:
+      return f'Invalid signature', 500
+    try:
+        logger.info('Lets get did %s' % did)
+        _record=dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if compare_addresses(_record['publicKey'][0]['owner'],data['owner'])==False:
+            logger.error('got %s as DDO owner, but %s is trying to transfer it' % (_record['publicKey'][0]['owner'],data['owner']))    
+            return f'Invalid owner', 500
+        _record['publicKey'][0]['owner']=data['newowner']
+        dao.update(_record, did)
+        return f'Asset successfully transfered', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+
 @assets.route('/ddo/<did>', methods=['DELETE'])
 def retire(did):
     """Retire metadata of an asset
@@ -767,3 +851,16 @@ def _reorder_services(services):
             result.append(service)
 
     return result
+
+def getsigneraddress(message, signature):
+    logger.info('got %s as a message' % message)
+    message_hash = defunct_hash_message(text=message)
+    logger.info('got %s as a message_hash' % message_hash)    
+    address_recovered = web3.eth.account.recoverHash(message_hash, signature=signature)
+    logger.info('got %s as address_recovered' % address_recovered)    
+    return address_recovered
+
+def compare_addresses(address, checker):
+    if web3.toChecksumAddress(address) == web3.toChecksumAddress(checker):
+        return True
+    return False
