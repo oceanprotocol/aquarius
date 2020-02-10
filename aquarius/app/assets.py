@@ -250,6 +250,7 @@ def register():
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
+    _record['updated'] = _record['created']
     for service in _record['service']:
         if service['type'] == 'metadata':
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
@@ -435,6 +436,7 @@ def update(did):
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
+    _record['updated'] = _record['created']
     _record['service'] = _reorder_services(_record['service'])
     services = {s['type']: s for s in _record['service']}
     metadata_main = services['metadata']['attributes']['main']
@@ -538,6 +540,7 @@ def transferownership(did):
             logger.error('got %s as DDO owner, but %s is trying to transfer it' % (_record['publicKey'][0]['owner'],data['owner']))    
             return f'Invalid owner', 500
         _record['publicKey'][0]['owner']=data['newowner']
+        _record['updated']=get_timestamp()
         dao.update(_record, did)
         return f'Asset successfully transfered', 200
     except (KeyError, Exception) as err:
