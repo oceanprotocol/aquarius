@@ -525,20 +525,16 @@ def transferownership(did):
       return f'Owner is not a valid address', 500
     if web3.isAddress(data['newowner'])==False:
       return f'New owner is not a valid address', 500
-    if compare_addresses(data['owner'],data['newowner']):
+    if compare_eth_addresses(data['owner'],data['newowner']):
       return f'New owner must be different than owner', 500
-    signer=getsigneraddress(data['owner'],data['signature'])
-    logger.info('got %s as a original signer' % signer)    
-    if compare_addresses(signer,data['owner'])==False:
-      return f'Invalid signature', 500
     try:
         logger.info('Lets get did %s' % did)
         _record=dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if compare_addresses(_record['publicKey'][0]['owner'],data['owner'])==False:
+        if not _is_did_owner(_record,data['owner'],data['signature']):
             logger.error('got %s as DDO owner, but %s is trying to transfer it' % (_record['publicKey'][0]['owner'],data['owner']))    
-            return f'Invalid owner', 500
+            return f'Invalid owner or signature', 500
         _record['publicKey'][0]['owner']=data['newowner']
         _record['updated']=get_timestamp()
         dao.update(_record, did)
@@ -856,14 +852,26 @@ def _reorder_services(services):
     return result
 
 def getsigneraddress(message, signature):
-    logger.info('got %s as a message' % message)
-    message_hash = defunct_hash_message(text=message)
-    logger.info('got %s as a message_hash' % message_hash)    
-    address_recovered = web3.eth.account.recoverHash(message_hash, signature=signature)
-    logger.info('got %s as address_recovered' % address_recovered)    
-    return address_recovered
+    try:
+        logger.info('got %s as a message' % message)
+        message_hash = defunct_hash_message(text=message)
+        logger.info('got %s as a message_hash' % message_hash)    
+        address_recovered = web3.eth.account.recoverHash(message_hash, signature=signature)
+        logger.info('got %s as address_recovered' % address_recovered)    
+        return address_recovered
+    except Exception as e:
+        logger.error(e)
+        return None  
 
-def compare_addresses(address, checker):
+def compare_eth_addresses(address, checker):
     if web3.toChecksumAddress(address) == web3.toChecksumAddress(checker):
+        return True
+    return False
+
+def _is_did_owner(ddo, message, signature):
+    address=getsigneraddress(message, signature)
+    if address is None:
+        return False
+    if compare_eth_addresses(address, ddo['publicKey'][0]['owner']) is True:
         return True
     return False
