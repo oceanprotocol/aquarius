@@ -851,6 +851,12 @@ def _reorder_services(services):
     return result
 
 def getsigneraddress(message, signature):
+    '''
+    Get signer address of a previous signed message
+    :param str message: Message
+    :param str signature: Signature obtain with web3.eth.personal.sign
+    :return: Address or None in case of error
+    '''
     try:
         logger.debug('got %s as a message' % message)
         message_hash = defunct_hash_message(text=message)
@@ -863,11 +869,24 @@ def getsigneraddress(message, signature):
         return None  
 
 def compare_eth_addresses(address, checker):
+    '''
+    Compare two addresses and return TRUE if there is a match
+    :param str address: Address
+    :param str checker: Address to compare with
+    :return: boolean
+    '''
     if web3.toChecksumAddress(address) == web3.toChecksumAddress(checker):
         return True
     return False
 
 def _can_update_did(ddo, updated, signature):
+    '''
+    Check if the signer is allowed to update the DDO
+    :param record ddo: DDO that has to be updated
+    :param str updated: Updated field passed by user
+    :param str signature: Signature of the updated field, using web3.eth.personal.sign
+    :return: boolean TRUE if the signer is allowed to update the DDO
+    '''
     if ddo['updated'] is None or updated is None or ddo['updated']!=updated:
         return False
     address=getsigneraddress(updated, signature)
