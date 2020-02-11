@@ -486,18 +486,18 @@ def transferownership(did):
         schema:
           type: object
           required:
-            - signature
-            - owner
             - newowner
+            - updated
+            - signature
           properties:
             "signature":
-              description: Signature of the old owner to verify that the consumer has rights to update onwership
+              description: Signature using updated field to verify that the consumer has rights to update onwership
               type: string
               example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
-            "owner":
-              description: The owner ethereum address.
+            "updated":
+              description: Last update field of the DDO
               type: string
-              example: "0xC41808BBef371AD5CFc76466dDF9dEe228d2BdAA"
+              example: "2020-01-01T00:00:00Z"
             "newowner":
               description: The new owner ethereum address.
               type: string
@@ -515,26 +515,25 @@ def transferownership(did):
     data = request.json
     required_attributes = [
         'signature',
-        'owner',
+        'updated',
         'newowner'
     ]
     msg, status = check_required_attributes(required_attributes, data, 'transferownership')
     if msg:
         return msg, status
-    if web3.isAddress(data['owner'])==False:
-      return f'Owner is not a valid address', 500
     if web3.isAddress(data['newowner'])==False:
       return f'New owner is not a valid address', 500
-    if compare_eth_addresses(data['owner'],data['newowner']):
-      return f'New owner must be different than owner', 500
+    
     try:
         logger.info('Lets get did %s' % did)
         _record=dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _is_did_owner(_record,data['owner'],data['signature']):
-            logger.error('got %s as DDO owner, but %s is trying to transfer it' % (_record['publicKey'][0]['owner'],data['owner']))    
-            return f'Invalid owner or signature', 500
+        if not _can_update_did(_record,data['updated'],data['signature']):
+            logger.error('Not allowed to update did')    
+            return f'Not allowed to update this DID', 500
+        if compare_eth_addresses(_record['publicKey'][0]['owner'],data['newowner']):
+            return f'New owner must be different than owner', 500
         _record['publicKey'][0]['owner']=data['newowner']
         _record['updated']=get_timestamp()
         dao.update(_record, did)
@@ -868,8 +867,10 @@ def compare_eth_addresses(address, checker):
         return True
     return False
 
-def _is_did_owner(ddo, message, signature):
-    address=getsigneraddress(message, signature)
+def _can_update_did(ddo, updated, signature):
+    if ddo['updated'] is None or updated is None or ddo['updated']!=updated:
+        return False
+    address=getsigneraddress(updated, signature)
     if address is None:
         return False
     if compare_eth_addresses(address, ddo['publicKey'][0]['owner']) is True:
