@@ -852,11 +852,11 @@ def _reorder_services(services):
 
 def getsigneraddress(message, signature):
     try:
-        logger.info('got %s as a message' % message)
+        logger.debug('got %s as a message' % message)
         message_hash = defunct_hash_message(text=message)
-        logger.info('got %s as a message_hash' % message_hash)    
+        logger.debug('got %s as a message_hash' % message_hash)    
         address_recovered = web3.eth.account.recoverHash(message_hash, signature=signature)
-        logger.info('got %s as address_recovered' % address_recovered)    
+        logger.debug('got %s as address_recovered' % address_recovered)    
         return address_recovered
     except Exception as e:
         logger.error(e)
