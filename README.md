@@ -42,6 +42,27 @@ If you want to know more about the ontology of the metadata, you can find all th
 
 For information about Ocean's Python code style and related "meta" developer docs, see [the oceanprotocol/dev-ocean repository](https://github.com/oceanprotocol/dev-ocean).
 
+### Running as a Docker container
+
+First, clone this repository:
+```bash
+git clone git@github.com:oceanprotocol/aquarius.git
+cd aquarius/
+```
+Then build the Docker image 
+```bash
+docker build -t "myaqua" .
+```
+Run Docker image
+```bash
+docker run myaqua
+```
+To test with other ocean components in `barge` directory  `compose-files/aquarius.yml`  change `aquatios image` to `myaqua`
+Then
+```bash
+./start_ocean.sh
+```
+
 ### Running Locally, for Dev and Test
 
 First, clone this repository:
