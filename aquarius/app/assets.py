@@ -19,16 +19,18 @@ from aquarius.app.dao import Dao
 from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from web3 import Web3, HTTPProvider
+from eth_account.messages import defunct_hash_message
 
 setup_logging()
 assets = Blueprint('assets', __name__)
+web3 = Web3(HTTPProvider(Config.keeper_url))
 
 # Prepare OceanDB
 dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
-
 
 @assets.route('', methods=['GET'])
 def get_assets():
@@ -248,6 +250,7 @@ def register():
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
+    _record['updated'] = _record['created']
     for service in _record['service']:
         if service['type'] == 'metadata':
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
@@ -433,6 +436,7 @@ def update(did):
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
+    _record['updated'] = _record['created']
     _record['service'] = _reorder_services(_record['service'])
     services = {s['type']: s for s in _record['service']}
     metadata_main = services['metadata']['attributes']['main']
@@ -459,6 +463,84 @@ def update(did):
             return Response(_sanitize_record(_record), 200, content_type='application/json')
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/transferownership/<did>', methods=['PUT'])
+def transferownership(did):
+    """Update DDO of an existing asset
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - newowner
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "newowner":
+              description: The new owner ethereum address.
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Asset successfully transfered.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'newowner'
+    ]
+    msg, status = check_required_attributes(required_attributes, data, 'transferownership')
+    if msg:
+        return msg, status
+    if web3.isAddress(data['newowner'])==False:
+      return f'New owner is not a valid address', 500
+    
+    try:
+        logger.info('Lets get did %s' % did)
+        _record=dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record,data['updated'],data['signature']):
+            logger.error('Not allowed to update did')    
+            return f'Not allowed to update this DID', 500
+        if compare_eth_addresses(_record['publicKey'][0]['owner'],data['newowner']):
+            return f'New owner must be different than owner', 500
+        _record['publicKey'][0]['owner']=data['newowner']
+        _record['updated']=get_timestamp()
+        dao.update(_record, did)
+        return f'Asset successfully transfered', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
 
 
 @assets.route('/ddo/<did>', methods=['DELETE'])
@@ -767,3 +849,49 @@ def _reorder_services(services):
             result.append(service)
 
     return result
+
+def getsigneraddress(message, signature):
+    '''
+    Get signer address of a previous signed message
+    :param str message: Message
+    :param str signature: Signature obtain with web3.eth.personal.sign
+    :return: Address or None in case of error
+    '''
+    try:
+        logger.debug('got %s as a message' % message)
+        message_hash = defunct_hash_message(text=message)
+        logger.debug('got %s as a message_hash' % message_hash)    
+        address_recovered = web3.eth.account.recoverHash(message_hash, signature=signature)
+        logger.debug('got %s as address_recovered' % address_recovered)    
+        return address_recovered
+    except Exception as e:
+        logger.error(e)
+        return None  
+
+def compare_eth_addresses(address, checker):
+    '''
+    Compare two addresses and return TRUE if there is a match
+    :param str address: Address
+    :param str checker: Address to compare with
+    :return: boolean
+    '''
+    if web3.toChecksumAddress(address) == web3.toChecksumAddress(checker):
+        return True
+    return False
+
+def _can_update_did(ddo, updated, signature):
+    '''
+    Check if the signer is allowed to update the DDO
+    :param record ddo: DDO that has to be updated
+    :param str updated: Updated field passed by user
+    :param str signature: Signature of the updated field, using web3.eth.personal.sign
+    :return: boolean TRUE if the signer is allowed to update the DDO
+    '''
+    if ddo['updated'] is None or updated is None or ddo['updated']!=updated:
+        return False
+    address=getsigneraddress(updated, signature)
+    if address is None:
+        return False
+    if compare_eth_addresses(address, ddo['publicKey'][0]['owner']) is True:
+        return True
+    return False

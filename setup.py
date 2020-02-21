@@ -27,7 +27,9 @@ install_requirements = [
     'oceandb-elasticsearch-driver==0.2.3',
     'PyYAML==5.1',
     'pytz==2018.5',
-    'plecos==1.0.2'
+    'plecos==1.0.2',
+    'web3==5.4.0',
+    'eth-account==0.4.0'
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
