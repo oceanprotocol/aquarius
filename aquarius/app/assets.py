@@ -16,6 +16,7 @@ from plecos.plecos import (
 )
 
 from aquarius.app.dao import Dao
+from aquarius.app.util import compare_eth_addresses,_can_update_did
 from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
@@ -466,7 +467,7 @@ def update(did):
 
 
 @assets.route('/ddo/transferownership/<did>', methods=['PUT'])
-def transferownership(did):
+def transfer_ownership(did):
     """Update DDO of an existing asset
     ---
     tags:
@@ -486,7 +487,7 @@ def transferownership(did):
         schema:
           type: object
           required:
-            - newowner
+            - newOwner
             - updated
             - signature
           properties:
@@ -498,7 +499,7 @@ def transferownership(did):
               description: Last update field of the DDO
               type: string
               example: "2020-01-01T00:00:00Z"
-            "newowner":
+            "newOwner":
               description: The new owner ethereum address.
               type: string
               example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
@@ -516,26 +517,26 @@ def transferownership(did):
     required_attributes = [
         'signature',
         'updated',
-        'newowner'
+        'newOwner'
     ]
     msg, status = check_required_attributes(required_attributes, data, 'transferownership')
     if msg:
         return msg, status
-    if web3.isAddress(data['newowner'])==False:
+    if not web3.isAddress(data['newOwner']):
       return f'New owner is not a valid address', 500
     
     try:
         logger.info('Lets get did %s' % did)
-        _record=dao.get(did)
+        _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did(_record,data['updated'],data['signature']):
+        if not _can_update_did(_record,data['updated'],data['signature'],web3,logger):
             logger.error('Not allowed to update did')    
             return f'Not allowed to update this DID', 500
-        if compare_eth_addresses(_record['publicKey'][0]['owner'],data['newowner']):
+        if compare_eth_addresses(_record['publicKey'][0]['owner'],data['newOwner'],web3):
             return f'New owner must be different than owner', 500
-        _record['publicKey'][0]['owner']=data['newowner']
-        _record['updated']=get_timestamp()
+        _record['publicKey'][0]['owner'] = data['newOwner']
+        _record['updated'] = get_timestamp()
         dao.update(_record, did)
         return f'Asset successfully transfered', 200
     except (KeyError, Exception) as err:
@@ -850,48 +851,3 @@ def _reorder_services(services):
 
     return result
 
-def getsigneraddress(message, signature):
-    '''
-    Get signer address of a previous signed message
-    :param str message: Message
-    :param str signature: Signature obtain with web3.eth.personal.sign
-    :return: Address or None in case of error
-    '''
-    try:
-        logger.debug('got %s as a message' % message)
-        message_hash = defunct_hash_message(text=message)
-        logger.debug('got %s as a message_hash' % message_hash)    
-        address_recovered = web3.eth.account.recoverHash(message_hash, signature=signature)
-        logger.debug('got %s as address_recovered' % address_recovered)    
-        return address_recovered
-    except Exception as e:
-        logger.error(e)
-        return None  
-
-def compare_eth_addresses(address, checker):
-    '''
-    Compare two addresses and return TRUE if there is a match
-    :param str address: Address
-    :param str checker: Address to compare with
-    :return: boolean
-    '''
-    if web3.toChecksumAddress(address) == web3.toChecksumAddress(checker):
-        return True
-    return False
-
-def _can_update_did(ddo, updated, signature):
-    '''
-    Check if the signer is allowed to update the DDO
-    :param record ddo: DDO that has to be updated
-    :param str updated: Updated field passed by user
-    :param str signature: Signature of the updated field, using web3.eth.personal.sign
-    :return: boolean TRUE if the signer is allowed to update the DDO
-    '''
-    if ddo['updated'] is None or updated is None or ddo['updated']!=updated:
-        return False
-    address=getsigneraddress(updated, signature)
-    if address is None:
-        return False
-    if compare_eth_addresses(address, ddo['publicKey'][0]['owner']) is True:
-        return True
-    return False
