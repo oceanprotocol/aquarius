@@ -466,7 +466,7 @@ def update(did):
         return f'Some error: {str(err)}', 500
 
 
-@assets.route('/ddo/transferownership/<did>', methods=['PUT'])
+@assets.route('/ddo/owner/update/<did>', methods=['PUT'])
 def transfer_ownership(did):
     """Update DDO of an existing asset
     ---
