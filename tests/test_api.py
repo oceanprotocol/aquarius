@@ -13,7 +13,8 @@ from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample2 import json_dict2
 from tests.ddos.ddo_sample_algorithm import algorithm_ddo_sample
 from tests.ddos.ddo_sample_updates import json_before, json_update, json_valid
-
+from eth_account.messages import encode_defunct
+from eth_account import Account
 
 def run_request_get_data(client_method, url, data=None):
     _response = run_request(client_method, url, data)
@@ -225,3 +226,40 @@ def test_algorithm_ddo(client, base_ddo_url):
                        data=json.dumps(_algorithm_ddo_sample),
                        content_type='application/json')
     assert post.status_code in (200, 201)
+
+
+# TODO
+
+def test_owner_update(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
+    json_before['publicKey'][0]['owner']=acct1.address
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    #get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    data=dict()
+    
+    data['newOwner']=acct2.address
+    data['updated']=fetched_ddo['updated']
+    #create signtaure
+    msghash = encode_defunct(text=data['updated'])
+    fullsignature=acct1.sign_message(msghash)
+    
+    data['signature']=fullsignature.signature.hex()
+    #post 
+    put = client.put(
+        base_ddo_url + '/owner/update/%s' % post['id'],
+        data=json.dumps(data),
+        content_type='application/json')
+    assert 200 == put.status_code, 'Failed to update ownership asset'
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    assert acct2.address == fetched_ddo['publicKey'][0]['owner'], 'Owner was not updated'
