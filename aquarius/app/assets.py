@@ -566,7 +566,7 @@ def retire(did):
             - signature
           properties:
             "signature":
-              description: Signature using updated field to verify that the consumer has rights to update onwership
+              description: Signature using updated field to verify that the consumer has rights to delete asset
               type: string
               example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "updated":
