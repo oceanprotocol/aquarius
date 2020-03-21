@@ -16,7 +16,7 @@ from plecos.plecos import (
 )
 
 from aquarius.app.dao import Dao
-from aquarius.app.util import compare_eth_addresses,_can_update_did
+from aquarius.app.util import compare_eth_addresses,_can_update_did,_can_update_did_from_allowed_updaters
 from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
@@ -26,6 +26,7 @@ from eth_account.messages import defunct_hash_message
 setup_logging()
 assets = Blueprint('assets', __name__)
 web3 = Web3(HTTPProvider(Config.keeper_url))
+
 
 # Prepare OceanDB
 dao = Dao(config_file=app.config['CONFIG_FILE'])
@@ -541,6 +542,98 @@ def transfer_ownership(did):
         return f'Asset successfully transfered', 200
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
+
+@assets.route('/ddo/ratings/update/<did>', methods=['PUT'])
+def update_ratings(did):
+    """Update ratings for a DID
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - rating
+            - numvotes
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "rating":
+              description: The new rating
+              type: float
+              example: 2.4
+            "numVotes":
+              description: The number of votes
+              type: int
+              example: 50
+    responses:
+      200:
+        description: Asset updated
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'rating',
+        'numVotes'
+    ]
+    msg, status = check_required_attributes(required_attributes, data, 'ratingsupdate')
+    if msg:
+        return msg, status
+    if not isinstance(data['rating'], float):
+      logger.error('Rating is not a float')    
+      return f'Rating is not float', 500
+    if not isinstance(data['numVotes'], int):
+      logger.error('NumVotes is not int')    
+      return f'NumVotes is not int', 500
+      
+    
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did_from_allowed_updaters(_record,data['updated'],data['signature'],web3,logger):
+            logger.error('Not allowed to update did')    
+            return f'Not allowed to update this DID', 500
+        _record['updated'] = get_timestamp()
+        index = 0
+        for service in _record['service']:
+          if service['type'] == 'metadata':
+            _record['service'][index]['attributes']['curation']['rating'] = round(data['rating'],1)
+            _record['service'][index]['attributes']['curation']['numVotes'] = data['numVotes']
+          index = index+1
+        logger.info("New ddo: %s",_record)
+        dao.update(_record, did)
+        return f'Rating successfully updated', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
 
 
 
