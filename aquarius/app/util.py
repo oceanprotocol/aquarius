@@ -58,11 +58,11 @@ def _can_update_did_from_allowed_updaters(ddo, updated, signature,web3,logger):
     :param str signature: Signature of the updated field, using web3.eth.personal.sign
     :return: boolean TRUE if the signer is allowed to update the DDO
     '''
-    allowedUpdater=os.environ.get("RATING_ALLOWED_UPDATER")
+    allowedUpdater = os.environ.get("RATING_ALLOWED_UPDATER")
     if ddo['updated'] is None or updated is None or ddo['updated']!=updated:
         logger.debug("missmatch updated")
         return False
-    address=get_signer_address(updated, signature,web3,logger)
+    address = get_signer_address(updated, signature,web3,logger)
     if address is None:
         logger.debug("signer_address is none")
         return False

@@ -241,15 +241,13 @@ def test_owner_update(client_with_no_data, base_ddo_url):
         base_ddo_url + '/%s' % post['id'],
         content_type='application/json')
     fetched_ddo = json.loads(rv.data.decode('utf-8'))
-    x=fetched_ddo['publicKey'][0]['owner']
-    print(f'Old owner: {x}')
-    data=dict()
-    data['newOwner']=acct2.address
-    data['updated']=fetched_ddo['updated']
+    data = dict()
+    data['newOwner'] = acct2.address
+    data['updated'] = fetched_ddo['updated']
     #create signtaure
     msghash = encode_defunct(text=data['updated'])
-    fullsignature=acct1.sign_message(msghash)
-    data['signature']=fullsignature.signature.hex()
+    fullsignature = acct1.sign_message(msghash)
+    data['signature'] = fullsignature.signature.hex()
     #post 
     put = client.put(
         base_ddo_url + '/owner/update/%s' % post['id'],
@@ -260,8 +258,6 @@ def test_owner_update(client_with_no_data, base_ddo_url):
         base_ddo_url + '/%s' % post['id'],
         content_type='application/json')
     fetched_ddo = json.loads(rv.data.decode('utf-8'))
-    x=fetched_ddo['publicKey'][0]['owner']
-    print(f'new owner: {x}')
     assert acct2.address == fetched_ddo['publicKey'][0]['owner'], 'Owner was not updated'
 
 
@@ -277,17 +273,17 @@ def test_ratings_update(client_with_no_data, base_ddo_url):
         content_type='application/json')
     fetched_ddo = json.loads(rv.data.decode('utf-8'))
 
-    data=dict()
-    data['updated']=fetched_ddo['updated']
-    rating=2.3
-    numVotes=26
-    data['rating']=rating
-    data['numVotes']=numVotes
+    data = dict()
+    data['updated'] = fetched_ddo['updated']
+    rating = 2.3
+    numVotes = 26
+    data['rating'] = rating
+    data['numVotes'] = numVotes
     
     #create signtaure
     msghash = encode_defunct(text=data['updated'])
-    fullsignature=acct1.sign_message(msghash)
-    data['signature']=fullsignature.signature.hex()
+    fullsignature = acct1.sign_message(msghash)
+    data['signature'] = fullsignature.signature.hex()
     #post 
     put = client.put(
         base_ddo_url + '/ratings/update/%s' % post['id'],
