@@ -2,7 +2,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 import logging
-import json
 import os
 from eth_account.messages import defunct_hash_message
 
