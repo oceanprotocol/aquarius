@@ -592,7 +592,7 @@ def retire(did):
               'signature',
               'updated'
           ]
-          msg, status = check_required_attributes(required_attributes, data, 'transferownership')
+          msg, status = check_required_attributes(required_attributes, data, 'deleteasset')
           if msg:
               return msg, status
           if not _can_update_did(_record,data['updated'],data['signature'],web3,logger):
