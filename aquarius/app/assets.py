@@ -16,7 +16,7 @@ from plecos.plecos import (
 )
 
 from aquarius.app.dao import Dao
-from aquarius.app.util import compare_eth_addresses,_can_update_did
+from aquarius.app.util import compare_eth_addresses, _can_update_did
 from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
@@ -32,6 +32,7 @@ dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+
 
 @assets.route('', methods=['GET'])
 def get_assets():
@@ -238,10 +239,12 @@ def register():
     if not data:
         logger.error(f'request body seems empty.')
         return 400
-    msg, status = check_required_attributes(required_attributes, data, 'register')
+    msg, status = check_required_attributes(
+        required_attributes, data, 'register')
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(_get_main_metadata(data['service']), 'register')
+    msg, status = check_no_urls_in_files(
+        _get_main_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = validate_date_format(data['created'])
@@ -252,11 +255,26 @@ def register():
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
     _record['updated'] = _record['created']
+    if 'accesssWhiteList' not in data:
+        _record['accesssWhiteList'] = []
+    else:
+        if not isinstance(data['accesssWhiteList'], list):
+            _record['accesssWhiteList'] = []
+        else:
+            _record['accesssWhiteList'] = data['accesssWhiteList']
+    if 'freeWhiteList' not in data:
+        _record['freeWhiteList'] = []
+    else:
+        if not isinstance(data['freeWhiteList'], list):
+            _record['freeWhiteList'] = []
+        else:
+            _record['freeWhiteList'] = data['freeWhiteList']
     for service in _record['service']:
         if service['type'] == 'metadata':
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
                 if service['attributes']['main']['price'] != "0":
-                    logger.warning('Priced assets are not supported in this marketplace')
+                    logger.warning(
+                        'Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
             service['attributes']['main']['dateCreated'] = \
                 format_timestamp(service['attributes']['main']['dateCreated'])
@@ -280,7 +298,8 @@ def register():
         # add new assetId to response
         return Response(_sanitize_record(_record), 201, content_type='application/json')
     except (KeyError, Exception) as err:
-        logger.error(f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
+        logger.error(
+            f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
         return f'Some error: {str(err)}', 500
 
 
@@ -423,12 +442,15 @@ def update(did):
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
-        logger.error(f'request body seems empty, expecting {required_attributes}')
+        logger.error(
+            f'request body seems empty, expecting {required_attributes}')
         return 400
-    msg, status = check_required_attributes(required_attributes, data, 'update')
+    msg, status = check_required_attributes(
+        required_attributes, data, 'update')
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(_get_main_metadata(data['service']), 'register')
+    msg, status = check_no_urls_in_files(
+        _get_main_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = validate_date_format(data['created'])
@@ -441,8 +463,10 @@ def update(did):
     _record['service'] = _reorder_services(_record['service'])
     services = {s['type']: s for s in _record['service']}
     metadata_main = services['metadata']['attributes']['main']
-    metadata_main['dateCreated'] = format_timestamp(metadata_main['dateCreated'])
-    metadata_main['datePublished'] = format_timestamp(metadata_main['datePublished'])
+    metadata_main['dateCreated'] = format_timestamp(
+        metadata_main['dateCreated'])
+    metadata_main['datePublished'] = format_timestamp(
+        metadata_main['datePublished'])
     if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
         logger.error(_list_errors(list_errors_dict_remote,
                                   _get_metadata(_record['service'])['attributes']))
@@ -458,7 +482,8 @@ def update(did):
                 if service['type'] == 'metadata':
                     if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
                         if service['attributes']['main']['price'] != "0":
-                            logger.warning('Priced assets are not supported in this marketplace')
+                            logger.warning(
+                                'Priced assets are not supported in this marketplace')
                             return 'Priced assets are not supported in this marketplace', 400
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
@@ -519,21 +544,22 @@ def transfer_ownership(did):
         'updated',
         'newOwner'
     ]
-    msg, status = check_required_attributes(required_attributes, data, 'transferownership')
+    msg, status = check_required_attributes(
+        required_attributes, data, 'transferownership')
     if msg:
         return msg, status
     if not web3.isAddress(data['newOwner']):
-      return f'New owner is not a valid address', 500
-    
+        return f'New owner is not a valid address', 500
+
     try:
         logger.info('Lets get did %s' % did)
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did(_record,data['updated'],data['signature'],web3,logger):
-            logger.error('Not allowed to update did')    
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 500
-        if compare_eth_addresses(_record['publicKey'][0]['owner'],data['newOwner'],web3):
+        if compare_eth_addresses(_record['publicKey'][0]['owner'], data['newOwner'], web3):
             return f'New owner must be different than owner', 500
         _record['publicKey'][0]['owner'] = data['newOwner']
         _record['updated'] = get_timestamp()
@@ -542,6 +568,321 @@ def transfer_ownership(did):
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
+
+@assets.route('/ddo/accesssWhiteList/<did>', methods=['POST'])
+def add_access_white_list(did):
+    """Add a eth address to accessWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address added.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'addaccessWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['accesssWhiteList'].count(data['address']) > 0:
+            logger.error('Address already in list')
+            return f'Address already in list', 500
+        _record['accesssWhiteList'].append(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address added.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/accesssWhiteList/<did>', methods=['DELETE'])
+def delete_access_white_list(did):
+    """Deletes an address from accessWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address removed.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'deleteaccessWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['accesssWhiteList'].count(data['address']) < 1:
+            logger.error('Address not in list')
+            return f'Address not in list', 500
+        _record['accesssWhiteList'].remove(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address removed.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/freeWhiteList/<did>', methods=['POST'])
+def add_free_white_list(did):
+    """Add a eth address to freeWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address added.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'addfreeWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['freeWhiteList'].count(data['address']) > 0:
+            logger.error('Address already in list')
+            return f'Address already in list', 500
+        _record['freeWhiteList'].append(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address added.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/freeWhiteList/<did>', methods=['DELETE'])
+def delete_free_white_list(did):
+    """Deletes an address from freeWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address removed.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'deleteafreeWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['freeWhiteList'].count(data['address']) < 1:
+            logger.error('Address not in list')
+            return f'Address not in list', 500
+        _record['freeWhiteList'].remove(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address removed.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
 
 
 @assets.route('/ddo/<did>', methods=['DELETE'])
@@ -624,7 +965,8 @@ def query_text():
         description: successful action
     """
     data = request.args
-    assert isinstance(data, dict), 'invalid `args` type, should already formatted into a dict.'
+    assert isinstance(
+        data, dict), 'invalid `args` type, should already formatted into a dict.'
     search_model = FullTextModel(text=data.get('text', None),
                                  sort=None if data.get('sort', None) is None else json.loads(
                                      data.get('sort', None)),
@@ -677,7 +1019,8 @@ def query_ddo():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
+    assert isinstance(
+        data, dict), 'invalid `body` type, should be formatted as a dict.'
     if 'query' in data:
         search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
                                   offset=data.get('offset', 100),
@@ -740,7 +1083,8 @@ def validate():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
+    assert isinstance(
+        data, dict), 'invalid `body` type, should be formatted as a dict.'
 
     if is_valid_dict_local(data):
         return jsonify(True)
@@ -754,7 +1098,8 @@ def _list_errors(list_errors_function, data):
     for err in list_errors_function(data):
         stack_path = list(err[1].relative_path)
         stack_path = [str(p) for p in stack_path]
-        this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
+        this_err_response = {
+            'path': "/".join(stack_path), 'message': err[1].message}
         error_list.append(this_err_response)
     return error_list
 
@@ -766,7 +1111,8 @@ def _sanitize_record(data_record):
 
 
 def check_required_attributes(required_attributes, data, method):
-    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+    assert isinstance(
+        data, dict), 'invalid `body` type, should already formatted into a dict.'
     logger.info('got %s request: %s' % (method, data))
     if not data:
         logger.error('%s request failed: data is empty.' % method)
@@ -775,7 +1121,8 @@ def check_required_attributes(required_attributes, data, method):
 
     for attr in required_attributes:
         if attr not in data:
-            logger.error('%s request failed: required attr %s missing.' % (method, attr))
+            logger.error(
+                '%s request failed: required attr %s missing.' % (method, attr))
             return '"%s" is required in the call to %s' % (attr, method), 400
 
     return None, None
@@ -785,7 +1132,8 @@ def check_no_urls_in_files(main, method):
     if 'files' in main:
         for file in main['files']:
             if 'url' in file:
-                logger.error('%s request failed: url is not allowed in files ' % method)
+                logger.error(
+                    '%s request failed: url is not allowed in files ' % method)
                 return '%s request failed: url is not allowed in files ' % method, 400
     return None, None
 
@@ -850,4 +1198,3 @@ def _reorder_services(services):
             result.append(service)
 
     return result
-
