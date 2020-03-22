@@ -16,7 +16,7 @@ from plecos.plecos import (
 )
 
 from aquarius.app.dao import Dao
-from aquarius.app.util import compare_eth_addresses,_can_update_did
+from aquarius.app.util import compare_eth_addresses, _can_update_did
 from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
@@ -32,6 +32,7 @@ dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+
 
 @assets.route('', methods=['GET'])
 def get_assets():
@@ -238,10 +239,12 @@ def register():
     if not data:
         logger.error(f'request body seems empty.')
         return 400
-    msg, status = check_required_attributes(required_attributes, data, 'register')
+    msg, status = check_required_attributes(
+        required_attributes, data, 'register')
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(_get_main_metadata(data['service']), 'register')
+    msg, status = check_no_urls_in_files(
+        _get_main_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = validate_date_format(data['created'])
@@ -256,7 +259,8 @@ def register():
         if service['type'] == 'metadata':
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
                 if service['attributes']['main']['price'] != "0":
-                    logger.warning('Priced assets are not supported in this marketplace')
+                    logger.warning(
+                        'Priced assets are not supported in this marketplace')
                     return 'Priced assets are not supported in this marketplace', 400
             service['attributes']['main']['dateCreated'] = \
                 format_timestamp(service['attributes']['main']['dateCreated'])
@@ -280,7 +284,8 @@ def register():
         # add new assetId to response
         return Response(_sanitize_record(_record), 201, content_type='application/json')
     except (KeyError, Exception) as err:
-        logger.error(f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
+        logger.error(
+            f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
         return f'Some error: {str(err)}', 500
 
 
@@ -418,17 +423,23 @@ def update(did):
       500:
         description: Error
     """
+    ip = request.environ['REMOTE_ADDR']
+    if ip != '127.0.0.1' and ip != 'localhost':
+        return 'You have no rights', 500
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     if not data:
-        logger.error(f'request body seems empty, expecting {required_attributes}')
+        logger.error(
+            f'request body seems empty, expecting {required_attributes}')
         return 400
-    msg, status = check_required_attributes(required_attributes, data, 'update')
+    msg, status = check_required_attributes(
+        required_attributes, data, 'update')
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(_get_main_metadata(data['service']), 'register')
+    msg, status = check_no_urls_in_files(
+        _get_main_metadata(data['service']), 'register')
     if msg:
         return msg, status
     msg, status = validate_date_format(data['created'])
@@ -441,8 +452,10 @@ def update(did):
     _record['service'] = _reorder_services(_record['service'])
     services = {s['type']: s for s in _record['service']}
     metadata_main = services['metadata']['attributes']['main']
-    metadata_main['dateCreated'] = format_timestamp(metadata_main['dateCreated'])
-    metadata_main['datePublished'] = format_timestamp(metadata_main['datePublished'])
+    metadata_main['dateCreated'] = format_timestamp(
+        metadata_main['dateCreated'])
+    metadata_main['datePublished'] = format_timestamp(
+        metadata_main['datePublished'])
     if not is_valid_dict_remote(_get_metadata(_record['service'])['attributes']):
         logger.error(_list_errors(list_errors_dict_remote,
                                   _get_metadata(_record['service'])['attributes']))
@@ -458,7 +471,8 @@ def update(did):
                 if service['type'] == 'metadata':
                     if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
                         if service['attributes']['main']['price'] != "0":
-                            logger.warning('Priced assets are not supported in this marketplace')
+                            logger.warning(
+                                'Priced assets are not supported in this marketplace')
                             return 'Priced assets are not supported in this marketplace', 400
             dao.update(_record, did)
             return Response(_sanitize_record(_record), 200, content_type='application/json')
@@ -519,21 +533,22 @@ def transfer_ownership(did):
         'updated',
         'newOwner'
     ]
-    msg, status = check_required_attributes(required_attributes, data, 'transferownership')
+    msg, status = check_required_attributes(
+        required_attributes, data, 'transferownership')
     if msg:
         return msg, status
     if not web3.isAddress(data['newOwner']):
-      return f'New owner is not a valid address', 500
-    
+        return f'New owner is not a valid address', 500
+
     try:
         logger.info('Lets get did %s' % did)
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did(_record,data['updated'],data['signature'],web3,logger):
-            logger.error('Not allowed to update did')    
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 500
-        if compare_eth_addresses(_record['publicKey'][0]['owner'],data['newOwner'],web3):
+        if compare_eth_addresses(_record['publicKey'][0]['owner'], data['newOwner'], web3):
             return f'New owner must be different than owner', 500
         _record['publicKey'][0]['owner'] = data['newOwner']
         _record['updated'] = get_timestamp()
@@ -542,6 +557,115 @@ def transfer_ownership(did):
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
+
+@assets.route('/ddo/metadata/update/<did>', methods=['PUT'])
+def update_ratings(did):
+    """Update parts of metadata for a DID
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "title":
+              description: The new title
+              type: string
+              example: "My asset"
+            "description":
+              description: The new description
+              type: string
+              example: "My asset"
+            "links":
+              description: The new links
+              type: object
+              example: "[{"name":"XX","url":"http://","type":"sample"},{"name":"XX","url":"http://","type":"sample"}]
+            "servicePrices":
+              description: The new prices per services
+              type: object
+              example: "[{"serviceIndex":"1","price":"10000"},{"serviceIndex":"2","price":"20000"]
+
+    responses:
+      200:
+        description: Asset updated
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'metadataupdate')
+    if msg:
+        return msg, status
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        _record['updated'] = get_timestamp()
+        index = 0
+        for service in _record['service']:
+            if service['type'] == 'metadata':
+                if isinstance(data['title'], str):
+                    _record['service'][index]['attributes']['main']['name'] = data['title']
+                if isinstance(data['description'], str):
+                    _record['service'][index]['attributes']['additionalInformation']['description'] = data['description']
+                if isinstance(data['links'], list):
+                    newLinks = list()
+                    for link in data['links']:
+                        if isinstance(link['name'], str) and isinstance(link['url'], str) and isinstance(link['type'], str):
+                            newLinks.append(link)
+                    if len(newLinks) > 0:
+                        _record['service'][index]['attributes']['additionalInformation']['links'] = newLinks
+            logger.error('Starting prices')
+            if isinstance(data['servicePrices'], list):
+                for price in data['servicePrices']:
+                    if isinstance(price['serviceIndex'], int) and isinstance(price['price'], str):
+                        if price['serviceIndex'] == index:
+                            logger.error('AAAAAAAAAAAA  price:%s' % price)
+                            if 'attributes' in _record['service'][index]:
+                                logger.error('BBBBB')
+                                if 'main' in _record['service'][index]['attributes']:
+                                    logger.error('CCCC')
+                                    _record['service'][index]['attributes']['main']['price'] = price['price']
+            index = index+1
+        logger.info("New ddo: %s", _record)
+        dao.update(_record, did)
+        return f'Metadata successfully updated', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
 
 
 @assets.route('/ddo/<did>', methods=['DELETE'])
@@ -556,6 +680,23 @@ def retire(did):
         description: DID of the asset.
         required: true
         type: string
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to delete asset
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
     responses:
       200:
         description: successfully deleted
@@ -565,11 +706,25 @@ def retire(did):
         description: Error
     """
     try:
-        if dao.get(did) is None:
+        _record = dao.get(did)
+        if _record is None:
             return 'This asset DID is not in OceanDB', 404
-        else:
-            dao.delete(did)
-            return 'Succesfully deleted', 200
+        ip = request.environ['REMOTE_ADDR']
+        if ip != '127.0.0.1' and ip != 'localhost':
+            data = request.json
+            required_attributes = [
+                'signature',
+                'updated'
+            ]
+            msg, status = check_required_attributes(
+                required_attributes, data, 'deleteasset')
+            if msg:
+                return msg, status
+            if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+                logger.error('Not allowed to update did')
+                return f'Not allowed to update this DID', 500
+        dao.delete(did)
+        return 'Succesfully deleted', 200
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
@@ -624,7 +779,8 @@ def query_text():
         description: successful action
     """
     data = request.args
-    assert isinstance(data, dict), 'invalid `args` type, should already formatted into a dict.'
+    assert isinstance(
+        data, dict), 'invalid `args` type, should already formatted into a dict.'
     search_model = FullTextModel(text=data.get('text', None),
                                  sort=None if data.get('sort', None) is None else json.loads(
                                      data.get('sort', None)),
@@ -677,7 +833,8 @@ def query_ddo():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
+    assert isinstance(
+        data, dict), 'invalid `body` type, should be formatted as a dict.'
     if 'query' in data:
         search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
                                   offset=data.get('offset', 100),
@@ -708,6 +865,9 @@ def retire_all():
         description: Error
     """
     try:
+        ip = request.environ['REMOTE_ADDR']
+        if ip != '127.0.0.1' and ip != 'localhost':
+            return 'You have no rights', 500
         all_ids = [a['id'] for a in dao.get_all_assets()]
         for i in all_ids:
             dao.delete(i)
@@ -740,7 +900,8 @@ def validate():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    assert isinstance(data, dict), 'invalid `body` type, should be formatted as a dict.'
+    assert isinstance(
+        data, dict), 'invalid `body` type, should be formatted as a dict.'
 
     if is_valid_dict_local(data):
         return jsonify(True)
@@ -754,7 +915,8 @@ def _list_errors(list_errors_function, data):
     for err in list_errors_function(data):
         stack_path = list(err[1].relative_path)
         stack_path = [str(p) for p in stack_path]
-        this_err_response = {'path': "/".join(stack_path), 'message': err[1].message}
+        this_err_response = {
+            'path': "/".join(stack_path), 'message': err[1].message}
         error_list.append(this_err_response)
     return error_list
 
@@ -766,7 +928,8 @@ def _sanitize_record(data_record):
 
 
 def check_required_attributes(required_attributes, data, method):
-    assert isinstance(data, dict), 'invalid `body` type, should already formatted into a dict.'
+    assert isinstance(
+        data, dict), 'invalid `body` type, should already formatted into a dict.'
     logger.info('got %s request: %s' % (method, data))
     if not data:
         logger.error('%s request failed: data is empty.' % method)
@@ -775,7 +938,8 @@ def check_required_attributes(required_attributes, data, method):
 
     for attr in required_attributes:
         if attr not in data:
-            logger.error('%s request failed: required attr %s missing.' % (method, attr))
+            logger.error(
+                '%s request failed: required attr %s missing.' % (method, attr))
             return '"%s" is required in the call to %s' % (attr, method), 400
 
     return None, None
@@ -785,7 +949,8 @@ def check_no_urls_in_files(main, method):
     if 'files' in main:
         for file in main['files']:
             if 'url' in file:
-                logger.error('%s request failed: url is not allowed in files ' % method)
+                logger.error(
+                    '%s request failed: url is not allowed in files ' % method)
                 return '%s request failed: url is not allowed in files ' % method, 400
     return None, None
 
@@ -850,4 +1015,3 @@ def _reorder_services(services):
             result.append(service)
 
     return result
-
