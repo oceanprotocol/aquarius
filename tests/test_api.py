@@ -236,22 +236,18 @@ def test_owner_update(client_with_no_data, base_ddo_url):
     acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
     json_before['publicKey'][0]['owner']=acct1.address
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
-
     #get the ddo
     rv = client.get(
         base_ddo_url + '/%s' % post['id'],
         content_type='application/json')
     fetched_ddo = json.loads(rv.data.decode('utf-8'))
-
-    data=dict()
-    
-    data['newOwner']=acct2.address
-    data['updated']=fetched_ddo['updated']
+    data = dict()
+    data['newOwner'] = acct2.address
+    data['updated'] = fetched_ddo['updated']
     #create signtaure
     msghash = encode_defunct(text=data['updated'])
-    fullsignature=acct1.sign_message(msghash)
-    
-    data['signature']=fullsignature.signature.hex()
+    fullsignature = acct1.sign_message(msghash)
+    data['signature'] = fullsignature.signature.hex()
     #post 
     put = client.put(
         base_ddo_url + '/owner/update/%s' % post['id'],
@@ -263,3 +259,40 @@ def test_owner_update(client_with_no_data, base_ddo_url):
         content_type='application/json')
     fetched_ddo = json.loads(rv.data.decode('utf-8'))
     assert acct2.address == fetched_ddo['publicKey'][0]['owner'], 'Owner was not updated'
+
+
+def test_ratings_update(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+    acct1 = Account.from_key(0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
+    print(f'account address: {acct1.address}')
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    #get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    data = dict()
+    data['updated'] = fetched_ddo['updated']
+    rating = 2.3
+    numVotes = 26
+    data['rating'] = rating
+    data['numVotes'] = numVotes
+    
+    #create signtaure
+    msghash = encode_defunct(text=data['updated'])
+    fullsignature = acct1.sign_message(msghash)
+    data['signature'] = fullsignature.signature.hex()
+    #post 
+    put = client.put(
+        base_ddo_url + '/ratings/update/%s' % post['id'],
+        data=json.dumps(data),
+        content_type='application/json')
+    assert 200 == put.status_code, 'Failed to update ratings'
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    assert rating == fetched_ddo['service'][0]['attributes']['curation']['rating'], 'Rating was not updated'
+    assert numVotes == fetched_ddo['service'][0]['attributes']['curation']['numVotes'], 'NumVotes was not updated'
