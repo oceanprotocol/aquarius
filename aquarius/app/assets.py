@@ -744,7 +744,7 @@ def add_access_white_list(did):
             return f'Not allowed to update this DID', 401
         if _record['accesssWhiteList'].count(data['address']) > 0:
             logger.error('Address already in list')
-            return f'Address already in list', 401
+            return f'Address already in list', 400
         _record['accesssWhiteList'].append(data['address'])
         _record['updated'] = get_timestamp()
         dao.update(_record, did)
