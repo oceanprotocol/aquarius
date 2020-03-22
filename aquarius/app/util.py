@@ -57,7 +57,7 @@ def _can_update_did(ddo, updated, signature, web3, logger):
     address = get_signer_address(updated, signature, web3, logger)
     if address is None:
         return False
-    if compare_eth_addresses(address, ddo['publicKey'][0]['owner'], web3,logger) is True:
+    if compare_eth_addresses(address, ddo['publicKey'][0]['owner'], web3, logger) is True:
         return True
     return False
 

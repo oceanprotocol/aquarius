@@ -567,7 +567,7 @@ def transfer_ownership(did):
         if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
             logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 401
-        if compare_eth_addresses(_record['publicKey'][0]['owner'], data['newOwner'], web3):
+        if compare_eth_addresses(_record['publicKey'][0]['owner'], data['newOwner'], web3, logger):
             return f'New owner must be different than owner', 400
         _record['publicKey'][0]['owner'] = data['newOwner']
         _record['updated'] = get_timestamp()
