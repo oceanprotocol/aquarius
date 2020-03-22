@@ -441,6 +441,9 @@ def update(did):
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service']
     assert isinstance(request.json, dict), 'invalid payload format.'
+    ip = request.environ['REMOTE_ADDR']
+    if ip != '127.0.0.1' and ip != 'localhost':
+            return 'You have no rights', 401
     data = request.json
     if not data:
         logger.error(
