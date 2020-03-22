@@ -370,3 +370,183 @@ def test_metadata_update(client_with_no_data, base_ddo_url):
     assert data['description'] == fetched_ddo['service'][0]['attributes']['additionalInformation']['description']
     assert data['links'] == fetched_ddo['service'][0]['attributes']['additionalInformation']['links']
     assert '134' == fetched_ddo['service'][0]['attributes']['main']['price']
+
+
+def test_publish_with_access_list(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+
+    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
+    accessList = [acct1.address, acct2.address]
+    json_before['accesssWhiteList'] = accessList
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    # get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    assert accessList == fetched_ddo['accesssWhiteList'], 'accesssWhiteList was not added'
+
+
+def test_add_access_list(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    json_before['publicKey'][0]['owner'] = acct1.address
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    # get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    data = dict()
+    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
+    data['address'] = acct2.address
+    data['updated'] = fetched_ddo['updated']
+    # create signtaure
+    msghash = encode_defunct(text=data['updated'])
+    fullsignature = acct1.sign_message(msghash)
+
+    data['signature'] = fullsignature.signature.hex()
+    # post
+    put = client.post(
+        base_ddo_url + '/accesssWhiteList/%s' % post['id'],
+        data=json.dumps(data),
+        content_type='application/json')
+    assert 200 == put.status_code, 'Failed to add address to accessWhiteList'
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    print(f'AccessList:%s' % fetched_ddo['accesssWhiteList'])
+    assert fetched_ddo['accesssWhiteList'].count(
+        acct2.address) > 0, 'Address was not added'
+
+
+def test_delete_from_access_list(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    json_before['publicKey'][0]['owner'] = acct1.address
+    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
+    accessList = [acct2.address]
+    json_before['accesssWhiteList'] = accessList
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    # get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    data = dict()
+    data['address'] = acct2.address
+    data['updated'] = fetched_ddo['updated']
+    # create signtaure
+    msghash = encode_defunct(text=data['updated'])
+    fullsignature = acct1.sign_message(msghash)
+
+    data['signature'] = fullsignature.signature.hex()
+    # post
+    put = client.delete(
+        base_ddo_url + '/accesssWhiteList/%s' % post['id'],
+        data=json.dumps(data),
+        content_type='application/json')
+    assert 200 == put.status_code, 'Failed to delete address from accessWhiteList'
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    assert fetched_ddo['accesssWhiteList'].count(
+        acct2.address) < 1, 'Address was not removed'
+
+
+def test_publish_with_free_list(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+
+    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
+    accessList = [acct1.address, acct2.address]
+    json_before['freeWhiteList'] = accessList
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    # get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    assert accessList == fetched_ddo['freeWhiteList'], 'freeWhiteList was not added'
+
+
+def test_add_free_list(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    json_before['publicKey'][0]['owner'] = acct1.address
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    # get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    data = dict()
+    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
+    data['address'] = acct2.address
+    data['updated'] = fetched_ddo['updated']
+    # create signtaure
+    msghash = encode_defunct(text=data['updated'])
+    fullsignature = acct1.sign_message(msghash)
+
+    data['signature'] = fullsignature.signature.hex()
+    # post
+    put = client.post(
+        base_ddo_url + '/freeWhiteList/%s' % post['id'],
+        data=json.dumps(data),
+        content_type='application/json')
+    assert 200 == put.status_code, 'Failed to add address to freeWhiteList'
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    print(f'freeList:%s' % fetched_ddo['freeWhiteList'])
+    assert fetched_ddo['freeWhiteList'].count(
+        acct2.address) > 0, 'Address was not added'
+
+
+def test_delete_from_free_list(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+    json_before['publicKey'][0]['owner'] = acct1.address
+    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
+    accessList = [acct2.address]
+    json_before['freeWhiteList'] = accessList
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+
+    # get the ddo
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    data = dict()
+    data['address'] = acct2.address
+    data['updated'] = fetched_ddo['updated']
+    # create signtaure
+    msghash = encode_defunct(text=data['updated'])
+    fullsignature = acct1.sign_message(msghash)
+
+    data['signature'] = fullsignature.signature.hex()
+    # post
+    put = client.delete(
+        base_ddo_url + '/freeWhiteList/%s' % post['id'],
+        data=json.dumps(data),
+        content_type='application/json')
+    assert 200 == put.status_code, 'Failed to delete address from freeWhiteList'
+    rv = client.get(
+        base_ddo_url + '/%s' % post['id'],
+        content_type='application/json')
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    assert fetched_ddo['freeWhiteList'].count(
+        acct2.address) < 1, 'Address was not removed'

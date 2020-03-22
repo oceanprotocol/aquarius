@@ -256,6 +256,20 @@ def register():
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
     _record['updated'] = _record['created']
+    if 'accesssWhiteList' not in data:
+        _record['accesssWhiteList'] = []
+    else:
+        if not isinstance(data['accesssWhiteList'], list):
+            _record['accesssWhiteList'] = []
+        else:
+            _record['accesssWhiteList'] = data['accesssWhiteList']
+    if 'freeWhiteList' not in data:
+        _record['freeWhiteList'] = []
+    else:
+        if not isinstance(data['freeWhiteList'], list):
+            _record['freeWhiteList'] = []
+        else:
+            _record['freeWhiteList'] = data['freeWhiteList']
     for service in _record['service']:
         if service['type'] == 'metadata':
             if Config(filename=app.config['CONFIG_FILE']).allow_free_assets_only == 'true':
@@ -740,6 +754,414 @@ def update_ratings(did):
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
+
+@assets.route('/ddo/ratings/update/<did>', methods=['PUT'])
+def update_ratings(did):
+    """Update ratings for a DID
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - rating
+            - numvotes
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "rating":
+              description: The new rating
+              type: float
+              example: 2.4
+            "numVotes":
+              description: The number of votes
+              type: int
+              example: 50
+    responses:
+      200:
+        description: Asset updated
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'rating',
+        'numVotes'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'ratingsupdate')
+    if msg:
+        return msg, status
+    if not isinstance(data['rating'], float):
+        logger.error('Rating is not a float')
+        return f'Rating is not float', 500
+    if not isinstance(data['numVotes'], int):
+        logger.error('NumVotes is not int')
+        return f'NumVotes is not int', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did_from_allowed_updaters(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        _record['updated'] = get_timestamp()
+        index = 0
+        for service in _record['service']:
+            if service['type'] == 'metadata':
+                _record['service'][index]['attributes']['curation']['rating'] = round(
+                    data['rating'], 1)
+                _record['service'][index]['attributes']['curation']['numVotes'] = data['numVotes']
+            index = index+1
+        logger.info("New ddo: %s", _record)
+        dao.update(_record, did)
+        return f'Rating successfully updated', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/accesssWhiteList/<did>', methods=['POST'])
+def add_access_white_list(did):
+    """Add a eth address to accessWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address added.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'addaccessWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['accesssWhiteList'].count(data['address']) > 0:
+            logger.error('Address already in list')
+            return f'Address already in list', 500
+        _record['accesssWhiteList'].append(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address added.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/accesssWhiteList/<did>', methods=['DELETE'])
+def delete_access_white_list(did):
+    """Deletes an address from accessWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address removed.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'deleteaccessWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['accesssWhiteList'].count(data['address']) < 1:
+            logger.error('Address not in list')
+            return f'Address not in list', 500
+        _record['accesssWhiteList'].remove(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address removed.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/freeWhiteList/<did>', methods=['POST'])
+def add_free_white_list(did):
+    """Add a eth address to freeWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address added.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'addfreeWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['freeWhiteList'].count(data['address']) > 0:
+            logger.error('Address already in list')
+            return f'Address already in list', 500
+        _record['freeWhiteList'].append(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address added.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+@assets.route('/ddo/freeWhiteList/<did>', methods=['DELETE'])
+def delete_free_white_list(did):
+    """Deletes an address from freeWhiteList
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - address
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "address":
+              description: The ethereum address that has to be added
+              type: string
+              example: "0x858048e3Ebdd3754e14F63d1185F8252eF142393"
+    responses:
+      200:
+        description: Address removed.
+      400:
+        description: One of the required attributes is missing.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'address'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'deleteafreeWhiteList')
+    if msg:
+        return msg, status
+    if not web3.isAddress(data['address']):
+        return f'Address is not a valid eth address', 500
+
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 500
+        if _record['freeWhiteList'].count(data['address']) < 1:
+            logger.error('Address not in list')
+            return f'Address not in list', 500
+        _record['freeWhiteList'].remove(data['address'])
+        _record['updated'] = get_timestamp()
+        dao.update(_record, did)
+        return f'Address removed.', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
 
 
 @assets.route('/ddo/<did>', methods=['DELETE'])
