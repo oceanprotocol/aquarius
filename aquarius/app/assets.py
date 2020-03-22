@@ -433,6 +433,8 @@ def update(did):
         description: Asset successfully registered.
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -443,7 +445,7 @@ def update(did):
     assert isinstance(request.json, dict), 'invalid payload format.'
     ip = request.environ['REMOTE_ADDR']
     if ip != '127.0.0.1' and ip != 'localhost':
-            return 'You have no rights', 401
+        return 'You have no rights', 401
     data = request.json
     if not data:
         logger.error(
@@ -537,6 +539,8 @@ def transfer_ownership(did):
         description: Asset successfully transfered.
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -553,7 +557,7 @@ def transfer_ownership(did):
     if msg:
         return msg, status
     if not web3.isAddress(data['newOwner']):
-        return f'New owner is not a valid address', 500
+        return f'New owner is not a valid address', 400
 
     try:
         logger.info('Lets get did %s' % did)
@@ -562,15 +566,16 @@ def transfer_ownership(did):
             return f'Cannot find did: {did} ', 404
         if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
             logger.error('Not allowed to update did')
-            return f'Not allowed to update this DID', 500
+            return f'Not allowed to update this DID', 401
         if compare_eth_addresses(_record['publicKey'][0]['owner'], data['newOwner'], web3):
-            return f'New owner must be different than owner', 500
+            return f'New owner must be different than owner', 400
         _record['publicKey'][0]['owner'] = data['newOwner']
         _record['updated'] = get_timestamp()
         dao.update(_record, did)
         return f'Asset successfully transfered', 200
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
+
 
 @assets.route('/ddo/ratings/update/<did>', methods=['PUT'])
 def update_ratings(did):
@@ -619,6 +624,8 @@ def update_ratings(did):
         description: Asset updated
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -631,33 +638,34 @@ def update_ratings(did):
         'rating',
         'numVotes'
     ]
-    msg, status = check_required_attributes(required_attributes, data, 'ratingsupdate')
+    msg, status = check_required_attributes(
+        required_attributes, data, 'ratingsupdate')
     if msg:
         return msg, status
     if not isinstance(data['rating'], float):
-      logger.error('Rating is not a float')    
-      return f'Rating is not float', 500
+        logger.error('Rating is not a float')
+        return f'Rating is not float', 400
     if not isinstance(data['numVotes'], int):
-      logger.error('NumVotes is not int')    
-      return f'NumVotes is not int', 500
-      
-    
+        logger.error('NumVotes is not int')
+        return f'NumVotes is not int', 400
+
     try:
         logger.info('Lets get did %s' % did)
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did_from_allowed_updaters(_record,data['updated'],data['signature'],web3,logger):
-            logger.error('Not allowed to update did')    
-            return f'Not allowed to update this DID', 500
+        if not _can_update_did_from_allowed_updaters(_record, data['updated'], data['signature'], web3, logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 401
         _record['updated'] = get_timestamp()
         index = 0
         for service in _record['service']:
-          if service['type'] == 'metadata':
-            _record['service'][index]['attributes']['curation']['rating'] = round(data['rating'],1)
-            _record['service'][index]['attributes']['curation']['numVotes'] = data['numVotes']
-          index = index+1
-        logger.info("New ddo: %s",_record)
+            if service['type'] == 'metadata':
+                _record['service'][index]['attributes']['curation']['rating'] = round(
+                    data['rating'], 1)
+                _record['service'][index]['attributes']['curation']['numVotes'] = data['numVotes']
+            index = index+1
+        logger.info("New ddo: %s", _record)
         dao.update(_record, did)
         return f'Rating successfully updated', 200
     except (KeyError, Exception) as err:
@@ -706,6 +714,8 @@ def add_access_white_list(did):
         description: Address added.
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -722,7 +732,7 @@ def add_access_white_list(did):
     if msg:
         return msg, status
     if not web3.isAddress(data['address']):
-        return f'Address is not a valid eth address', 500
+        return f'Address is not a valid eth address', 400
 
     try:
         logger.info('Lets get did %s' % did)
@@ -731,10 +741,10 @@ def add_access_white_list(did):
             return f'Cannot find did: {did} ', 404
         if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
             logger.error('Not allowed to update did')
-            return f'Not allowed to update this DID', 500
+            return f'Not allowed to update this DID', 401
         if _record['accesssWhiteList'].count(data['address']) > 0:
             logger.error('Address already in list')
-            return f'Address already in list', 500
+            return f'Address already in list', 401
         _record['accesssWhiteList'].append(data['address'])
         _record['updated'] = get_timestamp()
         dao.update(_record, did)
@@ -785,6 +795,8 @@ def delete_access_white_list(did):
         description: Address removed.
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -801,7 +813,7 @@ def delete_access_white_list(did):
     if msg:
         return msg, status
     if not web3.isAddress(data['address']):
-        return f'Address is not a valid eth address', 500
+        return f'Address is not a valid eth address', 400
 
     try:
         logger.info('Lets get did %s' % did)
@@ -810,10 +822,10 @@ def delete_access_white_list(did):
             return f'Cannot find did: {did} ', 404
         if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
             logger.error('Not allowed to update did')
-            return f'Not allowed to update this DID', 500
+            return f'Not allowed to update this DID', 401
         if _record['accesssWhiteList'].count(data['address']) < 1:
             logger.error('Address not in list')
-            return f'Address not in list', 500
+            return f'Address not in list', 400
         _record['accesssWhiteList'].remove(data['address'])
         _record['updated'] = get_timestamp()
         dao.update(_record, did)
@@ -864,6 +876,8 @@ def add_free_white_list(did):
         description: Address added.
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -880,7 +894,7 @@ def add_free_white_list(did):
     if msg:
         return msg, status
     if not web3.isAddress(data['address']):
-        return f'Address is not a valid eth address', 500
+        return f'Address is not a valid eth address', 400
 
     try:
         logger.info('Lets get did %s' % did)
@@ -889,10 +903,10 @@ def add_free_white_list(did):
             return f'Cannot find did: {did} ', 404
         if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
             logger.error('Not allowed to update did')
-            return f'Not allowed to update this DID', 500
+            return f'Not allowed to update this DID', 401
         if _record['freeWhiteList'].count(data['address']) > 0:
             logger.error('Address already in list')
-            return f'Address already in list', 500
+            return f'Address already in list', 400
         _record['freeWhiteList'].append(data['address'])
         _record['updated'] = get_timestamp()
         dao.update(_record, did)
@@ -943,6 +957,8 @@ def delete_free_white_list(did):
         description: Address removed.
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -959,7 +975,7 @@ def delete_free_white_list(did):
     if msg:
         return msg, status
     if not web3.isAddress(data['address']):
-        return f'Address is not a valid eth address', 500
+        return f'Address is not a valid eth address', 400
 
     try:
         logger.info('Lets get did %s' % did)
@@ -968,10 +984,10 @@ def delete_free_white_list(did):
             return f'Cannot find did: {did} ', 404
         if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
             logger.error('Not allowed to update did')
-            return f'Not allowed to update this DID', 500
+            return f'Not allowed to update this DID', 401
         if _record['freeWhiteList'].count(data['address']) < 1:
             logger.error('Address not in list')
-            return f'Address not in list', 500
+            return f'Address not in list', 400
         _record['freeWhiteList'].remove(data['address'])
         _record['updated'] = get_timestamp()
         dao.update(_record, did)
@@ -1034,7 +1050,7 @@ def retire(did):
                 return msg, status
             if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
                 logger.error('Not allowed to update did')
-                return f'Not allowed to update this DID', 500
+                return f'Not allowed to update this DID', 401
         dao.delete(did)
         return 'Succesfully deleted', 200
     except (KeyError, Exception) as err:
@@ -1218,6 +1234,8 @@ def update_metadata(did):
         description: Asset updated
       400:
         description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
       404:
         description: Invalid asset data.
       500:
@@ -1239,7 +1257,7 @@ def update_metadata(did):
             return f'Cannot find did: {did} ', 404
         if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
             logger.error('Not allowed to update did')
-            return f'Not allowed to update this DID', 500
+            return f'Not allowed to update this DID', 401
         _record['updated'] = get_timestamp()
         index = 0
         for service in _record['service']:
@@ -1260,11 +1278,8 @@ def update_metadata(did):
                 for price in data['servicePrices']:
                     if isinstance(price['serviceIndex'], int) and isinstance(price['price'], str):
                         if price['serviceIndex'] == index:
-                            logger.error('AAAAAAAAAAAA  price:%s' % price)
                             if 'attributes' in _record['service'][index]:
-                                logger.error('BBBBB')
                                 if 'main' in _record['service'][index]['attributes']:
-                                    logger.error('CCCC')
                                     _record['service'][index]['attributes']['main']['price'] = price['price']
             index = index+1
         logger.info("New ddo: %s", _record)
@@ -1289,7 +1304,7 @@ def retire_all():
     try:
         ip = request.environ['REMOTE_ADDR']
         if ip != '127.0.0.1' and ip != 'localhost':
-            return 'You have no rights', 500
+            return 'You have no rights', 401
         all_ids = [a['id'] for a in dao.get_all_assets()]
         for i in all_ids:
             dao.delete(i)
