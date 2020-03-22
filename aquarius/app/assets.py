@@ -649,6 +649,23 @@ def retire(did):
         description: DID of the asset.
         required: true
         type: string
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to delete asset
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
     responses:
       200:
         description: successfully deleted
@@ -658,11 +675,24 @@ def retire(did):
         description: Error
     """
     try:
-        if dao.get(did) is None:
+        _record = dao.get(did)
+        if _record is None:
             return 'This asset DID is not in OceanDB', 404
-        else:
-            dao.delete(did)
-            return 'Succesfully deleted', 200
+        ip = request.environ['REMOTE_ADDR']
+        if ip != '127.0.0.1' and ip != 'localhost':
+          data = request.json
+          required_attributes = [
+              'signature',
+              'updated'
+          ]
+          msg, status = check_required_attributes(required_attributes, data, 'deleteasset')
+          if msg:
+              return msg, status
+          if not _can_update_did(_record,data['updated'],data['signature'],web3,logger):
+            logger.error('Not allowed to update did')    
+            return f'Not allowed to update this DID', 500
+        dao.delete(did)
+        return 'Succesfully deleted', 200
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
@@ -801,6 +831,9 @@ def retire_all():
         description: Error
     """
     try:
+        ip = request.environ['REMOTE_ADDR']
+        if ip != '127.0.0.1' and ip != 'localhost':
+          return 'You have no rights', 500
         all_ids = [a['id'] for a in dao.get_all_assets()]
         for i in all_ids:
             dao.delete(i)
