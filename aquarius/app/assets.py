@@ -642,8 +642,8 @@ def update_ratings(did):
         required_attributes, data, 'ratingsupdate')
     if msg:
         return msg, status
-    if not isinstance(data['rating'], float):
-        logger.error('Rating is not a float')
+    if not isinstance(data['rating'], float) and not isinstance(data['rating'], int):
+        logger.error('Rating is not a int or float')
         return f'Rating is not float', 400
     if not isinstance(data['numVotes'], int):
         logger.error('NumVotes is not int')
@@ -1223,11 +1223,11 @@ def update_metadata(did):
             "links":
               description: The new links
               type: object
-              example: "[{"name":"XX","url":"http://","type":"sample"},{"name":"XX","url":"http://","type":"sample"}]
+              example: '[{"name":"XX","url":"http://","type":"sample"},{"name":"XX","url":"http://","type":"sample"}]'
             "servicePrices":
               description: The new prices per services
               type: object
-              example: "[{"serviceIndex":"1","price":"10000"},{"serviceIndex":"2","price":"20000"]
+              example: '[{"serviceIndex":"1","price":"10000"},{"serviceIndex":"2","price":"20000"]'
 
     responses:
       200:
