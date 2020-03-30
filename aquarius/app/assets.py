@@ -1093,25 +1093,29 @@ def update_metadata(did):
         index = 0
         for service in _record['service']:
             if service['type'] == 'metadata':
-                if isinstance(data['title'], str):
-                    _record['service'][index]['attributes']['main']['name'] = data['title']
-                if isinstance(data['description'], str):
-                    _record['service'][index]['attributes']['additionalInformation']['description'] = data['description']
-                if isinstance(data['links'], list):
-                    newLinks = list()
-                    for link in data['links']:
-                        if isinstance(link['name'], str) and isinstance(link['url'], str) and isinstance(link['type'], str):
-                            newLinks.append(link)
-                    if len(newLinks) > 0:
-                        _record['service'][index]['attributes']['additionalInformation']['links'] = newLinks
-            logger.error('Starting prices')
-            if isinstance(data['servicePrices'], list):
-                for price in data['servicePrices']:
-                    if isinstance(price['serviceIndex'], int) and isinstance(price['price'], str):
-                        if price['serviceIndex'] == index:
-                            if 'attributes' in _record['service'][index]:
-                                if 'main' in _record['service'][index]['attributes']:
-                                    _record['service'][index]['attributes']['main']['price'] = price['price']
+                if 'title' in data:
+                    if isinstance(data['title'], str):
+                        _record['service'][index]['attributes']['main']['name'] = data['title']
+                if 'description' in data:
+                    if isinstance(data['description'], str):
+                        _record['service'][index]['attributes']['additionalInformation']['description'] = data['description']
+                if 'links' in data:
+                    if isinstance(data['links'], list):
+                        newLinks = list()
+                        for link in data['links']:
+                            if isinstance(link['name'], str) and isinstance(link['url'], str) and isinstance(link['type'], str):
+                                newLinks.append(link)
+                        if len(newLinks) > 0:
+                            _record['service'][index]['attributes']['additionalInformation']['links'] = newLinks
+                logger.error('Starting prices')
+            if 'servicePrices' in data:
+                if isinstance(data['servicePrices'], list):
+                    for price in data['servicePrices']:
+                        if isinstance(price['serviceIndex'], int) and isinstance(price['price'], str):
+                            if price['serviceIndex'] == index:
+                                if 'attributes' in _record['service'][index]:
+                                    if 'main' in _record['service'][index]['attributes']:
+                                        _record['service'][index]['attributes']['main']['price'] = price['price']
             index = index+1
         logger.info("New ddo: %s", _record)
         dao.update(_record, did)
