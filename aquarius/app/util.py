@@ -1,24 +1,29 @@
 #  Copyright 2018 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
 
-import logging
 import os
-from eth_account.messages import defunct_hash_message
+
+from eth_account import Account
+from eth_account.messages import encode_defunct
+from web3 import Web3
 
 
-def get_signer_address(message, signature, web3, logger):
-    '''
+def get_signer_address(message, signature, logger):
+    """
     Get signer address of a previous signed message
     :param str message: Message
     :param str signature: Signature obtain with web3.eth.personal.sign
+    :param logger: logging object
     :return: Address or None in case of error
-    '''
+    """
     try:
         logger.debug('got %s as a message' % message)
-        message_hash = defunct_hash_message(text=message)
-        logger.debug('got %s as a message_hash' % message_hash)
-        address_recovered = web3.eth.account.recoverHash(
-            message_hash, signature=signature)
+        signable_message = encode_defunct(text=message)
+        logger.debug(f'got {signable_message} as a message_hash')
+        address_recovered = Account.recover_message(
+            signable_message=signable_message,
+            signature=signature
+        )
         logger.debug('got %s as address_recovered' % address_recovered)
         return address_recovered
     except Exception as e:
@@ -26,62 +31,62 @@ def get_signer_address(message, signature, web3, logger):
         return None
 
 
-def compare_eth_addresses(address, checker, web3, logger):
-    '''
+def compare_eth_addresses(address, checker, logger):
+    """
     Compare two addresses and return TRUE if there is a match
     :param str address: Address
     :param str checker: Address to compare with
     :return: boolean
-    '''
+    """
     logger.debug('compare_eth_addresses address: %s' % address)
     logger.debug('compare_eth_addresses checker: %s' % checker)
-    if not web3.isAddress(address):
+    if not Web3.isAddress(address):
         logger.debug("Address is not web3 valid")
         return False
-    if not web3.isAddress(checker):
+    if not Web3.isAddress(checker):
         logger.debug("Checker is not web3 valid")
         return False
-    return web3.toChecksumAddress(address) == web3.toChecksumAddress(checker)
+    return Web3.toChecksumAddress(address) == Web3.toChecksumAddress(checker)
 
 
-def _can_update_did(ddo, updated, signature, web3, logger):
-    '''
+def _can_update_did(ddo, updated, signature, logger):
+    """
     Check if the signer is allowed to update the DDO
     :param record ddo: DDO that has to be updated
     :param str updated: Updated field passed by user
     :param str signature: Signature of the updated field, using web3.eth.personal.sign
     :return: boolean TRUE if the signer is allowed to update the DDO
-    '''
+    """
     if ddo['updated'] is None or updated is None or ddo['updated'] != updated:
         return False
-    address = get_signer_address(updated, signature, web3, logger)
+    address = get_signer_address(updated, signature, logger)
     if address is None:
         return False
-    if compare_eth_addresses(address, ddo['publicKey'][0]['owner'], web3, logger) is True:
+    if compare_eth_addresses(address, ddo['publicKey'][0]['owner'], logger) is True:
         return True
     return False
 
 
-def _can_update_did_from_allowed_updaters(ddo, updated, signature, web3, logger):
-    '''
+def _can_update_did_from_allowed_updaters(ddo, updated, signature, logger):
+    """
     Check if the signer is allowed to update the DDO. List of signers is taken from ENV variabile RATING_ALLOWED_UPDATER
     :param record ddo: DDO that has to be updated
     :param str updated: Updated field passed by user
     :param str signature: Signature of the updated field, using web3.eth.personal.sign
     :return: boolean TRUE if the signer is allowed to update the DDO
-    '''
-    allowedUpdater = os.environ.get("RATING_ALLOWED_UPDATER")
-    logger.debug('got RATING_ALLOWED_UPDATER: %s' % allowedUpdater)
+    """
+    allowed_updater = os.environ.get("RATING_ALLOWED_UPDATER")
+    logger.debug('got RATING_ALLOWED_UPDATER: %s' % allowed_updater)
     if ddo['updated'] is None or updated is None or ddo['updated'] != updated:
         logger.debug("missmatch updated")
         return False
-    address = get_signer_address(updated, signature, web3, logger)
+    address = get_signer_address(updated, signature, logger)
     if address is None:
         logger.debug("signer_address is none")
         return False
-    if allowedUpdater is None:
+    if allowed_updater is None:
         logger.debug("allowedUpdater is None")
         return False
-    if compare_eth_addresses(address, allowedUpdater, web3, logger) is True:
+    if compare_eth_addresses(address, allowed_updater, logger) is True:
         return True
     return False

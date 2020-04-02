@@ -8,10 +8,8 @@ import os
 from aquarius.constants import ConfigSections
 
 DEFAULT_NAME_AQUARIUS_URL = 'http://localhost:5000'
-DEFAULT_NAME_KEEPER_URL = 'http://localhost:8545'
 
 NAME_AQUARIUS_URL = 'aquarius.url'
-NAME_KEEPER_URL = 'keeper.url'
 ALLOW_FREE_ASSETS_ONLY = 'allowFreeAssetsOnly'
 MODULE = 'module'
 DB_HOSTNAME = 'db.hostname'
@@ -19,13 +17,11 @@ DB_PORT = 'db.port'
 
 environ_names = {
     NAME_AQUARIUS_URL: ['AQUARIUS_URL', 'Aquarius URL'],
-    NAME_KEEPER_URL: ['KEEPER_URL', 'Keeper URL'],
 }
 
 config_defaults = {
     ConfigSections.RESOURCES: {
         NAME_AQUARIUS_URL: DEFAULT_NAME_AQUARIUS_URL,
-        NAME_KEEPER_URL: DEFAULT_NAME_KEEPER_URL,
     }
 }
 
@@ -68,10 +64,6 @@ class Config(configparser.ConfigParser):
     def aquarius_url(self):
         return self.get(self._section_name, NAME_AQUARIUS_URL)
     
-    @property
-    def keeper_url(self):
-        return self.get(self._section_name, NAME_KEEPER_URL)
-
     @property
     def allow_free_assets_only(self):
         return self.get(self._section_name, ALLOW_FREE_ASSETS_ONLY)

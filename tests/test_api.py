@@ -2,10 +2,12 @@
 #  SPDX-License-Identifier: Apache-2.0
 import copy
 import json
+import logging
 
 from plecos import plecos
 
 from aquarius.app.assets import validate_date_format
+from aquarius.app.util import get_signer_address
 from aquarius.constants import BaseURLs
 from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_metadata, json_dict_no_valid_metadata
@@ -15,6 +17,33 @@ from tests.ddos.ddo_sample_algorithm import algorithm_ddo_sample
 from tests.ddos.ddo_sample_updates import json_before, json_update, json_valid
 from eth_account.messages import encode_defunct
 from eth_account import Account
+
+
+ACC_1_ENTROPY = 'KEYSMASH FJAFJKLDSKF7JKFDJ 1530'
+ACC_2_ENTROPY = 'KEYSMASH FJAFJKLDSKF7JKFDJ 1531'
+
+
+def sign_message(account, message_str):
+    msg_hash = encode_defunct(text=message_str)
+    full_signature = account.sign_message(msg_hash)
+    return full_signature.signature.hex()
+
+
+def create_account(extra_entropy):
+    return Account.create(extra_entropy=extra_entropy)
+
+
+def get_new_accounts():
+    return create_account(ACC_1_ENTROPY), create_account(ACC_2_ENTROPY)
+
+
+def get_ddo(client, base_ddo_url, did):
+    rv = client.get(
+        base_ddo_url + f'/{did}',
+        content_type='application/json'
+    )
+    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    return fetched_ddo
 
 
 def run_request_get_data(client_method, url, data=None):
@@ -99,10 +128,7 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
         data=json.dumps(json_update),
         content_type='application/json')
     assert 200 == put.status_code, 'Failed to update asset'
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
     assert json_update['service'][2]['attributes']['curation']['numVotes'] == \
         fetched_ddo['service'][0]['attributes']['curation']['numVotes']
 
@@ -122,16 +148,14 @@ def test_query_metadata(client, base_ddo_url, test_assets):
         client.post, base_ddo_url + '/query', {"query": {}})['results']) == 2
 
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': "UK"}})['results']) == 1
+        client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) == 2
 
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': "weather"}})['results']) == 1
+        client.post, base_ddo_url + '/query', {"query": {'text': ["weather"]}})['results']) == 1
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) == 1
+        client.post, base_ddo_url + '/query', {"query": {'text': ["uK"]}})['results']) == 2
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': "uK"}})['results']) == 1
-    assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': ["UK", "temperature"]}})['results']) == 1
+        client.post, base_ddo_url + '/query', {"query": {'text': ["UK", "temperature"]}})['results']) == 2
     assert len(run_request_get_data(
         client.post, base_ddo_url + '/query', {"query": {'text': ["ocean protocol", "Vision", "paper"]}})['results']) == 1
     assert len(run_request_get_data(
@@ -203,21 +227,34 @@ def test_is_listed(client, base_ddo_url):
     assert len(run_request_get_data(
         client.get, BaseURLs.BASE_AQUARIUS_URL + '/assets')['ids']) == 2
 
-    run_request(client.put, base_ddo_url + '/%s' %
-                json_dict['id'], data=json_dict2)
+    run_request(
+        client.put,
+        base_ddo_url + '/' + str(json_dict['id']),
+        data=json_dict2
+    )
     assert len(run_request_get_data(
         client.get, BaseURLs.BASE_AQUARIUS_URL + '/assets')['ids']) == 1
-    assert len(run_request_get_data(client.post, base_ddo_url + '/query',
-                                    data={"query": {"price": ["14", "16"]}})['results']) == 1
+    assert len(
+        run_request_get_data(
+            client.post,
+            base_ddo_url + '/query',
+            data={"query": {"price": ["14", "16"]}}
+        )['results']
+    ) == 1
 
 
 def test_validate(client_with_no_data, base_ddo_url):
-    post = run_request(client_with_no_data.post,
-                       base_ddo_url + '/validate', data={})
+    post = run_request(
+        client_with_no_data.post,
+        base_ddo_url + '/validate', data={}
+    )
     assert post.status_code == 200
     assert post.data == b'[{"message":"\'main\' is a required property","path":""}]\n'
-    post = run_request(client_with_no_data.post,
-                       base_ddo_url + '/validate', data=json_valid)
+    post = run_request(
+        client_with_no_data.post,
+        base_ddo_url + '/validate',
+        data=json_valid
+    )
     assert post.data == b'true\n'
 
 
@@ -241,92 +278,87 @@ def test_algorithm_ddo(client, base_ddo_url):
         raise AssertionError('algorithm ddo failed to validate.')
 
     metadata['main']['files'][0].pop('url')
-    post = client.post(base_ddo_url,
-                       data=json.dumps(_algorithm_ddo_sample),
-                       content_type='application/json')
+    post = client.post(
+        base_ddo_url,
+        data=json.dumps(_algorithm_ddo_sample),
+        content_type='application/json'
+    )
     assert post.status_code in (200, 201)
 
 
 def test_owner_update(client_with_no_data, base_ddo_url):
     client = client_with_no_data
-    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
-    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
-    json_before['publicKey'][0]['owner'] = acct1.address
+    acct_1, acct_2 = get_new_accounts()
+    json_before['publicKey'][0]['owner'] = acct_1.address
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+    _id = post['id']
+
     # get the ddo
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
+
     data = dict()
-    data['newOwner'] = acct2.address
+    data['newOwner'] = acct_2.address
     data['updated'] = fetched_ddo['updated']
     # create signtaure
-    msghash = encode_defunct(text=data['updated'])
-    fullsignature = acct1.sign_message(msghash)
-    data['signature'] = fullsignature.signature.hex()
-    # post
+    data['signature'] = sign_message(acct_1, data['updated'])
+
+    # put
     put = client.put(
-        base_ddo_url + '/owner/update/%s' % post['id'],
+        base_ddo_url + f'/owner/update/{_id}',
         data=json.dumps(data),
-        content_type='application/json')
+        content_type='application/json'
+    )
     assert 200 == put.status_code, 'Failed to update ownership asset'
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
-    assert acct2.address == fetched_ddo['publicKey'][0]['owner'], 'Owner was not updated'
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
+    assert acct_2.address == fetched_ddo['publicKey'][0]['owner'], 'Owner was not updated'
 
 
 def test_ratings_update(client_with_no_data, base_ddo_url):
     client = client_with_no_data
-    acct1 = Account.from_key(
-        0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
-    print(f'account address: {acct1.address}')
+    acct_1 = Account.from_key(
+        private_key='0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364'
+    )
+    print(f'account address: {acct_1.address}')
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+    _id = post['id']
 
     # get the ddo
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
 
     data = dict()
     data['updated'] = fetched_ddo['updated']
     rating = 2.3
-    numVotes = 26
+    num_votes = 26
     data['rating'] = rating
-    data['numVotes'] = numVotes
+    data['numVotes'] = num_votes
 
     # create signtaure
-    msghash = encode_defunct(text=data['updated'])
-    fullsignature = acct1.sign_message(msghash)
-    data['signature'] = fullsignature.signature.hex()
+    data['signature'] = sign_message(acct_1, data['updated'])
+    address = get_signer_address(data['updated'], data['signature'], logging)
+    print(f'address: {acct_1.address}')
+
     # post
     put = client.put(
-        base_ddo_url + '/ratings/update/%s' % post['id'],
+        base_ddo_url + f'/ratings/update/{_id}',
         data=json.dumps(data),
-        content_type='application/json')
+        content_type='application/json'
+    )
     assert 200 == put.status_code, 'Failed to update ratings'
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
     assert rating == fetched_ddo['service'][0]['attributes']['curation']['rating'], 'Rating was not updated'
-    assert numVotes == fetched_ddo['service'][0]['attributes']['curation']['numVotes'], 'NumVotes was not updated'
+    assert num_votes == fetched_ddo['service'][0]['attributes']['curation']['numVotes'], 'NumVotes was not updated'
 
 
 def test_metadata_update(client_with_no_data, base_ddo_url):
     client = client_with_no_data
-    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
-    json_before['publicKey'][0]['owner'] = acct1.address
+    acct_1 = create_account(ACC_1_ENTROPY)
+    json_before['publicKey'][0]['owner'] = acct_1.address
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+    _id = post['id']
 
     # get the ddo
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
 
     data = dict()
     data['title'] = 'New title'
@@ -341,29 +373,27 @@ def test_metadata_update(client_with_no_data, base_ddo_url):
     data['links'] = links
 
     prices = []
-    onePrice = dict()
-    onePrice['serviceIndex'] = 0
-    onePrice['price'] = '134'
-    prices.append(onePrice)
-    secondPrice = dict()
-    secondPrice['serviceIndex'] = 1
-    secondPrice['price'] = '144'
-    prices.append(secondPrice)
+    one_price = dict()
+    one_price['serviceIndex'] = 0
+    one_price['price'] = '134'
+    prices.append(one_price)
+    second_price = dict()
+    second_price['serviceIndex'] = 1
+    second_price['price'] = '144'
+    prices.append(second_price)
     data['servicePrices'] = prices
     # create signature
-    msghash = encode_defunct(text=data['updated'])
-    fullsignature = acct1.sign_message(msghash)
-    data['signature'] = fullsignature.signature.hex()
+    data['signature'] = sign_message(acct_1, data['updated'])
+
     # post
     put = client.put(
-        base_ddo_url + '/metadata/update/%s' % post['id'],
+        base_ddo_url + f'/metadata/update/{_id}',
         data=json.dumps(data),
-        content_type='application/json')
+        content_type='application/json'
+    )
     assert 200 == put.status_code, 'Failed to update ownership asset'
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
     assert data['title'] == fetched_ddo['service'][0]['attributes']['main']['name']
     assert data['description'] == fetched_ddo['service'][0]['attributes']['additionalInformation']['description']
     assert data['links'] == fetched_ddo['service'][0]['attributes']['additionalInformation']['links']
@@ -373,88 +403,74 @@ def test_metadata_update(client_with_no_data, base_ddo_url):
 def test_publish_with_access_list(client_with_no_data, base_ddo_url):
     client = client_with_no_data
 
-    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
-    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
-    accessList = [acct1.address, acct2.address]
-    json_before['accesssWhiteList'] = accessList
+    acct_1, acct_2 = get_new_accounts()
+    access_list = [acct_1.address, acct_2.address]
+    json_before['accesssWhiteList'] = access_list
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
 
     # get the ddo
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
-    assert accessList == fetched_ddo['accesssWhiteList'], 'accesssWhiteList was not added'
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
+    assert access_list == fetched_ddo['accesssWhiteList'], 'accesssWhiteList was not added'
 
 
 def test_add_access_list(client_with_no_data, base_ddo_url):
     client = client_with_no_data
-    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
-    json_before['publicKey'][0]['owner'] = acct1.address
+    acct_1, acct_2 = get_new_accounts()
+
+    json_before['publicKey'][0]['owner'] = acct_1.address
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+    _id = post['id']
 
     # get the ddo
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
 
     data = dict()
-    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
-    data['address'] = acct2.address
+    data['address'] = acct_2.address
     data['updated'] = fetched_ddo['updated']
     # create signtaure
-    msghash = encode_defunct(text=data['updated'])
-    fullsignature = acct1.sign_message(msghash)
+    data['signature'] = sign_message(acct_1, data['updated'])
 
-    data['signature'] = fullsignature.signature.hex()
     # post
     put = client.post(
-        base_ddo_url + '/accesssWhiteList/%s' % post['id'],
+        base_ddo_url + f'/accesssWhiteList/{_id}',
         data=json.dumps(data),
-        content_type='application/json')
+        content_type='application/json'
+    )
     assert 200 == put.status_code, 'Failed to add address to accessWhiteList'
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
-    print(f'AccessList:%s' % fetched_ddo['accesssWhiteList'])
+
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
+    print(f'AccessList: {fetched_ddo["accesssWhiteList"]}')
     assert fetched_ddo['accesssWhiteList'].count(
-        acct2.address) > 0, 'Address was not added'
+        acct_2.address) > 0, 'Address was not added'
 
 
 def test_delete_from_access_list(client_with_no_data, base_ddo_url):
     client = client_with_no_data
-    acct1 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
-    json_before['publicKey'][0]['owner'] = acct1.address
-    acct2 = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1531')
-    accessList = [acct2.address]
-    json_before['accesssWhiteList'] = accessList
+    acct_1, acct_2 = get_new_accounts()
+
+    json_before['publicKey'][0]['owner'] = acct_1.address
+    access_list = [acct_2.address]
+    json_before['accesssWhiteList'] = access_list
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+    _id = post['id']
 
     # get the ddo
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
 
     data = dict()
-    data['address'] = acct2.address
+    data['address'] = acct_2.address
     data['updated'] = fetched_ddo['updated']
     # create signtaure
-    msghash = encode_defunct(text=data['updated'])
-    fullsignature = acct1.sign_message(msghash)
+    data['signature'] = sign_message(acct_1, data['updated'])
 
-    data['signature'] = fullsignature.signature.hex()
     # post
     put = client.delete(
-        base_ddo_url + '/accesssWhiteList/%s' % post['id'],
+        base_ddo_url + f'/accesssWhiteList/{_id}',
         data=json.dumps(data),
-        content_type='application/json')
+        content_type='application/json'
+    )
     assert 200 == put.status_code, 'Failed to delete address from accessWhiteList'
-    rv = client.get(
-        base_ddo_url + '/%s' % post['id'],
-        content_type='application/json')
-    fetched_ddo = json.loads(rv.data.decode('utf-8'))
+
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
     assert fetched_ddo['accesssWhiteList'].count(
-        acct2.address) < 1, 'Address was not removed'
+        acct_2.address) < 1, 'Address was not removed'

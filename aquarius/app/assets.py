@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request, Response
+from web3 import Web3
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 from plecos.plecos import (
     is_valid_dict_local,
@@ -20,13 +21,9 @@ from aquarius.app.util import compare_eth_addresses, _can_update_did, _can_updat
 from aquarius.config import Config
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from web3 import Web3, HTTPProvider
-from eth_account.messages import defunct_hash_message
 
 setup_logging()
 assets = Blueprint('assets', __name__)
-web3 = Web3(HTTPProvider(Config.keeper_url))
-
 
 # Prepare OceanDB
 dao = Dao(config_file=app.config['CONFIG_FILE'])
@@ -518,7 +515,8 @@ def transfer_ownership(did):
             "signature":
               description: Signature using updated field to verify that the consumer has rights to update onwership
               type: string
-              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd5\
+7d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "updated":
               description: Last update field of the DDO
               type: string
@@ -549,7 +547,7 @@ def transfer_ownership(did):
         required_attributes, data, 'transferownership')
     if msg:
         return msg, status
-    if not web3.isAddress(data['newOwner']):
+    if not Web3.isAddress(data['newOwner']):
         return f'New owner is not a valid address', 400
 
     try:
@@ -557,15 +555,15 @@ def transfer_ownership(did):
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+        if not _can_update_did(_record, data['updated'], data['signature'], logger):
             logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 401
-        if compare_eth_addresses(_record['publicKey'][0]['owner'], data['newOwner'], web3, logger):
+        if compare_eth_addresses(_record['publicKey'][0]['owner'], data['newOwner'], logger):
             return f'New owner must be different than owner', 400
         _record['publicKey'][0]['owner'] = data['newOwner']
         _record['updated'] = get_timestamp()
         dao.update(_record, did)
-        return f'Asset successfully transfered', 200
+        return f'Asset successfully transferred', 200
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
@@ -599,7 +597,8 @@ def update_ratings(did):
             "signature":
               description: Signature using updated field to verify that the consumer has rights to update onwership
               type: string
-              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e6\
+41cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "updated":
               description: Last update field of the DDO
               type: string
@@ -647,7 +646,7 @@ def update_ratings(did):
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did_from_allowed_updaters(_record, data['updated'], data['signature'], web3, logger):
+        if not _can_update_did_from_allowed_updaters(_record, data['updated'], data['signature'], logger):
             logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 401
         _record['updated'] = get_timestamp()
@@ -693,7 +692,8 @@ def add_access_white_list(did):
             "signature":
               description: Signature using updated field to verify that the consumer has rights to update onwership
               type: string
-              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4\
+e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "updated":
               description: Last update field of the DDO
               type: string
@@ -724,7 +724,7 @@ def add_access_white_list(did):
         required_attributes, data, 'addaccessWhiteList')
     if msg:
         return msg, status
-    if not web3.isAddress(data['address']):
+    if not Web3.isAddress(data['address']):
         return f'Address is not a valid eth address', 400
 
     try:
@@ -732,7 +732,7 @@ def add_access_white_list(did):
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+        if not _can_update_did(_record, data['updated'], data['signature'], logger):
             logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 401
         if _record['accesssWhiteList'].count(data['address']) > 0:
@@ -774,7 +774,8 @@ def delete_access_white_list(did):
             "signature":
               description: Signature using updated field to verify that the consumer has rights to update onwership
               type: string
-              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf\
+9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "updated":
               description: Last update field of the DDO
               type: string
@@ -805,7 +806,7 @@ def delete_access_white_list(did):
         required_attributes, data, 'deleteaccessWhiteList')
     if msg:
         return msg, status
-    if not web3.isAddress(data['address']):
+    if not Web3.isAddress(data['address']):
         return f'Address is not a valid eth address', 400
 
     try:
@@ -813,7 +814,7 @@ def delete_access_white_list(did):
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+        if not _can_update_did(_record, data['updated'], data['signature'], logger):
             logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 401
         if _record['accesssWhiteList'].count(data['address']) < 1:
@@ -851,7 +852,8 @@ def retire(did):
             "signature":
               description: Signature using updated field to verify that the consumer has rights to delete asset
               type: string
-              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e\
+1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "updated":
               description: Last update field of the DDO
               type: string
@@ -879,7 +881,7 @@ def retire(did):
                 required_attributes, data, 'deleteasset')
             if msg:
                 return msg, status
-            if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+            if not _can_update_did(_record, data['updated'], data['signature'], logger):
                 logger.error('Not allowed to update did')
                 return f'Not allowed to update this DID', 401
         dao.delete(did)
@@ -1038,7 +1040,8 @@ def update_metadata(did):
             "signature":
               description: Signature using updated field to verify that the consumer has rights to update onwership
               type: string
-              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1\
+b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "updated":
               description: Last update field of the DDO
               type: string
@@ -1086,7 +1089,7 @@ def update_metadata(did):
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not _can_update_did(_record, data['updated'], data['signature'], web3, logger):
+        if not _can_update_did(_record, data['updated'], data['signature'], logger):
             logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 401
         _record['updated'] = get_timestamp()
@@ -1101,12 +1104,12 @@ def update_metadata(did):
                         _record['service'][index]['attributes']['additionalInformation']['description'] = data['description']
                 if 'links' in data:
                     if isinstance(data['links'], list):
-                        newLinks = list()
+                        new_links = list()
                         for link in data['links']:
                             if isinstance(link['name'], str) and isinstance(link['url'], str) and isinstance(link['type'], str):
-                                newLinks.append(link)
-                        if len(newLinks) > 0:
-                            _record['service'][index]['attributes']['additionalInformation']['links'] = newLinks
+                                new_links.append(link)
+                        if len(new_links) > 0:
+                            _record['service'][index]['attributes']['additionalInformation']['links'] = new_links
                 logger.error('Starting prices')
             if 'servicePrices' in data:
                 if isinstance(data['servicePrices'], list):
