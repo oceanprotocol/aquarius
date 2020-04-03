@@ -1,92 +1,116 @@
 #  Copyright 2018 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
+import json
+import logging
+from datetime import datetime
 
-import os
+DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
-from eth_account import Account
-from eth_account.messages import encode_defunct
-from web3 import Web3
+logger = logging.getLogger('aquarius')
 
 
-def get_signer_address(message, signature, logger):
-    """
-    Get signer address of a previous signed message
-    :param str message: Message
-    :param str signature: Signature obtain with web3.eth.personal.sign
-    :param logger: logging object
-    :return: Address or None in case of error
-    """
+def sanitize_record(data_record):
+    if '_id' in data_record:
+        data_record.pop('_id')
+    return json.dumps(data_record, default=datetime_converter)
+
+
+def make_paginate_response(query_list_result, search_model):
+    total = query_list_result[1]
+    offset = search_model.offset
+    result = dict()
+    result['results'] = query_list_result[0]
+    result['page'] = search_model.page
+
+    result['total_pages'] = int(total / offset) + int(total % offset > 0)
+    result['total_results'] = total
+    return result
+
+
+def datetime_converter(o):
+    if isinstance(o, datetime):
+        return o.strftime(DATETIME_FORMAT)
+
+
+def format_timestamp(timestamp):
+    return f'{datetime.strptime(timestamp, DATETIME_FORMAT).replace(microsecond=0).isoformat()}Z'
+
+
+def get_timestamp():
+    """Return the current system timestamp."""
+    return f'{datetime.utcnow().replace(microsecond=0).isoformat()}Z'
+
+
+def get_curation_metadata(services):
+    return get_metadata_from_services(services)['attributes']['curation']
+
+
+def get_main_metadata(services):
+    return get_metadata_from_services(services)['attributes']['main']
+
+
+def get_metadata_from_services(services):
+    for service in services:
+        if service['type'] == 'metadata':
+            return service
+
+
+def reorder_services_list(services):
+    result = []
+    for service in services:
+        if service['type'] == 'metadata':
+            result.append(service)
+
+    for service in services:
+        if service['type'] != 'metadata':
+            result.append(service)
+
+    return result
+
+
+def validate_date_format(date):
     try:
-        logger.debug('got %s as a message' % message)
-        signable_message = encode_defunct(text=message)
-        logger.debug(f'got {signable_message} as a message_hash')
-        address_recovered = Account.recover_message(
-            signable_message=signable_message,
-            signature=signature
-        )
-        logger.debug('got %s as address_recovered' % address_recovered)
-        return address_recovered
+        datetime.strptime(date, DATETIME_FORMAT)
+        return None, None
     except Exception as e:
-        logger.error(e)
-        return None
+        logging.error(str(e))
+        return f"Incorrect data format, should be '{DATETIME_FORMAT}'", 400
 
 
-def compare_eth_addresses(address, checker, logger):
-    """
-    Compare two addresses and return TRUE if there is a match
-    :param str address: Address
-    :param str checker: Address to compare with
-    :return: boolean
-    """
-    logger.debug('compare_eth_addresses address: %s' % address)
-    logger.debug('compare_eth_addresses checker: %s' % checker)
-    if not Web3.isAddress(address):
-        logger.debug("Address is not web3 valid")
-        return False
-    if not Web3.isAddress(checker):
-        logger.debug("Checker is not web3 valid")
-        return False
-    return Web3.toChecksumAddress(address) == Web3.toChecksumAddress(checker)
+def check_no_urls_in_files(main, method):
+    if 'files' in main:
+        for file in main['files']:
+            if 'url' in file:
+                logger.error(
+                    '%s request failed: url is not allowed in files ' % method)
+                return '%s request failed: url is not allowed in files ' % method, 400
+    return None, None
 
 
-def _can_update_did(ddo, updated, signature, logger):
-    """
-    Check if the signer is allowed to update the DDO
-    :param record ddo: DDO that has to be updated
-    :param str updated: Updated field passed by user
-    :param str signature: Signature of the updated field, using web3.eth.personal.sign
-    :return: boolean TRUE if the signer is allowed to update the DDO
-    """
-    if ddo['updated'] is None or updated is None or ddo['updated'] != updated:
-        return False
-    address = get_signer_address(updated, signature, logger)
-    if address is None:
-        return False
-    if compare_eth_addresses(address, ddo['publicKey'][0]['owner'], logger) is True:
-        return True
-    return False
+def check_required_attributes(required_attributes, data, method):
+    assert isinstance(
+        data, dict), 'invalid `body` type, should already formatted into a dict.'
+    logger.info('got %s request: %s' % (method, data))
+    if not data:
+        logger.error('%s request failed: data is empty.' % method)
+        logger.error('%s request failed: data is empty.' % method)
+        return 'payload seems empty.', 400
+
+    for attr in required_attributes:
+        if attr not in data:
+            logger.error(
+                '%s request failed: required attr %s missing.' % (method, attr))
+            return '"%s" is required in the call to %s' % (attr, method), 400
+
+    return None, None
 
 
-def _can_update_did_from_allowed_updaters(ddo, updated, signature, logger):
-    """
-    Check if the signer is allowed to update the DDO. List of signers is taken from ENV variabile RATING_ALLOWED_UPDATER
-    :param record ddo: DDO that has to be updated
-    :param str updated: Updated field passed by user
-    :param str signature: Signature of the updated field, using web3.eth.personal.sign
-    :return: boolean TRUE if the signer is allowed to update the DDO
-    """
-    allowed_updater = os.environ.get("RATING_ALLOWED_UPDATER")
-    logger.debug('got RATING_ALLOWED_UPDATER: %s' % allowed_updater)
-    if ddo['updated'] is None or updated is None or ddo['updated'] != updated:
-        logger.debug("missmatch updated")
-        return False
-    address = get_signer_address(updated, signature, logger)
-    if address is None:
-        logger.debug("signer_address is none")
-        return False
-    if allowed_updater is None:
-        logger.debug("allowedUpdater is None")
-        return False
-    if compare_eth_addresses(address, allowed_updater, logger) is True:
-        return True
-    return False
+def list_errors(list_errors_function, data):
+    error_list = list()
+    for err in list_errors_function(data):
+        stack_path = list(err[1].relative_path)
+        stack_path = [str(p) for p in stack_path]
+        this_err_response = {
+            'path': "/".join(stack_path), 'message': err[1].message}
+        error_list.append(this_err_response)
+    return error_list

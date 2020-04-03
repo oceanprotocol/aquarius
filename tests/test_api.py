@@ -6,8 +6,8 @@ import logging
 
 from plecos import plecos
 
-from aquarius.app.assets import validate_date_format
-from aquarius.app.util import get_signer_address
+from aquarius.app.util import validate_date_format
+from aquarius.app.auth_util import get_signer_address
 from aquarius.constants import BaseURLs
 from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_metadata, json_dict_no_valid_metadata
