@@ -148,12 +148,12 @@ def test_query_metadata(client, base_ddo_url, test_assets):
         client.post, base_ddo_url + '/query', {"query": {}})['results']) == 2
 
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) == 2
+        client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) == 1
 
     assert len(run_request_get_data(
         client.post, base_ddo_url + '/query', {"query": {'text': ["weather"]}})['results']) == 1
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': ["uK"]}})['results']) == 2
+        client.post, base_ddo_url + '/query', {"query": {'text': ["uK"]}})['results']) == 1
     assert len(run_request_get_data(
         client.post, base_ddo_url + '/query', {"query": {'text': ["UK", "temperature"]}})['results']) == 2
     assert len(run_request_get_data(
@@ -334,8 +334,6 @@ def test_ratings_update(client_with_no_data, base_ddo_url):
 
     # create signtaure
     data['signature'] = sign_message(acct_1, data['updated'])
-    address = get_signer_address(data['updated'], data['signature'], logging)
-    print(f'address: {acct_1.address}')
 
     # post
     put = client.put(
