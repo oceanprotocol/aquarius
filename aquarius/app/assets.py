@@ -43,74 +43,9 @@ dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
 
 
-@assets.route('', methods=['GET'])
-def get_assets():
-    """Get all asset IDs.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: successful action
-    """
-    asset_with_id = dao.get_all_listed_assets()
-    asset_ids = [a['id'] for a in asset_with_id]
-    resp_body = dict({'ids': asset_ids})
-    return Response(sanitize_record(resp_body), 200, content_type='application/json')
-
-
-@assets.route('/ddo/<did>', methods=['GET'])
-def get_ddo(did):
-    """Get DDO of a particular asset.
-    ---
-    tags:
-      - ddo
-    parameters:
-      - name: did
-        in: path
-        description: DID of the asset.
-        required: true
-        type: string
-    responses:
-      200:
-        description: successful operation
-      404:
-        description: This asset DID is not in OceanDB
-    """
-    try:
-        asset_record = dao.get(did)
-        return Response(sanitize_record(asset_record), 200, content_type='application/json')
-    except Exception as e:
-        logger.error(e)
-        return f'{did} asset DID is not in OceanDB', 404
-
-
-@assets.route('/metadata/<did>', methods=['GET'])
-def get_metadata(did):
-    """Get metadata of a particular asset
-    ---
-    tags:
-      - metadata
-    parameters:
-      - name: did
-        in: path
-        description: DID of the asset.
-        required: true
-        type: string
-    responses:
-      200:
-        description: successful operation.
-      404:
-        description: This asset DID is not in OceanDB.
-    """
-    try:
-        asset_record = dao.get(did)
-        metadata = get_metadata_from_services(asset_record['service'])
-        return Response(sanitize_record(metadata), 200, content_type='application/json')
-    except Exception as e:
-        logger.error(e)
-        return f'{did} asset DID is not in OceanDB', 404
-
+###########################
+# CREATE
+###########################
 
 @assets.route('/ddo', methods=['POST'])
 def register():
@@ -304,6 +239,101 @@ def register():
             f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
         return f'Some error: {str(err)}', 500
 
+
+###########################
+# GETTERS
+###########################
+
+@assets.route('', methods=['GET'])
+def get_assets_ids():
+    """Get all asset IDs.
+    ---
+    tags:
+      - ddo
+    responses:
+      200:
+        description: successful action
+    """
+    asset_with_id = dao.get_all_listed_assets()
+    asset_ids = [a['id'] for a in asset_with_id]
+    resp_body = dict({'ids': asset_ids})
+    return Response(sanitize_record(resp_body), 200, content_type='application/json')
+
+
+@assets.route('/ddo/<did>', methods=['GET'])
+def get_ddo(did):
+    """Get DDO of a particular asset.
+    ---
+    tags:
+      - ddo
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+    responses:
+      200:
+        description: successful operation
+      404:
+        description: This asset DID is not in OceanDB
+    """
+    try:
+        asset_record = dao.get(did)
+        return Response(sanitize_record(asset_record), 200, content_type='application/json')
+    except Exception as e:
+        logger.error(e)
+        return f'{did} asset DID is not in OceanDB', 404
+
+
+@assets.route('/ddo', methods=['GET'])
+def get_asset_ddos():
+    """Get DDO of all assets.
+    ---
+    tags:
+      - ddo
+    responses:
+      200:
+        description: successful action
+    """
+    assets_with_id = dao.get_all_listed_assets()
+    assets_metadata = {a['id']: a for a in assets_with_id}
+    for i in assets_metadata:
+        sanitize_record(i)
+    return Response(json.dumps(assets_metadata, default=datetime_converter), 200,
+                    content_type='application/json')
+
+
+@assets.route('/metadata/<did>', methods=['GET'])
+def get_metadata(did):
+    """Get metadata of a particular asset
+    ---
+    tags:
+      - metadata
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+    responses:
+      200:
+        description: successful operation.
+      404:
+        description: This asset DID is not in OceanDB.
+    """
+    try:
+        asset_record = dao.get(did)
+        metadata = get_metadata_from_services(asset_record['service'])
+        return Response(sanitize_record(metadata), 200, content_type='application/json')
+    except Exception as e:
+        logger.error(e)
+        return f'{did} asset DID is not in OceanDB', 404
+
+
+###########################
+# UPDATE
+###########################
 
 @assets.route('/ddo/<did>', methods=['PUT'])
 def update(did):
@@ -757,6 +787,124 @@ e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
         return f'Some error: {str(err)}', 500
 
 
+@assets.route('/metadata/<did>', methods=['PUT'])
+def update_metadata(did):
+    """Update parts of metadata for a DID
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1\
+b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "title":
+              description: The new title
+              type: string
+              example: "My asset"
+            "description":
+              description: The new description
+              type: string
+              example: "My asset"
+            "links":
+              description: The new links
+              type: object
+              example: '[{"name":"XX","url":"http://","type":"sample"},{"name":"XX","url":"http://","type":"sample"}]'
+            "servicePrices":
+              description: The new prices per services
+              type: object
+              example: '[{"serviceIndex":"1","price":"10000"},{"serviceIndex":"2","price":"20000"]'
+
+    responses:
+      200:
+        description: Asset updated
+      400:
+        description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'metadataupdate')
+    if msg:
+        return msg, status
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not can_update_did(_record, data['updated'], data['signature'], logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 401
+        _record['updated'] = get_timestamp()
+        index = 0
+        for service in _record['service']:
+            if service['type'] == 'metadata':
+                if 'title' in data:
+                    if isinstance(data['title'], str):
+                        _record['service'][index]['attributes']['main']['name'] = data['title']
+                if 'description' in data:
+                    if isinstance(data['description'], str):
+                        _record['service'][index]['attributes']['additionalInformation']['description'] = data['description']
+                if 'links' in data:
+                    if isinstance(data['links'], list):
+                        new_links = list()
+                        for link in data['links']:
+                            if isinstance(link['name'], str) and isinstance(link['url'], str) and isinstance(link['type'], str):
+                                new_links.append(link)
+                        if len(new_links) > 0:
+                            _record['service'][index]['attributes']['additionalInformation']['links'] = new_links
+                logger.error('Starting prices')
+            if 'servicePrices' in data:
+                if isinstance(data['servicePrices'], list):
+                    for price in data['servicePrices']:
+                        if isinstance(price['serviceIndex'], int) and isinstance(price['price'], str):
+                            if price['serviceIndex'] == index:
+                                if 'attributes' in _record['service'][index]:
+                                    if 'main' in _record['service'][index]['attributes']:
+                                        _record['service'][index]['attributes']['main']['price'] = price['price']
+            index = index+1
+        logger.info("New ddo: %s", _record)
+        dao.update(_record, did)
+        return f'Metadata successfully updated', 200
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
+###########################
+# DELETE
+###########################
+
 @assets.route('/ddo/accesssWhiteList/<did>', methods=['DELETE'])
 def delete_access_white_list(did):
     """Deletes an address from accessWhiteList
@@ -901,23 +1049,34 @@ def retire(did):
         return f'Some error: {str(err)}', 500
 
 
-@assets.route('/ddo', methods=['GET'])
-def get_asset_ddos():
-    """Get DDO of all assets.
+@assets.route('/ddo', methods=['DELETE'])
+def retire_all():
+    """Retire metadata of all the assets.
     ---
     tags:
       - ddo
     responses:
       200:
-        description: successful action
+        description: successfully deleted
+      500:
+        description: Error
     """
-    assets_with_id = dao.get_all_listed_assets()
-    assets_metadata = {a['id']: a for a in assets_with_id}
-    for i in assets_metadata:
-        sanitize_record(i)
-    return Response(json.dumps(assets_metadata, default=datetime_converter), 200,
-                    content_type='application/json')
+    try:
+        ip = request.environ['REMOTE_ADDR']
+        if ip != '127.0.0.1' and ip != 'localhost':
+            return 'You have no rights', 401
+        all_ids = [a['id'] for a in dao.get_all_assets()]
+        for i in all_ids:
+            dao.delete(i)
+        return 'All ddo successfully deleted', 200
+    except Exception as e:
+        logger.error(e)
+        return 'An error was found', 500
 
+
+###########################
+# SEARCH
+###########################
 
 @assets.route('/ddo/query', methods=['GET'])
 def query_text():
@@ -1024,144 +1183,9 @@ def query_ddo():
                     content_type='application/json')
 
 
-@assets.route('/ddo/metadata/update/<did>', methods=['PUT'])
-def update_metadata(did):
-    """Update parts of metadata for a DID
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/json
-    parameters:
-      - name: did
-        in: path
-        description: DID of the asset.
-        required: true
-        type: string
-        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          required:
-            - updated
-            - signature
-          properties:
-            "signature":
-              description: Signature using updated field to verify that the consumer has rights to update onwership
-              type: string
-              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1\
-b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
-            "updated":
-              description: Last update field of the DDO
-              type: string
-              example: "2020-01-01T00:00:00Z"
-            "title":
-              description: The new title
-              type: string
-              example: "My asset"
-            "description":
-              description: The new description
-              type: string
-              example: "My asset"
-            "links":
-              description: The new links
-              type: object
-              example: '[{"name":"XX","url":"http://","type":"sample"},{"name":"XX","url":"http://","type":"sample"}]'
-            "servicePrices":
-              description: The new prices per services
-              type: object
-              example: '[{"serviceIndex":"1","price":"10000"},{"serviceIndex":"2","price":"20000"]'
-
-    responses:
-      200:
-        description: Asset updated
-      400:
-        description: One of the required attributes is missing.
-      401:
-        description: Not authorized.
-      404:
-        description: Invalid asset data.
-      500:
-        description: Error
-    """
-    data = request.json
-    required_attributes = [
-        'signature',
-        'updated'
-    ]
-    msg, status = check_required_attributes(
-        required_attributes, data, 'metadataupdate')
-    if msg:
-        return msg, status
-    try:
-        logger.info('Lets get did %s' % did)
-        _record = dao.get(did)
-        if _record is None:
-            return f'Cannot find did: {did} ', 404
-        if not can_update_did(_record, data['updated'], data['signature'], logger):
-            logger.error('Not allowed to update did')
-            return f'Not allowed to update this DID', 401
-        _record['updated'] = get_timestamp()
-        index = 0
-        for service in _record['service']:
-            if service['type'] == 'metadata':
-                if 'title' in data:
-                    if isinstance(data['title'], str):
-                        _record['service'][index]['attributes']['main']['name'] = data['title']
-                if 'description' in data:
-                    if isinstance(data['description'], str):
-                        _record['service'][index]['attributes']['additionalInformation']['description'] = data['description']
-                if 'links' in data:
-                    if isinstance(data['links'], list):
-                        new_links = list()
-                        for link in data['links']:
-                            if isinstance(link['name'], str) and isinstance(link['url'], str) and isinstance(link['type'], str):
-                                new_links.append(link)
-                        if len(new_links) > 0:
-                            _record['service'][index]['attributes']['additionalInformation']['links'] = new_links
-                logger.error('Starting prices')
-            if 'servicePrices' in data:
-                if isinstance(data['servicePrices'], list):
-                    for price in data['servicePrices']:
-                        if isinstance(price['serviceIndex'], int) and isinstance(price['price'], str):
-                            if price['serviceIndex'] == index:
-                                if 'attributes' in _record['service'][index]:
-                                    if 'main' in _record['service'][index]['attributes']:
-                                        _record['service'][index]['attributes']['main']['price'] = price['price']
-            index = index+1
-        logger.info("New ddo: %s", _record)
-        dao.update(_record, did)
-        return f'Metadata successfully updated', 200
-    except (KeyError, Exception) as err:
-        return f'Some error: {str(err)}', 500
-
-
-@assets.route('/ddo', methods=['DELETE'])
-def retire_all():
-    """Retire metadata of all the assets.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: successfully deleted
-      500:
-        description: Error
-    """
-    try:
-        ip = request.environ['REMOTE_ADDR']
-        if ip != '127.0.0.1' and ip != 'localhost':
-            return 'You have no rights', 401
-        all_ids = [a['id'] for a in dao.get_all_assets()]
-        for i in all_ids:
-            dao.delete(i)
-        return 'All ddo successfully deleted', 200
-    except Exception as e:
-        logger.error(e)
-        return 'An error was found', 500
-
+###########################
+# VALIDATE
+###########################
 
 @assets.route('/ddo/validate', methods=['POST'])
 def validate():
