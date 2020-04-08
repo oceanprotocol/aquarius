@@ -385,7 +385,7 @@ def test_metadata_update(client_with_no_data, base_ddo_url):
 
     # post
     put = client.put(
-        base_ddo_url + f'/metadata/update/{_id}',
+        base_ddo_url + f'/metadata/{_id}',
         data=json.dumps(data),
         content_type='application/json'
     )
