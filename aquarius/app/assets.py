@@ -787,7 +787,7 @@ e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
         return f'Some error: {str(err)}', 500
 
 
-@assets.route('/metadata/<did>', methods=['PUT'])
+@assets.route('/ddo/metadata/<did>', methods=['PUT'])
 def update_metadata(did):
     """Update parts of metadata for a DID
     ---
