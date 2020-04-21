@@ -24,10 +24,12 @@ install_requirements = [
     'gunicorn==19.9.0',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.2.0',
-    'oceandb-elasticsearch-driver==0.2.3',
+    'oceandb-elasticsearch-driver==0.3.1',
     'PyYAML==5.1',
     'pytz==2018.5',
-    'plecos==1.0.2'
+    'plecos==1.0.2',
+    'web3==5.4.0',
+    'eth-account==0.4.0'
 ]
 
 setup_requirements = ['pytest-runner==2.11.1', ]
@@ -41,6 +43,9 @@ dev_requirements = [
 ]
 
 test_requirements = [
+    'plecos==1.0.2',
+    'Flask==1.0.2',
+    'web3==5.4.0',
     'codacy-coverage==1.3.11',
     'coverage==4.5.1',
     'mccabe==0.6.1',

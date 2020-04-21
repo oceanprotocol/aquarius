@@ -7,7 +7,7 @@
 
 Note: Aquarius was formerly known as the Provider.
 
-___"Aquarius is a constellation of the zodiac, situated between Capricornus and Pisces. Its name is Latin for "water-carrier" or "cup-carrier. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path)."___
+**_"Aquarius is a constellation of the zodiac, situated between Capricornus and Pisces. Its name is Latin for "water-carrier" or "cup-carrier. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path)."_**
 
 [![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/10c8fddd5e8547c29de4906410a16ae7.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors)
 
@@ -41,6 +41,34 @@ If you want to know more about the ontology of the metadata, you can find all th
 ### General Ocean Dev Docs
 
 For information about Ocean's Python code style and related "meta" developer docs, see [the oceanprotocol/dev-ocean repository](https://github.com/oceanprotocol/dev-ocean).
+
+### Running as a Docker container
+
+First, clone this repository:
+
+```bash
+git clone git@github.com:oceanprotocol/aquarius.git
+cd aquarius/
+```
+
+Then build the Docker image
+
+```bash
+docker build -t "myaqua" .
+```
+
+Run Docker image
+
+```bash
+docker run myaqua
+```
+
+To test with other ocean components in `barge` directory `compose-files/aquarius.yml` change `aquarius image` to `myaqua`
+Then
+
+```bash
+./start_ocean.sh
+```
 
 ### Running Locally, for Dev and Test
 
@@ -133,7 +161,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
