@@ -815,10 +815,12 @@ def update_computeprivacy(did):
                     _record['service'][index]['attributes']['main']['privacy']['allowRawAlgorithm'] = data['allowRawAlgorithm']
                     _record['service'][index]['attributes']['main']['privacy']['allowNetworkAccess'] = data['allowNetworkAccess']
                     _record['service'][index]['attributes']['main']['privacy']['trustedAlgorithms'] = data['trustedAlgorithms']
+                    logger.info("New ddo: %s", _record)
+                    dao.update(_record, did)
+                    return f'computePrivacy successfully updated', 200
             index = index+1
-        logger.info("New ddo: %s", _record)
-        dao.update(_record, did)
-        return f'computePrivacy successfully updated', 200
+        logger.error('Not a compute service')
+        return f'Not a compute service', 400
     except (KeyError, Exception) as err:
         return f'Some error: {str(err)}', 500
 
