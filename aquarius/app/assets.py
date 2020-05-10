@@ -800,7 +800,7 @@ def update_computeprivacy(did):
         _record = dao.get(did)
         if _record is None:
             return f'Cannot find did: {did} ', 404
-        if not can_update_did_from_allowed_updaters(_record, data['updated'], data['signature'], logger):
+        if not can_update_did(_record, data['updated'], data['signature'], logger):
             logger.error('Not allowed to update did')
             return f'Not allowed to update this DID', 401
         _record['updated'] = get_timestamp()
