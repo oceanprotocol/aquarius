@@ -476,10 +476,9 @@ def test_delete_from_access_list(client_with_no_data, base_ddo_url):
 
 def test_computePrivacy_update(client_with_no_data, base_ddo_url):
     client = client_with_no_data
-    acct_1 = Account.from_key(
-        private_key='0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364'
-    )
-    print(f'account address: {acct_1.address}')
+
+    acct_1, acct_2 = get_new_accounts()
+    json_before['publicKey'][0]['owner'] = acct_1.address
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
     _id = post['id']
 
