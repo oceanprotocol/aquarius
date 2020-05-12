@@ -509,8 +509,11 @@ def test_computePrivacy_update(client_with_no_data, base_ddo_url):
     for service in fetched_ddo['service']:
         if service['index'] == data['serviceIndex']:
             compute_service_index = index
-    
-    assert compute_service_index > -1, 'Cannot find compute service'
+        index = index + 1
+
+    assert compute_service_index > - \
+        1, f'Cannot find compute service {compute_service_index}'
+
     assert data['allowRawAlgorithm'] == fetched_ddo['service'][compute_service_index
                                                                ]['attributes']['main']['privacy']['allowRawAlgorithm'], 'allowRawAlgorithm was not updated'
     assert data['allowNetworkAccess'] == fetched_ddo['service'][compute_service_index
