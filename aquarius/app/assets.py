@@ -706,7 +706,7 @@ def update_ratings(did):
 
 
 @assets.route('/ddo/computePrivacy/update/<did>', methods=['PUT'])
-def update_computeprivacy(did):
+def update_compute_privacy(did):
     """Update ratings for a DID
     ---
     tags:
@@ -780,7 +780,7 @@ def update_computeprivacy(did):
         'trustedAlgorithms'
     ]
     msg, status = check_required_attributes(
-        required_attributes, data, 'update_computeprivacy')
+        required_attributes, data, 'update_compute_privacy')
     if msg:
         return msg, status
     if not isinstance(data['allowRawAlgorithm'], bool):
@@ -806,7 +806,7 @@ def update_computeprivacy(did):
         _record['updated'] = get_timestamp()
         index = 0
         for service in _record['service']:
-            if index == data['serviceIndex']:
+            if service['index'] == data['serviceIndex']:
                 if service['type'] != 'compute':
                     logger.error('Not a compute service')
                     return f'Not a compute service', 400

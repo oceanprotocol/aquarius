@@ -490,7 +490,7 @@ def test_computePrivacy_update(client_with_no_data, base_ddo_url):
     data['allowRawAlgorithm'] = True
     data['allowNetworkAccess'] = False
     data['trustedAlgorithms'] = ['did:op:123', 'did:op:1234']
-    data['serviceIndex'] = 2
+    data['serviceIndex'] = 1
 
     # create signtaure
     data['signature'] = sign_message(acct_1, data['updated'])
@@ -504,9 +504,16 @@ def test_computePrivacy_update(client_with_no_data, base_ddo_url):
     assert 200 == put.status_code, 'Failed to update computePrivacy'
 
     fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
-    assert data['allowRawAlgorithm'] == fetched_ddo['service'][data['serviceIndex']
+    index = 0
+    compute_service_index = -1
+    for service in fetched_ddo['service']:
+        if service['index'] == data['serviceIndex']:
+            compute_service_index = index
+    
+    assert compute_service_index > -1, 'Cannot find compute service'
+    assert data['allowRawAlgorithm'] == fetched_ddo['service'][compute_service_index
                                                                ]['attributes']['main']['privacy']['allowRawAlgorithm'], 'allowRawAlgorithm was not updated'
-    assert data['allowNetworkAccess'] == fetched_ddo['service'][data['serviceIndex']
+    assert data['allowNetworkAccess'] == fetched_ddo['service'][compute_service_index
                                                                 ]['attributes']['main']['privacy']['allowNetworkAccess'], 'allowNetworkAccess was not updated'
-    assert data['trustedAlgorithms'] == fetched_ddo['service'][data['serviceIndex']
+    assert data['trustedAlgorithms'] == fetched_ddo['service'][compute_service_index
                                                                ]['attributes']['main']['privacy']['trustedAlgorithms'], 'trustedAlgorithms was not updated'
