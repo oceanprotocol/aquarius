@@ -165,7 +165,7 @@ def test_query_metadata(client, base_ddo_url, test_assets):
         run_request_get_data(client.post, base_ddo_url + '/query',
                              {"query": {"price": ["14", "16"]}}
                              )['results']
-    ) >0
+    ) > 0
     assert len(
         run_request_get_data(client.get, base_ddo_url + '/query?text=Office'
                              )['results']
@@ -472,3 +472,51 @@ def test_delete_from_access_list(client_with_no_data, base_ddo_url):
     fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
     assert fetched_ddo['accesssWhiteList'].count(
         acct_2.address) < 1, 'Address was not removed'
+
+
+def test_computePrivacy_update(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+
+    acct_1, acct_2 = get_new_accounts()
+    json_before['publicKey'][0]['owner'] = acct_1.address
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+    _id = post['id']
+
+    # get the ddo
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
+
+    data = dict()
+    data['updated'] = fetched_ddo['updated']
+    data['allowRawAlgorithm'] = True
+    data['allowNetworkAccess'] = False
+    data['trustedAlgorithms'] = ['did:op:123', 'did:op:1234']
+    data['serviceIndex'] = 1
+
+    # create signtaure
+    data['signature'] = sign_message(acct_1, data['updated'])
+
+    # post
+    put = client.put(
+        base_ddo_url + f'/computePrivacy/update/{_id}',
+        data=json.dumps(data),
+        content_type='application/json'
+    )
+    assert 200 == put.status_code, 'Failed to update computePrivacy'
+
+    fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
+    index = 0
+    compute_service_index = -1
+    for service in fetched_ddo['service']:
+        if service['index'] == data['serviceIndex']:
+            compute_service_index = index
+        index = index + 1
+
+    assert compute_service_index > - \
+        1, f'Cannot find compute service {compute_service_index}'
+
+    assert data['allowRawAlgorithm'] == fetched_ddo['service'][compute_service_index
+                                                               ]['attributes']['main']['privacy']['allowRawAlgorithm'], 'allowRawAlgorithm was not updated'
+    assert data['allowNetworkAccess'] == fetched_ddo['service'][compute_service_index
+                                                                ]['attributes']['main']['privacy']['allowNetworkAccess'], 'allowNetworkAccess was not updated'
+    assert data['trustedAlgorithms'] == fetched_ddo['service'][compute_service_index
+                                                               ]['attributes']['main']['privacy']['trustedAlgorithms'], 'trustedAlgorithms was not updated'

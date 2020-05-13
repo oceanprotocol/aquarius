@@ -705,6 +705,126 @@ def update_ratings(did):
         return f'Some error: {str(err)}', 500
 
 
+@assets.route('/ddo/computePrivacy/update/<did>', methods=['PUT'])
+def update_compute_privacy(did):
+    """Update ratings for a DID
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: true
+        type: string
+        example: "did:op:d007b84d6f874cbf868177898f2353f7adfc824c9f9843d8b9ee60596db3b9f0"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - serviceIndex
+            - allowRawAlgorithm
+            - allowNetworkAccess
+            - trustedAlgorithms
+            - updated
+            - signature
+          properties:
+            "signature":
+              description: Signature using updated field to verify that the consumer has rights to update onwership
+              type: string
+              example: "0x42e940108a430b91796341e29001319b2b2c4743156cdbe0e17afdae82b4cf9a7e1b4e6\
+41cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
+            "updated":
+              description: Last update field of the DDO
+              type: string
+              example: "2020-01-01T00:00:00Z"
+            "serviceIndex":
+              description: Index of the services array for the compute service to be updated
+              type: int
+              example: 2
+            "allowRawAlgorithm":
+              description: allow Raw Algorithm on this service
+              type: boolean
+              example: true
+            "allowNetworkAccess":
+              description: allow network access for the algorithm pod
+              type: boolean
+              example: true
+            "trustedAlgorithms":
+              description: A list of trusted Algorithms DIDs
+              type: array
+              example: ["did:op:123","did:op:1234"]
+    responses:
+      200:
+        description: Asset updated
+      400:
+        description: One of the required attributes is missing.
+      401:
+        description: Not authorized.
+      404:
+        description: Invalid asset data.
+      500:
+        description: Error
+    """
+    data = request.json
+    required_attributes = [
+        'signature',
+        'updated',
+        'serviceIndex',
+        'allowRawAlgorithm',
+        'allowNetworkAccess',
+        'trustedAlgorithms'
+    ]
+    msg, status = check_required_attributes(
+        required_attributes, data, 'update_compute_privacy')
+    if msg:
+        return msg, status
+    if not isinstance(data['allowRawAlgorithm'], bool):
+        logger.error('allowRawAlgorithm is not boolean')
+        return f'allowRawAlgorithm is not boolean', 400
+    if not isinstance(data['allowNetworkAccess'], bool):
+        logger.error('allowNetworkAccess is not boolean')
+        return f'allowNetworkAccess is not boolean', 400
+    if not isinstance(data['serviceIndex'], int):
+        logger.error('serviceIndex is not int')
+        return f'serviceIndex is not int', 400
+    if not isinstance(data['trustedAlgorithms'], list):
+        logger.error('trustedAlgorithms is not list')
+        return f'trustedAlgorithms is not list', 400
+    try:
+        logger.info('Lets get did %s' % did)
+        _record = dao.get(did)
+        if _record is None:
+            return f'Cannot find did: {did} ', 404
+        if not can_update_did(_record, data['updated'], data['signature'], logger):
+            logger.error('Not allowed to update did')
+            return f'Not allowed to update this DID', 401
+        _record['updated'] = get_timestamp()
+        index = 0
+        for service in _record['service']:
+            if service['index'] == data['serviceIndex']:
+                if service['type'] != 'compute':
+                    logger.error('Not a compute service')
+                    return f'Not a compute service', 400
+                else:
+                    _record['service'][index]['attributes']['main']['privacy'] = dict()
+                    _record['service'][index]['attributes']['main']['privacy']['allowRawAlgorithm'] = data['allowRawAlgorithm']
+                    _record['service'][index]['attributes']['main']['privacy']['allowNetworkAccess'] = data['allowNetworkAccess']
+                    _record['service'][index]['attributes']['main']['privacy']['trustedAlgorithms'] = data['trustedAlgorithms']
+                    logger.info("New ddo: %s", _record)
+                    dao.update(_record, did)
+                    return f'computePrivacy successfully updated', 200
+            index = index+1
+        logger.error('Not a compute service')
+        return f'Not a compute service', 400
+    except (KeyError, Exception) as err:
+        return f'Some error: {str(err)}', 500
+
+
 @assets.route('/ddo/accesssWhiteList/<did>', methods=['POST'])
 def add_access_white_list(did):
     """Add a eth address to accessWhiteList

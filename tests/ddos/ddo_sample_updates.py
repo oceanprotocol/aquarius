@@ -40,10 +40,15 @@ json_before = {
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
-            "type": "Compute",
+            "type": "compute",
             "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
-                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
+                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}",
+            "attributes": {
+                "main": {
+                    "name": "dataAssetComputingServiceAgreement"
+                }
+            }
         },
         {
             "type": "metadata",
@@ -91,16 +96,16 @@ json_before = {
                          "mediaType": "text/turtle"}
                     ],
                     "links": [
-                      {
-                        "name": "Sample of Asset Data",
-                        "type": "sample",
-                        "url": "https://foo.com/sample.csv"
-                      },
-                      {
-                        "name": "Data Format Definition",
-                        "type": "format",
-                        "url": "https://foo.com/sample2.csv"
-                      }
+                        {
+                            "name": "Sample of Asset Data",
+                            "type": "sample",
+                            "url": "https://foo.com/sample.csv"
+                        },
+                        {
+                            "name": "Data Format Definition",
+                            "type": "format",
+                            "url": "https://foo.com/sample2.csv"
+                        }
                     ]
 
                 }
@@ -200,16 +205,16 @@ json_update = {
                          "mediaType": "text/turtle"}
                     ],
                     "links": [
-                      {
-                        "name": "Sample of Asset Data",
-                        "type": "sample",
-                        "url": "https://foo.com/sample.csv"
-                      },
-                      {
-                        "name": "Data Format Definition",
-                        "type": "format",
-                        "url": "https://foo.com/sample2.csv"
-                      }
+                        {
+                            "name": "Sample of Asset Data",
+                            "type": "sample",
+                            "url": "https://foo.com/sample.csv"
+                        },
+                        {
+                            "name": "Data Format Definition",
+                            "type": "format",
+                            "url": "https://foo.com/sample2.csv"
+                        }
                     ]
                 }
             }
@@ -217,74 +222,74 @@ json_update = {
     ]
 }
 json_valid = {
-  "main": {
-    "name": "10 Monkey Species Small",
-    "dateCreated": "2012-02-01T10:55:11Z",
-    "author": "Mario",
-    "license": "CC0: Public Domain",
-    "price": "10",
-    "files": [
-      {
-        "index": 0,
-        "contentType": "application/zip",
-        "encoding": "UTF-8",
-        "compression": "zip",
-        "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
-        "checksumType": "MD5",
-        "contentLength": "12057507",
-        "url": "https://s3.amazonaws.com/assets/training.zip"
-      },
-      {
-        "index": 1,
-        "contentType": "text/txt",
-        "encoding": "UTF-8",
-        "compression": "none",
-        "checksum": "354d19c0733c47ef3a6cce5b633116b0",
-        "checksumType": "MD5",
-        "contentLength": "928",
-        "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
-      },
-      {
-        "index": 2,
-        "contentType": "application/zip",
-        "url": "https://s3.amazonaws.com/datacommons/validation.zip"
-      }
-    ],
-    "type": "dataset",
-  },
-  "additionalInformation":{
-    "description": "EXAMPLE ONLY ",
-    "categories": [
-      "image"
-    ],
-    "tags": [
-      "image data",
-      "classification",
-      "animals"
-    ],
-    "workExample": "image path, id, label",
-    "links": [
-      {
-        "name": "example model",
-        "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
-      },
-      {
-        "name": "example code",
-        "type": "example code",
-        "url": "https://github.com/slothkong/CNN_classification_10_monkey_species"
-      },
-      {
-        "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
-        "name": "n5151.jpg",
-        "type": "discovery"
-      },
-      {
-        "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
-        "name": "sample.zip",
-        "type": "sample"
-      }
-    ],
-    "copyrightHolder": "Unknown",
-    "inLanguage": "en"
-  }
+    "main": {
+        "name": "10 Monkey Species Small",
+        "dateCreated": "2012-02-01T10:55:11Z",
+        "author": "Mario",
+        "license": "CC0: Public Domain",
+        "price": "10",
+        "files": [
+            {
+                "index": 0,
+                "contentType": "application/zip",
+                "encoding": "UTF-8",
+                "compression": "zip",
+                "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
+                "checksumType": "MD5",
+                "contentLength": "12057507",
+                "url": "https://s3.amazonaws.com/assets/training.zip"
+            },
+            {
+                "index": 1,
+                "contentType": "text/txt",
+                "encoding": "UTF-8",
+                "compression": "none",
+                "checksum": "354d19c0733c47ef3a6cce5b633116b0",
+                "checksumType": "MD5",
+                "contentLength": "928",
+                "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
+            },
+            {
+                "index": 2,
+                "contentType": "application/zip",
+                "url": "https://s3.amazonaws.com/datacommons/validation.zip"
+            }
+        ],
+        "type": "dataset",
+    },
+    "additionalInformation": {
+        "description": "EXAMPLE ONLY ",
+        "categories": [
+            "image"
+        ],
+        "tags": [
+            "image data",
+            "classification",
+            "animals"
+        ],
+        "workExample": "image path, id, label",
+        "links": [
+            {
+                "name": "example model",
+                "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
+            },
+            {
+                "name": "example code",
+                "type": "example code",
+                "url": "https://github.com/slothkong/CNN_classification_10_monkey_species"
+            },
+            {
+                "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
+                "name": "n5151.jpg",
+                "type": "discovery"
+            },
+            {
+                "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
+                "name": "sample.zip",
+                "type": "sample"
+            }
+        ],
+        "copyrightHolder": "Unknown",
+        "inLanguage": "en"
+    }
 }
