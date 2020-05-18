@@ -26,7 +26,7 @@ install_requirements = [
     'oceandb-mongodb-driver==0.2.0',
     'oceandb-elasticsearch-driver==0.3.1',
     'PyYAML==5.1',
-    'pytz==2018.5',
+    'pytz==2020.1',
     'plecos==1.0.2',
     'web3==5.4.0',
     'eth-account==0.4.0'
