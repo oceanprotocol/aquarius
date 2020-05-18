@@ -21,7 +21,7 @@ install_requirements = [
     'flask-swagger-ui==3.20.9',
     'Jinja2>=2.10.1',
     'requests>=2.21.0',
-    'gunicorn==19.9.0',
+    'gunicorn==20.0.4',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.2.0',
     'oceandb-elasticsearch-driver==0.3.1',
