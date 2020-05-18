@@ -32,7 +32,7 @@ install_requirements = [
     'eth-account==0.4.0'
 ]
 
-setup_requirements = ['pytest-runner==2.11.1', ]
+setup_requirements = ['pytest-runner==5.2', ]
 
 dev_requirements = [
     'bumpversion==0.5.3',
