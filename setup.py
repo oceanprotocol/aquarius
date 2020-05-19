@@ -18,29 +18,34 @@ install_requirements = [
     'Flask==1.0.2',
     'Flask-Cors==3.0.6',
     'flask-swagger==0.2.14',
-    'flask-swagger-ui==3.20.9',
+    'flask-swagger-ui==3.25.0',
     'Jinja2>=2.10.1',
     'requests>=2.21.0',
-    'gunicorn==19.9.0',
+    'gunicorn==20.0.4',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.2.0',
-    'oceandb-elasticsearch-driver==0.2.1',
+    'oceandb-elasticsearch-driver==0.3.1',
     'PyYAML==5.1',
-    'pytz==2018.5',
-    'plecos==1.0.0'
+    'pytz==2020.1',
+    'plecos==1.0.2',
+    'web3==5.4.0',
+    'eth-account==0.4.0'
 ]
 
-setup_requirements = ['pytest-runner==2.11.1', ]
+setup_requirements = ['pytest-runner==5.2', ]
 
 dev_requirements = [
     'bumpversion==0.5.3',
-    'pkginfo==1.4.2',
+    'pkginfo==1.5.0.1',
     'twine==1.11.0',
     # not virtualenv: devs should already have it before pip-installing
     'watchdog==0.8.3',
 ]
 
 test_requirements = [
+    'plecos==1.0.2',
+    'Flask==1.0.2',
+    'web3==5.4.0',
     'codacy-coverage==1.3.11',
     'coverage==4.5.1',
     'mccabe==0.6.1',
@@ -77,6 +82,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='1.0.0',
+    version='1.0.7',
     zip_safe=False,
 )
