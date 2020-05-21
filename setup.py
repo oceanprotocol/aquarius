@@ -29,7 +29,7 @@ install_requirements = [
     'pytz==2020.1',
     'plecos==1.0.2',
     'web3==5.10.0',
-    'eth-account==0.4.0'
+    'eth-account==0.5.2'
 ]
 
 setup_requirements = ['pytest-runner==5.2', ]
