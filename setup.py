@@ -28,7 +28,7 @@ install_requirements = [
     'PyYAML==5.3.1',
     'pytz==2020.1',
     'plecos==1.0.2',
-    'web3==5.11.0',
+    'web3==5.11.1',
     'eth-account==0.5.2'
 ]
 
@@ -45,7 +45,7 @@ dev_requirements = [
 test_requirements = [
     'plecos==1.0.2',
     'Flask==1.1.2',
-    'web3==5.11.0',
+    'web3==5.11.1',
     'codacy-coverage==1.3.11',
     'coverage==5.1',
     'mccabe==0.6.1',
