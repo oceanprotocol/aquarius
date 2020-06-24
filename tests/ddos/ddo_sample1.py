@@ -18,12 +18,6 @@ json_dict = {
   ],
   "service": [
     {
-      "type": "authorization",
-      "serviceEndpoint": "http://localhost:12001",
-      "service": "SecretStore",
-      "index": 0
-    },
-    {
       "type": "access",
       "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
       "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",

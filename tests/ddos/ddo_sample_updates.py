@@ -41,9 +41,8 @@ json_before = {
                     "timeout":"0"
                 }
             },
-            "type": "Consume",
+            "type": "access",
             "index": 0,
-            "dtCost":"10",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
@@ -166,20 +165,19 @@ json_update = {
                     "timeout":"0"              
                 }
             },
-            "type": "Consume",
+            "type": "access",
             "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
-            "type": "Compute",
+            "type": "compute",
             "index": 1,
-            "dtCost":"5",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}",
             "attributes": {
                 "main": {
-                    "dtCost":"10",
+                    "dtCost":"5",
                     "timeout":"0",
                     "name": "dataAssetComputingServiceAgreement"
                 }
