@@ -520,3 +520,15 @@ def test_computePrivacy_update(client_with_no_data, base_ddo_url):
                                                                 ]['attributes']['main']['privacy']['allowNetworkAccess'], 'allowNetworkAccess was not updated'
     assert data['trustedAlgorithms'] == fetched_ddo['service'][compute_service_index
                                                                ]['attributes']['main']['privacy']['trustedAlgorithms'], 'trustedAlgorithms was not updated'
+
+def test_resolveByDtAddress(client_with_no_data, base_ddo_url):
+    client = client_with_no_data
+
+    acct_1, acct_2 = get_new_accounts()
+    json_before['publicKey'][0]['owner'] = acct_1.address
+    post = run_request_get_data(client.post, base_ddo_url, data=json_before)
+    assert len(
+        run_request_get_data(client.post, base_ddo_url + '/query',
+                             {"query": {"dtAddress": ["0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687"]}}
+                             )['results']
+    ) > 0

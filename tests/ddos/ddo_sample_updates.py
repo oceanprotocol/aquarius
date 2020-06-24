@@ -1,6 +1,7 @@
 json_before = {
     "@context": "https://w3id.org/future-method/v1",
     "created": "2016-02-08T16:02:20Z",
+    "dtAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
     "id": "did:op:112233445566778899",
     "publicKey": [
         {
@@ -34,21 +35,31 @@ json_before = {
     },
     "service": [
         {
+            "attributes": {
+                "main": {
+                    "dtCost":"10",
+                    "timeout":"0"
+                }
+            },
             "type": "Consume",
             "index": 0,
+            "dtCost":"10",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
                                "pubKey}&serviceId={serviceId}&url={url}"
         },
         {
+            "attributes": {
+                "main": {
+                    "dtCost":"10",
+                    "timeout":"0",
+                    "name": "dataAssetComputingServiceAgreement"
+                }
+            },
             "type": "compute",
             "index": 1,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
-                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}",
-            "attributes": {
-                "main": {
-                    "name": "dataAssetComputingServiceAgreement"
-                }
-            }
+                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
+            
         },
         {
             "type": "metadata",
@@ -70,8 +81,7 @@ json_before = {
                         "compression": "zip",
                         "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
                     }
-                    ],
-                    "price": "88888880000000000000",
+                    ]
                 },
                 "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                 "curation": {
@@ -116,6 +126,7 @@ json_before = {
 json_update = {
     "@context": "https://w3id.org/future-method/v1",
     "created": "2016-02-08T16:02:20Z",
+    "dtAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
     "id": "did:op:112233445566778899",
     "publicKey": [
         {
@@ -149,6 +160,12 @@ json_update = {
     },
     "service": [
         {
+            "attributes": {
+                "main": {
+                    "dtCost":"10",
+                    "timeout":"0"              
+                }
+            },
             "type": "Consume",
             "index": 0,
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/consume?pubKey=${"
@@ -157,8 +174,16 @@ json_update = {
         {
             "type": "Compute",
             "index": 1,
+            "dtCost":"5",
             "serviceEndpoint": "http://mybrizo.org/api/v1/brizo/services/compute?pubKey=${"
-                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}"
+                               "pubKey}&serviceId={serviceId}&algo={algo}&container={container}",
+            "attributes": {
+                "main": {
+                    "dtCost":"10",
+                    "timeout":"0",
+                    "name": "dataAssetComputingServiceAgreement"
+                }
+            }
         },
         {
             "type": "metadata",
@@ -179,8 +204,7 @@ json_update = {
                         "encoding": "UTF-8",
                         "compression": "zip",
                         "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                    }],
-                    "price": "15",
+                    }]
                 },
                 "encryptedFiles": "0xkasdhfkljhasdfkjasdhf",
                 "curation": {
@@ -227,7 +251,6 @@ json_valid = {
         "dateCreated": "2012-02-01T10:55:11Z",
         "author": "Mario",
         "license": "CC0: Public Domain",
-        "price": "10",
         "files": [
             {
                 "index": 0,
