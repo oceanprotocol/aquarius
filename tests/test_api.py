@@ -84,7 +84,7 @@ def test_create_ddo(client, base_ddo_url):
         client.get, base_ddo_url + '/%s' % json_dict['id'])
     assert json_dict['id'] in rv['id']
     assert json_dict['@context'] in rv['@context']
-    assert json_dict['service'][2]['type'] in rv['service'][0]['type']
+    assert json_dict['service'][1]['type'] in rv['service'][0]['type']
 
 
 def test_upsert_ddo(client_with_no_data, base_ddo_url):
@@ -101,7 +101,7 @@ def test_upsert_ddo(client_with_no_data, base_ddo_url):
     assert 201 == put.status_code
     assert json_dict['id'] in rv['id']
     assert json_dict['@context'] in rv['@context']
-    assert json_dict['service'][2]['type'] in rv['service'][0]['type']
+    assert json_dict['service'][1]['type'] in rv['service'][0]['type']
     client_with_no_data.delete(
         base_ddo_url + '/%s' % json.loads(put.data.decode('utf-8'))['id'])
 
@@ -163,7 +163,7 @@ def test_query_metadata(client, base_ddo_url, test_assets):
 
     assert len(
         run_request_get_data(client.post, base_ddo_url + '/query',
-                             {"query": {"price": ["14", "16"]}}
+                             {"query": {"cost": ["1", "16"]}}
                              )['results']
     ) > 0
     assert len(
@@ -238,7 +238,7 @@ def test_is_listed(client, base_ddo_url):
         run_request_get_data(
             client.post,
             base_ddo_url + '/query',
-            data={"query": {"price": ["14", "16"]}}
+            data={"query": {"cost": ["1", "16"]}}
         )['results']
     ) == 1
 
@@ -373,11 +373,11 @@ def test_metadata_update(client_with_no_data, base_ddo_url):
     prices = []
     one_price = dict()
     one_price['serviceIndex'] = 0
-    one_price['price'] = '134'
+    one_price['cost'] = '134'
     prices.append(one_price)
     second_price = dict()
     second_price['serviceIndex'] = 1
-    second_price['price'] = '144'
+    second_price['cost'] = '144'
     prices.append(second_price)
     data['servicePrices'] = prices
     # create signature
@@ -395,7 +395,15 @@ def test_metadata_update(client_with_no_data, base_ddo_url):
     assert data['title'] == fetched_ddo['service'][0]['attributes']['main']['name']
     assert data['description'] == fetched_ddo['service'][0]['attributes']['additionalInformation']['description']
     assert data['links'] == fetched_ddo['service'][0]['attributes']['additionalInformation']['links']
-    assert '134' == fetched_ddo['service'][0]['attributes']['main']['price']
+    index = 0
+    for service in fetched_ddo['service']:
+        if service['type'] == 'access':
+            access_service = fetched_ddo['service'][index]
+        if service['type'] == 'compute':
+            compute_service = fetched_ddo['service'][index]
+        index = index+1
+    assert '134' == access_service['attributes']['main']['cost']
+    assert '144' == compute_service['attributes']['main']['cost']
 
 
 def test_publish_with_access_list(client_with_no_data, base_ddo_url):

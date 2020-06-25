@@ -70,6 +70,7 @@ def register():
             - authentication
             - proof
             - service
+            - dataToken
           properties:
             "@context":
               description:
@@ -78,6 +79,10 @@ def register():
             id:
               description: ID of the asset.
               example: did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e429
+              type: string
+            dataToken:
+              description: dataToken  of the asset.
+              example: 0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687
               type: string
             created:
               description: date of ddo creation.
@@ -107,20 +112,22 @@ def register():
             service:
                   type: array
                   description: List of services.
-                  example: [{"type": "authorization",
-                              "serviceEndpoint": "http://localhost:12001",
-                              "service": "SecretStore",
-                              "index": 0
-                            },
+                  example: [
                             {"type": "access",
-                             "index": 1,
+                             "index": 0,
                              "serviceEndpoint":
                              "http://localhost:8030/api/v1/brizo/services/consume",
-                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"
+                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
+                             "attributes": {
+                                 "main": {
+                                    "cost":"10",
+                                    "timeout":"0",
+                                }
+                              }
                              },
                            {
                             "type": "metadata",
-                            "index": 2,
+                            "index": 1,
                             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                                                 :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "attributes": {
@@ -140,7 +147,6 @@ def register():
                                             "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
                                     ],
-                                    "price": "10"
                                 },
                                 "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                 "curation": {
@@ -178,7 +184,7 @@ def register():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
-                           'service']
+                           'service', 'dataToken']
     data = request.json
     if not data:
         logger.error(f'request body seems empty.')
@@ -372,6 +378,10 @@ def update(did):
               description: ID of the asset.
               example: did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e429
               type: string
+            dataToken:
+              description: dataToken  of the asset.
+              example: 0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687
+              type: string
             created:
               description: date of ddo creation.
               example: "2016-02-08T16:02:20Z"
@@ -401,17 +411,19 @@ def update(did):
                   type: array
                   description: List of services.
                   example: [{"type": "access",
-                             "index": 1,
+                             "index": 0,
                              "serviceEndpoint": "http://localhost:8030/api/v1/brizo/services/consume",
-                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize"},
-                            {"type": "authorization",
-                              "serviceEndpoint": "http://localhost:12001",
-                              "service": "SecretStore",
-                              "index": 0
-                            },
-                           {
+                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
+                             "attributes": {
+                                 "main": {
+                                    "cost":"10",
+                                    "timeout":"0",
+                                  }
+                                }
+                             },
+                            {
                             "type": "metadata",
-                            "index": 2,
+                            "index": 1,
                             "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
                                                 :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
                             "attributes": {
@@ -430,8 +442,7 @@ def update(did):
                                             "resourceId":
                                             "access-log2018-02-13-15-17-29-18386C502CAEA932"
                                     }
-                                    ],
-                                    "price": "10"
+                                    ]
                                 },
                                 "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
                                 "curation": {
@@ -472,7 +483,7 @@ def update(did):
         description: Error
     """
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
-                           'service']
+                           'service','dataToken']
     assert isinstance(request.json, dict), 'invalid payload format.'
     ip = request.environ['REMOTE_ADDR']
     if ip != '127.0.0.1' and ip != 'localhost':
@@ -955,7 +966,7 @@ b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             "servicePrices":
               description: The new prices per services
               type: object
-              example: '[{"serviceIndex":"1","price":"10000"},{"serviceIndex":"2","price":"20000"]'
+              example: '[{"serviceIndex":"1","cost":"10000"},{"serviceIndex":"2","cost":"20000"]'
 
     responses:
       200:
@@ -1008,16 +1019,17 @@ b4e641cd57d8f087ab6432cc9e53989f3ce121b6897fa3f594e9753c4ea331b"
             if 'servicePrices' in data:
                 if isinstance(data['servicePrices'], list):
                     for price in data['servicePrices']:
-                        if isinstance(price['serviceIndex'], int) and isinstance(price['price'], str):
-                            if price['serviceIndex'] == index:
+                        if isinstance(price['serviceIndex'], int) and isinstance(price['cost'], str):
+                            if price['serviceIndex'] == _record['service'][index]['index']:
                                 if 'attributes' in _record['service'][index]:
                                     if 'main' in _record['service'][index]['attributes']:
-                                        _record['service'][index]['attributes']['main']['price'] = price['price']
+                                        _record['service'][index]['attributes']['main']['cost'] = price['cost']
             index = index+1
         logger.info("New ddo: %s", _record)
         dao.update(_record, did)
         return f'Metadata successfully updated', 200
     except (KeyError, Exception) as err:
+        logger.error(f'Some error: {str(err)}')
         return f'Some error: {str(err)}', 500
 
 
