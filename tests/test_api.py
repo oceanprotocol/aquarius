@@ -529,6 +529,6 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url):
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
     assert len(
         run_request_get_data(client.post, base_ddo_url + '/query',
-                             {"query": {"dtAddress": ["0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687"]}}
+                             {"query": {"dataToken": ["0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687"]}}
                              )['results']
     ) > 0

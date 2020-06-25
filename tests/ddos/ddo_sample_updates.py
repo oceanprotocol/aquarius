@@ -1,7 +1,7 @@
 json_before = {
     "@context": "https://w3id.org/future-method/v1",
     "created": "2016-02-08T16:02:20Z",
-    "dtAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
+    "dataToken": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
     "id": "did:op:112233445566778899",
     "publicKey": [
         {
@@ -37,7 +37,7 @@ json_before = {
         {
             "attributes": {
                 "main": {
-                    "dtCost":"10",
+                    "cost":"10",
                     "timeout":"0"
                 }
             },
@@ -49,7 +49,7 @@ json_before = {
         {
             "attributes": {
                 "main": {
-                    "dtCost":"10",
+                    "cost":"10",
                     "timeout":"0",
                     "name": "dataAssetComputingServiceAgreement"
                 }
@@ -125,7 +125,7 @@ json_before = {
 json_update = {
     "@context": "https://w3id.org/future-method/v1",
     "created": "2016-02-08T16:02:20Z",
-    "dtAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
+    "dataToken": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
     "id": "did:op:112233445566778899",
     "publicKey": [
         {
@@ -161,7 +161,7 @@ json_update = {
         {
             "attributes": {
                 "main": {
-                    "dtCost":"10",
+                    "cost":"10",
                     "timeout":"0"              
                 }
             },
@@ -177,7 +177,7 @@ json_update = {
                                "pubKey}&serviceId={serviceId}&algo={algo}&container={container}",
             "attributes": {
                 "main": {
-                    "dtCost":"5",
+                    "cost":"5",
                     "timeout":"0",
                     "name": "dataAssetComputingServiceAgreement"
                 }

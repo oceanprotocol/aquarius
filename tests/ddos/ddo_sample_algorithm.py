@@ -8,7 +8,7 @@ algorithm_ddo_sample = {
   ],
   "created": "2019-02-08T08:13:49Z",
   "id": "did:op:0bc278fee025464f8012b811d1bce8e22094d0984e4e49139df5d5ff7a028bdf",
-  "dtAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
+  "dataToken": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
   "proof": {
     "created": "2019-02-08T08:13:41Z",
     "creator": "0x37BB53e3d293494DE59fBe1FF78500423dcFd43B",

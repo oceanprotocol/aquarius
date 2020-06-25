@@ -2,7 +2,7 @@
 json_dict2 = {
   "@context": "https://w3id.org/did/v1",
   "id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-  "dtAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
+  "dataToken": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
   "created": "2019-05-22T08:44:27Z",
   "publicKey": [
     {
@@ -25,7 +25,7 @@ json_dict2 = {
       "index": 1,
       "attributes": {
                 "main": {
-                    "dtCost":"10",
+                    "cost":"10",
                     "timeout":"0",
                     "name": "dataAssetAccessServiceAgreement"
                 }
