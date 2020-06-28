@@ -5,8 +5,6 @@
 > 🐋 Aquarius provides an off-chain database store for metadata about data assets.
 > It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
 
-Note: Aquarius was formerly known as the Provider.
-
 **_"Aquarius is a constellation of the zodiac, situated between Capricornus and Pisces. Its name is Latin for "water-carrier" or "cup-carrier. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path)."_**
 
 [![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/10c8fddd5e8547c29de4906410a16ae7.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors)
