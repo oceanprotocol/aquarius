@@ -21,7 +21,7 @@ If you're developing a marketplace, you'll want to run Aquarius and several othe
 
 ## For Aquarius API Users
 
-The Ocean Protocol docs site has [documentation about the Aquarius API](https://docs.oceanprotocol.com/references/aquarius/). Note that it shows the docs for the version currently deployed with the Nile Testnet. To get documentation for other versions, there is a "past versions" link at the top of the page.
+[Here](https://docs.oceanprotocol.com/references/aquarius/) is API documentation. It shows docs for the version currently deployed with the Nile Testnet. For other versions, see "past versions" link at the top of the page.
 
 If you have Aquarius running locally, you can find API documentation at
 [http://localhost:5000/api/v1/docs](http://localhost:5000/api/v1/docs) or maybe
@@ -31,14 +31,14 @@ Tip 1: If that doesn't work, then try `https`.
 
 Tip 2: If your browser shows the Swagger header across the top but says "Failed to load spec." then we found that, in Chrome, if we went to `chrome://flags/#allow-insecure-localhost` and toggled it to Enabled, then relaunched Chrome, it worked.
 
-If you want to know more about the ontology of the metadata, you can find all the information in
+More details about ontology of the metadata are at
 [OEP-8](https://github.com/oceanprotocol/OEPs/tree/master/8).
 
 ## For Aquarius Developers
 
 ### General Ocean Dev Docs
 
-For information about Ocean's Python code style and related "meta" developer docs, see [the oceanprotocol/dev-ocean repository](https://github.com/oceanprotocol/dev-ocean).
+Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
 
 ### Running as a Docker container
 
