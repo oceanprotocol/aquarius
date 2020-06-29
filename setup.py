@@ -39,7 +39,7 @@ dev_requirements = [
     'pkginfo==1.5.0.1',
     'twine==3.1.1',
     # not virtualenv: devs should already have it before pip-installing
-    'watchdog==0.10.2',
+    'watchdog==0.10.3',
 ]
 
 test_requirements = [
