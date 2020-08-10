@@ -146,7 +146,7 @@ def test_update_ddo(client_with_no_data, base_ddo_url):
 def test_query_metadata(client, base_ddo_url, test_assets):
 
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {}})['results']) > 2
+        client.post, base_ddo_url + '/query', {"query": {}})['results']) > 1
 
     assert len(run_request_get_data(
         client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) > 1
