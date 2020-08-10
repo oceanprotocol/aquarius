@@ -21,10 +21,10 @@ before_install:
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
+  - pip install -U tox-travis
   - wget ${ES_DOWNLOAD_URL}
   - tar -xzf elasticsearch-${ES_VERSION}.tar.gz
   - ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
-  - pip install -U tox-travis
 script:
   - wget -q --waitretry=1 --retry-connrefused -T 45 -O - http://127.0.0.1:9200
   - export EVENTS_RPC=http://127.0.0.1:8545
