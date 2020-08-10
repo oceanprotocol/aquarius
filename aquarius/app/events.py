@@ -105,7 +105,7 @@ class Events:
                     last_block=0
                 
                 current_block = self._web3.eth.blockNumber
-                logger.info(f'Last block:{last_block}, Current:{current_block}')
+                logger.debug(f'Last block:{last_block}, Current:{current_block}')
                 events_filter = self._contract.events.newDDOEvent.createFilter(fromBlock=last_block)
                 
                 for event in events_filter.get_all_entries():
@@ -134,27 +134,27 @@ class Events:
 
 
     def processNewDDO(self,event):
-        logger.info(f'Event:{event}')
+        logger.debug(f'Event:{event}')
         block = event['blockNumber']
         contract_address = event['address']
         txid = event['transactionHash'].hex()
         address = get_sender_from_txid(self._web3,txid)
-        logger.info(f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
+        logger.debug(f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
         flags = event['args']['flags']
         rawddo = event['args']['data']
         logger.error(f'decoding with flags {flags}')
         data = self.decode_ddo(rawddo,flags)
         if data is None:
-            logger.error('Cound not decode ddo')
+            logger.warning('Cound not decode ddo')
             return
         did = data['id']
         msg, status = validate_data(data,'event register')
         if msg:
-            logger.error(msg)
+            logger.warning(msg)
             return
         try:
             asset = self._oceandb.read(did)
-            logger.error(f'{did} is already registred')
+            logger.warning(f'{did} is already registred')
             return
         except Exception as e:
             asset = None
@@ -189,7 +189,7 @@ class Events:
         except (KeyError, Exception) as err:
                 logger.error(f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
                 return 
-        logger.info(f'ddo saved')
+        logger.debug(f'ddo saved')
         return True
 
     def processUpdateDDO(self,event):
@@ -198,13 +198,13 @@ class Events:
         txid = event['transactionHash'].hex()
         contract_address = event['address']
         address = get_sender_from_txid(self._web3,txid)
-        logger.info(f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
+        logger.debug(f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
         flags = event['args']['flags']
         rawddo = event['args']['data']
         logger.error(f'decoding with flags {flags}')
         data = self.decode_ddo(rawddo,flags)
         if data is None:
-            logger.error('Cound not decode ddo')
+            logger.warning('Cound not decode ddo')
             return
         did = data['id']
         msg, status = validate_data(data,'event update')
@@ -214,22 +214,21 @@ class Events:
         try:
             asset = self._oceandb.read(did)
         except Exception as e:
-            logger.error(f'{did} is not registred, cannot update')
+            logger.warning(f'{did} is not registred, cannot update')
             return
-        logger.info(f'Asset:{asset}')
         # check owner
         if not compare_eth_addresses(asset['publicKey'][0]['owner'], address, logger):
-            logger.error(f'Transaction sender must mach ddo owner')
+            logger.warning(f'Transaction sender must mach ddo owner')
             return
         # check block
         ddo_block=asset['event']['blockNo']
         if int(block) <= int(ddo_block):
-            logger.error(f'asset was updated later (block: {ddo_block}) vs transaction block: {block}')
+            logger.warning(f'asset was updated later (block: {ddo_block}) vs transaction block: {block}')
             return
         # do not update if we have the same txid
         ddo_txid=asset['event']['txid']
         if txid == ddo_txid:
-            logger.error(f'asset has the same txid, no need to update')
+            logger.warning(f'asset has the same txid, no need to update')
             return
         _record = dict()    
         _record = copy.deepcopy(data)
@@ -262,31 +261,30 @@ class Events:
         except (KeyError, Exception) as err:
                 logger.error(f'encounterd an error while updating the asset data to OceanDB: {str(err)}')
                 return 
-        logger.info(f'ddo saved')
         return True
 
     def decode_ddo(self,rawddo,flags):
-        logger.error(f'flags: {flags}')
-        logger.error(f'Before unpack rawddo:{rawddo}')
+        logger.debug(f'flags: {flags}')
+        logger.debug(f'Before unpack rawddo:{rawddo}')
         if len(flags)<1:
-            logger.error(f'Set check_flags to 0!')    
+            logger.debug(f'Set check_flags to 0!')    
             check_flags=0
         else:
             check_flags=flags[0]
         #always start with MSB -> LSB
-        logger.error(f'checkflags: {check_flags}')
+        logger.debug(f'checkflags: {check_flags}')
         #bit 2:  check if ddo is ecies encrypted
         if (check_flags & 2):
             try:
                 rawddo = self.ecies_decrypt(rawddo)
-                logger.error(f'Decrypted to {rawddo}')
+                logger.debug(f'Decrypted to {rawddo}')
             except (KeyError, Exception) as err:
                 logger.error(f'Failed to decrypt: {str(err)}')        
         #bit 1:  check if ddo is lzma compressed
         if (check_flags & 1):
             try:
                 rawddo = Lzma.decompress(rawddo)
-                logger.error(f'Decompressed to {rawddo}')
+                logger.debug(f'Decompressed to {rawddo}')
             except (KeyError, Exception) as err:
                 logger.error(f'Failed to decompress: {str(err)}')        
         logger.error(f'After unpack rawddo:{rawddo}')
@@ -299,7 +297,6 @@ class Events:
         
 
     def ecies_decrypt(self,rawddo):
-        logger.error(f"_ecies_private_key:{self._ecies_private_key}")
         if self._ecies_private_key is not None:
             key = eth_keys.KeyAPI.PrivateKey( bytearray.fromhex(self._ecies_private_key[2:]))
             rawddo = ecies.decrypt(key.to_hex(), rawddo)
