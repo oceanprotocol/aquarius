@@ -149,12 +149,12 @@ def test_query_metadata(client, base_ddo_url, test_assets):
         client.post, base_ddo_url + '/query', {"query": {}})['results']) > 0
 
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) > 1
+        client.post, base_ddo_url + '/query', {"query": {'text': ["UK"]}})['results']) > 0
 
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': ["weather"]}})['results']) > 1
+        client.post, base_ddo_url + '/query', {"query": {'text': ["weather"]}})['results']) > 0
     assert len(run_request_get_data(
-        client.post, base_ddo_url + '/query', {"query": {'text': ["uK"]}})['results']) > 1
+        client.post, base_ddo_url + '/query', {"query": {'text': ["uK"]}})['results']) > 0
     assert len(run_request_get_data(
         client.post, base_ddo_url + '/query', {"query": {'text': ["UK", "temperature"]}})['results']) > 0
     assert len(run_request_get_data(
@@ -170,7 +170,7 @@ def test_query_metadata(client, base_ddo_url, test_assets):
     assert len(
         run_request_get_data(client.get, base_ddo_url + '/query?text=Office'
                              )['results']
-    ) > 1
+    ) > 0
     assert len(
         run_request_get_data(client.get,
                              base_ddo_url + '/query?text=112233445566778899')['results']
