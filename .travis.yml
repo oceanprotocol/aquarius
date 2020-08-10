@@ -26,7 +26,7 @@ install:
   - tar -xzf elasticsearch-${ES_VERSION}.tar.gz
   - ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
 script:
-  - wget -q --waitretry=1 --retry-connrefused -T 45 -O - http://127.0.0.1:9200
+  - wget -q --waitretry=1 --retry-connrefused -T 145 -O - http://127.0.0.1:9200
   - export EVENTS_RPC=http://127.0.0.1:8545
   - export EVENTS_TESTS_PRIVATE_KEY=0x66424ab0aac06313a6f388beecfca1696376d0952890b00d25b6bff988c86317
   - export EVENTS_ECIES_PRIVATE_KEY=0x66424ab0aac06313a6f388beecfca1696376d0952890b00d25b6bff988c86317
