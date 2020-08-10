@@ -11,7 +11,13 @@ sudo: false
 env:
   - ES_VERSION=6.6.2 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
 
-
+before_install:
+  - git clone https://github.com/oceanprotocol/barge
+  - cd barge
+  - git checkout v3
+  - bash -x start_ocean.sh --no-dashboard --no-provider --no-aquarius 2>&1 > start_ocean.log &
+  - cd ..
+  - sleep 30
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
@@ -21,6 +27,9 @@ install:
   - pip install -U tox-travis
 script:
   - wget -q --waitretry=1 --retry-connrefused -T 45 -O - http://127.0.0.1:9200
+  - export EVENTS_RPC=http://127.0.0.1:8545
+  - export EVENTS_TESTS_PRIVATE_KEY=0x66424ab0aac06313a6f388beecfca1696376d0952890b00d25b6bff988c86317
+  - export EVENTS_CONTRACT_ADDRESS=$(python deploy.py)
   - tox
 
 deploy:

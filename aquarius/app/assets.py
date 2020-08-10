@@ -30,6 +30,7 @@ from aquarius.app.util import (
     check_required_attributes,
     sanitize_record,
     list_errors,
+    validate_data
 )
 from aquarius.config import Config
 from aquarius.log import setup_logging
@@ -183,24 +184,14 @@ def register():
         description: Error
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
-    required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
-                           'service', 'dataToken']
     data = request.json
     if not data:
         logger.error(f'request body seems empty.')
         return 400
-    msg, status = check_required_attributes(
-        required_attributes, data, 'register')
+    msg, status = validate_data(data,'register')
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(
-        get_main_metadata(data['service']), 'register')
-    if msg:
-        return msg, status
-    msg, status = validate_date_format(data['created'])
-    if status:
-        return msg, status
-
+    
     _record = dict()
     _record = copy.deepcopy(data)
     _record['created'] = format_timestamp(data['created'])
@@ -493,15 +484,7 @@ def update(did):
         logger.error(
             f'request body seems empty, expecting {required_attributes}')
         return 400
-    msg, status = check_required_attributes(
-        required_attributes, data, 'update')
-    if msg:
-        return msg, status
-    msg, status = check_no_urls_in_files(
-        get_main_metadata(data['service']), 'register')
-    if msg:
-        return msg, status
-    msg, status = validate_date_format(data['created'])
+    msg, status = validate_data(data, 'update')
     if msg:
         return msg, status
     _record = dict()

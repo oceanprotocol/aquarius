@@ -68,8 +68,9 @@ class Dao(object):
             raise TypeError('Unrecognized `query` type %s' % type(query))
 
         for f in query_result:
-            if self.is_listed(f['service']):
-                query_list.append(f)
+            if 'service' in f:
+                if self.is_listed(f['service']):
+                    query_list.append(f)
 
         return query_list, count
 

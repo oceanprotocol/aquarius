@@ -114,3 +114,26 @@ def list_errors(list_errors_function, data):
             'path': "/".join(stack_path), 'message': err[1].message}
         error_list.append(this_err_response)
     return error_list
+
+def validate_data(data, method):
+    required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
+                           'service', 'dataToken']
+        
+    msg, status = check_required_attributes(
+        required_attributes, data, method)
+    if msg:
+        return msg, status
+    msg, status = check_no_urls_in_files(
+        get_main_metadata(data['service']), method)
+    if msg:
+        return msg, status
+    msg, status = validate_date_format(data['created'])
+    if status:
+        return msg, status
+    return None, None
+
+def get_sender_from_txid(web3, txid):
+    transaction = web3.eth.getTransaction(txid)
+    if transaction is not None:
+        return transaction['from']
+    return None
