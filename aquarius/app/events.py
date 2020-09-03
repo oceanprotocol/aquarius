@@ -318,7 +318,7 @@ class Events:
         _record['event']['blockNo'] = block
         _record['event']['from'] = address
         _record['event']['contract'] = contract_address
-        _record[['publicKey'][0]['owner'] = event['args']['owner']
+        _record['publicKey'][0]['owner'] = event['args']['owner']
        try:
             self._oceandb.update(_record, did)
             return
