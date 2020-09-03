@@ -5,14 +5,16 @@ import logging
 import os
 import time
 import copy
-from web3 import Web3
 import lzma as Lzma
-import ecies
-import eth_keys
 import json
-from datetime import datetime
 from threading import Thread
+
+from web3 import Web3
+from eth_account import Account
+import eth_keys
+import ecies
 from oceandb_driver_interface import OceanDb
+
 from aquarius.app.util import (
     reorder_services_list,
     make_paginate_response,
@@ -39,7 +41,6 @@ from plecos.plecos import (
 
 logger = logging.getLogger(__name__)
 
-
 debug_log = logger.debug
 
 
@@ -52,6 +53,10 @@ class Events:
         self._web3 = Web3(Web3.HTTPProvider(rpc))
         self._contract_address = contract_address
         self._ecies_private_key = os.getenv('EVENTS_ECIES_PRIVATE_KEY', None)
+        self._ecies_account = None
+        if self._ecies_private_key:
+            self._ecies_account = Account.from_key(self._ecies_private_key)
+
         self._monitor_is_on = False
         try:
             self._monitor_sleep_time = os.getenv(
@@ -64,6 +69,7 @@ class Events:
                 f"Contract address {contract_address} is not a valid address. Events thread not starting")
             self._contract = None
             return
+
         path = './aquarius/artifacts/DDO.json'
         data = json.load(open(path))
         self._contract = self._web3.eth.contract(
@@ -101,33 +107,8 @@ class Events:
             try:
                 if not self._monitor_is_on:
                     return
-                try:
-                    last_block = self.get_last_processed_block()
 
-                except Exception as e:
-                    logger.info(e)
-                    last_block = 0
-
-                current_block = self._web3.eth.blockNumber
-                logger.debug(
-                    f'Last block:{last_block}, Current:{current_block}')
-
-                events_filter = self._contract.events.DDOCreated.createFilter(
-                    fromBlock=last_block)
-                for event in events_filter.get_all_entries():
-                    self.processNewDDO(event)
-
-                events_filter = self._contract.events.DDOOwnershipTransferred.createFilter(
-                    fromBlock=last_block)
-                for event in events_filter.get_all_entries():
-                    self.processTransferOwnership(event)
-
-                events_filter = self._contract.events.DDOUpdated.createFilter(
-                    fromBlock=last_block)
-                for event in events_filter.get_all_entries():
-                    self.processUpdateDDO(event)
-
-                self.store_last_processed_block(current_block+1)
+                self.process_current_blocks()
 
             except (KeyError, Exception) as e:
                 logger.error(f'Error processing event:')
@@ -135,14 +116,41 @@ class Events:
 
             time.sleep(self._monitor_sleep_time)
 
+    def process_current_blocks(self):
+        current_block = self._web3.eth.blockNumber
+        try:
+            last_block = self.get_last_processed_block()
+        except Exception as e:
+            logger.info(e)
+            last_block = 0
+
+        logger.debug(f'Last block:{last_block}, Current:{current_block}')
+        last_block = min(last_block, current_block)
+        for event in self.get_event_logs('DDOCreated', last_block, current_block):
+            self.processNewDDO(event)
+
+        for event in self.get_event_logs('DDOOwnershipTransferred', last_block, current_block):
+            self.processTransferOwnership(event)
+
+        for event in self.get_event_logs('DDOUpdated', last_block, current_block):
+            self.processUpdateDDO(event)
+
+        self.store_last_processed_block(current_block + 1)
+
     def get_last_processed_block(self):
         last_block_record = self._oceandb.read('events_last_block')
         last_block = last_block_record['last_block']
-        return (last_block)
+        return last_block
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}
         self._oceandb.update(record, 'events_last_block')
+
+    def get_event_logs(self, event_name, from_block, to_block):
+        _filter = getattr(self._contract.events, event_name)().createFilter(
+            fromBlock=from_block, toBlock=to_block
+        )
+        return _filter.get_all_entries()
 
     def processNewDDO(self, event):
         logger.debug(f'Event:{event}')
@@ -152,7 +160,7 @@ class Events:
         address = get_sender_from_txid(self._web3, txid)
         logger.debug(
             f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
-        did = "did:op:"+event['args']['did'].hex()
+        did = "did:op:" + event['args']['did'].hex()
         flags = event['args']['flags']
         rawddo = event['args']['data']
         logger.error(f'decoding with did {did} and flags {flags}')
@@ -164,12 +172,14 @@ class Events:
         if msg:
             logger.warning(msg)
             return
+
         try:
             asset = self._oceandb.read(did)
             logger.warning(f'{did} is already registred')
             return
         except Exception as e:
             asset = None
+
         _record = dict()
         _record = copy.deepcopy(data)
         _record['created'] = format_timestamp(data['created'])
@@ -187,6 +197,7 @@ class Events:
                 _record['accesssWhiteList'] = []
             else:
                 _record['accesssWhiteList'] = data['accesssWhiteList']
+
         for service in _record['service']:
             service['attributes']['main']['dateCreated'] = format_timestamp(
                 data['created'])
@@ -196,16 +207,16 @@ class Events:
             errors = list_errors(list_errors_dict_remote, get_metadata_from_services(
                 _record['service'])['attributes'])
             logger.error(errors)
-            return
+            return False
+
         try:
             self._oceandb.write(_record, did)
-            return
+            logger.debug(f'ddo saved')
+            return True
         except (KeyError, Exception) as err:
             logger.error(
                 f'encounterd an error while saving the asset data to OceanDB: {str(err)}')
-            return
-        logger.debug(f'ddo saved')
-        return True
+            return False
 
     def processUpdateDDO(self, event):
         logger.info(f'Event:{event}')
@@ -215,7 +226,7 @@ class Events:
         address = get_sender_from_txid(self._web3, txid)
         logger.debug(
             f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
-        did = "did:op:"+event['args']['did'].hex()
+        did = "did:op:" + event['args']['did'].hex()
         flags = event['args']['flags']
         rawddo = event['args']['data']
         logger.error(f'decoding with did {did} and flags {flags}')
@@ -291,7 +302,7 @@ class Events:
         address = get_sender_from_txid(self._web3, txid)
         logger.debug(
             f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
-        did = "did:op:"+event['args']['did'].hex()
+        did = "did:op:" + event['args']['did'].hex()
         try:
             asset = self._oceandb.read(did)
         except Exception as e:
@@ -327,6 +338,7 @@ class Events:
             logger.error(
                 f'encounterd an error while updating the asset data to OceanDB: {str(err)}')
             return
+
         return True
 
     def decode_ddo(self, rawddo, flags):
@@ -340,14 +352,14 @@ class Events:
         # always start with MSB -> LSB
         logger.debug(f'checkflags: {check_flags}')
         # bit 2:  check if ddo is ecies encrypted
-        if (check_flags & 2):
+        if check_flags & 2:
             try:
                 rawddo = self.ecies_decrypt(rawddo)
                 logger.debug(f'Decrypted to {rawddo}')
             except (KeyError, Exception) as err:
                 logger.error(f'Failed to decrypt: {str(err)}')
         # bit 1:  check if ddo is lzma compressed
-        if (check_flags & 1):
+        if check_flags & 1:
             try:
                 rawddo = Lzma.decompress(rawddo)
                 logger.debug(f'Decompressed to {rawddo}')
@@ -356,15 +368,14 @@ class Events:
         logger.error(f'After unpack rawddo:{rawddo}')
         try:
             ddo = json.loads(rawddo)
-            return(ddo)
+            return (ddo)
         except (KeyError, Exception) as err:
             logger.error(
                 f'encounterd an error while decoding the ddo: {str(err)}')
             return None
 
-
     def ecies_decrypt(self, rawddo):
-        if self._ecies_private_key is not None:
-            key = eth_keys.KeyAPI.PrivateKey(bytearray.fromhex(self._ecies_private_key[2:]))
+        if self._ecies_account is not None:
+            key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.privateKey)
             rawddo = ecies.decrypt(key.to_hex(), rawddo)
-        return(rawddo)
+        return rawddo

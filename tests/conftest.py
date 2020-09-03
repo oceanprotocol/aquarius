@@ -2,15 +2,19 @@
 #  SPDX-License-Identifier: Apache-2.0
 import copy
 import json
+import os
 
 import pytest
 
+from aquarius.app.events import Events
 from aquarius.constants import BaseURLs
 from aquarius.run import app
 from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample_updates import json_update
 
 app = app
+
+EVENTS_INSTANCE = None
 
 
 @pytest.fixture
@@ -55,3 +59,15 @@ def test_assets():
         a['id'] = a['id'][:-2] + str(i) + str(i)
         _assets.append(a)
     return _assets
+
+
+@pytest.fixture
+def events_object():
+    global EVENTS_INSTANCE
+    if not EVENTS_INSTANCE:
+        EVENTS_INSTANCE = Events(
+            os.environ.get('EVENTS_RPC', False),
+            os.environ.get('EVENTS_CONTRACT_ADDRESS', False),
+            app.config['CONFIG_FILE']
+        )
+    return EVENTS_INSTANCE

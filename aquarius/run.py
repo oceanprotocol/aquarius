@@ -2,7 +2,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 import configparser
-import json
 import os
 
 from elasticsearch import Elasticsearch
@@ -81,12 +80,12 @@ def get_status():
     else:
         return 'Not connected to any database', 400
 
+
 # Start events monitoring if required
-if os.environ.get('EVENTS_ALLOW',False) != False:
+if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
     monitor = Events(os.environ.get('EVENTS_RPC',False), os.environ.get('EVENTS_CONTRACT_ADDRESS',False),app.config['CONFIG_FILE'])
     monitor.start_events_monitor()
-#else:
-#    print("************ EVENTS NOT STARTED*****************")
+
 
 if __name__ == '__main__':
     if isinstance(config.aquarius_url.split(':')[-1], int):
