@@ -66,7 +66,11 @@ def run_request(client_method, url, data=None):
     return _response
 
 def publishDDO(did,flags,data,account):
-    print(f'publishDDO with flags: {flags}')
+    print(f'publishDDO with flags: {flags} and did:{did} from {account.address}')
+    did = prepare_did(did)
+    print('*****************************************************************************\r\n')
+    print(did)
+    print('*****************************************************************************\r\n')
     transaction = events_contract.functions.create(did,flags,data).buildTransaction()
     transaction.update({ 'gasPrice' : 0 })
     transaction.update({ 'nonce' : web3.eth.getTransactionCount(account.address) })
@@ -76,7 +80,11 @@ def publishDDO(did,flags,data,account):
     return(txn_receipt)
 
 def updateDDO(did,flags,data,account):
-    print(f'updateDDO with flags: {flags}')
+    print(f'updateDDO with flags: {flags} and did:{did} from {account.address}')
+    did = prepare_did(did)
+    print('*****************************************************************************\r\n')
+    print(did)
+    print('*****************************************************************************\r\n')
     transaction = events_contract.functions.update(did,flags,data).buildTransaction()
     transaction.update({ 'gasPrice' : 0 })
     transaction.update({ 'nonce' : web3.eth.getTransactionCount(account.address) })
@@ -86,7 +94,8 @@ def updateDDO(did,flags,data,account):
     return(txn_receipt)
 
 def transferOwnership(did,new_owner,account):
-    print(f'transferOwnership with flags: {flags}')
+    print(f'transferOwnership {did} to {new_owner}')
+    did = prepare_did(did)
     transaction = events_contract.functions.transferOwnership(did,new_owner).buildTransaction()
     transaction.update({ 'gasPrice' : 0 })
     transaction.update({ 'nonce' : web3.eth.getTransactionCount(account.address) })
@@ -95,8 +104,16 @@ def transferOwnership(did,new_owner,account):
     txn_receipt = web3.eth.waitForTransactionReceipt(txn_hash)
     return(txn_receipt)
 
+def prepare_did(text):
+    prefix = 'did:op:'
+    if text.startswith(prefix):
+        text=text[len(prefix):]
+    return bytes.fromhex(text)
+    
+
 def test_publish_and_update_ddo(client,base_ddo_url):
     flags = 0
+    ddo_event_sample['id']='did:op:ffa5037987b74fbab600d7515605146bb7babcb929c94c60ba93ac5ceda56775'
     ddo_event_sample['publicKey'][0]['owner']=account1.address
     did = ddo_event_sample['id']
     ddo_string=json.dumps(ddo_event_sample)
@@ -104,8 +121,9 @@ def test_publish_and_update_ddo(client,base_ddo_url):
     publishDDO(did,bytes([flags]),data,account1)    
     time.sleep(10)
     published_ddo = get_ddo(client,base_ddo_url,did)
+    
     assert published_ddo['id'] == did    
-
+    print(f'Published {published_ddo}')
     ddo_event_sample['service'][0]['attributes']['main']['name']='Updated ddo by event'
     ddo_string=json.dumps(ddo_event_sample)
     data = Web3.toBytes(text=ddo_string)
@@ -114,24 +132,6 @@ def test_publish_and_update_ddo(client,base_ddo_url):
     published_ddo = get_ddo(client,base_ddo_url,did)
     assert published_ddo['id'] == did
     assert published_ddo['service'][0]['attributes']['main']['name'] == 'Updated ddo by event'
-
-def test_publish_and_transfer_ownership(client,base_ddo_url):
-    flags = 0
-    ddo_event_sample['publicKey'][0]['owner']=account1.address
-    did = ddo_event_sample['id']
-    ddo_string=json.dumps(ddo_event_sample)
-    data = Web3.toBytes(text=ddo_string)
-    publishDDO(did,bytes([flags]),data,account1)    
-    time.sleep(10)
-    published_ddo = get_ddo(client,base_ddo_url,did)
-    assert published_ddo['id'] == did    
-
-    transferOwnership(did,account2.address,account1)
-    time.sleep(15)
-    published_ddo = get_ddo(client,base_ddo_url,did)
-    assert published_ddo['id'] == did
-    assert published_ddo['publicKey'][0]['owner'] == account2.address
-
 
 def test_publish_and_update_ddo_with_lzma(client,base_ddo_url):
     flags = 0
@@ -172,12 +172,10 @@ def test_publish_and_update_ddo_with_lzma_and_ecies(client,base_ddo_url):
     flags = flags | 2
     key = eth_keys.KeyAPI.PrivateKey(account1.privateKey)
     data = ecies.encrypt(key.public_key.to_hex(), data)
-    
     publishDDO(did,bytes([flags]),data,account1)    
     time.sleep(10)
     published_ddo = get_ddo(client,base_ddo_url,did)
     assert published_ddo['id'] == did    
-
     ddo_event_sample['service'][0]['attributes']['main']['name']='Updated ddo by event'
     ddo_string=json.dumps(ddo_event_sample)
     data = Lzma.compress(Web3.toBytes(text=ddo_string))
@@ -187,3 +185,22 @@ def test_publish_and_update_ddo_with_lzma_and_ecies(client,base_ddo_url):
     published_ddo = get_ddo(client,base_ddo_url,did)
     assert published_ddo['id'] == did
     assert published_ddo['service'][0]['attributes']['main']['name'] == 'Updated ddo by event'
+
+def test_publish_and_transfer_ownership(client,base_ddo_url):
+    flags = 0
+    ddo_event_sample['id']='did:op:ffa5037987b74fbab600d7515605146bb7babcb929c94c60ba93ac5ceda56778'
+    ddo_event_sample['publicKey'][0]['owner']=account1.address
+    did = ddo_event_sample['id']
+    ddo_string=json.dumps(ddo_event_sample)
+    data = Web3.toBytes(text=ddo_string)
+    publishDDO(did,bytes([flags]),data,account1)    
+    time.sleep(10)
+    published_ddo = get_ddo(client,base_ddo_url,did)
+    assert published_ddo['id'] == did    
+    transferOwnership(did,account2.address,account1)
+    time.sleep(15)
+    published_ddo = get_ddo(client,base_ddo_url,did)
+    assert published_ddo['id'] == did
+    assert published_ddo['publicKey'][0]['owner'] == account2.address
+
+

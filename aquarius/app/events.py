@@ -112,12 +112,12 @@ class Events:
                 logger.debug(
                     f'Last block:{last_block}, Current:{current_block}')
 
-                events_filter = self._contract.events.DDOOwnershipTransferred.createFilter(
+                events_filter = self._contract.events.DDOCreated.createFilter(
                     fromBlock=last_block)
                 for event in events_filter.get_all_entries():
                     self.processNewDDO(event)
 
-                events_filter = self._contract.events.DDOCreated.createFilter(
+                events_filter = self._contract.events.DDOOwnershipTransferred.createFilter(
                     fromBlock=last_block)
                 for event in events_filter.get_all_entries():
                     self.processTransferOwnership(event)
@@ -130,7 +130,8 @@ class Events:
                 self.store_last_processed_block(current_block+1)
 
             except (KeyError, Exception) as e:
-                logger.error(f'Error processing event: {e}')
+                logger.error(f'Error processing event:')
+                logger.error(e)
 
             time.sleep(self._monitor_sleep_time)
 
@@ -151,14 +152,14 @@ class Events:
         address = get_sender_from_txid(self._web3, txid)
         logger.debug(
             f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
+        did = "did:op:"+event['args']['did'].hex()
         flags = event['args']['flags']
         rawddo = event['args']['data']
-        logger.error(f'decoding with flags {flags}')
+        logger.error(f'decoding with did {did} and flags {flags}')
         data = self.decode_ddo(rawddo, flags)
         if data is None:
             logger.warning('Cound not decode ddo')
             return
-        did = data['id']
         msg, status = validate_data(data, 'event register')
         if msg:
             logger.warning(msg)
@@ -214,14 +215,14 @@ class Events:
         address = get_sender_from_txid(self._web3, txid)
         logger.debug(
             f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
+        did = "did:op:"+event['args']['did'].hex()
         flags = event['args']['flags']
         rawddo = event['args']['data']
-        logger.error(f'decoding with flags {flags}')
+        logger.error(f'decoding with did {did} and flags {flags}')
         data = self.decode_ddo(rawddo, flags)
         if data is None:
             logger.warning('Cound not decode ddo')
             return
-        did = data['id']
         msg, status = validate_data(data, 'event update')
         if msg:
             logger.error(msg)
@@ -290,7 +291,7 @@ class Events:
         address = get_sender_from_txid(self._web3, txid)
         logger.debug(
             f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
-        did = event['args']['did']
+        did = "did:op:"+event['args']['did'].hex()
         try:
             asset = self._oceandb.read(did)
         except Exception as e:
