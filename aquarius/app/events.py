@@ -311,7 +311,7 @@ class Events:
             logger.warning(f'asset has the same txid, no need to update')
             return
         _record = dict()
-        _record = copy.deepcopy(data)
+        _record = copy.deepcopy(asset)
         # this will be used when updating the doo
         _record['event'] = dict()
         _record['event']['txid'] = txid
@@ -319,7 +319,7 @@ class Events:
         _record['event']['from'] = address
         _record['event']['contract'] = contract_address
         _record['publicKey'][0]['owner'] = event['args']['owner']
-       try:
+        try:
             self._oceandb.update(_record, did)
             return
         except (KeyError, Exception) as err:
