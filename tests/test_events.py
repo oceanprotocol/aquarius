@@ -66,7 +66,7 @@ def run_request(client_method, url, data=None):
     return _response
 
 def publishDDO(did,flags,data,account):
-    print(f'publishDDO with flags: {flags} and did:{did} from {account.address}')
+    print(f'publishDDO {did} with flags: {flags} from {account.address}')
     did = prepare_did(did)
     print('*****************************************************************************\r\n')
     print(did)
@@ -80,7 +80,7 @@ def publishDDO(did,flags,data,account):
     return(txn_receipt)
 
 def updateDDO(did,flags,data,account):
-    print(f'updateDDO with flags: {flags} and did:{did} from {account.address}')
+    print(f'updateDDO {did} with flags: {flags} from {account.address}')
     did = prepare_did(did)
     print('*****************************************************************************\r\n')
     print(did)
@@ -108,7 +108,8 @@ def prepare_did(text):
     prefix = 'did:op:'
     if text.startswith(prefix):
         text=text[len(prefix):]
-    return bytes.fromhex(text)
+    #return bytes.fromhex(text)
+    return text
     
 
 def test_publish_and_update_ddo(client,base_ddo_url):
