@@ -8,9 +8,7 @@ from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 from plecos.plecos import (
     is_valid_dict_local,
-    is_valid_dict_remote,
     list_errors_dict_local,
-    list_errors_dict_remote,
 )
 
 from aquarius.app.dao import Dao
@@ -20,8 +18,7 @@ from aquarius.app.util import (
     get_metadata_from_services,
     sanitize_record,
     list_errors,
-    validate_data,
-    init_new_ddo)
+)
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 
@@ -32,175 +29,6 @@ assets = Blueprint('assets', __name__)
 dao = Dao(config_file=app.config['CONFIG_FILE'])
 logger = logging.getLogger('aquarius')
 
-
-###########################
-# CREATE
-###########################
-
-@assets.route('/ddo', methods=['POST'])
-def register():
-    """Register DDO of a new asset
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/json
-    parameters:
-      - in: body
-        name: body
-        required: true
-        description: DDO of the asset.
-        schema:
-          type: object
-          required:
-            - "@context"
-            - id
-            - created
-            - publicKey
-            - authentication
-            - proof
-            - service
-            - dataToken
-          properties:
-            "@context":
-              description:
-              example: https://w3id.org/did/v1
-              type: string
-            id:
-              description: ID of the asset.
-              example: did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e429
-              type: string
-            dataToken:
-              description: dataToken  of the asset.
-              example: 0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687
-              type: string
-            created:
-              description: date of ddo creation.
-              example: "2016-02-08T16:02:20Z"
-              type: string
-            publicKey:
-                  type: array
-                  description: List of public keys.
-                  example: [{"id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-                            "type": "EthereumECDSAKey",
-                            "owner": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"}]
-            authentication:
-                  type: array
-                  description: List of authentication mechanisms.
-                  example: [{"type": "RsaSignatureAuthentication2018",
-                            "publicKey": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430"}]
-            proof:
-                  type: dictionary
-                  description: Information about the creation and creator of the asset.
-                  example:  {"type": "DDOIntegritySignature",
-                             "created": "2016-02-08T16:02:20Z",
-                             "creator": "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e",
-                             "signatureValue": "0xbd7b46b3ac664167bc70ac211b1a1da0baed9ead91613a5
-                                                f02dfc25c1bb6e3ff40861b455017e8a587fd4e37b7034360
-                                                72598c3a81ec88be28bfe33b61554a471b"
-                            }
-            service:
-                  type: array
-                  description: List of services.
-                  example: [
-                            {"type": "access",
-                             "index": 0,
-                             "serviceEndpoint":
-                             "http://localhost:8030/api/v1/brizo/services/consume",
-                             "purchaseEndpoint": "http://localhost:8030/api/v1/brizo/services/access/initialize",
-                             "attributes": {
-                                 "main": {
-                                    "cost":"10",
-                                    "timeout":"0",
-                                }
-                              }
-                             },
-                           {
-                            "type": "metadata",
-                            "index": 1,
-                            "serviceEndpoint": "http://myaquarius.org/api/v1/provider/assets/metadata/did:op
-                                                :0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
-                            "attributes": {
-                                "main": {
-                                    "name": "UK Weather information 2011",
-                                    "type": "dataset",
-                                    "dateCreated": "2012-02-01T10:55:11Z",
-                                    "author": "Met Office",
-                                    "license": "CC-BY",
-                                    "files": [{
-                                            "contentLength": "4535431",
-                                            "contentType": "text/csv",
-                                            "encoding": "UTF-8",
-                                            "compression": "zip",
-                                            "index" :0,
-                                            "resourceId":
-                                            "access-log2018-02-13-15-17-29-18386C502CAEA932"
-                                    }
-                                    ],
-                                },
-                                "encryptedFiles": "0x098213xzckasdf089723hjgdasfkjgasfv",
-                                "curation": {
-                                    "rating": 0.93,
-                                    "numVotes": 123,
-                                    "schema": "Binary Voting"
-                                },
-                                "additionalInformation": {
-                                    "description": "Weather information of UK including
-                                                    temperature and humidity",
-                                    "copyrightHolder": "Met Office",
-                                    "workExample": "stationId,latitude,longitude,datetime,
-                                                    temperature,humidity/n423432fsd,51.509865,-0.118092,
-                                                    2011-01-01T10:55:11+00:00,7.2,68",
-                                    "inLanguage": "en",
-                                    "links": [{
-                                            "name": "Sample of Asset Data",
-                                            "type": "sample",
-                                            "url": "https://foo.com/sample.csv"
-                                        }
-                                    ],
-                                    "tags": ["weather", "uk", "2011", "temperature", "humidity"]
-                                }
-                            }
-                        }]
-    responses:
-      201:
-        description: Asset successfully registered.
-      400:
-        description: One of the required attributes is missing.
-      404:
-        description: Invalid asset data.
-      500:
-        description: Error
-    """
-    assert isinstance(request.json, dict), 'invalid payload format.'
-    data = request.json
-    if not data:
-        logger.error(f'request body seems empty.')
-        return 400
-    msg, status = validate_data(data,'register')
-    if msg:
-        return msg, status
-    
-    _record = init_new_ddo(data)
-    if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
-        errors = list_errors(list_errors_dict_remote,
-                             get_metadata_from_services(_record['service'])['attributes'])
-        logger.error(errors)
-        return jsonify(errors), 400
-
-    try:
-        dao.register(_record, data['id'])
-        # add new assetId to response
-        return Response(sanitize_record(_record), 201, content_type='application/json')
-    except (KeyError, Exception) as err:
-        logger.error(
-            f'encountered an error while saving the asset data to OceanDB: {str(err)}')
-        return f'Some error: {str(err)}', 500
-
-
-###########################
-# GETTERS
-###########################
 
 @assets.route('', methods=['GET'])
 def get_assets_ids():

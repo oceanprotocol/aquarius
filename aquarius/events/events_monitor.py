@@ -320,8 +320,8 @@ class EventsMonitor:
             tx_id,
             event.address,
             get_sender_from_txid(self._web3, tx_id),
-            event.args.flags,
-            event.args.data
+            event.args.get('flags', None),
+            event.args.get('data', None)
         )
 
     def decode_ddo(self, rawddo, flags):

@@ -64,6 +64,14 @@ class Dao(object):
     def delete(self, asset_id):
         return self.oceandb.delete(asset_id)
 
+    def delete_all(self):
+        assets = self.oceandb.list()
+        for asset in assets:
+            try:
+                self.delete(asset['id'])
+            except Exception as e:
+                logging.error(f'Dao.delete_all: {str(e)}')
+
     def query(self, query):
         query_list = []
         if isinstance(query, QueryModel):
