@@ -3,10 +3,11 @@
 import copy
 import json
 import os
+from pathlib import Path
 
 import pytest
 
-from aquarius.app.events import Events
+from aquarius.events.events_monitor import EventsMonitor
 from aquarius.constants import BaseURLs
 from aquarius.run import app
 from tests.ddos.ddo_sample1 import json_dict
@@ -65,9 +66,10 @@ def test_assets():
 def events_object():
     global EVENTS_INSTANCE
     if not EVENTS_INSTANCE:
-        EVENTS_INSTANCE = Events(
+        EVENTS_INSTANCE = EventsMonitor(
             os.environ.get('EVENTS_RPC', False),
             os.environ.get('EVENTS_CONTRACT_ADDRESS', False),
+            Path('./aquarius/artifacts/DDO.json').expanduser().resolve(),
             app.config['CONFIG_FILE']
         )
     return EVENTS_INSTANCE

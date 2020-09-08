@@ -24,7 +24,7 @@ def get_signer_address(message, signature, logger):
         logger.debug('got %s as address_recovered' % address_recovered)
         return address_recovered
     except Exception as e:
-        logger.error(e)
+        logger.error(f'get_signer_address: {e}')
         return None
 
 

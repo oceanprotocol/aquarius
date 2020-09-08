@@ -392,12 +392,12 @@ def test_publish_with_access_list(client_with_no_data, base_ddo_url):
 
     acct_1, acct_2 = get_new_accounts()
     access_list = [acct_1.address, acct_2.address]
-    json_before['accesssWhiteList'] = access_list
+    json_before['accessWhiteList'] = access_list
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
 
     # get the ddo
     fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
-    assert access_list == fetched_ddo['accesssWhiteList'], 'accesssWhiteList was not added'
+    assert access_list == fetched_ddo['accessWhiteList'], 'accessWhiteList was not added'
 
 
 def test_add_access_list(client_with_no_data, base_ddo_url):
@@ -419,15 +419,15 @@ def test_add_access_list(client_with_no_data, base_ddo_url):
 
     # post
     put = client.post(
-        base_ddo_url + f'/accesssWhiteList/{_id}',
+        base_ddo_url + f'/accessWhiteList/{_id}',
         data=json.dumps(data),
         content_type='application/json'
     )
     assert 200 == put.status_code, 'Failed to add address to accessWhiteList'
 
     fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
-    print(f'AccessList: {fetched_ddo["accesssWhiteList"]}')
-    assert fetched_ddo['accesssWhiteList'].count(
+    print(f'AccessList: {fetched_ddo["accessWhiteList"]}')
+    assert fetched_ddo['accessWhiteList'].count(
         acct_2.address) > 0, 'Address was not added'
 
 
@@ -437,7 +437,7 @@ def test_delete_from_access_list(client_with_no_data, base_ddo_url):
 
     json_before['publicKey'][0]['owner'] = acct_1.address
     access_list = [acct_2.address]
-    json_before['accesssWhiteList'] = access_list
+    json_before['accessWhiteList'] = access_list
     post = run_request_get_data(client.post, base_ddo_url, data=json_before)
     _id = post['id']
 
@@ -452,14 +452,14 @@ def test_delete_from_access_list(client_with_no_data, base_ddo_url):
 
     # post
     put = client.delete(
-        base_ddo_url + f'/accesssWhiteList/{_id}',
+        base_ddo_url + f'/accessWhiteList/{_id}',
         data=json.dumps(data),
         content_type='application/json'
     )
     assert 200 == put.status_code, 'Failed to delete address from accessWhiteList'
 
     fetched_ddo = get_ddo(client, base_ddo_url, post['id'])
-    assert fetched_ddo['accesssWhiteList'].count(
+    assert fetched_ddo['accessWhiteList'].count(
         acct_2.address) < 1, 'Address was not removed'
 
 

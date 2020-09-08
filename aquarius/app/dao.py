@@ -3,6 +3,7 @@
 
 import logging
 
+import elasticsearch
 from oceandb_driver_interface import OceanDb
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 
@@ -17,10 +18,13 @@ class Dao(object):
         asset_with_id = []
         for asset in assets:
             try:
+                if len(asset) == 1:
+                    continue
+
                 if self.is_listed(asset['service']):
                     asset_with_id.append(self.oceandb.read(asset['id']))
             except Exception as e:
-                logging.error(str(e))
+                logging.error(f'Dao.get_all_listed_assets: {str(e)}')
                 pass
         return asset_with_id
 
@@ -31,23 +35,25 @@ class Dao(object):
             try:
                 asset_with_id.append(self.oceandb.read(asset['id']))
             except Exception as e:
-                logging.error(str(e))
+                logging.error(f'Dao.get_all_assets: {str(e)}')
                 pass
         return asset_with_id
 
     def get(self, asset_id):
         try:
             asset = self.oceandb.read(asset_id)
-        except Exception as e:
-            logging.error(str(e))
-            asset = None
+        except elasticsearch.exceptions.NotFoundError as e:
+            logging.error(f'Dao.get -- asset with id {asset_id} was not found, original error was:{str(e)}')
+            raise
 
-        if asset is None:
-            return asset
-        elif self.is_listed(asset['service']):
-            return asset
-        else:
+        except Exception as e:
+            logging.error(f'Dao.get: {str(e)}')
+            raise
+
+        if asset is None or not self.is_listed(asset['service']):
             return None
+
+        return asset
 
     def register(self, record, asset_id):
         return self.oceandb.write(record, asset_id)

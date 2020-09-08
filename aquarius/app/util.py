@@ -1,5 +1,6 @@
 #  Copyright 2018 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
+import copy
 import json
 import logging
 from datetime import datetime
@@ -12,6 +13,9 @@ logger = logging.getLogger('aquarius')
 def sanitize_record(data_record):
     if '_id' in data_record:
         data_record.pop('_id')
+    if 'event' in data_record:
+        data_record.pop('event')
+
     return json.dumps(data_record, default=datetime_converter)
 
 
@@ -68,12 +72,39 @@ def reorder_services_list(services):
     return result
 
 
+def init_new_ddo(data):
+    _record = copy.deepcopy(data)
+    _record['created'] = format_timestamp(data['created'])
+    _record['updated'] = _record['created']
+    if 'accessWhiteList' not in data:
+        _record['accessWhiteList'] = []
+    else:
+        if not isinstance(data['accessWhiteList'], list):
+            _record['accessWhiteList'] = []
+        else:
+            _record['accessWhiteList'] = data['accessWhiteList']
+
+    for service in _record['service']:
+        if service['type'] == 'metadata':
+            service['attributes']['main']['dateCreated'] = \
+                format_timestamp(service['attributes']['main']['dateCreated'])
+            service['attributes']['main']['datePublished'] = \
+                get_timestamp()
+
+            service['attributes']['curation'] = {}
+            service['attributes']['curation']['rating'] = 0.00
+            service['attributes']['curation']['numVotes'] = 0
+            service['attributes']['curation']['isListed'] = True
+    _record['service'] = reorder_services_list(_record['service'])
+    return _record
+
+
 def validate_date_format(date):
     try:
         datetime.strptime(date, DATETIME_FORMAT)
         return None, None
     except Exception as e:
-        logging.error(str(e))
+        logging.error(f'validate_date_format: {str(e)}')
         return f"Incorrect data format, should be '{DATETIME_FORMAT}'", 400
 
 
@@ -115,10 +146,11 @@ def list_errors(list_errors_function, data):
         error_list.append(this_err_response)
     return error_list
 
+
 def validate_data(data, method):
     required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
                            'service', 'dataToken']
-        
+
     msg, status = check_required_attributes(
         required_attributes, data, method)
     if msg:
@@ -131,6 +163,7 @@ def validate_data(data, method):
     if status:
         return msg, status
     return None, None
+
 
 def get_sender_from_txid(web3, txid):
     transaction = web3.eth.getTransaction(txid)

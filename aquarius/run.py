@@ -3,6 +3,7 @@
 
 import configparser
 import os
+from pathlib import Path
 
 from elasticsearch import Elasticsearch
 from flask import jsonify
@@ -14,7 +15,7 @@ from aquarius.app.assets import assets
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.myapp import app
-from aquarius.app.events import Events
+from aquarius.events.events_monitor import EventsMonitor
 
 config = Config(filename=app.config['CONFIG_FILE'])
 aquarius_url = config.aquarius_url
@@ -83,7 +84,12 @@ def get_status():
 
 # Start events monitoring if required
 if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
-    monitor = Events(os.environ.get('EVENTS_RPC',False), os.environ.get('EVENTS_CONTRACT_ADDRESS',False),app.config['CONFIG_FILE'])
+    monitor = EventsMonitor(
+        os.environ.get('EVENTS_RPC', False),
+        os.environ.get('EVENTS_CONTRACT_ADDRESS', False),
+        Path('./aquarius/artifacts/DDO.json').expanduser().resolve(),
+        app.config['CONFIG_FILE']
+    )
     monitor.start_events_monitor()
 
 

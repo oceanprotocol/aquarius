@@ -136,7 +136,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
 
     send_create_update_tx('create', did, bytes([_flags]), data, account1)
     get_event('DDOCreated', block, did, 30)
-    events_instance.process_current_blocks()
+    # events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did
 
@@ -152,7 +152,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
 
     send_create_update_tx('update', did, bytes([_flags]), data, account1)
     get_event('DDOUpdated', block, did, 30)
-    events_instance.process_current_blocks()
+    # events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did
     assert published_ddo['service'][0]['attributes']['main']['name'] == 'Updated ddo by event'
