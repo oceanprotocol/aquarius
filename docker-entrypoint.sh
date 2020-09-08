@@ -3,7 +3,7 @@
 export CONFIG_FILE=/aquarius/config.ini
 envsubst < /aquarius/config.ini.template > /aquarius/config.ini
 
-if [ ${RUN_EVENTS_MONITOR} = "true" ]; then
+if [ ${RUN_EVENTS_MONITOR} = "1" ]; then
     /aquarius/start_events_monitor.sh &
 fi
 
