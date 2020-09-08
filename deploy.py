@@ -2,13 +2,15 @@
 import json
 import os
 import sys
-from web3 import Web3
+import time
 
+from web3 import Web3
+from web3.exceptions import TransactionNotFound
 
 
 def main():
     rpc='http://127.0.0.1:8545'
-    web3 = Web3(Web3.HTTPProvider(os.getenv('EVENTS_RPC')))
+    web3 = Web3(Web3.HTTPProvider(os.getenv('EVENTS_RPC', rpc)))
     private_key= os.getenv('EVENTS_TESTS_PRIVATE_KEY')
     path = './aquarius/artifacts/DDO.json'
     data=json.load(open(path))
@@ -23,9 +25,13 @@ def deploy_contract(w3, _json,private_key):
         built_tx['gas'] = w3.eth.estimateGas(built_tx)
     raw_tx = sign_tx(w3,built_tx, private_key)
     tx_hash = w3.eth.sendRawTransaction(raw_tx)
-    address = w3.eth.getTransactionReceipt(tx_hash)['contractAddress']
-    #return cls.get_tx_receipt(tx_hash, timeout=60).contractAddress
-    return address
+    time.sleep(3)
+    try:
+        address = w3.eth.getTransactionReceipt(tx_hash)['contractAddress']
+        return address
+    except TransactionNotFound:
+        print(f'tx not found: {tx_hash.hex()}')
+        raise
 
 def sign_tx(web3, tx,private_key):
         account = web3.eth.account.privateKeyToAccount(private_key)
