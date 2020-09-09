@@ -3,11 +3,28 @@
 import copy
 import json
 import logging
+import os
 from datetime import datetime
+from pathlib import Path
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 logger = logging.getLogger('aquarius')
+
+
+def get_contract_address_and_abi_file():
+    artifacts_path = os.environ.get('ARTIFACTS_PATH', './artifacts')
+    contract_abi_file = Path(os.path.join(artifacts_path, 'DDO.json')).expanduser().resolve()
+    address_file = os.environ.get('ADDRESS_FILE', os.path.join(artifacts_path, 'address.json'))
+    address_file = Path(address_file).expanduser().resolve()
+    contract_address = read_ddo_contract_address(address_file, network=os.environ.get('NETWORK_NAME', 'ganache'))
+    return contract_address, contract_abi_file
+
+
+def read_ddo_contract_address(file_path, name='DDO', network='ganache'):
+    with open(file_path) as f:
+        network_to_address = json.load(f)
+        return network_to_address[network][name]
 
 
 def sanitize_record(data_record):

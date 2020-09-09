@@ -8,6 +8,7 @@ from web3 import Web3
 from eth_account import Account
 from web3.datastructures import AttributeDict
 
+from aquarius.app.util import get_contract_address_and_abi_file
 from tests.ddos.ddo_event_sample import ddo_event_sample
 
 rpc = os.environ.get('EVENTS_RPC', None)
@@ -24,9 +25,8 @@ def web3():
 
 
 def ddo_contract():
-    contract_address = os.environ.get('EVENTS_CONTRACT_ADDRESS', None)
-    path = './aquarius/artifacts/DDO.json'
-    abi_json = json.load(open(path))
+    contract_address, abi_file = get_contract_address_and_abi_file()
+    abi_json = json.load(open(abi_file))
     return web3().eth.contract(address=contract_address, abi=abi_json['abi'])
 
 
