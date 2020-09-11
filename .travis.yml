@@ -10,13 +10,6 @@ sudo: false
 env:
   - ES_VERSION=6.6.2 ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
 
-before_install:
-  - git clone https://github.com/oceanprotocol/barge
-  - cd barge
-  - git checkout v3
-  - bash -x start_ocean.sh --no-dashboard --no-provider --no-aquarius 2>&1 > start_ocean.log &
-  - cd ..
-  - sleep 30
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
@@ -26,6 +19,8 @@ install:
   - ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
 script:
   - wget -q --waitretry=10 --wait=10 --retry-connrefused -T 145 -O - http://127.0.0.1:9200
+  - ganache-cli > /dev/null &
+  - sleep 5
   - tox
 
 deploy:

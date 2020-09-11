@@ -58,6 +58,7 @@ class EventsMonitor:
         if self._ecies_private_key:
             self._ecies_account = Account.from_key(self._ecies_private_key)
 
+        print(f'EventsMonitor: using DDO contact address {contract_address}, rpc {rpc}, abi file {abi_file_path}.')
         self._monitor_is_on = False
         try:
             self._monitor_sleep_time = os.getenv(
