@@ -17,9 +17,11 @@ install:
   - wget ${ES_DOWNLOAD_URL}
   - tar -xzf elasticsearch-${ES_VERSION}.tar.gz
   - ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
+  - npm install -g ganache-cli truffle
+
 script:
   - wget -q --waitretry=10 --wait=10 --retry-connrefused -T 145 -O - http://127.0.0.1:9200
-  - ganache-cli > /dev/null &
+  - docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest
   - sleep 5
   - tox
 
