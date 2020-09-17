@@ -2,6 +2,8 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 import configparser
+import os
+from pathlib import Path
 
 from elasticsearch import Elasticsearch
 from flask import jsonify
@@ -10,9 +12,11 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from pymongo import MongoClient
 
 from aquarius.app.assets import assets
+from aquarius.app.util import get_contract_address_and_abi_file
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.myapp import app
+from aquarius.events.events_monitor import EventsMonitor
 
 config = Config(filename=app.config['CONFIG_FILE'])
 aquarius_url = config.aquarius_url
@@ -77,6 +81,18 @@ def get_status():
             return 'Not connected to any database', 400
     else:
         return 'Not connected to any database', 400
+
+
+# Start events monitoring if required
+if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
+    contract_address, contract_abi_file = get_contract_address_and_abi_file()
+    monitor = EventsMonitor(
+        os.environ.get('EVENTS_RPC', False),
+        contract_address,
+        contract_abi_file,
+        app.config['CONFIG_FILE']
+    )
+    monitor.start_events_monitor()
 
 
 if __name__ == '__main__':

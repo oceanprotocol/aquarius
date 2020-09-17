@@ -1,17 +1,38 @@
 #  Copyright 2018 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
+import copy
 import json
 import logging
+import os
 from datetime import datetime
+from pathlib import Path
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 logger = logging.getLogger('aquarius')
 
 
+def get_contract_address_and_abi_file():
+    artifacts_path = os.environ.get('ARTIFACTS_PATH', './artifacts')
+    contract_abi_file = Path(os.path.join(artifacts_path, 'DDO.json')).expanduser().resolve()
+    address_file = os.environ.get('ADDRESS_FILE', os.path.join(artifacts_path, 'address.json'))
+    address_file = Path(address_file).expanduser().resolve()
+    contract_address = read_ddo_contract_address(address_file, network=os.environ.get('NETWORK_NAME', 'ganache'))
+    return contract_address, contract_abi_file
+
+
+def read_ddo_contract_address(file_path, name='DDO', network='ganache'):
+    with open(file_path) as f:
+        network_to_address = json.load(f)
+        return network_to_address[network][name]
+
+
 def sanitize_record(data_record):
     if '_id' in data_record:
         data_record.pop('_id')
+    if 'event' in data_record:
+        data_record.pop('event')
+
     return json.dumps(data_record, default=datetime_converter)
 
 
@@ -68,12 +89,39 @@ def reorder_services_list(services):
     return result
 
 
+def init_new_ddo(data):
+    _record = copy.deepcopy(data)
+    _record['created'] = format_timestamp(data['created'])
+    _record['updated'] = _record['created']
+    if 'accessWhiteList' not in data:
+        _record['accessWhiteList'] = []
+    else:
+        if not isinstance(data['accessWhiteList'], list):
+            _record['accessWhiteList'] = []
+        else:
+            _record['accessWhiteList'] = data['accessWhiteList']
+
+    for service in _record['service']:
+        if service['type'] == 'metadata':
+            service['attributes']['main']['dateCreated'] = \
+                format_timestamp(service['attributes']['main']['dateCreated'])
+            service['attributes']['main']['datePublished'] = \
+                get_timestamp()
+
+            service['attributes']['curation'] = {}
+            service['attributes']['curation']['rating'] = 0.00
+            service['attributes']['curation']['numVotes'] = 0
+            service['attributes']['curation']['isListed'] = True
+    _record['service'] = reorder_services_list(_record['service'])
+    return _record
+
+
 def validate_date_format(date):
     try:
         datetime.strptime(date, DATETIME_FORMAT)
         return None, None
     except Exception as e:
-        logging.error(str(e))
+        logging.error(f'validate_date_format: {str(e)}')
         return f"Incorrect data format, should be '{DATETIME_FORMAT}'", 400
 
 
@@ -114,3 +162,28 @@ def list_errors(list_errors_function, data):
             'path': "/".join(stack_path), 'message': err[1].message}
         error_list.append(this_err_response)
     return error_list
+
+
+def validate_data(data, method):
+    required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
+                           'service', 'dataToken']
+
+    msg, status = check_required_attributes(
+        required_attributes, data, method)
+    if msg:
+        return msg, status
+    msg, status = check_no_urls_in_files(
+        get_main_metadata(data['service']), method)
+    if msg:
+        return msg, status
+    msg, status = validate_date_format(data['created'])
+    if status:
+        return msg, status
+    return None, None
+
+
+def get_sender_from_txid(web3, txid):
+    transaction = web3.eth.getTransaction(txid)
+    if transaction is not None:
+        return transaction['from']
+    return None

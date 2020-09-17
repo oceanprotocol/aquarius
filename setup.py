@@ -29,7 +29,8 @@ install_requirements = [
     'pytz==2020.1',
     'plecos==1.1.0',
     'web3==5.11.1',
-    'eth-account==0.5.2'
+    'eth-account==0.5.2',
+    'eciespy'
 ]
 
 setup_requirements = ['pytest-runner==5.2', ]
@@ -82,6 +83,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='1.2.0',
+    version='2.0.1',
     zip_safe=False,
 )
