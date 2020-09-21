@@ -8,6 +8,7 @@ from web3 import Web3
 
 import eth_keys
 
+from aquarius.events.constants import EVENT_METADATA_CREATED
 from tests.helpers import (
     web3,
     new_ddo,
@@ -39,7 +40,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
         data = ecies.encrypt(key.public_key.to_hex(), data)
 
     send_create_update_tx('create', did, bytes([_flags]), data, test_account1)
-    get_event('DDOCreated', block, did, 30)
+    get_event(EVENT_METADATA_CREATED, block, did, 30)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did

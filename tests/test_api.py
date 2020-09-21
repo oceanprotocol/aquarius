@@ -9,6 +9,7 @@ from web3 import Web3
 
 from aquarius.app.dao import Dao
 from aquarius.app.util import validate_date_format
+from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1 import json_dict
@@ -84,12 +85,12 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
     ddo_string = json.dumps(dict(ddo.items()))
     _receipt = send_create_update_tx(
         'create', ddo.id, bytes([1]), lzma.compress(Web3.toBytes(text=ddo_string)), test_account1)
-    get_event('DDOCreated', block, ddo.id, 30)
+    get_event(EVENT_METADATA_CREATED, block, ddo.id, 30)
     events_object.process_current_blocks()
     try:
         published_ddo = get_ddo(client, base_ddo_url, ddo.id)
         assert not published_ddo, f'publish should fail, Aquarius validation ' \
-                                  f'should have failed and skipped the DDOCreated event.'
+                                  f'should have failed and skipped the {EVENT_METADATA_CREATED} event.'
     except Exception:
         pass
 
@@ -115,7 +116,7 @@ def test_query_metadata(client, base_ddo_url, events_object):
         )
 
     for ddo in assets:
-        get_event('DDOCreated', block, ddo.id, 30)
+        get_event(EVENT_METADATA_CREATED, block, ddo.id, 30)
         events_object.process_current_blocks()
 
     num_assets = len(assets)
@@ -184,7 +185,7 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
         'create', json_before['id'],
         bytes([1]), lzma.compress(Web3.toBytes(text=json.dumps(json_before))),
         test_account1)
-    get_event('DDOCreated', block, json_before['id'], 30)
+    get_event(EVENT_METADATA_CREATED, block, json_before['id'], 30)
     events_object.process_current_blocks()
     assert len(
         run_request_get_data(client.post, base_ddo_url + '/query',

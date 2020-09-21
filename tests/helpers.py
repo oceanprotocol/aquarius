@@ -9,6 +9,7 @@ from eth_account import Account
 from web3.datastructures import AttributeDict
 
 from aquarius.app.util import get_contract_address_and_abi_file
+from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from tests.ddos.ddo_event_sample import ddo_event_sample
 
 rpc = os.environ.get('EVENTS_RPC', None)
@@ -104,7 +105,7 @@ def send_create_update_tx(name, did, flags, data, account):
     print(did)
     print('*****************************************************************************\r\n')
     r = send_tx(name, (did, flags, data), account)
-    event_name = 'DDOCreated' if name == 'create' else 'DDOUpdated'
+    event_name = EVENT_METADATA_CREATED if name == 'create' else EVENT_METADATA_UPDATED
     events = getattr(ddo_contract().events, event_name)().processReceipt(r)
     print(f'got {event_name} logs: {events}')
     return r
