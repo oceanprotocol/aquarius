@@ -15,9 +15,8 @@ from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample_updates import json_before, json_valid
 from eth_account.messages import encode_defunct
-from eth_account import Account
 
-from tests.helpers import new_ddo, test_account1, send_create_update_tx, get_event, get_web3, test_account2, new_did
+from tests.helpers import new_ddo, test_account1, send_create_update_tx, get_event, get_web3
 
 
 def sign_message(account, message_str):

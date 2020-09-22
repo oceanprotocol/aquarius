@@ -9,7 +9,7 @@ def get_signer_address(message, signature, logger):
     """
     Get signer address of a previous signed message
     :param str message: Message
-    :param str signature: Signature obtain with get_web3.eth.personal.sign
+    :param str signature: Signature obtain with web3.eth.personal.sign
     :param logger: logging object
     :return: Address or None in case of error
     """
@@ -39,10 +39,10 @@ def compare_eth_addresses(address, checker, logger):
     logger.debug('compare_eth_addresses address: %s' % address)
     logger.debug('compare_eth_addresses checker: %s' % checker)
     if not Web3.isAddress(address):
-        logger.debug("Address is not get_web3 valid")
+        logger.debug("Address is not web3 valid")
         return False
     if not Web3.isAddress(checker):
-        logger.debug("Checker is not get_web3 valid")
+        logger.debug("Checker is not web3 valid")
         return False
     return Web3.toChecksumAddress(address) == Web3.toChecksumAddress(checker)
 
@@ -52,7 +52,7 @@ def can_update_did(ddo, updated, signature, logger):
     Check if the signer is allowed to update the DDO
     :param record ddo: DDO that has to be updated
     :param str updated: Updated field passed by user
-    :param str signature: Signature of the updated field, using get_web3.eth.personal.sign
+    :param str signature: Signature of the updated field, using web3.eth.personal.sign
     :param logger: instance of logging
     :return: boolean TRUE if the signer is allowed to update the DDO
     """
@@ -71,7 +71,7 @@ def can_update_did_from_allowed_updaters(ddo, updated, signature, logger):
     Check if the signer is allowed to update the DDO. List of signers is taken from ENV variabile RATING_ALLOWED_UPDATER
     :param record ddo: DDO that has to be updated
     :param str updated: Updated field passed by user
-    :param str signature: Signature of the updated field, using get_web3.eth.personal.sign
+    :param str signature: Signature of the updated field, using web3.eth.personal.sign
     :param logger: instance of logging
     :return: boolean TRUE if the signer is allowed to update the DDO
     """
