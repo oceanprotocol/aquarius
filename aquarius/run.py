@@ -15,7 +15,6 @@ from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.myapp import app
 from aquarius.events.events_monitor import EventsMonitor
-from tests.helpers import get_metadata_contract
 
 config = Config(filename=app.config['CONFIG_FILE'])
 aquarius_url = config.aquarius_url
@@ -86,7 +85,6 @@ def get_status():
 if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
     monitor = EventsMonitor(
         os.environ.get('EVENTS_RPC', False),
-        get_metadata_contract(),
         app.config['CONFIG_FILE']
     )
     monitor.start_events_monitor()

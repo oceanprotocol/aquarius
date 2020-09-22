@@ -8,7 +8,7 @@ from web3 import Web3
 from eth_account import Account
 from web3.datastructures import AttributeDict
 
-from aquarius.events.util import deploy_datatoken, get_contract_address_and_abi_file
+from aquarius.events.util import get_metadata_contract, deploy_datatoken
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from tests.ddos.ddo_event_sample import ddo_event_sample
 
@@ -23,12 +23,6 @@ ecies_account = Account.from_key(os.environ.get('EVENTS_ECIES_PRIVATE_KEY', None
 
 def get_web3():
     return WEB3_INSTANCE
-
-
-def get_metadata_contract():
-    contract_address, abi_file = get_contract_address_and_abi_file()
-    abi_json = json.load(open(abi_file))
-    return get_web3().eth.contract(address=contract_address, abi=abi_json['abi'])
 
 
 def prepare_did(text):
@@ -70,7 +64,7 @@ def get_ddo(client, base_ddo_url, did):
 def get_event(event_name, block, did, timeout=45):
     did = prepare_did(did)
     start = time.time()
-    f = getattr(get_metadata_contract().events, event_name)().createFilter(fromBlock=block)
+    f = getattr(get_metadata_contract(get_web3()).events, event_name)().createFilter(fromBlock=block)
     logs = []
     while not logs:
         logs = f.get_all_entries()
@@ -93,7 +87,7 @@ def get_event(event_name, block, did, timeout=45):
 
 def send_tx(fn_name, tx_args, account):
     get_web3().eth.defaultAccount = account.address
-    txn_hash = getattr(get_metadata_contract().functions, fn_name)(*tx_args).transact()
+    txn_hash = getattr(get_metadata_contract(get_web3()).functions, fn_name)(*tx_args).transact()
     txn_receipt = get_web3().eth.waitForTransactionReceipt(txn_hash)
     return txn_receipt
 
@@ -106,6 +100,6 @@ def send_create_update_tx(name, did, flags, data, account):
     print('*****************************************************************************\r\n')
     r = send_tx(name, (did, flags, data), account)
     event_name = EVENT_METADATA_CREATED if name == 'create' else EVENT_METADATA_UPDATED
-    events = getattr(get_metadata_contract().events, event_name)().processReceipt(r)
+    events = getattr(get_metadata_contract(get_web3()).events, event_name)().processReceipt(r)
     print(f'got {event_name} logs: {events}')
     return r

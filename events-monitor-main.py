@@ -4,7 +4,7 @@ import time
 
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.log import setup_logging
-from tests.helpers import get_metadata_contract
+from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +26,8 @@ def run_events_monitor():
     network_rpc = os.environ.get('EVENTS_RPC', 'http:127.0.0.1:8545')
 
     config_file = os.getenv('CONFIG_FILE', 'config.ini')
-    _metadata_contract = get_metadata_contract()
     logger.info(f'EventsMonitor: starting with the following values: rpc={network_rpc}, contract={_metadata_contract.address}')
-    monitor = EventsMonitor(network_rpc, _metadata_contract, config_file)
+    monitor = EventsMonitor(network_rpc, config_file)
     monitor.start_events_monitor()
     logger.info(f'EventsMonitor: started')
     while True:

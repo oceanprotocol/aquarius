@@ -7,7 +7,6 @@ import pytest
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.constants import BaseURLs
 from aquarius.run import app
-from tests.helpers import get_metadata_contract
 
 app = app
 
@@ -39,7 +38,6 @@ def events_object():
     if not EVENTS_INSTANCE:
         EVENTS_INSTANCE = EventsMonitor(
             os.environ.get('EVENTS_RPC', False),
-            get_metadata_contract(),
             app.config['CONFIG_FILE']
         )
     return EVENTS_INSTANCE

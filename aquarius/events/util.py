@@ -58,3 +58,9 @@ def read_ddo_contract_address(file_path, name='Metadata', network='ganache'):
     with open(file_path) as f:
         network_to_address = json.load(f)
         return network_to_address[network][name]
+
+
+def get_metadata_contract(web3):
+    contract_address, abi_file = get_contract_address_and_abi_file()
+    abi_json = json.load(open(abi_file))
+    return web3.eth.contract(address=contract_address, abi=abi_json['abi'])

@@ -30,6 +30,7 @@ from plecos.plecos import (
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.http_provider import CustomHTTPProvider
+from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +50,14 @@ def get_web3_connection_provider(network_url):
 class EventsMonitor:
     _instance = None
 
-    def __init__(self, rpc, metadata_contract, config_file):
+    def __init__(self, rpc, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
         self._rpc = rpc
 
         self._web3 = Web3(get_web3_connection_provider(rpc))
+        if not metadata_contract:
+            metadata_contract = get_metadata_contract(self._web3)
+
         self._contract = metadata_contract
         self._contract_address = self._contract.address
 
