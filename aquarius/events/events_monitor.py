@@ -4,11 +4,11 @@
 import logging
 import os
 import time
-import copy
 import lzma as Lzma
 import json
 from threading import Thread
 
+from eth_utils import remove_0x_prefix
 from web3 import Web3
 from eth_account import Account
 import eth_keys
@@ -28,7 +28,9 @@ from plecos.plecos import (
     list_errors_dict_remote,
 )
 
+from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.http_provider import CustomHTTPProvider
+from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
 
@@ -48,34 +50,35 @@ def get_web3_connection_provider(network_url):
 class EventsMonitor:
     _instance = None
 
-    def __init__(self, rpc, contract_address, abi_file_path, config_file):
+    def __init__(self, rpc, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
         self._rpc = rpc
+
         self._web3 = Web3(get_web3_connection_provider(rpc))
-        self._contract_address = contract_address
+        if not metadata_contract:
+            metadata_contract = get_metadata_contract(self._web3)
+
+        self._contract = metadata_contract
+        self._contract_address = self._contract.address
+
         self._ecies_private_key = os.getenv('EVENTS_ECIES_PRIVATE_KEY', '')
         self._ecies_account = None
         if self._ecies_private_key:
             self._ecies_account = Account.from_key(self._ecies_private_key)
 
-        print(f'EventsMonitor: using DDO contact address {contract_address}, rpc {rpc}, abi file {abi_file_path}.')
+        print(f'EventsMonitor: using Metadata contact address {self._contract_address}, rpc {rpc}.')
         self._monitor_is_on = False
         try:
-            self._monitor_sleep_time = os.getenv(
-                'OCN_EVENTS_MONITOR_QUITE_TIME', 3)
+            self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', 3)
         except ValueError:
             self._monitor_sleep_time = 3
+
         self._monitor_sleep_time = max(self._monitor_sleep_time, 3)
-        if not self._web3.isAddress(contract_address):
+        if not self._contract or not self._web3.isAddress(self._contract_address):
             logger.error(
-                f"Contract address {contract_address} is not a valid address. Events thread not starting")
+                f"Contract address {self._contract_address} is not a valid address. Events thread not starting")
             self._contract = None
             return
-
-        with open(abi_file_path) as f:
-            data = json.load(f)
-            self._contract = self._web3.eth.contract(
-                address=contract_address, abi=data['abi'])
 
     @property
     def is_monitor_running(self):
@@ -128,13 +131,10 @@ class EventsMonitor:
 
         debug_log(f'Last block:{last_block}, Current:{current_block}')
         last_block = min(last_block, current_block)
-        for event in self.get_event_logs('DDOCreated', last_block, current_block):
+        for event in self.get_event_logs(EVENT_METADATA_CREATED, last_block, current_block):
             self.processNewDDO(event)
 
-        for event in self.get_event_logs('DDOOwnershipTransferred', last_block, current_block):
-            self.processTransferOwnership(event)
-
-        for event in self.get_event_logs('DDOUpdated', last_block, current_block):
+        for event in self.get_event_logs(EVENT_METADATA_UPDATED, last_block, current_block):
             self.processUpdateDDO(event)
 
         self.store_last_processed_block(current_block + 1)
@@ -155,7 +155,7 @@ class EventsMonitor:
         return _filter.get_all_entries()
 
     def processNewDDO(self, event):
-        did, block, txid, contract_address, address, flags, rawddo = self.get_event_data(event)
+        did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
         debug_log(f'Process new DDO, did from event log:{did}')
         try:
             self._oceandb.read(did)
@@ -164,8 +164,8 @@ class EventsMonitor:
         except Exception:
             pass
 
-        logger.info(f'Start processing DDOCreated event: did={did}')
-        debug_log(f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
+        logger.info(f'Start processing {EVENT_METADATA_CREATED} event: did={did}')
+        debug_log(f'block {block}, contract: {contract_address}, Sender: {sender_address} , txid: {txid}')
 
         logger.debug(f'decoding with did {did} and flags {flags}')
         data = self.decode_ddo(rawddo, flags)
@@ -173,7 +173,7 @@ class EventsMonitor:
             logger.warning(f'Could not decode ddo using flags {flags}')
             return
 
-        msg, status = validate_data(data, 'event DDOCreated')
+        msg, status = validate_data(data, f'event {EVENT_METADATA_CREATED}')
         if msg:
             logger.warning(msg)
             return
@@ -183,7 +183,7 @@ class EventsMonitor:
         _record['event'] = dict()
         _record['event']['txid'] = txid
         _record['event']['blockNo'] = block
-        _record['event']['from'] = address
+        _record['event']['from'] = sender_address
         _record['event']['contract'] = contract_address
 
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
@@ -196,15 +196,15 @@ class EventsMonitor:
         try:
             self._oceandb.write(_record, did)
             name = _record["service"][0]["attributes"]["main"]["name"]
-            debug_log(f'DDO saved: did={did}, name={name}, publisher={address}')
-            logger.info(f'Done processing DDOCreated event: did={did}. DDO SAVED TO DB')
+            debug_log(f'DDO saved: did={did}, name={name}, publisher={sender_address}')
+            logger.info(f'Done processing {EVENT_METADATA_CREATED} event: did={did}. DDO SAVED TO DB')
             return True
         except (KeyError, Exception) as err:
             logger.error(f'encountered an error while saving the asset data to OceanDB: {str(err)}')
             return False
 
     def processUpdateDDO(self, event):
-        did, block, txid, contract_address, address, flags, rawddo = self.get_event_data(event)
+        did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
         debug_log(f'Process update DDO, did from event log:{did}')
         try:
             asset = self._oceandb.read(did)
@@ -212,7 +212,7 @@ class EventsMonitor:
             logger.warning(f'{did} is not registered, cannot update')
             return
 
-        debug_log(f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
+        debug_log(f'block {block}, contract: {contract_address}, Sender: {sender_address} , txid: {txid}')
 
         # do not update if we have the same txid
         ddo_txid = asset['event']['txid']
@@ -228,7 +228,7 @@ class EventsMonitor:
             return
 
         # check owner
-        if not compare_eth_addresses(asset['publicKey'][0]['owner'], address, logger):
+        if not compare_eth_addresses(asset['publicKey'][0]['owner'], sender_address, logger):
             logger.warning(f'Transaction sender must mach ddo owner')
             return
 
@@ -249,7 +249,7 @@ class EventsMonitor:
         _record['event'] = dict()
         _record['event']['txid'] = txid
         _record['event']['blockNo'] = block
-        _record['event']['from'] = address
+        _record['event']['from'] = sender_address
         _record['event']['contract'] = contract_address
 
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
@@ -267,56 +267,10 @@ class EventsMonitor:
                 f'encountered an error while updating the asset data to OceanDB: {str(err)}')
             return
 
-    def processTransferOwnership(self, event):
-        did, block, txid, contract_address, address, flags, rawddo = self.get_event_data(event)
-        debug_log(f'Process transferOwnership of DDO, did from event log:{did}')
-        try:
-            asset = self._oceandb.read(did)
-        except Exception as e:
-            logger.warning(f'{did} is not registered, cannot update ownership')
-            return
-
-        debug_log(f'block {block}, contract: {contract_address}, Sender: {address} , txid: {txid}')
-        # check owner
-        if not compare_eth_addresses(asset['publicKey'][0]['owner'], address, logger):
-            logger.warning(f'Transaction sender must mach ddo owner')
-            return
-
-        # check block
-        ddo_block = asset['event']['blockNo']
-        if int(block) <= int(ddo_block):
-            logger.warning(f'asset was updated later (block: {ddo_block}) vs transaction block: {block}')
-            return
-
-        # do not update if we have the same txid
-        ddo_txid = asset['event']['txid']
-        if txid == ddo_txid:
-            logger.warning(f'asset has the same txid, no need to update')
-            return
-
-        _record = dict()
-        _record = copy.deepcopy(asset)
-        # update owner and update timestamp
-        _record['publicKey'][0]['owner'] = event['args']['owner']
-        _record['updated'] = get_timestamp()
-        # save the current event info
-        _record['event'] = dict()
-        _record['event']['txid'] = txid
-        _record['event']['blockNo'] = block
-        _record['event']['from'] = address
-        _record['event']['contract'] = contract_address
-        try:
-            self._oceandb.update(_record, did)
-            return True
-        except (KeyError, Exception) as err:
-            logger.error(
-                f'encountered an error while updating the asset data to OceanDB: {str(err)}')
-            return
-
     def get_event_data(self, event):
         tx_id = event.transactionHash.hex()
         return (
-            f'did:op:{event.args.did.hex()}',
+            f'did:op:{remove_0x_prefix(event.args.dataToken)}',
             event.blockNumber,
             tx_id,
             event.address,

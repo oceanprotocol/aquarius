@@ -4,7 +4,6 @@ import os
 
 import pytest
 
-from aquarius.app.util import get_contract_address_and_abi_file
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.constants import BaseURLs
 from aquarius.run import app
@@ -37,11 +36,8 @@ def client():
 def events_object():
     global EVENTS_INSTANCE
     if not EVENTS_INSTANCE:
-        contract_address, abi_file = get_contract_address_and_abi_file()
         EVENTS_INSTANCE = EventsMonitor(
             os.environ.get('EVENTS_RPC', False),
-            contract_address,
-            abi_file,
             app.config['CONFIG_FILE']
         )
     return EVENTS_INSTANCE
