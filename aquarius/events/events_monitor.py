@@ -8,6 +8,7 @@ import lzma as Lzma
 import json
 from threading import Thread
 
+from eth_utils import remove_0x_prefix
 from web3 import Web3
 from eth_account import Account
 import eth_keys
@@ -48,34 +49,32 @@ def get_web3_connection_provider(network_url):
 class EventsMonitor:
     _instance = None
 
-    def __init__(self, rpc, contract_address, abi_file_path, config_file):
+    def __init__(self, rpc, metadata_contract, config_file):
         self._oceandb = OceanDb(config_file).plugin
         self._rpc = rpc
+
         self._web3 = Web3(get_web3_connection_provider(rpc))
-        self._contract_address = contract_address
+        self._contract = metadata_contract
+        self._contract_address = self._contract.address
+
         self._ecies_private_key = os.getenv('EVENTS_ECIES_PRIVATE_KEY', '')
         self._ecies_account = None
         if self._ecies_private_key:
             self._ecies_account = Account.from_key(self._ecies_private_key)
 
-        print(f'EventsMonitor: using DDO contact address {contract_address}, rpc {rpc}, abi file {abi_file_path}.')
+        print(f'EventsMonitor: using Metadata contact address {self._contract_address}, rpc {rpc}.')
         self._monitor_is_on = False
         try:
-            self._monitor_sleep_time = os.getenv(
-                'OCN_EVENTS_MONITOR_QUITE_TIME', 3)
+            self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', 3)
         except ValueError:
             self._monitor_sleep_time = 3
+
         self._monitor_sleep_time = max(self._monitor_sleep_time, 3)
-        if not self._web3.isAddress(contract_address):
+        if not self._contract or not self._web3.isAddress(self._contract_address):
             logger.error(
-                f"Contract address {contract_address} is not a valid address. Events thread not starting")
+                f"Contract address {self._contract_address} is not a valid address. Events thread not starting")
             self._contract = None
             return
-
-        with open(abi_file_path) as f:
-            data = json.load(f)
-            self._contract = self._web3.eth.contract(
-                address=contract_address, abi=data['abi'])
 
     @property
     def is_monitor_running(self):
@@ -267,7 +266,7 @@ class EventsMonitor:
     def get_event_data(self, event):
         tx_id = event.transactionHash.hex()
         return (
-            f'did:op:{event.args.dataToken}',
+            f'did:op:{remove_0x_prefix(event.args.dataToken)}',
             event.blockNumber,
             tx_id,
             event.address,

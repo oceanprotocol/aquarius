@@ -8,22 +8,22 @@ from web3 import Web3
 
 import eth_keys
 
-from aquarius.events.constants import EVENT_METADATA_CREATED
+from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from tests.helpers import (
-    web3,
+    get_web3,
     new_ddo,
     test_account1,
     send_create_update_tx,
-    test_account2,
     ecies_account,
     get_ddo,
     get_event,
-    transfer_ownership)
+)
 
 
 def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=None):
-    block = web3().eth.blockNumber
-    _ddo = new_ddo(test_account1.address)
+    web3 = get_web3()
+    block = web3.eth.blockNumber
+    _ddo = new_ddo(test_account1, web3, f'dt.{block}')
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))
     data = Web3.toBytes(text=ddo_string)
@@ -56,7 +56,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
         data = ecies.encrypt(key.public_key.to_hex(), data)
 
     send_create_update_tx('update', did, bytes([_flags]), data, test_account1)
-    get_event('DDOUpdated', block, did, 30)
+    get_event(EVENT_METADATA_UPDATED, block, did, 30)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did
@@ -75,8 +75,8 @@ def test_publish_and_update_ddo_with_lzma_and_ecies(client, base_ddo_url, events
     run_test(client, base_ddo_url, events_object, 0, ecies_account.privateKey)
 
 
-def test_publish_and_transfer_ownership(client, base_ddo_url, events_object):
-    _ddo = new_ddo(test_account1.address)
+def test_publish(client, base_ddo_url, events_object):
+    _ddo = new_ddo(test_account1, get_web3(), f'dt.0')
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))
     data = Web3.toBytes(text=ddo_string)
@@ -84,9 +84,3 @@ def test_publish_and_transfer_ownership(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did
-
-    transfer_ownership(did, test_account2.address, test_account1)
-    events_object.process_current_blocks()
-    published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo['id'] == did
-    assert published_ddo['publicKey'][0]['owner'] == test_account2.address

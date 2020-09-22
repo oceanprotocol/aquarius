@@ -1,14 +1,14 @@
-import hashlib
 import json
 import os
 import time
 import uuid
 
+from eth_utils import remove_0x_prefix, add_0x_prefix
 from web3 import Web3
 from eth_account import Account
 from web3.datastructures import AttributeDict
 
-from aquarius.app.util import get_contract_address_and_abi_file
+from aquarius.events.util import deploy_datatoken, get_contract_address_and_abi_file
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from tests.ddos.ddo_event_sample import ddo_event_sample
 
@@ -21,36 +21,35 @@ test_account2 = Account.from_key(os.environ.get('EVENTS_TESTS_PRIVATE_KEY2', Non
 ecies_account = Account.from_key(os.environ.get('EVENTS_ECIES_PRIVATE_KEY', None))
 
 
-def web3():
+def get_web3():
     return WEB3_INSTANCE
 
 
-def ddo_contract():
+def get_metadata_contract():
     contract_address, abi_file = get_contract_address_and_abi_file()
     abi_json = json.load(open(abi_file))
-    return web3().eth.contract(address=contract_address, abi=abi_json['abi'])
+    return get_web3().eth.contract(address=contract_address, abi=abi_json['abi'])
 
 
 def prepare_did(text):
     prefix = 'did:op:'
     if text.startswith(prefix):
         text = text[len(prefix):]
-    return text
+    return add_0x_prefix(text)
 
 
-def new_did(seed):
-    _id = hashlib.sha3_256(
-        (json.dumps(seed).replace(" ", "")).encode('utf-8')).hexdigest()
-    return f'did:op:{_id}'
+def new_did(dt_address):
+    return f'did:op:{remove_0x_prefix(dt_address)}'
 
 
-def new_ddo(address, ddo=None):
+def new_ddo(account, web3, name, ddo=None):
     _ddo = ddo if ddo else ddo_event_sample.copy()
     if 'publicKey' not in _ddo or not _ddo['publicKey']:
         _ddo['publicKey'] = [{'owner': ''}]
-    _ddo['publicKey'][0]['owner'] = address
+    _ddo['publicKey'][0]['owner'] = account.address
     _ddo['random'] = str(uuid.uuid4())
-    _ddo['id'] = new_did(str(uuid.uuid4()))
+    dt_address = deploy_datatoken(web3, account.key, name, name, account.address)
+    _ddo['id'] = new_did(dt_address)
     return AttributeDict(_ddo)
 
 
@@ -71,7 +70,7 @@ def get_ddo(client, base_ddo_url, did):
 def get_event(event_name, block, did, timeout=45):
     did = prepare_did(did)
     start = time.time()
-    f = getattr(ddo_contract().events, event_name)().createFilter(fromBlock=block)
+    f = getattr(get_metadata_contract().events, event_name)().createFilter(fromBlock=block)
     logs = []
     while not logs:
         logs = f.get_all_entries()
@@ -85,16 +84,17 @@ def get_event(event_name, block, did, timeout=45):
     assert logs, 'no events found {event_name}, block {block}.'
     _log = None
     for log in logs:
-        if log.args.did.hex() == did:
+        if log.args.dataToken == did:
             _log = log
             break
+    assert _log, f'event log not found: {event_name}, {block}, {did}'
     return _log
 
 
 def send_tx(fn_name, tx_args, account):
-    web3().eth.defaultAccount = account.address
-    txn_hash = getattr(ddo_contract().functions, fn_name)(*tx_args).transact()
-    txn_receipt = web3().eth.waitForTransactionReceipt(txn_hash)
+    get_web3().eth.defaultAccount = account.address
+    txn_hash = getattr(get_metadata_contract().functions, fn_name)(*tx_args).transact()
+    txn_receipt = get_web3().eth.waitForTransactionReceipt(txn_hash)
     return txn_receipt
 
 
@@ -106,15 +106,6 @@ def send_create_update_tx(name, did, flags, data, account):
     print('*****************************************************************************\r\n')
     r = send_tx(name, (did, flags, data), account)
     event_name = EVENT_METADATA_CREATED if name == 'create' else EVENT_METADATA_UPDATED
-    events = getattr(ddo_contract().events, event_name)().processReceipt(r)
+    events = getattr(get_metadata_contract().events, event_name)().processReceipt(r)
     print(f'got {event_name} logs: {events}')
     return r
-
-
-def transfer_ownership(did, new_owner, account):
-    print(f'transfer_ownership {did} to {new_owner}')
-    did = prepare_did(did)
-    web3().eth.defaultAccount = account.address
-    txn_hash = ddo_contract().functions.transferOwnership(did, new_owner).transact()
-    txn_receipt = web3().eth.waitForTransactionReceipt(txn_hash)
-    return txn_receipt
