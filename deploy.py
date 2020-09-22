@@ -11,7 +11,7 @@ def main():
     rpc = 'http://127.0.0.1:8545'
     web3 = Web3(Web3.HTTPProvider(os.getenv('EVENTS_RPC', rpc)))
     private_key = os.getenv('EVENTS_TESTS_PRIVATE_KEY')
-    artifacts_path = os.getenv('ARTIFACTS_PATH', './aquarius/artifacts')
+    artifacts_path = os.getenv('DEPLOY_ARTIFACTS_PATH', './artifacts')
     ddo_file_path = os.path.join(artifacts_path, 'Metadata.json')
     address_file = os.path.join(artifacts_path, 'address.json')
     data = json.load(open(ddo_file_path))
