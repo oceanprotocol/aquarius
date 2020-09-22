@@ -20,6 +20,7 @@ install:
 
 script:
   - wget -q --waitretry=10 --wait=10 --retry-connrefused -T 145 -O - http://127.0.0.1:9200
+  - docker pull trufflesuite/ganache-cli:latest
   - docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest --mnemonic "taxi music thumb unique chat sand crew more leg another off lamp"
   - sleep 5
   - tox
