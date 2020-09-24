@@ -13,6 +13,8 @@ from tests.helpers import (
     get_web3,
     new_ddo,
     test_account1,
+    test_account2,
+    test_account3,
     send_create_update_tx,
     ecies_account,
     get_ddo,
@@ -84,3 +86,14 @@ def test_publish(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did
+
+
+def test_publish_unallowed_address(client, base_ddo_url, events_object):
+    _ddo = new_ddo(test_account3, get_web3(), f'dt.0')
+    did = _ddo.id
+    ddo_string = json.dumps(dict(_ddo))
+    data = Web3.toBytes(text=ddo_string)
+    send_create_update_tx('create', did, bytes([0]), data, test_account3)
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo == None

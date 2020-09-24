@@ -65,7 +65,7 @@ class EventsMonitor:
         self._ecies_account = None
         if self._ecies_private_key:
             self._ecies_account = Account.from_key(self._ecies_private_key)
-
+        self._allowed_publishers = json.loads(os.getenv('ALLOWED_PUBLISHERS', None))
         print(f'EventsMonitor: using Metadata contact address {self._contract_address}, rpc {rpc}.')
         self._monitor_is_on = False
         try:
@@ -156,7 +156,18 @@ class EventsMonitor:
 
     def processNewDDO(self, event):
         did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
-        debug_log(f'Process new DDO, did from event log:{did}')
+        logger.info(f'Process new DDO, did from event log:{did}, sender:{sender_address}')
+        if self._allowed_publishers is not None:
+            if isinstance(self._allowed_publishers, list):
+                if len(self._allowed_publishers)>0:
+                    allowed = False
+                    for address in self._allowed_publishers:
+                        if compare_eth_addresses(address, sender_address, logger):
+                            allowed = True
+                            break
+                    if allowed == False:
+                        logger.warning(f'Sender not in ALLOWED_PUBLISHERS')
+                        return 
         try:
             self._oceandb.read(did)
             logger.warning(f'{did} is already registered')
