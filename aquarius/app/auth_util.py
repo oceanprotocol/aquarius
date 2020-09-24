@@ -28,6 +28,10 @@ def get_signer_address(message, signature, logger):
         return None
 
 
+def sanitize_addresses(addresses):
+    return [Web3.toChecksumAddress(a) for a in addresses if Web3.isAddress(a)]
+
+
 def compare_eth_addresses(address, checker, logger):
     """
     Compare two addresses and return TRUE if there is a match
