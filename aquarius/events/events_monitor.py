@@ -6,6 +6,7 @@ import os
 import time
 import lzma as Lzma
 import json
+from json import JSONDecodeError
 from threading import Thread
 
 from eth_utils import remove_0x_prefix
@@ -22,7 +23,7 @@ from aquarius.app.util import (
     validate_data,
     get_sender_from_txid,
     init_new_ddo)
-from aquarius.app.auth_util import compare_eth_addresses
+from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
 from plecos.plecos import (
     is_valid_dict_remote,
     list_errors_dict_remote,
@@ -65,7 +66,15 @@ class EventsMonitor:
         self._ecies_account = None
         if self._ecies_private_key:
             self._ecies_account = Account.from_key(self._ecies_private_key)
-        self._allowed_publishers = json.loads(os.getenv('ALLOWED_PUBLISHERS', None))
+
+        allowed_publishers = set()
+        try:
+            allowed_publishers = set(json.loads(os.getenv('ALLOWED_PUBLISHERS', [])))
+        except (JSONDecodeError, TypeError, Exception) as e:
+            logger.error(f'Reading list of allowed publishers failed: {e}')
+
+        self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
+
         print(f'EventsMonitor: using Metadata contact address {self._contract_address}, rpc {rpc}.')
         self._monitor_is_on = False
         try:
@@ -154,20 +163,20 @@ class EventsMonitor:
         )
         return _filter.get_all_entries()
 
+    def is_publisher_allowed(self, publisher_address):
+        if not self._allowed_publishers:
+            return True
+
+        publisher_address = self._web3.toChecksumAddress(publisher_address)
+        return publisher_address in self._allowed_publishers
+
     def processNewDDO(self, event):
         did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
         logger.info(f'Process new DDO, did from event log:{did}, sender:{sender_address}')
-        if self._allowed_publishers is not None:
-            if isinstance(self._allowed_publishers, list):
-                if len(self._allowed_publishers)>0:
-                    allowed = False
-                    for address in self._allowed_publishers:
-                        if compare_eth_addresses(address, sender_address, logger):
-                            allowed = True
-                            break
-                    if allowed == False:
-                        logger.warning(f'Sender not in ALLOWED_PUBLISHERS')
-                        return 
+        if not self.is_publisher_allowed(sender_address):
+            logger.warning(f'Sender {sender_address} is not in ALLOWED_PUBLISHERS.')
+            return
+
         try:
             self._oceandb.read(did)
             logger.warning(f'{did} is already registered')
