@@ -24,8 +24,12 @@ def get_signer_address(message, signature, logger):
         logger.debug('got %s as address_recovered' % address_recovered)
         return address_recovered
     except Exception as e:
-        logger.error(e)
+        logger.error(f'get_signer_address: {e}')
         return None
+
+
+def sanitize_addresses(addresses):
+    return [Web3.toChecksumAddress(a) for a in addresses if Web3.isAddress(a)]
 
 
 def compare_eth_addresses(address, checker, logger):
