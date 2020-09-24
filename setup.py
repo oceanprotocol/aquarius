@@ -44,7 +44,7 @@ dev_requirements = [
 ]
 
 test_requirements = [
-    'plecos==1.0.2',
+    'plecos==1.1.0',
     'Flask==1.1.2',
     'web3==5.12.1',
     'codacy-coverage==1.3.11',
