@@ -48,7 +48,7 @@ test_requirements = [
     'Flask==1.1.2',
     'web3==5.12.1',
     'codacy-coverage==1.3.11',
-    'coverage==5.2.1',
+    'coverage==5.3',
     'mccabe==0.6.1',
     'pylint==2.6.0',
     'pytest',
