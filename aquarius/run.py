@@ -2,6 +2,7 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 import configparser
+import os
 
 from elasticsearch import Elasticsearch
 from flask import jsonify
@@ -13,6 +14,7 @@ from aquarius.app.assets import assets
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.myapp import app
+from aquarius.events.events_monitor import EventsMonitor
 
 config = Config(filename=app.config['CONFIG_FILE'])
 aquarius_url = config.aquarius_url
@@ -77,6 +79,15 @@ def get_status():
             return 'Not connected to any database', 400
     else:
         return 'Not connected to any database', 400
+
+
+# Start events monitoring if required
+if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
+    monitor = EventsMonitor(
+        os.environ.get('EVENTS_RPC', False),
+        app.config['CONFIG_FILE']
+    )
+    monitor.start_events_monitor()
 
 
 if __name__ == '__main__':
