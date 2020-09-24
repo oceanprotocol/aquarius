@@ -5,8 +5,6 @@
 > 🐋 Aquarius provides an off-chain database store for metadata about data assets.
 > It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
 
-Note: Aquarius was formerly known as the Provider.
-
 **_"Aquarius is a constellation of the zodiac, situated between Capricornus and Pisces. Its name is Latin for "water-carrier" or "cup-carrier. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path)."_**
 
 [![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/10c8fddd5e8547c29de4906410a16ae7.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors)
@@ -23,7 +21,7 @@ If you're developing a marketplace, you'll want to run Aquarius and several othe
 
 ## For Aquarius API Users
 
-The Ocean Protocol docs site has [documentation about the Aquarius API](https://docs.oceanprotocol.com/references/aquarius/). Note that it shows the docs for the version currently deployed with the Nile Testnet. To get documentation for other versions, there is a "past versions" link at the top of the page.
+[Here](https://docs.oceanprotocol.com/references/aquarius/) is API documentation. It shows docs for the version currently deployed with the Nile Testnet. For other versions, see "past versions" link at the top of the page.
 
 If you have Aquarius running locally, you can find API documentation at
 [http://localhost:5000/api/v1/docs](http://localhost:5000/api/v1/docs) or maybe
@@ -33,14 +31,14 @@ Tip 1: If that doesn't work, then try `https`.
 
 Tip 2: If your browser shows the Swagger header across the top but says "Failed to load spec." then we found that, in Chrome, if we went to `chrome://flags/#allow-insecure-localhost` and toggled it to Enabled, then relaunched Chrome, it worked.
 
-If you want to know more about the ontology of the metadata, you can find all the information in
+More details about ontology of the metadata are at
 [OEP-8](https://github.com/oceanprotocol/OEPs/tree/master/8).
 
 ## For Aquarius Developers
 
 ### General Ocean Dev Docs
 
-For information about Ocean's Python code style and related "meta" developer docs, see [the oceanprotocol/dev-ocean repository](https://github.com/oceanprotocol/dev-ocean).
+Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
 
 ### Running as a Docker container
 
@@ -155,7 +153,7 @@ The `bumpversion.sh` script helps bump the project version. You can execute the 
 
 ## License
 
-Copyright 2018 Ocean Protocol Foundation Ltd.
+Copyright 2020 Ocean Protocol Foundation Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

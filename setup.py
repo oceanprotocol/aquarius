@@ -28,7 +28,7 @@ install_requirements = [
     'PyYAML==5.3.1',
     'pytz==2020.1',
     'plecos==1.1.0',
-    'web3==5.11.1',
+    'web3==5.12.1',
     'eth-account==0.5.2',
     'eciespy'
 ]
@@ -38,19 +38,19 @@ setup_requirements = ['pytest-runner==5.2', ]
 dev_requirements = [
     'bumpversion==0.6.0',
     'pkginfo==1.5.0.1',
-    'twine==3.1.1',
+    'twine==3.2.0',
     # not virtualenv: devs should already have it before pip-installing
-    'watchdog==0.10.2',
+    'watchdog==0.10.3',
 ]
 
 test_requirements = [
     'plecos==1.0.2',
     'Flask==1.1.2',
-    'web3==5.11.1',
+    'web3==5.12.1',
     'codacy-coverage==1.3.11',
-    'coverage==5.1',
+    'coverage==5.2.1',
     'mccabe==0.6.1',
-    'pylint==2.5.3',
+    'pylint==2.6.0',
     'pytest',
     'tox',
 ]
