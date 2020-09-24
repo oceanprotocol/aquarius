@@ -34,6 +34,10 @@ loggers:
         level: ERROR
         handlers: [console]
         propagate: no
+    elasticsearch:
+        level: ERROR
+        handlers: [console]
+        propagate: no
 
 root:
     level: INFO
