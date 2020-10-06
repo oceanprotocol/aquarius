@@ -10,7 +10,7 @@ from json import JSONDecodeError
 from threading import Thread
 
 from eth_utils import remove_0x_prefix
-from web3 import Web3
+from ocean_lib.config_provider import ConfigProvider
 from eth_account import Account
 import eth_keys
 import ecies
@@ -30,7 +30,7 @@ from plecos.plecos import (
 )
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
-from aquarius.events.http_provider import CustomHTTPProvider
+from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
@@ -38,24 +38,15 @@ logger = logging.getLogger(__name__)
 debug_log = logger.debug
 
 
-def get_web3_connection_provider(network_url):
-    if network_url.startswith('http'):
-        provider = CustomHTTPProvider(network_url)
-    else:
-        assert network_url.startswith('ws'), f'network url must start with either https or wss'
-        provider = Web3.WebsocketProvider(network_url)
-
-    return provider
-
-
 class EventsMonitor:
     _instance = None
 
-    def __init__(self, rpc, config_file, metadata_contract=None):
+    def __init__(self, web3, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
-        self._rpc = rpc
 
-        self._web3 = Web3(get_web3_connection_provider(rpc))
+        self._web3 = web3
+        self._updater = MetadataUpdater(self._oceandb, self._web3, ConfigProvider.get_config())
+
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
 
@@ -65,17 +56,19 @@ class EventsMonitor:
         self._ecies_private_key = os.getenv('EVENTS_ECIES_PRIVATE_KEY', '')
         self._ecies_account = None
         if self._ecies_private_key:
-            self._ecies_account = Account.from_key(self._ecies_private_key)
+            self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
 
         allowed_publishers = set()
         try:
-            allowed_publishers = set(json.loads(os.getenv('ALLOWED_PUBLISHERS', [])))
+            publishers_str = os.getenv('ALLOWED_PUBLISHER', '')
+            allowed_publishers = set(json.loads(publishers_str)) if publishers_str else set()
         except (JSONDecodeError, TypeError, Exception) as e:
-            logger.error(f'Reading list of allowed publishers failed: {e}')
+            logger.error(f'Reading list of allowed publishers failed: {e}\n'
+                         f'ALLOWED_PUBLISHER is set to "{os.getenv("ALLOWED_PUBLISHER")}"')
 
         self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
 
-        print(f'EventsMonitor: using Metadata contact address {self._contract_address}, rpc {rpc}.')
+        print(f'EventsMonitor: using Metadata contract address {self._contract_address}.')
         self._monitor_is_on = False
         try:
             self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', 3)
@@ -96,14 +89,17 @@ class EventsMonitor:
     def start_events_monitor(self):
         if self._monitor_is_on:
             return
+
         if self._contract_address is None:
             logger.error(
                 'Cannot start events monitor without a valid contract address')
             return
+
         if self._contract is None:
             logger.error(
                 'Cannot start events monitor without a valid contract object')
             return
+
         logger.info(
             f'Starting the events monitor on contract {self._contract_address}.')
         t = Thread(
@@ -112,9 +108,12 @@ class EventsMonitor:
         )
         self._monitor_is_on = True
         t.start()
+        self._updater.start()
 
     def stop_monitor(self):
         self._monitor_is_on = False
+        if self._updater.is_running():
+            self._updater.stop()
 
     def run_monitor(self):
         while True:
@@ -210,7 +209,7 @@ class EventsMonitor:
             errors = list_errors(
                 list_errors_dict_remote,
                 get_metadata_from_services(_record['service'])['attributes'])
-            logger.error(errors)
+            logger.error(f'New ddo has validation errors: {errors}')
             return False
 
         try:
@@ -275,7 +274,7 @@ class EventsMonitor:
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
             errors = list_errors(list_errors_dict_remote, get_metadata_from_services(
                 _record['service'])['attributes'])
-            logger.error(errors)
+            logger.error(f'ddo update has validation errors: {errors}')
             return
 
         try:

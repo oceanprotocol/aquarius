@@ -3,8 +3,48 @@ import os
 import time
 from pathlib import Path
 
-from web3.exceptions import TransactionNotFound
+from ocean_lib.ocean.util import get_contracts_addresses
+from ocean_lib.web3_internal.web3helper import Web3Helper
+from web3 import Web3
 
+from aquarius.events.http_provider import CustomHTTPProvider
+
+
+def get_web3_connection_provider(network_url):
+    if network_url.startswith('http'):
+        provider = CustomHTTPProvider(network_url)
+    else:
+        assert network_url.startswith('ws'), f'network url must start with either https or wss'
+        provider = Web3.WebsocketProvider(network_url)
+
+    return provider
+
+
+def get_network_name():
+    try:
+        network_name = Web3Helper.get_network_name().lower()
+    except ValueError:
+        network = os.getenv('EVENTS_RPC')
+        if network.startswith('wss://'):
+            network_name = network[len('wss://'):].split('.')[0]
+        elif not network.startswith('http'):
+            network_name = network
+        else:
+            network_name = os.getenv('NETWORK_NAME')
+
+        if not network_name:
+            raise AssertionError(f'Cannot figure out the network name.')
+
+    return network_name
+
+
+def prepare_contracts(web3, config):
+    addresses = get_contracts_addresses(get_network_name(), config)
+    if not addresses:
+        raise AssertionError(f'Cannot find contracts addresses for network {get_network_name()}')
+
+    addresses = {name: web3.toChecksumAddress(a) for name, a in addresses.items()}
+    return addresses
 
 def deploy_contract(w3, _json, private_key, *args):
     account = w3.eth.account.privateKeyToAccount(private_key)
@@ -18,7 +58,7 @@ def deploy_contract(w3, _json, private_key, *args):
     try:
         address = w3.eth.getTransactionReceipt(tx_hash)['contractAddress']
         return address
-    except TransactionNotFound:
+    except Exception:
         print(f'tx not found: {tx_hash.hex()}')
         raise
 
@@ -42,7 +82,8 @@ def deploy_datatoken(web3, private_key, name, symbol, minter_address):
 
 
 def get_artifacts_path():
-    return os.environ.get('ARTIFACTS_PATH', './aquarius/artifacts')
+    path = os.environ.get('ARTIFACTS_PATH', './aquarius/artifacts')
+    return Path(path).expanduser().resolve()
 
 
 def get_contract_address_and_abi_file():

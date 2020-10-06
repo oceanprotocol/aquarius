@@ -8,11 +8,15 @@ from elasticsearch import Elasticsearch
 from flask import jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
+from ocean_lib.config_provider import ConfigProvider
+from ocean_lib.web3_internal.contract_handler import ContractHandler
+from ocean_lib.web3_internal.web3_provider import Web3Provider
 from pymongo import MongoClient
 
 from aquarius.app.assets import assets
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
+from aquarius.events.util import get_artifacts_path
 from aquarius.myapp import app
 from aquarius.events.events_monitor import EventsMonitor
 
@@ -83,8 +87,15 @@ def get_status():
 
 # Start events monitoring if required
 if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
+    ConfigProvider.set_config(config)
+    from ocean_lib.ocean.util import get_web3_connection_provider
+
+    rpc = os.environ.get('EVENTS_RPC', '')
+    Web3Provider.init_web3(provider=get_web3_connection_provider(rpc))
+    ContractHandler.set_artifacts_path(get_artifacts_path())
+
     monitor = EventsMonitor(
-        os.environ.get('EVENTS_RPC', False),
+        Web3Provider.get_web3(),
         app.config['CONFIG_FILE']
     )
     monitor.start_events_monitor()

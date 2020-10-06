@@ -10,8 +10,8 @@ from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 
 class Dao(object):
 
-    def __init__(self, config_file=None):
-        self.oceandb = OceanDb(config_file).plugin
+    def __init__(self, oceandb=None, config_file=None):
+        self.oceandb = oceandb or OceanDb(config_file).plugin
 
     def get_all_listed_assets(self):
         assets = self.oceandb.list()
@@ -25,7 +25,7 @@ class Dao(object):
                     asset_with_id.append(self.oceandb.read(asset['id']))
             except Exception as e:
                 logging.error(f'Dao.get_all_listed_assets: {str(e)}')
-                pass
+
         return asset_with_id
 
     def get_all_assets(self):
@@ -36,7 +36,7 @@ class Dao(object):
                 asset_with_id.append(self.oceandb.read(asset['id']))
             except Exception as e:
                 logging.error(f'Dao.get_all_assets: {str(e)}')
-                pass
+
         return asset_with_id
 
     def get(self, asset_id):

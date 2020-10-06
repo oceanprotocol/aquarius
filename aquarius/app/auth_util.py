@@ -1,7 +1,6 @@
 import os
 
-from eth_account import Account
-from eth_account.messages import encode_defunct
+from ocean_lib.web3_internal.web3helper import Web3Helper
 from web3 import Web3
 
 
@@ -14,14 +13,9 @@ def get_signer_address(message, signature, logger):
     :return: Address or None in case of error
     """
     try:
-        logger.debug('got %s as a message' % message)
-        signable_message = encode_defunct(text=message)
-        logger.debug(f'got {signable_message} as a message_hash')
-        address_recovered = Account.recover_message(
-            signable_message=signable_message,
-            signature=signature
-        )
-        logger.debug('got %s as address_recovered' % address_recovered)
+        logger.debug(f'got "{message}" as a message')
+        address_recovered = Web3Helper.personal_ec_recover(message, signature)
+        logger.debug(f'got "{address_recovered}" as address_recovered')
         return address_recovered
     except Exception as e:
         logger.error(f'get_signer_address: {e}')

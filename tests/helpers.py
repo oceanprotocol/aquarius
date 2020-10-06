@@ -16,10 +16,10 @@ rpc = os.environ.get('EVENTS_RPC', None)
 WEB3_INSTANCE = Web3(Web3.HTTPProvider(rpc))
 
 
-test_account1 = Account.from_key(os.environ.get('EVENTS_TESTS_PRIVATE_KEY', None))
-test_account2 = Account.from_key(os.environ.get('EVENTS_TESTS_PRIVATE_KEY2', None))
-test_account3 = Account.from_key(os.environ.get('EVENTS_TESTS_PRIVATE_KEY3', None))
-ecies_account = Account.from_key(os.environ.get('EVENTS_ECIES_PRIVATE_KEY', None))
+test_account1 = Account.privateKeyToAccount(os.environ.get('EVENTS_TESTS_PRIVATE_KEY', None))
+test_account2 = Account.privateKeyToAccount(os.environ.get('EVENTS_TESTS_PRIVATE_KEY2', None))
+test_account3 = Account.privateKeyToAccount(os.environ.get('EVENTS_TESTS_PRIVATE_KEY3', None))
+ecies_account = Account.privateKeyToAccount(os.environ.get('EVENTS_ECIES_PRIVATE_KEY', None))
 
 
 def get_web3():
@@ -43,7 +43,7 @@ def new_ddo(account, web3, name, ddo=None):
         _ddo['publicKey'] = [{'owner': ''}]
     _ddo['publicKey'][0]['owner'] = account.address
     _ddo['random'] = str(uuid.uuid4())
-    dt_address = deploy_datatoken(web3, account.key, name, name, account.address)
+    dt_address = deploy_datatoken(web3, account.privateKey, name, name, account.address)
     _ddo['id'] = new_did(dt_address)
     return AttributeDict(_ddo)
 
