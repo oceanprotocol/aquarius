@@ -1,26 +1,20 @@
-FROM python:3.6-alpine
+FROM ubuntu:18.04
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
 ARG VERSION
-
-RUN apk add --no-cache --update\
-    build-base \
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
     gcc \
-    gettext\
-    gmp \
-    gmp-dev \
-    libffi-dev \
-    openssl-dev \
-    py-pip \
-    python3 \
-    python3-dev \
-  && pip install virtualenv
+    python3.8 \
+    python3-pip \
+    python3.8-dev \
+    gettext-base
 
 COPY . /aquarius
 WORKDIR /aquarius
 
-# Only install install_requirements, not dev_ or test_requirements
-RUN pip install .
+RUN python3.8 -m pip install setuptools
+RUN python3.8 -m pip install .
 
 # config.ini configuration file variables
 ENV DB_MODULE='mongodb'
