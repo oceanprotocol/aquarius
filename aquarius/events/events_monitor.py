@@ -212,6 +212,9 @@ class EventsMonitor:
         _record['event']['blockNo'] = block
         _record['event']['from'] = sender_address
         _record['event']['contract'] = contract_address
+        _record['dtBalance'] = 0.0
+        _record['OceanBalance'] = 0.0
+        _record['dtPrice'] = 0.0
 
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
             errors = list_errors(
