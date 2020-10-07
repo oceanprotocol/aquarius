@@ -38,8 +38,10 @@ class MetadataUpdater:
         self._OCEAN = self._checksum_ocean.lower()
 
         self.bfactory_block = int(os.getenv('BFACTORY_BLOCK', 0))
+        self._do_first_update = True
         try:
             self.get_last_processed_block()
+            self._do_first_update = False
         except Exception:
             self.store_last_processed_block(self.bfactory_block)
 
@@ -82,7 +84,9 @@ class MetadataUpdater:
         self._is_on = False
 
     def run(self):
-        self.do_update()
+        if self._do_first_update:
+            self.do_update()
+
         while True:
             try:
                 if not self._is_on:
@@ -150,7 +154,7 @@ class MetadataUpdater:
                     addresses.extend([(parsed_log.args.get(arg, ''), parsed_log.address) for arg in args])
                     # all_logs.append(parsed_log)
 
-        addresses_and_pools = [(a, pool) for (a, pool) in addresses if a and a.lower() != self._OCEAN]
+        addresses_and_pools = [(a, pool) if a and a.lower() != self._OCEAN else ('', pool) for (a, pool) in addresses]
         return addresses_and_pools
 
     def get_datatoken_pools(self, dt_address, from_block=0, to_block='latest'):
@@ -267,8 +271,15 @@ class MetadataUpdater:
     def update_dt_assets(self, dt_address_pool_list):
         did_prefix = 'did:op:'
         dao = Dao(oceandb=self._oceandb)
-        dt_to_pools = {a: [] for a, p in dt_address_pool_list}
+        _dt_address_pool_list = []
         for address, pool_address in dt_address_pool_list:
+            if not address:
+                address = BPool(pool_address).getCurrentTokens()[0]
+
+            _dt_address_pool_list.append((address, pool_address))
+
+        dt_to_pools = {a: [] for a, p in _dt_address_pool_list}
+        for address, pool_address in _dt_address_pool_list:
             dt_to_pools[address].append(pool_address)
 
         for address, pools in dt_to_pools.items():
@@ -297,6 +308,7 @@ class MetadataUpdater:
 
         except Exception as e:
             logging.error(f'process_pool_events: {e}')
+            import traceback; traceback.print_exc()
 
         finally:
             if ok:
