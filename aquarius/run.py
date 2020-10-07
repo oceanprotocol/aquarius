@@ -8,6 +8,7 @@ from elasticsearch import Elasticsearch
 from flask import jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
+from ocean_lib.config import Config as OceanConfig
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.web3_internal.contract_handler import ContractHandler
 from ocean_lib.web3_internal.web3_provider import Web3Provider
@@ -87,7 +88,8 @@ def get_status():
 
 # Start events monitoring if required
 if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
-    ConfigProvider.set_config(config)
+    _config = OceanConfig(app.config['CONFIG_FILE'])
+    ConfigProvider.set_config(_config)
     from ocean_lib.ocean.util import get_web3_connection_provider
 
     rpc = os.environ.get('EVENTS_RPC', '')

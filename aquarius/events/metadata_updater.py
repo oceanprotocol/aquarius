@@ -25,6 +25,9 @@ class MetadataUpdater:
 
         self._addresses = prepare_contracts(self._web3, self._config)
         self._checksum_ocean = self._addresses.get('Ocean')
+        logger.debug(f'Ocean token address: {self._checksum_ocean}, \n'
+                     f'all deployed addresses: {self._addresses.items()}')
+        assert self._checksum_ocean, f'Ocean token address is not found: addresses={self._addresses.keys()}'
         self._OCEAN = self._checksum_ocean.lower()
 
         self._last_block = int(os.getenv('LAST_POOL_BLOCK', 0))
@@ -32,7 +35,7 @@ class MetadataUpdater:
             self._last_block = int(os.getenv('BFACTORY_BLOCK', 0))
 
         self._is_on = False
-        default_quiet_time = 60#3600
+        default_quiet_time = 3600
         try:
             self._quiet_time = os.getenv('OCN_METADATA_UPDATER_QUITE_TIME', 0)
         except ValueError:

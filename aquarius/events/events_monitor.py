@@ -60,15 +60,16 @@ class EventsMonitor:
 
         allowed_publishers = set()
         try:
-            publishers_str = os.getenv('ALLOWED_PUBLISHER', '')
+            publishers_str = os.getenv('ALLOWED_PUBLISHERS', '')
             allowed_publishers = set(json.loads(publishers_str)) if publishers_str else set()
         except (JSONDecodeError, TypeError, Exception) as e:
             logger.error(f'Reading list of allowed publishers failed: {e}\n'
                          f'ALLOWED_PUBLISHER is set to "{os.getenv("ALLOWED_PUBLISHER")}"')
 
         self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
+        logger.debug(f'allowed publishers: {self._allowed_publishers}')
 
-        print(f'EventsMonitor: using Metadata contract address {self._contract_address}.')
+        logger.debug(f'EventsMonitor: using Metadata contract address {self._contract_address}.')
         self._monitor_is_on = False
         try:
             self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', 3)
@@ -163,6 +164,7 @@ class EventsMonitor:
         return _filter.get_all_entries()
 
     def is_publisher_allowed(self, publisher_address):
+        logger.debug(f'checking allowed publishers: {publisher_address}')
         if not self._allowed_publishers:
             return True
 
