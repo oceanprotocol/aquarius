@@ -58,6 +58,12 @@ class EventsMonitor:
         if self._ecies_private_key:
             self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
 
+        self._metadata_block = int(os.getenv('METADATA_CONTRACT_BLOCK', 0))
+        try:
+            self.get_last_processed_block()
+        except Exception:
+            self.store_last_processed_block(self._metadata_block)
+
         allowed_publishers = set()
         try:
             publishers_str = os.getenv('ALLOWED_PUBLISHERS', '')

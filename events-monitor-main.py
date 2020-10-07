@@ -18,7 +18,6 @@ def run_events_monitor():
     setup_logging()
     logger.info('EventsMonitor: preparing')
     required_env_vars = [
-        'ARTIFACTS_PATH',
         'EVENTS_RPC',
         'CONFIG_FILE'
     ]
