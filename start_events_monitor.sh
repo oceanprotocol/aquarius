@@ -1,3 +1,3 @@
 #!/bin/sh
 
-python ./events-monitor-main.py
+python3.8 ./events-monitor-main.py
