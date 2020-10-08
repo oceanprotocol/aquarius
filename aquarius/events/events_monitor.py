@@ -8,6 +8,7 @@ import lzma as Lzma
 import json
 from json import JSONDecodeError
 from threading import Thread
+import traceback
 
 from eth_utils import remove_0x_prefix
 from ocean_lib.config_provider import ConfigProvider
@@ -133,6 +134,7 @@ class EventsMonitor:
             except (KeyError, Exception) as e:
                 logger.error(f'Error processing event:')
                 logger.error(e)
+                traceback.print_exc()
 
             time.sleep(self._monitor_sleep_time)
 
@@ -164,10 +166,23 @@ class EventsMonitor:
         self._oceandb.update(record, 'events_last_block')
 
     def get_event_logs(self, event_name, from_block, to_block):
-        _filter = getattr(self._contract.events, event_name)().createFilter(
-            fromBlock=from_block, toBlock=to_block
-        )
-        return _filter.get_all_entries()
+        def _get_logs(event, _from_block, _to_block):
+            _filter = event().createFilter(
+                fromBlock=_from_block, toBlock=_to_block
+            )
+            return _filter.get_all_entries()
+
+        try:
+            logs = _get_logs(getattr(self._contract.events, event_name), from_block, to_block)
+            return logs
+        except ValueError as e:
+            logger.error(f'get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.\n Retrying once more.')
+
+        try:
+            logs = _get_logs(getattr(self._contract.events, event_name), from_block, to_block)
+            return logs
+        except ValueError as e:
+            logger.error(f'get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.')
 
     def is_publisher_allowed(self, publisher_address):
         logger.debug(f'checking allowed publishers: {publisher_address}')
@@ -212,9 +227,14 @@ class EventsMonitor:
         _record['event']['blockNo'] = block
         _record['event']['from'] = sender_address
         _record['event']['contract'] = contract_address
-        _record['dtBalance'] = 0.0
-        _record['OceanBalance'] = 0.0
-        _record['dtPrice'] = 0.0
+
+        _record['price'] = {
+            'datatoken': 0.0,
+            'ocean': 0.0,
+            'value': 0.0,
+            'type': '',
+            'address': ''
+        }
 
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
             errors = list_errors(

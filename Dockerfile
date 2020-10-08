@@ -13,8 +13,10 @@ RUN apt-get update && \
 COPY . /aquarius
 WORKDIR /aquarius
 
-RUN python3.8 -m pip install setuptools
-RUN python3.8 -m pip install .
+RUN python3.8 -m pip install -U pip
+RUN pip install setuptools
+RUN pip install wheel
+RUN pip install .
 
 # config.ini configuration file variables
 ENV DB_MODULE='mongodb'

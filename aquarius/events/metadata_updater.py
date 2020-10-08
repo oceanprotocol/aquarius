@@ -2,6 +2,7 @@ import logging
 import os
 import time
 from threading import Thread
+import traceback
 
 from eth_utils import add_0x_prefix
 from eth_utils import remove_0x_prefix
@@ -145,7 +146,12 @@ class MetadataUpdater:
         # all_logs = []
         addresses = []
         for i, _filter in enumerate(filters):
-            logs = self._web3.eth.getLogs(_filter)
+            try:
+                logs = self._web3.eth.getLogs(_filter)
+            except ValueError as e:
+                logger.error(f'get_dt_addresses_from_pool_logs -> web3.eth.getLogs (filter={_filter}) failed: '
+                             f'{e}..')
+                logs = []
 
             if logs:
                 args = args_list[i]
@@ -177,16 +183,20 @@ class MetadataUpdater:
         return pools
 
     def _get_liquidity_and_price(self, pools, dt_address):
-        dt_reserve = ocn_reserve = prices = 0
+        _pool = None
+        low_price = -1
         for pool_address in pools:
             pool = BPool(pool_address)
-            dt_reserve += pool.getBalance(dt_address)
-            ocn_reserve += pool.getBalance(self._checksum_ocean)
+            price = pool.getSpotPrice(self._checksum_ocean, dt_address)
+            if low_price < 0 or price < low_price:
+                low_price = price
+                _pool = pool_address
 
-            prices += pool.getSpotPrice(self._checksum_ocean, dt_address)
-
-        price = int(prices / len(pools))
-        return dt_reserve, ocn_reserve, price
+        price = low_price
+        pool = BPool(_pool)
+        dt_reserve = pool.getBalance(dt_address)
+        ocn_reserve = pool.getBalance(self._checksum_ocean)
+        return dt_reserve, ocn_reserve, price, _pool
 
     def _get_fixedrateexchange_price(self, dt_address, owner):
         fre = FixedRateExchange(self._addresses.get(FixedRateExchange.CONTRACT_NAME))
@@ -240,6 +250,7 @@ class MetadataUpdater:
 
             dt_to_pool[dt].append(pool_address)
 
+        frexchange_address = self._addresses.get(FixedRateExchange.CONTRACT_NAME)
         for asset in self._get_all_assets():
             did = asset['id']
             if not did.startswith(did_prefix):
@@ -256,16 +267,25 @@ class MetadataUpdater:
                     continue
 
                 price = self._get_fixedrateexchange_price(_dt_address, owner)
-                asset['dtBalance'] = 0
-                asset['OceanBalance'] = 0
-                asset['dtPrice'] = from_base_18(price)
+                price_dict = {
+                    'datatoken': 0.0,
+                    'ocean': 0.0,
+                    'value': from_base_18(price),
+                    'type': 'exchange',
+                    'address': frexchange_address
+                }
 
             else:
-                dt_reserve, ocn_reserve, price = self._get_liquidity_and_price(pools, _dt_address)
-                asset['dtBalance'] = from_base_18(dt_reserve)
-                asset['OceanBalance'] = from_base_18(ocn_reserve)
-                asset['dtPrice'] = from_base_18(price)
+                dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(pools, _dt_address)
+                price_dict = {
+                    'datatoken': from_base_18(dt_reserve),
+                    'ocean': from_base_18(ocn_reserve),
+                    'value': from_base_18(price),
+                    'type': 'pool',
+                    'address': pool_address
+                }
 
+            asset['price'] = price_dict
             self._oceandb.update(asset, did)
 
     def update_dt_assets(self, dt_address_pool_list):
@@ -288,10 +308,15 @@ class MetadataUpdater:
                 asset = dao.get(did)
                 _dt_address = self._web3.toChecksumAddress(address)
 
-                dt_reserve, ocn_reserve, price = self._get_liquidity_and_price(pools, _dt_address)
-                asset['dtBalance'] = from_base_18(dt_reserve)
-                asset['OceanBalance'] = from_base_18(ocn_reserve)
-                asset['dtPrice'] = from_base_18(price)
+                dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(pools, _dt_address)
+                price_dict = {
+                    'datatoken': from_base_18(dt_reserve),
+                    'ocean': from_base_18(ocn_reserve),
+                    'value': from_base_18(price),
+                    'type': 'pool',
+                    'address': pool_address
+                }
+                asset['price'] = price_dict
 
                 self._oceandb.update(asset, did)
             except Exception as e:
@@ -308,8 +333,8 @@ class MetadataUpdater:
 
         except Exception as e:
             logging.error(f'process_pool_events: {e}')
-            import traceback; traceback.print_exc()
+            traceback.print_exc()
 
         finally:
-            if ok:
+            if ok and isinstance(block, int):
                 self.store_last_processed_block(block)
