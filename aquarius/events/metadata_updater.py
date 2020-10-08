@@ -2,8 +2,8 @@ import logging
 import os
 import time
 from threading import Thread
-import traceback
 
+import elasticsearch
 from eth_utils import add_0x_prefix
 from eth_utils import remove_0x_prefix
 from ocean_lib.models.bfactory import BFactory
@@ -126,14 +126,18 @@ class MetadataUpdater:
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}
-        self._oceandb.update(record, 'pool_events_last_block')
+        try:
+            self._oceandb.update(record, 'pool_events_last_block')
+        except elasticsearch.exceptions.RequestError as e:
+            logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
 
-    def get_dt_addresses_from_pool_logs(self, from_block, to_block='latest'):
+    def get_dt_addresses_from_pool_logs(self, from_block, to_block=None):
         contract = BPool(None)
         event_names = ['LOG_JOIN', 'LOG_EXIT', 'LOG_SWAP']
         topic0_list = [self._get_event_signature(contract, en) for en in event_names]
         args_list = [('tokenIn',), [('tokenOut',)], [('tokenIn', 'tokenOut')]]
         filters = []
+        to_block = to_block or 'latest'
         for i, event_name in enumerate(event_names):
             filters.append({
                 'fromBlock': from_block,
@@ -254,6 +258,7 @@ class MetadataUpdater:
         for asset in self._get_all_assets():
             did = asset['id']
             if not did.startswith(did_prefix):
+                logger.warning(f'skipping price info update for asset {did} because the did is invalid.')
                 continue
 
             dt_address = add_0x_prefix(did[prefix_len:])
@@ -264,6 +269,7 @@ class MetadataUpdater:
             if not pools:
                 owner = asset['proof'].get('creator')
                 if not owner or not self._web3.isAddress(owner):
+                    logger.warning(f'updating price info for datatoken {dt_address} failed, invalid owner from ddo.proof (owner={owner}).')
                     continue
 
                 price = self._get_fixedrateexchange_price(_dt_address, owner)
@@ -286,6 +292,7 @@ class MetadataUpdater:
                 }
 
             asset['price'] = price_dict
+            logger.info(f'updating price info for datatoken: {dt_address}, pools {pools}, price-info {price_dict}')
             self._oceandb.update(asset, did)
 
     def update_dt_assets(self, dt_address_pool_list):
@@ -303,6 +310,7 @@ class MetadataUpdater:
             dt_to_pools[address].append(pool_address)
 
         for address, pools in dt_to_pools.items():
+            logger.info(f'updating price info for datatoken: {address}, pools {pools}')
             did = did_prefix + remove_0x_prefix(address)
             try:
                 asset = dao.get(did)
@@ -319,21 +327,31 @@ class MetadataUpdater:
                 asset['price'] = price_dict
 
                 self._oceandb.update(asset, did)
+                logger.info(f'updated price info: dt={address}, pool={pool_address}, price={asset["price"]}')
             except Exception as e:
                 logger.error(f'updating datatoken assets price/liquidity values: {e}')
 
     def process_pool_events(self):
-        last_block = self.get_last_processed_block()
+        try:
+            last_block = self.get_last_processed_block()
+        except Exception as e:
+            logger.warning(f'exception thrown reading last_block from db: {e}')
+            last_block = 0
+
         block = self._web3.eth.blockNumber
+        if not block or not isinstance(block, int) or block <= last_block:
+            return
+
+        from_block = last_block
+        logger.debug(f'from_block:{from_block}, current_block:{block}')
         ok = False
         try:
-            dt_address_pool_list = self.get_dt_addresses_from_pool_logs(from_block=last_block+1, to_block=block)
+            dt_address_pool_list = self.get_dt_addresses_from_pool_logs(from_block=from_block, to_block=block)
             self.update_dt_assets(dt_address_pool_list)
             ok = True
 
         except Exception as e:
             logging.error(f'process_pool_events: {e}')
-            traceback.print_exc()
 
         finally:
             if ok and isinstance(block, int):

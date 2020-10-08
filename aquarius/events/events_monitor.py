@@ -8,7 +8,6 @@ import lzma as Lzma
 import json
 from json import JSONDecodeError
 from threading import Thread
-import traceback
 
 from eth_utils import remove_0x_prefix
 from ocean_lib.config_provider import ConfigProvider
@@ -36,7 +35,7 @@ from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
 
-debug_log = logger.debug
+debug_log = logger.info
 
 
 class EventsMonitor:
@@ -78,12 +77,13 @@ class EventsMonitor:
 
         logger.debug(f'EventsMonitor: using Metadata contract address {self._contract_address}.')
         self._monitor_is_on = False
+        default_sleep_time = 25
         try:
-            self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', 3)
+            self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', default_sleep_time)
         except ValueError:
-            self._monitor_sleep_time = 3
+            self._monitor_sleep_time = default_sleep_time
 
-        self._monitor_sleep_time = max(self._monitor_sleep_time, 3)
+        self._monitor_sleep_time = max(self._monitor_sleep_time, default_sleep_time)
         if not self._contract or not self._web3.isAddress(self._contract_address):
             logger.error(
                 f"Contract address {self._contract_address} is not a valid address. Events thread not starting")
@@ -134,27 +134,29 @@ class EventsMonitor:
             except (KeyError, Exception) as e:
                 logger.error(f'Error processing event:')
                 logger.error(e)
-                traceback.print_exc()
 
             time.sleep(self._monitor_sleep_time)
 
     def process_current_blocks(self):
-        current_block = self._web3.eth.blockNumber
         try:
             last_block = self.get_last_processed_block()
         except Exception as e:
             debug_log(e)
             last_block = 0
 
-        debug_log(f'Last block:{last_block}, Current:{current_block}')
-        last_block = min(last_block, current_block)
-        for event in self.get_event_logs(EVENT_METADATA_CREATED, last_block, current_block):
+        current_block = self._web3.eth.blockNumber
+        if not current_block or not isinstance(current_block, int) or current_block <= last_block:
+            return
+
+        from_block = last_block
+        debug_log(f'from_block:{from_block}, current_block:{current_block}')
+        for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, current_block):
             self.processNewDDO(event)
 
-        for event in self.get_event_logs(EVENT_METADATA_UPDATED, last_block, current_block):
+        for event in self.get_event_logs(EVENT_METADATA_UPDATED, from_block, current_block):
             self.processUpdateDDO(event)
 
-        self.store_last_processed_block(current_block + 1)
+        self.store_last_processed_block(current_block)
 
     def get_last_processed_block(self):
         last_block_record = self._oceandb.read('events_last_block')
@@ -167,6 +169,7 @@ class EventsMonitor:
 
     def get_event_logs(self, event_name, from_block, to_block):
         def _get_logs(event, _from_block, _to_block):
+            debug_log(f'get_event_logs ({event_name}, {from_block}, {to_block})..')
             _filter = event().createFilter(
                 fromBlock=_from_block, toBlock=_to_block
             )
