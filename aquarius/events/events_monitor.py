@@ -35,7 +35,7 @@ from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
 
-debug_log = logger.info
+debug_log = logger.debug
 
 
 class EventsMonitor:
