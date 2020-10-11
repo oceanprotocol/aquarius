@@ -39,6 +39,28 @@ debug_log = logger.debug
 
 
 class EventsMonitor:
+    """Detect on-chain published Metadata and cache it in the database for
+    fast retrieval and searchability.
+
+    The published metadata is extracted from the `MetadataCreated`
+    event log from the `Metadata` smartcontract. Metadata updates are also detected using
+    the `MetadataUpdated` event.
+
+    The Metadata json object is expected to be
+    in an `lzma` compressed form. If desired the metadata can also be encrypted for specific
+    use cases. When using encrypted Metadata, the EventsMonitor requires the private key of
+    the ethereum account that is used for encryption. This can be specified in `EVENTS_ECIES_PRIVATE_KEY`
+    envvar.
+
+    The events monitor pauses for 25 seconds between updates.
+
+    The cached Metadata can be restricted to only those published by specific ethereum accounts.
+    To do this set the `ALLOWED_PUBLISHERS` envvar to the list of ethereum addresses of known publishers.
+
+
+
+    """
+
     _instance = None
 
     def __init__(self, web3, config_file, metadata_contract=None):
@@ -58,11 +80,11 @@ class EventsMonitor:
         if self._ecies_private_key:
             self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
 
-        self._metadata_block = int(os.getenv('METADATA_CONTRACT_BLOCK', 0))
+        metadata_block = int(os.getenv('METADATA_CONTRACT_BLOCK', 0))
         try:
             self.get_last_processed_block()
         except Exception:
-            self.store_last_processed_block(self._metadata_block)
+            self.store_last_processed_block(metadata_block)
 
         allowed_publishers = set()
         try:

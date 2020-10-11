@@ -10,7 +10,9 @@ from ocean_lib.web3_internal.web3helper import Web3Helper
 
 def get_network_name():
     try:
-        network_name = Web3Helper.get_network_name().lower()
+        network_name = os.getenv('NETWORK_NAME')
+        if not network_name:
+            network_name = Web3Helper.get_network_name().lower()
     except Exception:
         network = os.getenv('EVENTS_RPC')
         if network.startswith('wss://'):
