@@ -10,7 +10,7 @@ from json import JSONDecodeError
 from threading import Thread
 
 from eth_utils import remove_0x_prefix
-from web3 import Web3
+from ocean_lib.config_provider import ConfigProvider
 from eth_account import Account
 import eth_keys
 import ecies
@@ -30,7 +30,7 @@ from plecos.plecos import (
 )
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
-from aquarius.events.http_provider import CustomHTTPProvider
+from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
@@ -38,24 +38,37 @@ logger = logging.getLogger(__name__)
 debug_log = logger.debug
 
 
-def get_web3_connection_provider(network_url):
-    if network_url.startswith('http'):
-        provider = CustomHTTPProvider(network_url)
-    else:
-        assert network_url.startswith('ws'), f'network url must start with either https or wss'
-        provider = Web3.WebsocketProvider(network_url)
-
-    return provider
-
-
 class EventsMonitor:
+    """Detect on-chain published Metadata and cache it in the database for
+    fast retrieval and searchability.
+
+    The published metadata is extracted from the `MetadataCreated`
+    event log from the `Metadata` smartcontract. Metadata updates are also detected using
+    the `MetadataUpdated` event.
+
+    The Metadata json object is expected to be
+    in an `lzma` compressed form. If desired the metadata can also be encrypted for specific
+    use cases. When using encrypted Metadata, the EventsMonitor requires the private key of
+    the ethereum account that is used for encryption. This can be specified in `EVENTS_ECIES_PRIVATE_KEY`
+    envvar.
+
+    The events monitor pauses for 25 seconds between updates.
+
+    The cached Metadata can be restricted to only those published by specific ethereum accounts.
+    To do this set the `ALLOWED_PUBLISHERS` envvar to the list of ethereum addresses of known publishers.
+
+
+
+    """
+
     _instance = None
 
-    def __init__(self, rpc, config_file, metadata_contract=None):
+    def __init__(self, web3, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
-        self._rpc = rpc
 
-        self._web3 = Web3(get_web3_connection_provider(rpc))
+        self._web3 = web3
+        self._updater = MetadataUpdater(self._oceandb, self._web3, ConfigProvider.get_config())
+
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
 
@@ -65,24 +78,34 @@ class EventsMonitor:
         self._ecies_private_key = os.getenv('EVENTS_ECIES_PRIVATE_KEY', '')
         self._ecies_account = None
         if self._ecies_private_key:
-            self._ecies_account = Account.from_key(self._ecies_private_key)
+            self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
+
+        metadata_block = int(os.getenv('METADATA_CONTRACT_BLOCK', 0))
+        try:
+            self.get_last_processed_block()
+        except Exception:
+            self.store_last_processed_block(metadata_block)
 
         allowed_publishers = set()
         try:
-            allowed_publishers = set(json.loads(os.getenv('ALLOWED_PUBLISHERS', [])))
+            publishers_str = os.getenv('ALLOWED_PUBLISHERS', '')
+            allowed_publishers = set(json.loads(publishers_str)) if publishers_str else set()
         except (JSONDecodeError, TypeError, Exception) as e:
-            logger.error(f'Reading list of allowed publishers failed: {e}')
+            logger.error(f'Reading list of allowed publishers failed: {e}\n'
+                         f'ALLOWED_PUBLISHER is set to "{os.getenv("ALLOWED_PUBLISHER")}"')
 
         self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
+        logger.debug(f'allowed publishers: {self._allowed_publishers}')
 
-        print(f'EventsMonitor: using Metadata contact address {self._contract_address}, rpc {rpc}.')
+        logger.debug(f'EventsMonitor: using Metadata contract address {self._contract_address}.')
         self._monitor_is_on = False
+        default_sleep_time = 25
         try:
-            self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', 3)
+            self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', default_sleep_time)
         except ValueError:
-            self._monitor_sleep_time = 3
+            self._monitor_sleep_time = default_sleep_time
 
-        self._monitor_sleep_time = max(self._monitor_sleep_time, 3)
+        self._monitor_sleep_time = max(self._monitor_sleep_time, default_sleep_time)
         if not self._contract or not self._web3.isAddress(self._contract_address):
             logger.error(
                 f"Contract address {self._contract_address} is not a valid address. Events thread not starting")
@@ -96,14 +119,17 @@ class EventsMonitor:
     def start_events_monitor(self):
         if self._monitor_is_on:
             return
+
         if self._contract_address is None:
             logger.error(
                 'Cannot start events monitor without a valid contract address')
             return
+
         if self._contract is None:
             logger.error(
                 'Cannot start events monitor without a valid contract object')
             return
+
         logger.info(
             f'Starting the events monitor on contract {self._contract_address}.')
         t = Thread(
@@ -112,9 +138,12 @@ class EventsMonitor:
         )
         self._monitor_is_on = True
         t.start()
+        self._updater.start()
 
     def stop_monitor(self):
         self._monitor_is_on = False
+        if self._updater.is_running():
+            self._updater.stop()
 
     def run_monitor(self):
         while True:
@@ -131,22 +160,25 @@ class EventsMonitor:
             time.sleep(self._monitor_sleep_time)
 
     def process_current_blocks(self):
-        current_block = self._web3.eth.blockNumber
         try:
             last_block = self.get_last_processed_block()
         except Exception as e:
             debug_log(e)
             last_block = 0
 
-        debug_log(f'Last block:{last_block}, Current:{current_block}')
-        last_block = min(last_block, current_block)
-        for event in self.get_event_logs(EVENT_METADATA_CREATED, last_block, current_block):
+        current_block = self._web3.eth.blockNumber
+        if not current_block or not isinstance(current_block, int) or current_block <= last_block:
+            return
+
+        from_block = last_block
+        debug_log(f'from_block:{from_block}, current_block:{current_block}')
+        for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, current_block):
             self.processNewDDO(event)
 
-        for event in self.get_event_logs(EVENT_METADATA_UPDATED, last_block, current_block):
+        for event in self.get_event_logs(EVENT_METADATA_UPDATED, from_block, current_block):
             self.processUpdateDDO(event)
 
-        self.store_last_processed_block(current_block + 1)
+        self.store_last_processed_block(current_block)
 
     def get_last_processed_block(self):
         last_block_record = self._oceandb.read('events_last_block')
@@ -158,12 +190,27 @@ class EventsMonitor:
         self._oceandb.update(record, 'events_last_block')
 
     def get_event_logs(self, event_name, from_block, to_block):
-        _filter = getattr(self._contract.events, event_name)().createFilter(
-            fromBlock=from_block, toBlock=to_block
-        )
-        return _filter.get_all_entries()
+        def _get_logs(event, _from_block, _to_block):
+            debug_log(f'get_event_logs ({event_name}, {from_block}, {to_block})..')
+            _filter = event().createFilter(
+                fromBlock=_from_block, toBlock=_to_block
+            )
+            return _filter.get_all_entries()
+
+        try:
+            logs = _get_logs(getattr(self._contract.events, event_name), from_block, to_block)
+            return logs
+        except ValueError as e:
+            logger.error(f'get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.\n Retrying once more.')
+
+        try:
+            logs = _get_logs(getattr(self._contract.events, event_name), from_block, to_block)
+            return logs
+        except ValueError as e:
+            logger.error(f'get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.')
 
     def is_publisher_allowed(self, publisher_address):
+        logger.debug(f'checking allowed publishers: {publisher_address}')
         if not self._allowed_publishers:
             return True
 
@@ -206,11 +253,19 @@ class EventsMonitor:
         _record['event']['from'] = sender_address
         _record['event']['contract'] = contract_address
 
+        _record['price'] = {
+            'datatoken': 0.0,
+            'ocean': 0.0,
+            'value': 0.0,
+            'type': '',
+            'address': ''
+        }
+
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
             errors = list_errors(
                 list_errors_dict_remote,
                 get_metadata_from_services(_record['service'])['attributes'])
-            logger.error(errors)
+            logger.error(f'New ddo has validation errors: {errors}')
             return False
 
         try:
@@ -275,7 +330,7 @@ class EventsMonitor:
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
             errors = list_errors(list_errors_dict_remote, get_metadata_from_services(
                 _record['service'])['attributes'])
-            logger.error(errors)
+            logger.error(f'ddo update has validation errors: {errors}')
             return
 
         try:

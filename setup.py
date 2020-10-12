@@ -28,8 +28,7 @@ install_requirements = [
     'PyYAML==5.3.1',
     'pytz==2020.1',
     'plecos==1.1.0',
-    'web3==5.12.1',
-    'eth-account==0.5.2',
+    'ocean-lib==0.4.6',
     'eciespy'
 ]
 
@@ -46,7 +45,6 @@ dev_requirements = [
 test_requirements = [
     'plecos==1.1.0',
     'Flask==1.1.2',
-    'web3==5.12.1',
     'codacy-coverage==1.3.11',
     'coverage==5.3',
     'mccabe==0.6.1',

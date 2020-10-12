@@ -1,25 +1,21 @@
-FROM python:3.6-alpine
+FROM ubuntu:18.04
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
 ARG VERSION
-
-RUN apk add --no-cache --update\
-    build-base \
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
     gcc \
-    gettext\
-    gmp \
-    gmp-dev \
-    libffi-dev \
-    openssl-dev \
-    py-pip \
-    python3 \
-    python3-dev \
-  && pip install virtualenv
+    python3.8 \
+    python3-pip \
+    python3.8-dev \
+    gettext-base
 
 COPY . /aquarius
 WORKDIR /aquarius
 
-# Only install install_requirements, not dev_ or test_requirements
+RUN python3.8 -m pip install -U pip
+RUN pip install setuptools
+RUN pip install wheel
 RUN pip install .
 
 # config.ini configuration file variables
@@ -37,15 +33,14 @@ ENV DB_SCHEME='http'
 ENV DB_NAMESPACE='namespace'
 ENV AQUARIUS_URL='http://0.0.0.0:5000'
 ENV ALLOW_FREE_ASSETS_ONLY='false'
-ENV RATING_ALLOWED_UPDATER=''
 # docker-entrypoint.sh configuration file variables
 ENV AQUARIUS_WORKERS='1'
 ENV EVENTS_ALLOW=''
 ENV RUN_EVENTS_MONITOR=''
 ENV EVENTS_RPC='http://127.0.0.1:8545'
 ENV EVENTS_ECIES_PRIVATE_KEY='0xc6914ea1e5ac6a1cd2107240be714735bf799ce9ea4125016aeb479266720ff4'
-ENV ARTIFACTS_PATH=''
-ENV ADDRESS_FILE=''
+#ENV ARTIFACTS_PATH=''
+#ENV ADDRESS_FILE=''
 #ENV ALLOWED_PUBLISHERS=['0x123','0x1234']
 ENTRYPOINT ["/aquarius/docker-entrypoint.sh"]
 

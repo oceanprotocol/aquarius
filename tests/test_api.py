@@ -14,13 +14,13 @@ from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample_updates import json_before, json_valid
-from eth_account.messages import encode_defunct
+from eth_account.messages import defunct_hash_message
 
 from tests.helpers import new_ddo, test_account1, send_create_update_tx, get_event, get_web3
 
 
 def sign_message(account, message_str):
-    msg_hash = encode_defunct(text=message_str)
+    msg_hash = defunct_hash_message(text=message_str)
     full_signature = account.sign_message(msg_hash)
     return full_signature.signature.hex()
 
