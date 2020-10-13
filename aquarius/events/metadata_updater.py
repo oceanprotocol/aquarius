@@ -44,7 +44,8 @@ class MetadataUpdater:
                     'ocean': 10,
                     'value': 0.111,
                     'type': 'pool',
-                    'address': '0x12112112112...'
+                    'address': '0x12112112112...',
+                    'pools': ['0x12112112112...', ]
                 }
 
 
@@ -217,17 +218,9 @@ class MetadataUpdater:
         return pools
 
     def _get_liquidity_and_price(self, pools, dt_address):
-        _pool = None
-        low_price = -1
-        for pool_address in pools:
-            pool = BPool(pool_address)
-            price = pool.getSpotPrice(self._checksum_ocean, dt_address)
-            if low_price < 0 or price < low_price:
-                low_price = price
-                _pool = pool_address
-
-        price = low_price
+        _pool = pools[0]
         pool = BPool(_pool)
+        price = pool.getSpotPrice(self._checksum_ocean, dt_address)
         dt_reserve = pool.getBalance(dt_address)
         ocn_reserve = pool.getBalance(self._checksum_ocean)
         return dt_reserve, ocn_reserve, price, _pool
@@ -256,6 +249,7 @@ class MetadataUpdater:
             )
             try:
                 logs = event_filter.get_all_entries(max_tries=10)
+                logs = sorted(logs, key=lambda l: l.blockNumber)
                 pools.extend([l.args.bpoolAddress for l in logs])
             except ValueError as e:
                 logger.error(f'get_all_pools BFactory {bfactory.address}, fromBlock {_from}, toBlock{_from+chunk-1}: {e}')
@@ -308,7 +302,8 @@ class MetadataUpdater:
                     'ocean': 0.0,
                     'value': from_base_18(price),
                     'type': 'exchange',
-                    'address': frexchange_address
+                    'address': frexchange_address,
+                    'pools': []
                 }
 
             else:
@@ -318,7 +313,8 @@ class MetadataUpdater:
                     'ocean': from_base_18(ocn_reserve),
                     'value': from_base_18(price),
                     'type': 'pool',
-                    'address': pool_address
+                    'address': pool_address,
+                    'pools': pools
                 }
 
             asset['price'] = price_dict
@@ -344,7 +340,10 @@ class MetadataUpdater:
             did = did_prefix + remove_0x_prefix(address)
             try:
                 asset = dao.get(did)
+                _price_dict = asset.get('price', {})
+                _pools = _price_dict.get('pools', [])
                 _dt_address = self._web3.toChecksumAddress(address)
+                _pools.extend([p for p in pools if p not in _pools])
 
                 dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(pools, _dt_address)
                 price_dict = {
@@ -352,7 +351,8 @@ class MetadataUpdater:
                     'ocean': from_base_18(ocn_reserve),
                     'value': from_base_18(price),
                     'type': 'pool',
-                    'address': pool_address
+                    'address': pool_address,
+                    'pools': pools
                 }
                 asset['price'] = price_dict
 
