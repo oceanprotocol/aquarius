@@ -325,7 +325,12 @@ class MetadataUpdater:
         did_prefix = 'did:op:'
         dao = Dao(oceandb=self._oceandb)
         _dt_address_pool_list = []
+        seen_pools = set()
         for address, pool_address in dt_address_pool_list:
+            if pool_address in seen_pools:
+                continue
+
+            seen_pools.add(pool_address)
             if not address:
                 address = BPool(pool_address).getCurrentTokens()[0]
 
@@ -352,7 +357,7 @@ class MetadataUpdater:
                     'value': from_base_18(price),
                     'type': 'pool',
                     'address': pool_address,
-                    'pools': pools
+                    'pools': _pools
                 }
                 asset['price'] = price_dict
 
