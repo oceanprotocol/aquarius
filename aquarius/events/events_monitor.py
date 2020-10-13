@@ -258,7 +258,8 @@ class EventsMonitor:
             'ocean': 0.0,
             'value': 0.0,
             'type': '',
-            'address': ''
+            'address': '',
+            'pools': []
         }
 
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
