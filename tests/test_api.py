@@ -73,7 +73,7 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
     ddo_string = json.dumps(dict(ddo.items()))
     _receipt = send_create_update_tx(
         'create', ddo.id, bytes([1]), lzma.compress(Web3.toBytes(text=ddo_string)), test_account1)
-    get_event(EVENT_METADATA_CREATED, block, ddo.id, 30)
+    get_event(EVENT_METADATA_CREATED, block, ddo.id)
     events_object.process_current_blocks()
     try:
         published_ddo = get_ddo(client, base_ddo_url, ddo.id)
@@ -104,7 +104,7 @@ def test_query_metadata(client, base_ddo_url, events_object):
         )
 
     for ddo in assets:
-        get_event(EVENT_METADATA_CREATED, block, ddo.id, 30)
+        get_event(EVENT_METADATA_CREATED, block, ddo.id)
         events_object.process_current_blocks()
 
     num_assets = len(assets)
@@ -173,7 +173,7 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
         lzma.compress(Web3.toBytes(text=json.dumps(dict(ddo)))),
         test_account1
     )
-    get_event(EVENT_METADATA_CREATED, block, ddo['id'], 30)
+    get_event(EVENT_METADATA_CREATED, block, ddo['id'])
     events_object.process_current_blocks()
     assert len(
         run_request_get_data(client.post, base_ddo_url + '/query',

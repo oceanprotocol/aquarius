@@ -9,7 +9,7 @@ import json
 from json import JSONDecodeError
 from threading import Thread
 
-from eth_utils import remove_0x_prefix
+from eth_utils import remove_0x_prefix, add_0x_prefix
 from ocean_lib.config_provider import ConfigProvider
 from eth_account import Account
 import eth_keys
@@ -262,6 +262,7 @@ class EventsMonitor:
             'pools': []
         }
         dt_address = _record.get('dataToken')
+        assert dt_address == add_0x_prefix(did[len('did:op:'):])
         if dt_address:
             _record['dataTokenInfo'] = get_datatoken_info(dt_address)
 
@@ -339,6 +340,7 @@ class EventsMonitor:
 
         _record['price'] = asset.get('price', {})
         dt_address = _record.get('dataToken')
+        assert dt_address == add_0x_prefix(did[len('did:op:'):])
         if dt_address:
             _record['dataTokenInfo'] = get_datatoken_info(dt_address)
 

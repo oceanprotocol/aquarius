@@ -45,6 +45,7 @@ def new_ddo(account, web3, name, ddo=None):
     _ddo['random'] = str(uuid.uuid4())
     dt_address = deploy_datatoken(web3, account.privateKey, name, name, account.address)
     _ddo['id'] = new_did(dt_address)
+    _ddo['dataToken'] = dt_address
     return AttributeDict(_ddo)
 
 
@@ -75,8 +76,8 @@ def get_event(event_name, block, did, timeout=45):
         if time.time() - start > timeout:
             break
 
-    print(f'done waiting for {event_name} event, got: {logs}')
     assert logs, 'no events found {event_name}, block {block}.'
+    print(f'done waiting for {event_name} event, got {len(logs)} logs, and datatokens: {[l.args.dataToken for l in logs]}')
     _log = None
     for log in logs:
         if log.args.dataToken == did:
@@ -102,5 +103,5 @@ def send_create_update_tx(name, did, flags, data, account):
     r = send_tx(name, (did, flags, data), account)
     event_name = EVENT_METADATA_CREATED if name == 'create' else EVENT_METADATA_UPDATED
     events = getattr(get_metadata_contract(get_web3()).events, event_name)().processReceipt(r)
-    print(f'got {event_name} logs: {events}')
+    # print(f'got {event_name} logs: {events}')
     return r

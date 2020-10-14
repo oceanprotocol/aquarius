@@ -13,7 +13,6 @@ from tests.helpers import (
     get_web3,
     new_ddo,
     test_account1,
-    test_account2,
     test_account3,
     send_create_update_tx,
     ecies_account,
@@ -42,7 +41,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
         data = ecies.encrypt(key.public_key.to_hex(), data)
 
     send_create_update_tx('create', did, bytes([_flags]), data, test_account1)
-    get_event(EVENT_METADATA_CREATED, block, did, 30)
+    get_event(EVENT_METADATA_CREATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did
@@ -58,7 +57,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
         data = ecies.encrypt(key.public_key.to_hex(), data)
 
     send_create_update_tx('update', did, bytes([_flags]), data, test_account1)
-    get_event(EVENT_METADATA_UPDATED, block, did, 30)
+    get_event(EVENT_METADATA_UPDATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo['id'] == did
