@@ -31,7 +31,7 @@ from plecos.plecos import (
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.metadata_updater import MetadataUpdater
-from aquarius.events.util import get_metadata_contract
+from aquarius.events.util import get_metadata_contract, get_datatoken_info
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +261,9 @@ class EventsMonitor:
             'address': '',
             'pools': []
         }
+        dt_address = _record.get('dataToken')
+        if dt_address:
+            _record['dataTokenInfo'] = get_datatoken_info(dt_address)
 
         if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
             errors = list_errors(
@@ -333,6 +336,11 @@ class EventsMonitor:
                 _record['service'])['attributes'])
             logger.error(f'ddo update has validation errors: {errors}')
             return
+
+        _record['price'] = asset.get('price', {})
+        dt_address = _record.get('dataToken')
+        if dt_address:
+            _record['dataTokenInfo'] = get_datatoken_info(dt_address)
 
         try:
             self._oceandb.update(_record, did)

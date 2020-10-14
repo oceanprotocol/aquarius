@@ -14,7 +14,7 @@ from ocean_lib.web3_internal.event_filter import EventFilter
 from web3.utils.events import get_event_data
 
 from aquarius.app.dao import Dao
-from aquarius.events.util import prepare_contracts
+from aquarius.events.util import prepare_contracts, get_datatoken_info
 
 logger = logging.getLogger(__name__)
 
@@ -318,6 +318,8 @@ class MetadataUpdater:
                 }
 
             asset['price'] = price_dict
+            asset['dataTokenInfo'] = get_datatoken_info(_dt_address)
+
             logger.info(f'updating price info for datatoken: {dt_address}, pools {pools}, price-info {price_dict}')
             self._oceandb.update(asset, did)
 
@@ -360,6 +362,7 @@ class MetadataUpdater:
                     'pools': _pools
                 }
                 asset['price'] = price_dict
+                asset['dataTokenInfo'] = get_datatoken_info(_dt_address)
 
                 self._oceandb.update(asset, did)
                 logger.info(f'updated price info: dt={address}, pool={pool_address}, price={asset["price"]}')

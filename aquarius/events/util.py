@@ -4,8 +4,10 @@ import time
 from pathlib import Path
 
 from ocean_lib.config_provider import ConfigProvider
-from ocean_lib.ocean.util import get_contracts_addresses
+from ocean_lib.models.data_token import DataToken
+from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
 from ocean_lib.web3_internal.web3helper import Web3Helper
+from web3 import Web3
 
 
 def get_network_name():
@@ -100,3 +102,21 @@ def get_metadata_contract(web3):
     contract_address, abi_file = get_contract_address_and_abi_file()
     abi_json = json.load(open(abi_file))
     return web3.eth.contract(address=contract_address, abi=abi_json['abi'])
+
+
+def get_datatoken_info(token_address):
+    token_address = Web3.toChecksumAddress(token_address)
+    dt = DataToken(token_address)
+    contract = dt.contract_concise
+    minter = contract.minter()
+    return {
+        'address': token_address,
+        'name': contract.name(),
+        'symbol': contract.symbol(),
+        'blob': contract.blob(),
+        'decimals': contract.decimals(),
+        'totalSupply': from_base_18(contract.totalSupply()),
+        'cap': from_base_18(contract.cap()),
+        'minter': minter,
+        'minterBalance': dt.token_balance(minter)
+    }
