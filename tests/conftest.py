@@ -54,4 +54,5 @@ def events_object():
             Web3Provider.get_web3(),
             app.config['CONFIG_FILE']
         )
+        EVENTS_INSTANCE.store_last_processed_block(0)
     return EVENTS_INSTANCE

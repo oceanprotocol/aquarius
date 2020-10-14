@@ -177,6 +177,6 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     events_object.process_current_blocks()
     assert len(
         run_request_get_data(client.post, base_ddo_url + '/query',
-                             {"query": {"dataToken": ["0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687"]}}
+                             {"query": {"dataToken": [_ddo['dataToken']]}}
                              )['results']
     ) > 0
