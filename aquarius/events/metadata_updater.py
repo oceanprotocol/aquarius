@@ -220,10 +220,19 @@ class MetadataUpdater:
     def _get_liquidity_and_price(self, pools, dt_address):
         _pool = pools[0]
         pool = BPool(_pool)
-        price = pool.getSpotPrice(self._checksum_ocean, dt_address)
         dt_reserve = pool.getBalance(dt_address)
         ocn_reserve = pool.getBalance(self._checksum_ocean)
-        return dt_reserve, ocn_reserve, price, _pool
+
+        # price = pool.getSpotPrice(self._checksum_ocean, dt_address)
+        price = pool.calcInGivenOut(
+            ocn_reserve,
+            pool.getDenormalizedWeight(self._checksum_ocean),
+            dt_reserve,
+            pool.getDenormalizedWeight(dt_address),
+            to_base_18(1.0),
+            pool.getSwapFee()
+        )
+        return from_base_18(dt_reserve), from_base_18(ocn_reserve), from_base_18(price), _pool
 
     def _get_fixedrateexchange_price(self, dt_address, owner):
         fre = FixedRateExchange(self._addresses.get(FixedRateExchange.CONTRACT_NAME))
@@ -309,9 +318,9 @@ class MetadataUpdater:
             else:
                 dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(pools, _dt_address)
                 price_dict = {
-                    'datatoken': from_base_18(dt_reserve),
-                    'ocean': from_base_18(ocn_reserve),
-                    'value': from_base_18(price),
+                    'datatoken': dt_reserve,
+                    'ocean': ocn_reserve,
+                    'value': price,
                     'type': 'pool',
                     'address': pool_address,
                     'pools': pools
@@ -354,9 +363,9 @@ class MetadataUpdater:
 
                 dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(pools, _dt_address)
                 price_dict = {
-                    'datatoken': from_base_18(dt_reserve),
-                    'ocean': from_base_18(ocn_reserve),
-                    'value': from_base_18(price),
+                    'datatoken': dt_reserve,
+                    'ocean': ocn_reserve,
+                    'value': price,
                     'type': 'pool',
                     'address': pool_address,
                     'pools': _pools
