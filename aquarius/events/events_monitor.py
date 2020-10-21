@@ -99,9 +99,9 @@ class EventsMonitor:
 
         logger.debug(f'EventsMonitor: using Metadata contract address {self._contract_address}.')
         self._monitor_is_on = False
-        default_sleep_time = 25
+        default_sleep_time = 20
         try:
-            self._monitor_sleep_time = os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', default_sleep_time)
+            self._monitor_sleep_time = int(os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', default_sleep_time))
         except ValueError:
             self._monitor_sleep_time = default_sleep_time
 
