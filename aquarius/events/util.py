@@ -113,7 +113,6 @@ def get_datatoken_info(token_address):
         'address': token_address,
         'name': contract.name(),
         'symbol': contract.symbol(),
-        'blob': contract.blob(),
         'decimals': contract.decimals(),
         'totalSupply': from_base_18(contract.totalSupply()),
         'cap': from_base_18(contract.cap()),
