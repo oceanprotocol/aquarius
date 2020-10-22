@@ -261,7 +261,7 @@ class MetadataUpdater:
         ocn_reserve = pool.getBalance(self._checksum_ocean)
 
         # price = pool.getSpotPrice(self._checksum_ocean, dt_address)
-        price = pool.calcInGivenOut(
+        price_base = pool.calcInGivenOut(
             ocn_reserve,
             pool.getDenormalizedWeight(self._checksum_ocean),
             dt_reserve,
@@ -269,7 +269,12 @@ class MetadataUpdater:
             to_base_18(1.0),
             pool.getSwapFee()
         )
-        return from_base_18(dt_reserve), from_base_18(ocn_reserve), from_base_18(price), _pool
+        price = from_base_18(price_base)
+        ocn_reserve = from_base_18(ocn_reserve)
+        dt_reserve = from_base_18(dt_reserve)
+        if dt_reserve <= 1.0:
+            price = 0.0
+        return dt_reserve, ocn_reserve, price, _pool
 
     def _get_fixedrateexchange_price(self, dt_address, owner=None, exchange_id=None):
         fre = FixedRateExchange(self._addresses.get(FixedRateExchange.CONTRACT_NAME))
