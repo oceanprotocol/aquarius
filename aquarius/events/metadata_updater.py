@@ -14,7 +14,7 @@ from ocean_lib.web3_internal.event_filter import EventFilter
 from web3.utils.events import get_event_data
 
 from aquarius.app.dao import Dao
-from aquarius.events.util import prepare_contracts, get_datatoken_info
+from aquarius.events.util import prepare_contracts, get_datatoken_info, get_exchange_contract
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +68,9 @@ class MetadataUpdater:
             f'Please add the "Ocean" token address in the address.json file or set the ' \
             f'`OCEAN_ADDRESS` environment variable.'
         self._OCEAN = self._checksum_ocean.lower()
+
+        self.ex_contract = get_exchange_contract(self._web3)
+        assert self.ex_contract and self.ex_contract.address, 'Failed to load FixedRateExchange contract.'
 
         self.bfactory_block = int(os.getenv('BFACTORY_BLOCK', 0))
         self._do_first_update = True
@@ -162,11 +165,45 @@ class MetadataUpdater:
         except elasticsearch.exceptions.RequestError as e:
             logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
 
+    def get_dt_addresses_from_exchange_logs(self, from_block, to_block=None):
+        contract = FixedRateExchange(None)
+        event_names = ['ExchangeCreated']  # , 'ExchangeRateChanged']
+        topic0_list = [self._get_event_signature(contract, en) for en in event_names]
+        args_list = [('dataToken',)]
+        filters = []
+        to_block = to_block or 'latest'
+        for i, event_name in enumerate(event_names):
+            filters.append({
+                'fromBlock': from_block,
+                'toBlock': to_block,
+                'topics': [topic0_list[i], ]
+            })
+
+        events = [getattr(contract.events, en) for en in event_names]
+        event_abis = [e().abi for e in events]
+        address_exid = []
+        for i, _filter in enumerate(filters):
+            try:
+                logs = self._web3.eth.getLogs(_filter)
+            except ValueError as e:
+                logger.error(f'get_dt_addresses_from_exchange_logs -> web3.eth.getLogs (filter={_filter}) failed: '
+                             f'{e}..')
+                logs = []
+
+            if logs:
+                args = args_list[i]
+                for l in logs:
+                    parsed_log = get_event_data(event_abis[i], l)
+                    address_exid.extend([(parsed_log.args.get(arg, ''), add_0x_prefix(parsed_log.args.exchangeId.hex())) for arg in args])
+                    # all_logs.append(parsed_log)
+
+        return address_exid
+
     def get_dt_addresses_from_pool_logs(self, from_block, to_block=None):
         contract = BPool(None)
         event_names = ['LOG_JOIN', 'LOG_EXIT', 'LOG_SWAP']
         topic0_list = [self._get_event_signature(contract, en) for en in event_names]
-        args_list = [('tokenIn',), [('tokenOut',)], [('tokenIn', 'tokenOut')]]
+        args_list = [('tokenIn',), ('tokenOut',), ('tokenIn', 'tokenOut')]
         filters = []
         to_block = to_block or 'latest'
         for i, event_name in enumerate(event_names):
@@ -234,11 +271,16 @@ class MetadataUpdater:
         )
         return from_base_18(dt_reserve), from_base_18(ocn_reserve), from_base_18(price), _pool
 
-    def _get_fixedrateexchange_price(self, dt_address, owner):
+    def _get_fixedrateexchange_price(self, dt_address, owner=None, exchange_id=None):
         fre = FixedRateExchange(self._addresses.get(FixedRateExchange.CONTRACT_NAME))
-        exchange_id = fre.generateExchangeId(
-            self._checksum_ocean, dt_address, owner)
-        return fre.get_base_token_quote(exchange_id, to_base_18(1.0))
+        if not exchange_id:
+            assert owner is not None, 'owner is required when `exchange_id` is not given.'
+            exchange_id = fre.generateExchangeId(
+                self._checksum_ocean, dt_address, owner)
+
+        price = fre.get_base_token_quote(exchange_id, to_base_18(1.0))
+        supply = fre.contract_concise.getSupply(exchange_id)
+        return from_base_18(price), from_base_18(supply)
 
     def get_all_pools(self):
         bfactory = BFactory(self._addresses.get(BFactory.CONTRACT_NAME))
@@ -287,7 +329,7 @@ class MetadataUpdater:
 
             dt_to_pool[dt].append(pool_address)
 
-        frexchange_address = self._addresses.get(FixedRateExchange.CONTRACT_NAME)
+        frexchange_address = self.ex_contract.address
         for asset in self._get_all_assets():
             did = asset['id']
             if not did.startswith(did_prefix):
@@ -305,11 +347,11 @@ class MetadataUpdater:
                     logger.warning(f'updating price info for datatoken {dt_address} failed, invalid owner from ddo.proof (owner={owner}).')
                     continue
 
-                price = self._get_fixedrateexchange_price(_dt_address, owner)
+                price, dt_supply = self._get_fixedrateexchange_price(_dt_address, owner)
                 price_dict = {
-                    'datatoken': 0.0,
+                    'datatoken': dt_supply,
                     'ocean': 0.0,
-                    'value': from_base_18(price),
+                    'value': price,
                     'type': 'exchange',
                     'address': frexchange_address,
                     'pools': []
@@ -331,6 +373,45 @@ class MetadataUpdater:
 
             logger.info(f'updating price info for datatoken: {dt_address}, pools {pools}, price-info {price_dict}')
             self._oceandb.update(asset, did)
+
+    def update_dt_assets_with_exchange_info(self, dt_address_exid):
+        did_prefix = 'did:op:'
+        dao = Dao(oceandb=self._oceandb)
+        _dt_address_ex_list = []
+        seen_exs = set()
+        for address, exid in dt_address_exid:
+            if not address or exid in seen_exs:
+                continue
+
+            seen_exs.add(exid)
+            logger.info(f'updating price info for datatoken: {address}, exchangeId {exid}')
+            did = did_prefix + remove_0x_prefix(address)
+            try:
+                asset = dao.get(did)
+                _price_dict = asset.get('price', {})
+                _pools = _price_dict.get('pools', [])
+                if _price_dict.get('type') == 'pool' and _pools:
+                    # skip if the asset has pools
+                    continue
+
+                _dt_address = self._web3.toChecksumAddress(address)
+                price, dt_supply = self._get_fixedrateexchange_price(_dt_address, exchange_id=exid)
+                price_dict = {
+                    'datatoken': dt_supply,
+                    'ocean': 0.0,
+                    'value': price,
+                    'type': 'exchange',
+                    'address': self.ex_contract.address,
+                    'pools': []
+                }
+                asset['price'] = price_dict
+                asset['dataTokenInfo'] = get_datatoken_info(_dt_address)
+
+                self._oceandb.update(asset, did)
+                logger.info(f'updated price info: dt={address}, exchangeAddress={self.ex_contract.address}, '
+                            f'exchangeId={exid}, price={asset["price"]}')
+            except Exception as e:
+                logger.error(f'updating datatoken assets price values from exchange contract: {e}')
 
     def update_dt_assets(self, dt_address_pool_list):
         did_prefix = 'did:op:'
@@ -395,6 +476,8 @@ class MetadataUpdater:
         try:
             dt_address_pool_list = self.get_dt_addresses_from_pool_logs(from_block=from_block, to_block=block)
             self.update_dt_assets(dt_address_pool_list)
+            dt_address_exchange = self.get_dt_addresses_from_exchange_logs(from_block=from_block, to_block=block)
+            self.update_dt_assets_with_exchange_info(dt_address_exchange)
             ok = True
 
         except Exception as e:

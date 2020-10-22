@@ -5,6 +5,8 @@ from pathlib import Path
 
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.models.data_token import DataToken
+from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
+from ocean_lib.models.metadata import MetadataContract
 from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
 from ocean_lib.web3_internal.web3helper import Web3Helper
 from web3 import Web3
@@ -84,9 +86,12 @@ def get_address_file(artifacts_path):
     return Path(address_file).expanduser().resolve()
 
 
-def get_contract_address_and_abi_file():
+def get_contract_address_and_abi_file(name):
+    if not name.endswith('.json'):
+        name = name + '.json'
+
     artifacts_path = get_artifacts_path()
-    contract_abi_file = Path(os.path.join(artifacts_path, 'Metadata.json')).expanduser().resolve()
+    contract_abi_file = Path(os.path.join(artifacts_path, name)).expanduser().resolve()
     address_file = get_address_file(artifacts_path)
     contract_address = read_ddo_contract_address(address_file, network=os.environ.get('NETWORK_NAME', 'ganache'))
     return contract_address, contract_abi_file
@@ -99,7 +104,13 @@ def read_ddo_contract_address(file_path, name='Metadata', network='ganache'):
 
 
 def get_metadata_contract(web3):
-    contract_address, abi_file = get_contract_address_and_abi_file()
+    contract_address, abi_file = get_contract_address_and_abi_file(MetadataContract.CONTRACT_NAME)
+    abi_json = json.load(open(abi_file))
+    return web3.eth.contract(address=contract_address, abi=abi_json['abi'])
+
+
+def get_exchange_contract(web3):
+    contract_address, abi_file = get_contract_address_and_abi_file(FixedRateExchange.CONTRACT_NAME)
     abi_json = json.load(open(abi_file))
     return web3.eth.contract(address=contract_address, abi=abi_json['abi'])
 
