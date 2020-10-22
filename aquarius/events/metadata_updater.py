@@ -73,15 +73,15 @@ class MetadataUpdater:
         assert self.ex_contract and self.ex_contract.address, 'Failed to load FixedRateExchange contract.'
 
         self.bfactory_block = int(os.getenv('BFACTORY_BLOCK', 0))
-        self._do_first_update = True
+        self._do_first_update = bool(int(os.getenv('METADATA_UPDATE_ALL', 1)) == 1)
         try:
             self.get_last_processed_block()
-            self._do_first_update = False
+            # self._do_first_update = False
         except Exception:
             self.store_last_processed_block(self.bfactory_block)
 
         self._is_on = False
-        default_quiet_time = 20
+        default_quiet_time = 10
         try:
             self._quiet_time = os.getenv('OCN_METADATA_UPDATER_QUITE_TIME', 0)
         except ValueError:
