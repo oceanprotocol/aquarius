@@ -87,17 +87,15 @@ def get_address_file(artifacts_path):
 
 
 def get_contract_address_and_abi_file(name):
-    if not name.endswith('.json'):
-        name = name + '.json'
-
+    file_name = name + '.json'
     artifacts_path = get_artifacts_path()
-    contract_abi_file = Path(os.path.join(artifacts_path, name)).expanduser().resolve()
+    contract_abi_file = Path(os.path.join(artifacts_path, file_name)).expanduser().resolve()
     address_file = get_address_file(artifacts_path)
-    contract_address = read_ddo_contract_address(address_file, network=os.environ.get('NETWORK_NAME', 'ganache'))
+    contract_address = read_ddo_contract_address(address_file, name, network=os.environ.get('NETWORK_NAME', 'ganache'))
     return contract_address, contract_abi_file
 
 
-def read_ddo_contract_address(file_path, name='Metadata', network='ganache'):
+def read_ddo_contract_address(file_path, name, network='ganache'):
     with open(file_path) as f:
         network_to_address = json.load(f)
         return network_to_address[network][name]
