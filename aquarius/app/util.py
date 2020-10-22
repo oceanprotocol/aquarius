@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+DATETIME_FORMAT_NO_Z = '%Y-%m-%dT%H:%M:%S'
 
 logger = logging.getLogger('aquarius')
 
@@ -37,7 +38,10 @@ def datetime_converter(o):
 
 
 def format_timestamp(timestamp):
-    return f'{datetime.strptime(timestamp, DATETIME_FORMAT).replace(microsecond=0).isoformat()}Z'
+    try:
+        return f'{datetime.strptime(timestamp, DATETIME_FORMAT).replace(microsecond=0).isoformat()}Z'
+    except Exception:
+        return f'{datetime.strptime(timestamp, DATETIME_FORMAT_NO_Z).replace(microsecond=0).isoformat()}Z'
 
 
 def get_timestamp():
@@ -86,15 +90,15 @@ def init_new_ddo(data):
 
     for service in _record['service']:
         if service['type'] == 'metadata':
-            service['attributes']['main']['dateCreated'] = \
-                format_timestamp(service['attributes']['main']['dateCreated'])
-            service['attributes']['main']['datePublished'] = \
-                get_timestamp()
+            samain = service['attributes']['main']
+            samain['dateCreated'] = format_timestamp(samain['dateCreated'])
+            samain['datePublished'] = get_timestamp()
 
-            service['attributes']['curation'] = {}
-            service['attributes']['curation']['rating'] = 0.00
-            service['attributes']['curation']['numVotes'] = 0
-            service['attributes']['curation']['isListed'] = True
+            curation = dict()
+            curation['rating'] = 0.00
+            curation['numVotes'] = 0
+            curation['isListed'] = True
+            service['attributes']['curation'] = curation
     _record['service'] = reorder_services_list(_record['service'])
     return _record
 

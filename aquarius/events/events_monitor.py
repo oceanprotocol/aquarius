@@ -173,10 +173,18 @@ class EventsMonitor:
         from_block = last_block
         debug_log(f'from_block:{from_block}, current_block:{current_block}')
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, current_block):
-            self.processNewDDO(event)
+            try:
+                self.processNewDDO(event)
+            except Exception as e:
+                logger.error(f'Error processing new metadata event: {e}\n'
+                             f'event={event}')
 
         for event in self.get_event_logs(EVENT_METADATA_UPDATED, from_block, current_block):
-            self.processUpdateDDO(event)
+            try:
+                self.processUpdateDDO(event)
+            except Exception as e:
+                logger.error(f'Error processing update metadata event: {e}\n'
+                             f'event={event}')
 
         self.store_last_processed_block(current_block)
 
