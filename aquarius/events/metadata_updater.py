@@ -69,7 +69,7 @@ class MetadataUpdater:
             f'`OCEAN_ADDRESS` environment variable.'
         self._OCEAN = self._checksum_ocean.lower()
 
-        self.ex_contract = get_exchange_contract(self._web3)
+        self.ex_contract = FixedRateExchange(get_exchange_contract(self._web3).address)
         assert self.ex_contract and self.ex_contract.address, 'Failed to load FixedRateExchange contract.'
 
         self.bfactory_block = int(os.getenv('BFACTORY_BLOCK', 0))
@@ -255,37 +255,47 @@ class MetadataUpdater:
         return pools
 
     def _get_liquidity_and_price(self, pools, dt_address):
+        assert pools, f'pools should not be empty, got {pools}'
         _pool = pools[0]
-        pool = BPool(_pool)
-        dt_reserve = pool.getBalance(dt_address)
-        ocn_reserve = pool.getBalance(self._checksum_ocean)
+        try:
+            pool = BPool(_pool)
+            dt_reserve = pool.getBalance(dt_address)
+            ocn_reserve = pool.getBalance(self._checksum_ocean)
 
-        # price = pool.getSpotPrice(self._checksum_ocean, dt_address)
-        price_base = pool.calcInGivenOut(
-            ocn_reserve,
-            pool.getDenormalizedWeight(self._checksum_ocean),
-            dt_reserve,
-            pool.getDenormalizedWeight(dt_address),
-            to_base_18(1.0),
-            pool.getSwapFee()
-        )
-        price = from_base_18(price_base)
-        ocn_reserve = from_base_18(ocn_reserve)
-        dt_reserve = from_base_18(dt_reserve)
-        if dt_reserve <= 1.0:
-            price = 0.0
-        return dt_reserve, ocn_reserve, price, _pool
+            # price = pool.getSpotPrice(self._checksum_ocean, dt_address)
+            price_base = pool.calcInGivenOut(
+                ocn_reserve,
+                pool.getDenormalizedWeight(self._checksum_ocean),
+                dt_reserve,
+                pool.getDenormalizedWeight(dt_address),
+                to_base_18(1.0),
+                pool.getSwapFee()
+            )
+            price = from_base_18(price_base)
+            ocn_reserve = from_base_18(ocn_reserve)
+            dt_reserve = from_base_18(dt_reserve)
+            if dt_reserve <= 1.0:
+                price = 0.0
+
+            return dt_reserve, ocn_reserve, price, _pool
+        except Exception as e:
+            logger.error(f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
+            return 0.0, 0.0, 0.0, _pool
 
     def _get_fixedrateexchange_price(self, dt_address, owner=None, exchange_id=None):
-        fre = FixedRateExchange(self._addresses.get(FixedRateExchange.CONTRACT_NAME))
-        if not exchange_id:
-            assert owner is not None, 'owner is required when `exchange_id` is not given.'
-            exchange_id = fre.generateExchangeId(
-                self._checksum_ocean, dt_address, owner)
+        fre = self.ex_contract
+        try:
+            if not exchange_id:
+                assert owner is not None, 'owner is required when `exchange_id` is not given.'
+                exchange_id = add_0x_prefix(fre.generateExchangeId(self._checksum_ocean, dt_address, owner).hex())
 
-        price = fre.get_base_token_quote(exchange_id, to_base_18(1.0))
-        supply = fre.contract_concise.getSupply(exchange_id)
-        return from_base_18(price), from_base_18(supply)
+            price = fre.get_base_token_quote(exchange_id, to_base_18(1.0))
+            supply = fre.contract_concise.getSupply(exchange_id)
+            return from_base_18(price), from_base_18(supply)
+        except Exception as e:
+            logger.error(f'Reading exchange price failed for datatoken {dt_address}, '
+                         f'owner {owner}, exchangeId {exchange_id}: {e}')
+            return 0.0, 0.0
 
     def get_all_pools(self):
         bfactory = BFactory(self._addresses.get(BFactory.CONTRACT_NAME))
@@ -374,7 +384,13 @@ class MetadataUpdater:
                 }
 
             asset['price'] = price_dict
-            asset['dataTokenInfo'] = get_datatoken_info(_dt_address)
+            try:
+                dt_info = get_datatoken_info(_dt_address)
+            except Exception as e:
+                logger.error(f'getting datatoken info failed for datatoken {_dt_address}: {e}')
+                dt_info = {}
+
+            asset['dataTokenInfo'] = dt_info
 
             logger.info(f'updating price info for datatoken: {dt_address}, pools {pools}, price-info {price_dict}')
             self._oceandb.update(asset, did)
