@@ -1,16 +1,21 @@
 #  Copyright 2018 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
-import copy
-import json
+import os
 
 import pytest
+from ocean_lib.config import Config
+from ocean_lib.config_provider import ConfigProvider
+from ocean_lib.web3_internal.contract_handler import ContractHandler
+from ocean_lib.web3_internal.web3_provider import Web3Provider
 
+from aquarius.events.events_monitor import EventsMonitor
 from aquarius.constants import BaseURLs
+from aquarius.events.util import get_artifacts_path
 from aquarius.run import app
-from tests.ddos.ddo_sample1 import json_dict
-from tests.ddos.ddo_sample_updates import json_update
 
 app = app
+
+EVENTS_INSTANCE = None
 
 
 @pytest.fixture
@@ -28,30 +33,26 @@ def client_with_no_data():
 @pytest.fixture
 def client():
     client = app.test_client()
-    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
-    post = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
-                       data=json.dumps(json_update),
-                       content_type='application/json')
-    if post.status_code not in (200, 201):
-        raise AssertionError(f'register asset failed: {post}')
-    post2 = client.post(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo',
-                        data=json.dumps(json_dict),
-                        content_type='application/json')
 
     yield client
 
-    client.delete(
-        BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post.data.decode('utf-8'))['id'])
-    client.delete(
-        BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo/%s' % json.loads(post2.data.decode('utf-8'))[
-            'id'])
-
 
 @pytest.fixture
-def test_assets():
-    _assets = []
-    for i in range(10):
-        a = copy.deepcopy(json_dict)
-        a['id'] = a['id'][:-2] + str(i) + str(i)
-        _assets.append(a)
-    return _assets
+def events_object():
+    global EVENTS_INSTANCE
+    if not EVENTS_INSTANCE:
+        config_file = os.getenv('CONFIG_FILE', 'config.ini')
+        network_rpc = os.environ.get('EVENTS_RPC', 'http://127.0.0.1:8545')
+
+        ConfigProvider.set_config(Config(config_file))
+        from ocean_lib.ocean.util import get_web3_connection_provider
+
+        Web3Provider.init_web3(provider=get_web3_connection_provider(network_rpc))
+        ContractHandler.set_artifacts_path(get_artifacts_path())
+
+        EVENTS_INSTANCE = EventsMonitor(
+            Web3Provider.get_web3(),
+            app.config['CONFIG_FILE']
+        )
+        EVENTS_INSTANCE.store_last_processed_block(0)
+    return EVENTS_INSTANCE

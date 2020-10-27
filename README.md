@@ -2,10 +2,13 @@
 
 # Aquarius
 
-> 🐋 Aquarius provides an off-chain database store for metadata about data assets.
-> It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
+> 🐋 Aquarius provides an off-chain database cache for metadata that is published on-chain. 
+This enables faster query operations on datasets metadata. 
+The latest version of Aquarius consist of a Flask application to support fetching and 
+searching metadata and a blockchain events monitor that picks up new metadata published 
+on-chain and stores it in the database backend (elasticsearch).
 
-**_"Aquarius is a constellation of the zodiac, situated between Capricornus and Pisces. Its name is Latin for "water-carrier" or "cup-carrier. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path)."_**
+> It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
 
 [![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/10c8fddd5e8547c29de4906410a16ae7.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors)
 
@@ -15,13 +18,76 @@
 
 ---
 
+## What Aquarius does
+* Aquarius runs a Flask RESTful server to support fetching and searching metadata of datasets that are published on-chain
+  * The metadata is published on-chain via the Metadata smartcontract:
+    * Metadata is first compressed then published on-chain
+    * The compressed metadata on-chain is not kept in storage, but rather is captured in an event log named `MetadataCreated`
+    * The id (DID) of the dataset asset is the Datatoken address, off-chain the did consist of `did:op:` prepended to the datatoken address
+* Aquarius runs an events monitor that watches the:
+  * `MetadataCreated` event from the `Metadata` smartcontract
+    * Reads the events `data` argument, decompresses the metadata json object 
+      then runs schema validation before saving it to the database 
+  * `LOG_JOIN`, `LOG_EXIT` and `LOG_SWAP` events from the `BPool` smartcontracts
+    * Any of these events is an indication that liquidity and price have changed
+    * The watcher reads the liquidity of each token in the pool and updates the 
+    corresponding metadata in the cache. This information is added to the metadata 
+    to allow sorting and searching by price and/or liquidity volume 
+ 
+## Setup
+The following environment variables are required for running Aquarius:
+
+```
+# URL of ethereum network.
+# Recommendation: when connecting to an official network, create an Infura project id and set this
+# to use the Infura url including the project id
+EVENTS_RPC
+  examples:
+  "http://172.15.0.3:8545", "wss://rinkeby.infura.io/ws/v3/INFURA_ID" 
+
+# Use this to run the EventsMonitor in a thread from the main Flask app
+EVENTS_ALLOW
+  accepted values: 
+    "0" to disable
+    "1" to enable 
+
+# Run the EventsMonitor in a separate process, overrides `EVENTS_ALLOW`.
+# This is only used when running in `docker` container 
+RUN_EVENTS_MONITOR
+  accepted values: 
+    "0" to disable
+    "1" to enable 
+``` 
+And these are optional
+```bash
+# Use this to decrypt metadata when read from the blockchain event log
+EVENTS_ECIES_PRIVATE_KEY
+# Path to abi files of the ocean contracts
+ARTIFACTS_PATH
+# Path to the `address.json` file or any json file that has the deployed contracts addresses 
+ADDRESS_FILE
+# Specify the network name to use for reading the contracts addresses from the `ADDRESS_FILE`.
+# If not set, the netwrok name is derived from current network id or from the `EVENTS_RPC` value
+NETWORK_NAME
+# Skip caching metadata of publishers that are not in this list 
+ALLOWED_PUBLISHERS
+# The blockNumber of `BFactory` deployment
+BFACTORY_BLOCK
+# The blockNumber of `Metadata` contract deployment
+METADATA_CONTRACT_BLOCK
+
+
+``` 
+
 ## For Aquarius Operators
 
-If you're developing a marketplace, you'll want to run Aquarius and several other components locally, and the easiest way to do that is to use Barge. See the instructions in [the Barge repository](https://github.com/oceanprotocol/barge).
+If you're developing a marketplace, you'll want to run Aquarius and several other components locally, 
+and the easiest way to do that is to use Barge. See the instructions 
+in [the Barge repository](https://github.com/oceanprotocol/barge).
 
 ## For Aquarius API Users
 
-[Here](https://docs.oceanprotocol.com/references/aquarius/) is API documentation. It shows docs for the version currently deployed with the Nile Testnet. For other versions, see "past versions" link at the top of the page.
+[Here](https://docs.oceanprotocol.com/references/aquarius/) is API documentation.
 
 If you have Aquarius running locally, you can find API documentation at
 [http://localhost:5000/api/v1/docs](http://localhost:5000/api/v1/docs) or maybe
@@ -61,12 +127,14 @@ Run Docker image
 docker run myaqua
 ```
 
-To test with other ocean components in `barge` directory `compose-files/aquarius.yml` change `aquarius image` to `myaqua`
+To test with other ocean components in `barge` set the `AQUARIUS_VERSION` environment variable to `myaqua`
 Then
 
 ```bash
 ./start_ocean.sh
 ```
+
+The setup for `Aquarius` and Alastic search in `barge` is in `compose-files/aquarius_elasticsearch.yml`
 
 ### Running Locally, for Dev and Test
 
@@ -77,26 +145,28 @@ git clone git@github.com:oceanprotocol/aquarius.git
 cd aquarius/
 ```
 
-Then run mongodb database that is a requirement for Aquarius. MongoDB can be installed directly using instructions from [official documentation](https://docs.mongodb.com/manual/installation/). Or if you have `docker` installed, you can run:
+Then run elasticsearch database that is a requirement for Aquarius.
 
 ```bash
-docker run -d -p 27017:27017 mongo
+export ES_VERSION=6.6.2 
+export ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
+wget ${ES_DOWNLOAD_URL}
+tar -xzf elasticsearch-${ES_VERSION}.tar.gz
+./elasticsearch-${ES_VERSION}/bin/elasticsearch &
 ```
-
-Note that it runs MongoDB but the Aquarius can also work with BigchainDB or Elasticsearch. If you want to run ElasticSearch or BigchainDB, update the file `config.ini` and run the Database engine with your preferred method.
 
 Then install Aquarius's OS-level requirements:
 
 ```bash
 sudo apt update
-sudo apt install python3-dev python3.7-dev libssl-dev
+sudo apt install python3-dev python3.7-dev
 ```
 
-(Note: At the time of writing, `python3-dev` was for Python 3.6. `python3.7-dev` is needed if you want to test against Python 3.7 locally. BigchainDB needs `libssl-dev`.)
+(Note: At the time of writing, `python3-dev` was for Python 3.6. `python3.7-dev` is needed if you want to test against Python 3.7 locally.)
 
-Before installing Aquarius's Python package requirements, you should create and activate a virtualenv (or equivalent).
+Before installing Aquarius's Python package requirements, it's recommended to create and activate a virtualenv (or equivalent).
 
-The most simple way to start is:
+At this point, an Elasticsearch database must already be running, now you can start the Aquarius server:
 
 ```bash
 pip install -r requirements.txt

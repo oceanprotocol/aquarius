@@ -16,7 +16,7 @@ with open('CHANGELOG.md') as history_file:
 install_requirements = [
     'coloredlogs==14.0',
     'Flask==1.1.2',
-    'Flask-Cors==3.0.8',
+    'Flask-Cors==3.0.9',
     'flask-swagger==0.2.14',
     'flask-swagger-ui==3.25.0',
     'Jinja2>=2.10.1',
@@ -24,12 +24,12 @@ install_requirements = [
     'gunicorn==20.0.4',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.2.2',
-    'oceandb-elasticsearch-driver==0.3.1',
+    'oceandb-elasticsearch-driver==0.3.3',
     'PyYAML==5.3.1',
     'pytz==2020.1',
-    'plecos==1.0.2',
-    'web3==5.11.1',
-    'eth-account==0.5.2'
+    'plecos==1.1.0',
+    'ocean-lib==0.5.0',
+    'eciespy'
 ]
 
 setup_requirements = ['pytest-runner==5.2', ]
@@ -43,11 +43,10 @@ dev_requirements = [
 ]
 
 test_requirements = [
-    'plecos==1.0.2',
+    'plecos==1.1.0',
     'Flask==1.1.2',
-    'web3==5.11.1',
     'codacy-coverage==1.3.11',
-    'coverage==5.2.1',
+    'coverage==5.3',
     'mccabe==0.6.1',
     'pylint==2.6.0',
     'pytest',
@@ -82,6 +81,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='1.1.0',
+    version='2.1.0',
     zip_safe=False,
 )
