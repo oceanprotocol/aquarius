@@ -30,12 +30,12 @@ handlers:
         encoding: utf8
 
 loggers:
-    my_module:
+    elasticsearch:
         level: ERROR
         handlers: [console]
         propagate: no
-    elasticsearch:
-        level: ERROR
+    aquarius:
+        level: INFO
         handlers: [console]
         propagate: no
 
