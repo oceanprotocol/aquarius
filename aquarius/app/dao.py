@@ -22,22 +22,14 @@ class Dao(object):
                     continue
 
                 if self.is_listed(asset['service']):
-                    asset_with_id.append(self.oceandb.read(asset['id']))
+                    asset_with_id.append(asset)
             except Exception as e:
                 logging.error(f'Dao.get_all_listed_assets: {str(e)}')
 
         return asset_with_id
 
     def get_all_assets(self):
-        assets = self.oceandb.list()
-        asset_with_id = []
-        for asset in assets:
-            try:
-                asset_with_id.append(self.oceandb.read(asset['id']))
-            except Exception as e:
-                logging.error(f'Dao.get_all_assets: {str(e)}')
-
-        return asset_with_id
+        return [a for a in self.oceandb.list()]
 
     def get(self, asset_id):
         try:
@@ -65,12 +57,15 @@ class Dao(object):
         return self.oceandb.delete(asset_id)
 
     def delete_all(self):
-        assets = self.oceandb.list()
-        for asset in assets:
-            try:
-                self.delete(asset['id'])
-            except Exception as e:
-                logging.error(f'Dao.delete_all: {str(e)}')
+        if hasattr(self.oceandb, 'delete_all'):
+            self.oceandb.delete_all()
+        else:
+            assets = self.oceandb.list()
+            for asset in assets:
+                try:
+                    self.delete(asset['id'])
+                except Exception as e:
+                    logging.error(f'Dao.delete_all: {str(e)}')
 
     def query(self, query):
         query_list = []

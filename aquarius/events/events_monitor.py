@@ -138,7 +138,6 @@ class EventsMonitor:
         )
         self._monitor_is_on = True
         t.start()
-        self._updater.start()
 
     def stop_monitor(self):
         self._monitor_is_on = False
@@ -146,12 +145,18 @@ class EventsMonitor:
             self._updater.stop()
 
     def run_monitor(self):
+        first_update = True
         while True:
             try:
                 if not self._monitor_is_on:
                     return
 
                 self.process_current_blocks()
+                if first_update:
+                    self._updater.do_update()
+                    first_update = False
+
+                self._updater.process_pool_events()
 
             except (KeyError, Exception) as e:
                 logger.error(f'Error processing event:')
@@ -171,7 +176,7 @@ class EventsMonitor:
             return
 
         from_block = last_block
-        debug_log(f'from_block:{from_block}, current_block:{current_block}')
+        debug_log(f'Metadata monitor >>>> from_block:{from_block}, current_block:{current_block} <<<<')
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, current_block):
             try:
                 self.processNewDDO(event)
@@ -282,7 +287,9 @@ class EventsMonitor:
             return False
 
         try:
-            self._oceandb.write(_record, did)
+            record_str = json.dumps(_record)
+            self._oceandb.write(record_str, did)
+            _record = json.loads(record_str)
             name = _record["service"][0]["attributes"]["main"]["name"]
             debug_log(f'DDO saved: did={did}, name={name}, publisher={sender_address}')
             logger.info(f'Done processing {EVENT_METADATA_CREATED} event: did={did}. DDO SAVED TO DB')
@@ -353,7 +360,7 @@ class EventsMonitor:
             _record['dataTokenInfo'] = get_datatoken_info(dt_address)
 
         try:
-            self._oceandb.update(_record, did)
+            self._oceandb.update(json.dumps(_record), did)
             logger.info(f'updated DDO saved to db successfully (did={did}).')
             return True
         except (KeyError, Exception) as err:

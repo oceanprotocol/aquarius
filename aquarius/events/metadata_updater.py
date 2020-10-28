@@ -139,7 +139,7 @@ class MetadataUpdater:
     def _get_all_assets(self):
         for asset in self._oceandb.list():
             try:
-                yield self._oceandb.read(asset['id'])
+                yield asset
             except (KeyError, Exception) as e:
                 logging.error(str(e))
 
@@ -289,13 +289,17 @@ class MetadataUpdater:
                 assert owner is not None, 'owner is required when `exchange_id` is not given.'
                 exchange_id = add_0x_prefix(fre.generateExchangeId(self._checksum_ocean, dt_address, owner).hex())
 
-            price = fre.get_base_token_quote(exchange_id, to_base_18(1.0))
-            supply = fre.contract_concise.getSupply(exchange_id)
-            return from_base_18(price), from_base_18(supply)
+            ex_data = fre.getExchange(exchange_id)
+            if not ex_data or not ex_data.exchangeOwner:
+                return None, None
+
+            price = from_base_18(ex_data.fixedRate)
+            supply = from_base_18(ex_data.supply)
+            return price, supply
         except Exception as e:
             logger.error(f'Reading exchange price failed for datatoken {dt_address}, '
                          f'owner {owner}, exchangeId {exchange_id}: {e}')
-            return 0.0, 0.0
+            return None, None
 
     def get_all_pools(self):
         bfactory = BFactory(self._addresses.get(BFactory.CONTRACT_NAME))
@@ -346,7 +350,11 @@ class MetadataUpdater:
 
         frexchange_address = self.ex_contract.address
         for asset in self._get_all_assets():
-            did = asset['id']
+            did = asset.get('id', None)
+            if not did:
+                logger.debug(f'db asset without id: {asset}')
+                continue
+
             if not did.startswith(did_prefix):
                 logger.warning(f'skipping price info update for asset {did} because the did is invalid.')
                 continue
@@ -364,11 +372,11 @@ class MetadataUpdater:
 
                 price, dt_supply = self._get_fixedrateexchange_price(_dt_address, owner)
                 price_dict = {
-                    'datatoken': dt_supply,
+                    'datatoken': dt_supply or 0.0,
                     'ocean': 0.0,
-                    'value': price,
-                    'type': 'exchange',
-                    'address': frexchange_address,
+                    'value': price or 0.0,
+                    'type': 'exchange' if price is not None else '',
+                    'address': frexchange_address if price is not None else '',
                     'pools': []
                 }
 
@@ -453,11 +461,19 @@ class MetadataUpdater:
         for address, pool_address in _dt_address_pool_list:
             dt_to_pools[address].append(pool_address)
 
+        asset = None
         for address, pools in dt_to_pools.items():
-            logger.info(f'updating price info for datatoken: {address}, pools {pools}')
+
             did = did_prefix + remove_0x_prefix(address)
             try:
                 asset = dao.get(did)
+            except Exception as e:
+                logger.debug(f'asset not found for token address {address}: {e}')
+                continue
+
+            logger.info(f'updating price info for datatoken: {address}, pools {pools}')
+            try:
+
                 _price_dict = asset.get('price', {})
                 _pools = _price_dict.get('pools', [])
                 _dt_address = self._web3.toChecksumAddress(address)
@@ -492,7 +508,7 @@ class MetadataUpdater:
             return
 
         from_block = last_block
-        logger.debug(f'from_block:{from_block}, current_block:{block}')
+        logger.debug(f'Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{block} <<<<')
         ok = False
         try:
             dt_address_pool_list = self.get_dt_addresses_from_pool_logs(from_block=from_block, to_block=block)
