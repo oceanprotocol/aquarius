@@ -145,7 +145,7 @@ class EventsMonitor:
             self._updater.stop()
 
     def run_monitor(self):
-        first_update = True
+        first_update = self._updater.is_first_update_enabled()
         while True:
             try:
                 if not self._monitor_is_on:

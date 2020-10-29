@@ -115,6 +115,9 @@ class MetadataUpdater:
         self._is_on = True
         t.start()
 
+    def is_first_update_enabled(self):
+        return self._do_first_update
+
     def stop(self):
         self._is_on = False
 
@@ -275,6 +278,8 @@ class MetadataUpdater:
             ocn_reserve = from_base_18(ocn_reserve)
             dt_reserve = from_base_18(dt_reserve)
             if dt_reserve <= 1.0:
+                price = 0.0
+            if price > 1000000000:
                 price = 0.0
 
             return dt_reserve, ocn_reserve, price, _pool
