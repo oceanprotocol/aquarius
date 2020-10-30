@@ -50,6 +50,7 @@ class MetadataUpdater:
 
 
     """
+    DID_PREFIX = 'did:op:'
 
     def __init__(self, oceandb, web3, config):
         self._oceandb = oceandb
@@ -332,8 +333,56 @@ class MetadataUpdater:
 
         return pools
 
+    def do_single_update(self, asset):
+        did_prefix = self.DID_PREFIX
+        prefix_len = len(did_prefix)
+        did = asset['id']
+        if not did.startswith(did_prefix):
+            return
+
+        dt_address = add_0x_prefix(did[prefix_len:])
+        _dt_address = self._web3.toChecksumAddress(dt_address)
+        pools = self.get_datatoken_pools(dt_address, from_block=self.bfactory_block)
+        if pools:
+            dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(pools, _dt_address)
+            price_dict = {
+                'datatoken': dt_reserve,
+                'ocean': ocn_reserve,
+                'value': price,
+                'type': 'pool',
+                'address': pool_address,
+                'pools': pools
+            }
+        else:
+            owner = asset['proof'].get('creator')
+            if not owner or not self._web3.isAddress(owner):
+                logger.warning(f'updating price info for datatoken {dt_address} failed, invalid owner from ddo.proof (owner={owner}).')
+                return
+
+            price, dt_supply = self._get_fixedrateexchange_price(_dt_address, owner)
+            price_dict = {
+                'datatoken': dt_supply or 0.0,
+                'ocean': 0.0,
+                'value': price or 0.0,
+                'type': 'exchange' if price is not None else '',
+                'address': self.ex_contract.address if price is not None else '',
+                'pools': []
+            }
+
+        asset['price'] = price_dict
+        try:
+            dt_info = get_datatoken_info(_dt_address)
+        except Exception as e:
+            logger.error(f'getting datatoken info failed for datatoken {_dt_address}: {e}')
+            dt_info = {}
+
+        asset['dataTokenInfo'] = dt_info
+
+        logger.info(f'doing single asset update: datatoken {dt_address}, pools {pools}, price-info {price_dict}')
+        self._oceandb.update(asset, did)
+
     def do_update(self):
-        did_prefix = 'did:op:'
+        did_prefix = self.DID_PREFIX
         prefix_len = len(did_prefix)
         pools = self.get_all_pools()
         dt_to_pool = dict()
@@ -409,7 +458,7 @@ class MetadataUpdater:
             self._oceandb.update(asset, did)
 
     def update_dt_assets_with_exchange_info(self, dt_address_exid):
-        did_prefix = 'did:op:'
+        did_prefix = self.DID_PREFIX
         dao = Dao(oceandb=self._oceandb)
         _dt_address_ex_list = []
         seen_exs = set()
@@ -448,7 +497,7 @@ class MetadataUpdater:
                 logger.error(f'updating datatoken assets price values from exchange contract: {e}')
 
     def update_dt_assets(self, dt_address_pool_list):
-        did_prefix = 'did:op:'
+        did_prefix = self.DID_PREFIX
         dao = Dao(oceandb=self._oceandb)
         _dt_address_pool_list = []
         seen_pools = set()

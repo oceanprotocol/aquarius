@@ -3,14 +3,21 @@
 
 import json
 import logging
+import os
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
+from ocean_lib.config_provider import ConfigProvider
+from ocean_lib.web3_internal.contract_handler import ContractHandler
+from ocean_lib.web3_internal.web3_provider import Web3Provider
+from ocean_lib.ocean.util import get_web3_connection_provider
+from ocean_lib.config import Config as OceanConfig
 from plecos.plecos import (
     is_valid_dict_local,
     list_errors_dict_local,
 )
 
+from aquarius.app.auth_util import has_update_request_permission, get_signer_address
 from aquarius.app.dao import Dao
 from aquarius.app.util import (
     make_paginate_response,
@@ -19,8 +26,14 @@ from aquarius.app.util import (
     sanitize_record,
     list_errors,
 )
+from aquarius.events.metadata_updater import MetadataUpdater
+from aquarius.events.util import get_artifacts_path
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+
+ConfigProvider.set_config(OceanConfig(app.config['CONFIG_FILE']))
+Web3Provider.init_web3(provider=get_web3_connection_provider(os.environ.get('EVENTS_RPC', '')))
+ContractHandler.set_artifacts_path(get_artifacts_path())
 
 setup_logging()
 assets = Blueprint('assets', __name__)
@@ -261,3 +274,33 @@ def validate():
     else:
         res = jsonify(list_errors(list_errors_dict_local, data))
         return res
+
+
+@assets.route('/ddo/update/<did>', methods=['PUT'])
+def update_ddo_info(did):
+    assert request.json and isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    address = data.get('adminAddress', None)
+    if not address or not has_update_request_permission(address):
+        return jsonify(error=f'Unauthorized.'), 401
+
+    _address = None
+    signature = data.get('signature', None)
+    if signature:
+        _address = get_signer_address(address, signature, logger)
+
+    if not _address or _address.lower() != address.lower():
+        return jsonify(error=f'Unauthorized.'), 401
+
+    try:
+        asset_record = dao.get(did)
+        if not asset_record:
+            return jsonify(error=f'Asset {did} not found.'), 404
+
+        updater = MetadataUpdater(oceandb=dao.oceandb, web3=Web3Provider.get_web3(), config=ConfigProvider.get_config())
+        updater.do_single_update(asset_record)
+
+        return jsonify('acknowledged.'), 200
+    except Exception as e:
+        logger.error(f'get_metadata: {str(e)}')
+        return f'{did} asset DID is not in OceanDB', 404
