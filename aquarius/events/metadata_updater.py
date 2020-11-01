@@ -52,8 +52,9 @@ class MetadataUpdater:
     """
     DID_PREFIX = 'did:op:'
 
-    def __init__(self, oceandb, web3, config):
+    def __init__(self, oceandb, oceandb_plus, web3, config):
         self._oceandb = oceandb
+        self._oceandb_plus = oceandb_plus
         self._web3 = web3
         self._config = config
 
@@ -158,14 +159,13 @@ class MetadataUpdater:
         return self._web3.sha3(text=sig_str).hex()
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb.read('pool_events_last_block')
-        last_block = last_block_record['last_block']
-        return last_block
+        last_block_record = self._oceandb_plus.read('pool_events_last_block')
+        return last_block_record['last_block']
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}
         try:
-            self._oceandb.update(record, 'pool_events_last_block')
+            self._oceandb_plus.update(record, 'pool_events_last_block')
         except elasticsearch.exceptions.RequestError as e:
             logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
 

@@ -9,6 +9,7 @@ import json
 from json import JSONDecodeError
 from threading import Thread
 
+import elasticsearch
 from eth_utils import remove_0x_prefix, add_0x_prefix
 from ocean_lib.config_provider import ConfigProvider
 from eth_account import Account
@@ -66,8 +67,12 @@ class EventsMonitor:
     def __init__(self, web3, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
 
+        self._oceandb_plus = OceanDb(config_file).plugin
+        self._oceandb_plus.driver._index = f'{self._oceandb.driver.db_index}_plus'
+        self._oceandb_plus.driver.es.indices.create(index=self._oceandb_plus.driver.db_index, ignore=400)
+
         self._web3 = web3
-        self._updater = MetadataUpdater(self._oceandb, self._web3, ConfigProvider.get_config())
+        self._updater = MetadataUpdater(self._oceandb, self._oceandb_plus, self._web3, ConfigProvider.get_config())
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
@@ -194,13 +199,15 @@ class EventsMonitor:
         self.store_last_processed_block(current_block)
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb.read('events_last_block')
-        last_block = last_block_record['last_block']
-        return last_block
+        last_block_record = self._oceandb_plus.read('events_last_block')
+        return last_block_record['last_block']
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}
-        self._oceandb.update(record, 'events_last_block')
+        try:
+            self._oceandb_plus.update(record, 'events_last_block')
+        except elasticsearch.exceptions.RequestError as e:
+            logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
 
     def get_event_logs(self, event_name, from_block, to_block):
         def _get_logs(event, _from_block, _to_block):
