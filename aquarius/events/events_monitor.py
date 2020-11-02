@@ -67,12 +67,11 @@ class EventsMonitor:
     def __init__(self, web3, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
 
-        self._oceandb_plus = OceanDb(config_file).plugin
-        self._oceandb_plus.driver._index = f'{self._oceandb.driver.db_index}_plus'
-        self._oceandb_plus.driver.es.indices.create(index=self._oceandb_plus.driver.db_index, ignore=400)
+        self._other_db_index = f'{self._oceandb.driver.db_index}_plus'
+        self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
-        self._updater = MetadataUpdater(self._oceandb, self._oceandb_plus, self._web3, ConfigProvider.get_config())
+        self._updater = MetadataUpdater(self._oceandb, self._other_db_index, self._web3, ConfigProvider.get_config())
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
@@ -199,13 +198,24 @@ class EventsMonitor:
         self.store_last_processed_block(current_block)
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb_plus.read('events_last_block')
+        last_block_record = self._oceandb.driver.es.get(
+            index=self._other_db_index,
+            id='events_last_block',
+            doc_type='_doc'
+        )['_source']
         return last_block_record['last_block']
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}
         try:
-            self._oceandb_plus.update(record, 'events_last_block')
+            self._oceandb.driver.es.index(
+                index=self._other_db_index,
+                id='events_last_block',
+                body=record,
+                doc_type='_doc',
+                refresh='wait_for'
+            )['_id']
+
         except elasticsearch.exceptions.RequestError as e:
             logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
 
