@@ -392,7 +392,7 @@ class EventsMonitor:
             event.blockNumber,
             tx_id,
             event.address,
-            get_sender_from_txid(self._web3, tx_id),
+            event.args.get('createdBy'),
             event.args.get('flags', None),
             event.args.get('data', None)
         )
