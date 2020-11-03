@@ -387,12 +387,13 @@ class EventsMonitor:
 
     def get_event_data(self, event):
         tx_id = event.transactionHash.hex()
+        sender = event.args.get('createdBy', event.args.get('updatedBy'))
         return (
             f'did:op:{remove_0x_prefix(event.args.dataToken)}',
             event.blockNumber,
             tx_id,
             event.address,
-            event.args.get('createdBy'),
+            sender,
             event.args.get('flags', None),
             event.args.get('data', None)
         )
