@@ -1,3 +1,6 @@
+import json
+import os
+
 from ocean_lib.web3_internal.web3helper import Web3Helper
 from web3 import Web3
 
@@ -41,3 +44,12 @@ def compare_eth_addresses(address, checker, logger):
         logger.debug("Checker is not web3 valid")
         return False
     return Web3.toChecksumAddress(address) == Web3.toChecksumAddress(checker)
+
+
+def has_update_request_permission(address):
+    vip_list = os.getenv('AQUA_VIP_ACCOUNTS', '[]')
+    try:
+        vip_list = json.loads(vip_list)
+        return isinstance(vip_list, list) and bool(address in vip_list)
+    except Exception:
+        return False

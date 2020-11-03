@@ -3,6 +3,7 @@
 import copy
 import json
 import logging
+from collections import OrderedDict
 from datetime import datetime
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
@@ -30,6 +31,12 @@ def make_paginate_response(query_list_result, search_model):
     result['total_pages'] = int(total / offset) + int(total % offset > 0)
     result['total_results'] = total
     return result
+
+
+def get_request_data(request, url_params_only=False):
+    if url_params_only:
+        return request.args
+    return request.args if request.args else request.json
 
 
 def datetime_converter(o):
@@ -64,14 +71,9 @@ def get_metadata_from_services(services):
 
 
 def reorder_services_list(services):
-    result = []
-    for service in services:
-        if service['type'] == 'metadata':
-            result.append(service)
-
-    for service in services:
-        if service['type'] != 'metadata':
-            result.append(service)
+    service_dict = OrderedDict([(s['type'], s) for s in services])
+    result = [service_dict.pop('metadata')]
+    result.extend([s for t, s in service_dict.items()])
 
     return result
 
@@ -131,11 +133,13 @@ def check_required_attributes(required_attributes, data, method):
         logger.error('%s request failed: data is empty.' % method)
         return 'payload seems empty.', 400
 
-    for attr in required_attributes:
-        if attr not in data:
-            logger.error(
-                '%s request failed: required attr %s missing.' % (method, attr))
-            return '"%s" is required in the call to %s' % (attr, method), 400
+    keys = set(data.keys())
+    if not isinstance(required_attributes, set):
+        required_attributes = set(required_attributes)
+    missing_attrs = required_attributes.difference(keys)
+    if missing_attrs:
+        logger.error(f'{method} request failed: required attributes {missing_attrs} are missing.')
+        return f'"{missing_attrs}" are required in the call to {method}', 400
 
     return None, None
 
@@ -152,20 +156,21 @@ def list_errors(list_errors_function, data):
 
 
 def validate_data(data, method):
-    required_attributes = ['@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
-                           'service', 'dataToken']
+    required_attributes = {'@context', 'created', 'id', 'publicKey', 'authentication', 'proof',
+                           'service', 'dataToken'}
 
-    msg, status = check_required_attributes(
-        required_attributes, data, method)
+    msg, status = check_required_attributes(required_attributes, data, method)
     if msg:
         return msg, status
-    msg, status = check_no_urls_in_files(
-        get_main_metadata(data['service']), method)
+
+    msg, status = check_no_urls_in_files(get_main_metadata(data['service']), method)
     if msg:
         return msg, status
+
     msg, status = validate_date_format(data['created'])
     if status:
         return msg, status
+
     return None, None
 
 
