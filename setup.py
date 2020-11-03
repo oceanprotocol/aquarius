@@ -81,6 +81,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='2.1.3',
+    version='2.1.4',
     zip_safe=False,
 )
