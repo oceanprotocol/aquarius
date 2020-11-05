@@ -11,9 +11,23 @@ from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 class Dao(object):
 
     def __init__(self, oceandb=None, config_file=None):
+        """
+        Initialize the configuration.
+
+        Args:
+            self: (todo): write your description
+            oceandb: (todo): write your description
+            config_file: (str): write your description
+        """
         self.oceandb = oceandb or OceanDb(config_file).plugin
 
     def get_all_listed_assets(self):
+        """
+        Stub
+
+        Args:
+            self: (todo): write your description
+        """
         assets = self.oceandb.list()
         asset_with_id = []
         for asset in assets:
@@ -29,9 +43,22 @@ class Dao(object):
         return asset_with_id
 
     def get_all_assets(self):
+        """
+        Return all assets.
+
+        Args:
+            self: (todo): write your description
+        """
         return [a for a in self.oceandb.list()]
 
     def get(self, asset_id):
+        """
+        Retrieve an asset by its id.
+
+        Args:
+            self: (todo): write your description
+            asset_id: (str): write your description
+        """
         try:
             asset = self.oceandb.read(asset_id)
         except elasticsearch.exceptions.NotFoundError as e:
@@ -48,15 +75,44 @@ class Dao(object):
         return asset
 
     def register(self, record, asset_id):
+        """
+        Register a record.
+
+        Args:
+            self: (todo): write your description
+            record: (todo): write your description
+            asset_id: (str): write your description
+        """
         return self.oceandb.write(record, asset_id)
 
     def update(self, record, asset_id):
+        """
+        Update an existing record
+
+        Args:
+            self: (todo): write your description
+            record: (todo): write your description
+            asset_id: (str): write your description
+        """
         return self.oceandb.update(record, asset_id)
 
     def delete(self, asset_id):
+        """
+        Deletes the given asset.
+
+        Args:
+            self: (todo): write your description
+            asset_id: (str): write your description
+        """
         return self.oceandb.delete(asset_id)
 
     def delete_all(self):
+        """
+        Delete all assets.
+
+        Args:
+            self: (todo): write your description
+        """
         if hasattr(self.oceandb, 'delete_all'):
             self.oceandb.delete_all()
         else:
@@ -68,6 +124,13 @@ class Dao(object):
                     logging.error(f'Dao.delete_all: {str(e)}')
 
     def query(self, query):
+        """
+        Execute a query.
+
+        Args:
+            self: (todo): write your description
+            query: (str): write your description
+        """
         query_list = []
         if isinstance(query, QueryModel):
             query_result, count = self.oceandb.query(query)
@@ -85,6 +148,12 @@ class Dao(object):
 
     @staticmethod
     def is_listed(services):
+        """
+        Return true if the service is installed.
+
+        Args:
+            services: (list): write your description
+        """
         for service in services:
             if service['type'] == 'metadata':
                 if 'curation' in service['attributes'] and 'isListed' in service['attributes']['curation']:

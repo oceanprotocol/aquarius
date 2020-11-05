@@ -20,11 +20,21 @@ EVENTS_INSTANCE = None
 
 @pytest.fixture
 def base_ddo_url():
+    """
+    Returns the base url.
+
+    Args:
+    """
     return BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo'
 
 
 @pytest.fixture
 def client_with_no_data():
+    """
+    A context manager which client.
+
+    Args:
+    """
     client = app.test_client()
     client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
     yield client
@@ -32,6 +42,11 @@ def client_with_no_data():
 
 @pytest.fixture
 def client():
+    """
+    A context manager that runs.
+
+    Args:
+    """
     client = app.test_client()
 
     yield client
@@ -39,6 +54,11 @@ def client():
 
 @pytest.fixture
 def events_object():
+    """
+    Starts the event loop.
+
+    Args:
+    """
     global EVENTS_INSTANCE
     if not EVENTS_INSTANCE:
         config_file = os.getenv('CONFIG_FILE', 'config.ini')

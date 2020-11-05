@@ -281,6 +281,12 @@ def validate():
 
 @assets.route('/ddo/update/<did>', methods=['PUT'])
 def update_ddo_info(did):
+    """
+    Update daoo dao record.
+
+    Args:
+        did: (str): write your description
+    """
     assert request.json and isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     address = data.get('adminAddress', None)
@@ -311,6 +317,12 @@ def update_ddo_info(did):
 
 @assets.route('/ddo/<did>', methods=['DELETE'])
 def delist_ddo(did):
+    """
+    Delist a dao did.
+
+    Args:
+        did: (str): write your description
+    """
     assert request.json and isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
     address = data.get('adminAddress', None)

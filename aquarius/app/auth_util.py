@@ -24,6 +24,12 @@ def get_signer_address(message, signature, logger):
 
 
 def sanitize_addresses(addresses):
+    """
+    Sanitize addresses.
+
+    Args:
+        addresses: (str): write your description
+    """
     return [Web3.toChecksumAddress(a) for a in addresses if Web3.isAddress(a)]
 
 
@@ -47,6 +53,12 @@ def compare_eth_addresses(address, checker, logger):
 
 
 def has_update_request_permission(address):
+    """
+    Returns true if the given ip address is_update.
+
+    Args:
+        address: (str): write your description
+    """
     vip_list = os.getenv('AQUA_VIP_ACCOUNTS', '[]')
     try:
         vip_list = json.loads(vip_list)

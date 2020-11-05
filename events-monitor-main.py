@@ -15,6 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 def run_events_monitor():
+    """
+    Run the monitor.
+
+    Args:
+    """
     setup_logging()
     logger.info('EventsMonitor: preparing')
     required_env_vars = [

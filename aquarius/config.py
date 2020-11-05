@@ -29,6 +29,13 @@ config_defaults = {
 class Config(configparser.ConfigParser):
 
     def __init__(self, filename=None, **kwargs):
+        """
+        Initialize configuration file.
+
+        Args:
+            self: (todo): write your description
+            filename: (str): write your description
+        """
         configparser.ConfigParser.__init__(self)
 
         self.read_dict(config_defaults)
@@ -47,6 +54,12 @@ class Config(configparser.ConfigParser):
         self._load_environ()
 
     def _load_environ(self):
+        """
+        Load all the configuration.
+
+        Args:
+            self: (todo): write your description
+        """
         for option_name, environ_item in environ_names.items():
             value = os.environ.get(environ_item[0])
             if value is not None:
@@ -54,6 +67,13 @@ class Config(configparser.ConfigParser):
                 self.set(self._section_name, option_name, value)
 
     def set_arguments(self, items):
+        """
+        Set configuration options.
+
+        Args:
+            self: (todo): write your description
+            items: (dict): write your description
+        """
         for name, value in items.items():
             if value is not None:
                 self._logger.debug('Config: setting argument %s = %s', name, value)
@@ -62,25 +82,54 @@ class Config(configparser.ConfigParser):
 
     @property
     def aquarius_url(self):
+        """
+        Returns the url of the replication url.
+
+        Args:
+            self: (dict): write your description
+        """
         return self.get(self._section_name, NAME_AQUARIUS_URL)
     
     @property
     def allow_free_assets_only(self):
+        """
+        Returns a list of free assets.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.get(self._section_name, ALLOW_FREE_ASSETS_ONLY)
 
     @property
     def db_url(self):
+        """
+        Returns the url for the url.
+
+        Args:
+            self: (dict): write your description
+        """
         return self.get(self._oceandb_name, DB_HOSTNAME) + ":" + self.get(self._oceandb_name,
                                                                           DB_PORT)
 
     @property
     def module(self):
+        """
+        The module that module.
+
+        Args:
+            self: (dict): write your description
+        """
         return self.get(self._oceandb_name, MODULE)
 
     # static methods
 
     @staticmethod
     def get_environ_help():
+        """
+        Return the help string for the command.
+
+        Args:
+        """
         result = []
         for option_name, environ_item in environ_names.items():
             # codacy fix

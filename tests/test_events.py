@@ -22,6 +22,16 @@ from tests.helpers import (
 
 
 def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=None):
+    """
+    Run a did.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_instance: (todo): write your description
+        flags: (int): write your description
+        encryption_key: (str): write your description
+    """
     web3 = get_web3()
     block = web3.eth.blockNumber
     _ddo = new_ddo(test_account1, web3, f'dt.{block}')
@@ -65,18 +75,50 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
 
 
 def test_publish_and_update_ddo(client, base_ddo_url, events_object):
+    """
+    Publish a d - bus dbus.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     run_test(client, base_ddo_url, events_object)
 
 
 def test_publish_and_update_ddo_with_lzma(client, base_ddo_url, events_object):
+    """
+    Test if a dnzma and update it sls.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     run_test(client, base_ddo_url, events_object, 0)
 
 
 def test_publish_and_update_ddo_with_lzma_and_ecies(client, base_ddo_url, events_object):
+    """
+    Test if the provided do object and update it. cloud provider.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     run_test(client, base_ddo_url, events_object, 0, ecies_account.privateKey)
 
 
 def test_publish(client, base_ddo_url, events_object):
+    """
+    Publish a did to a ddo.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     _ddo = new_ddo(test_account1, get_web3(), f'dt.0')
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))
@@ -88,6 +130,14 @@ def test_publish(client, base_ddo_url, events_object):
 
 
 def test_publish_unallowed_address(client, base_ddo_url, events_object):
+    """
+    Test if a ddo address
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     _ddo = new_ddo(test_account3, get_web3(), f'dt.0')
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))

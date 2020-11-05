@@ -65,6 +65,15 @@ class EventsMonitor:
     _instance = None
 
     def __init__(self, web3, config_file, metadata_contract=None):
+        """
+        Initialize the db.
+
+        Args:
+            self: (todo): write your description
+            web3: (todo): write your description
+            config_file: (str): write your description
+            metadata_contract: (todo): write your description
+        """
         self._oceandb = OceanDb(config_file).plugin
 
         self._other_db_index = f'{self._oceandb.driver.db_index}_plus'
@@ -118,9 +127,21 @@ class EventsMonitor:
 
     @property
     def is_monitor_running(self):
+        """
+        Return true if the monitor is running.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._monitor_is_on
 
     def start_events_monitor(self):
+        """
+        Start monitor monitor monitor.
+
+        Args:
+            self: (todo): write your description
+        """
         if self._monitor_is_on:
             return
 
@@ -144,11 +165,23 @@ class EventsMonitor:
         t.start()
 
     def stop_monitor(self):
+        """
+        Stops the monitor.
+
+        Args:
+            self: (todo): write your description
+        """
         self._monitor_is_on = False
         if self._updater.is_running():
             self._updater.stop()
 
     def run_monitor(self):
+        """
+        Run the monitor.
+
+        Args:
+            self: (todo): write your description
+        """
         first_update = self._updater.is_first_update_enabled()
         while True:
             try:
@@ -169,6 +202,12 @@ class EventsMonitor:
             time.sleep(self._monitor_sleep_time)
 
     def process_current_blocks(self):
+        """
+        Process the current blocks.
+
+        Args:
+            self: (todo): write your description
+        """
         try:
             last_block = self.get_last_processed_block()
         except Exception as e:
@@ -198,6 +237,12 @@ class EventsMonitor:
         self.store_last_processed_block(current_block)
 
     def get_last_processed_block(self):
+        """
+        Get the last block number.
+
+        Args:
+            self: (todo): write your description
+        """
         last_block_record = self._oceandb.driver.es.get(
             index=self._other_db_index,
             id='events_last_block',
@@ -206,6 +251,13 @@ class EventsMonitor:
         return last_block_record['last_block']
 
     def store_last_processed_block(self, block):
+        """
+        Store the last block at index
+
+        Args:
+            self: (todo): write your description
+            block: (todo): write your description
+        """
         record = {"last_block": block}
         try:
             self._oceandb.driver.es.index(
@@ -220,7 +272,24 @@ class EventsMonitor:
             logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
 
     def get_event_logs(self, event_name, from_block, to_block):
+        """
+        Get a list of a specific event.
+
+        Args:
+            self: (str): write your description
+            event_name: (str): write your description
+            from_block: (str): write your description
+            to_block: (str): write your description
+        """
         def _get_logs(event, _from_block, _to_block):
+            """
+            Get a list of a specific event.
+
+            Args:
+                event: (str): write your description
+                _from_block: (str): write your description
+                _to_block: (str): write your description
+            """
             debug_log(f'get_event_logs ({event_name}, {from_block}, {to_block})..')
             _filter = event().createFilter(
                 fromBlock=_from_block, toBlock=_to_block
@@ -240,6 +309,13 @@ class EventsMonitor:
             logger.error(f'get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.')
 
     def is_publisher_allowed(self, publisher_address):
+        """
+        Check if the publisher is allowed.
+
+        Args:
+            self: (todo): write your description
+            publisher_address: (str): write your description
+        """
         logger.debug(f'checking allowed publishers: {publisher_address}')
         if not self._allowed_publishers:
             return True
@@ -248,6 +324,13 @@ class EventsMonitor:
         return publisher_address in self._allowed_publishers
 
     def processNewDDO(self, event):
+        """
+        Process a did did from the blockchain.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
         logger.info(f'Process new DDO, did from event log:{did}, sender:{sender_address}')
         if not self.is_publisher_allowed(sender_address):
@@ -316,6 +399,13 @@ class EventsMonitor:
             return False
 
     def processUpdateDDO(self, event):
+        """
+        Process a did.
+
+        Args:
+            self: (todo): write your description
+            event: (todo): write your description
+        """
         did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
         debug_log(f'Process update DDO, did from event log:{did}')
         try:
@@ -386,6 +476,13 @@ class EventsMonitor:
             return
 
     def get_event_data(self, event):
+        """
+        Get event data.
+
+        Args:
+            self: (todo): write your description
+            event: (str): write your description
+        """
         tx_id = event.transactionHash.hex()
         sender = event.args.get('createdBy', event.args.get('updatedBy'))
         return (
@@ -399,6 +496,14 @@ class EventsMonitor:
         )
 
     def decode_ddo(self, rawddo, flags):
+        """
+        Decode the raw der
+
+        Args:
+            self: (todo): write your description
+            rawddo: (todo): write your description
+            flags: (int): write your description
+        """
         debug_log(f'flags: {flags}')
         # debug_log(f'Before unpack rawddo:{rawddo}')
         if len(flags) < 1:
@@ -434,6 +539,13 @@ class EventsMonitor:
             return None
 
     def ecies_decrypt(self, rawddo):
+        """
+        Decrypts the public key.
+
+        Args:
+            self: (todo): write your description
+            rawddo: (str): write your description
+        """
         if self._ecies_account is not None:
             key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.privateKey)
             rawddo = ecies.decrypt(key.to_hex(), rawddo)

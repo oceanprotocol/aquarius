@@ -9,6 +9,14 @@ class CustomHTTPProvider(HTTPProvider):
     """
 
     def make_request(self, method, params):
+        """
+        Make a request.
+
+        Args:
+            self: (todo): write your description
+            method: (str): write your description
+            params: (dict): write your description
+        """
         self.logger.debug("Making request HTTP. URI: %s, Method: %s",
                           self.endpoint_uri, method)
         request_data = self.encode_rpc_request(method, params)

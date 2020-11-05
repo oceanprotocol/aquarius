@@ -20,12 +20,27 @@ from tests.helpers import new_ddo, test_account1, send_create_update_tx, get_eve
 
 
 def sign_message(account, message_str):
+    """
+    Signs a message using the provided secret.
+
+    Args:
+        account: (todo): write your description
+        message_str: (str): write your description
+    """
     msg_hash = defunct_hash_message(text=message_str)
     full_signature = account.sign_message(msg_hash)
     return full_signature.signature.hex()
 
 
 def get_ddo(client, base_ddo_url, did):
+    """
+    Get a ddo for a specific dsn.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        did: (int): write your description
+    """
     rv = client.get(
         base_ddo_url + f'/{did}',
         content_type='application/json'
@@ -35,6 +50,14 @@ def get_ddo(client, base_ddo_url, did):
 
 
 def run_request_get_data(client_method, url, data=None):
+    """
+    Make a request to the api.
+
+    Args:
+        client_method: (str): write your description
+        url: (str): write your description
+        data: (str): write your description
+    """
     _response = run_request(client_method, url, data)
     print(f'response: {_response}')
     if _response and _response.data:
@@ -44,6 +67,14 @@ def run_request_get_data(client_method, url, data=None):
 
 
 def run_request(client_method, url, data=None):
+    """
+    Make a request.
+
+    Args:
+        client_method: (str): write your description
+        url: (str): write your description
+        data: (str): write your description
+    """
     if data is None:
         _response = client_method(url, content_type='application/json')
     else:
@@ -68,6 +99,14 @@ def test_health(client):
 
 
 def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
+    """
+    Test if the post is valid.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     block = get_web3().eth.blockNumber
     ddo = new_ddo(test_account1, get_web3(), f'dt.{block}', json_dict_no_valid_metadata)
     ddo_string = json.dumps(dict(ddo.items()))
@@ -84,6 +123,14 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
 
 
 def test_query_metadata(client, base_ddo_url, events_object):
+    """
+    Test the metadata for a given event.
+
+    Args:
+        client: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     dao = Dao(config_file=os.environ['CONFIG_FILE'])
     dao.delete_all()
 
@@ -136,6 +183,13 @@ def test_query_metadata(client, base_ddo_url, events_object):
 
 
 def test_validate(client_with_no_data, base_ddo_url):
+    """
+    Validate test test data.
+
+    Args:
+        client_with_no_data: (todo): write your description
+        base_ddo_url: (str): write your description
+    """
     post = run_request(
         client_with_no_data.post,
         base_ddo_url + '/validate', data={}
@@ -151,17 +205,35 @@ def test_validate(client_with_no_data, base_ddo_url):
 
 
 def test_date_format_validator():
+    """
+    Test if the given date is valid.
+
+    Args:
+    """
     date = '2016-02-08T16:02:20Z'
     assert validate_date_format(date) == (None, None)
 
 
 def test_invalid_date():
+    """
+    Check that the test is valid.
+
+    Args:
+    """
     date = 'XXXX'
     assert validate_date_format(date) == (
         "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'", 400)
 
 
 def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
+    """
+    Resolve a dt of events.
+
+    Args:
+        client_with_no_data: (todo): write your description
+        base_ddo_url: (str): write your description
+        events_object: (todo): write your description
+    """
     client = client_with_no_data
     block = get_web3().eth.blockNumber
     _ddo = json_before.copy()

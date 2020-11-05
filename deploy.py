@@ -20,6 +20,11 @@ from ocean_lib.web3_internal.web3_provider import Web3Provider
 
 
 def main():
+    """
+    Main routine.
+
+    Args:
+    """
     network = 'ganache'
     private_key = os.getenv('EVENTS_TESTS_PRIVATE_KEY')
     network_rpc = os.getenv('EVENTS_RPC', 'http://127.0.0.1:8545')

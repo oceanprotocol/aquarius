@@ -26,6 +26,11 @@ aquarius_url = config.aquarius_url
 
 
 def get_version():
+    """
+    Get the version string.
+
+    Args:
+    """
     conf = configparser.ConfigParser()
     conf.read('.bumpversion.cfg')
     return conf['bumpversion']['current_version']
@@ -33,6 +38,11 @@ def get_version():
 
 @app.route("/")
 def version():
+    """
+    Returns the version of the module.
+
+    Args:
+    """
     info = dict()
     info['software'] = Metadata.TITLE
     info['version'] = get_version()
@@ -42,11 +52,21 @@ def version():
 
 @app.route("/health")
 def health():
+    """
+    Return the health of the service.
+
+    Args:
+    """
     return get_status()
 
 
 @app.route("/spec")
 def spec():
+    """
+    Generate swagger specification.
+
+    Args:
+    """
     swag = swagger(app)
     swag['info']['version'] = get_version()
     swag['info']['title'] = Metadata.TITLE
@@ -71,6 +91,11 @@ app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 
 
 def get_status():
+    """
+    Return the status of the database.
+
+    Args:
+    """
     if config.get('oceandb', 'module') == 'elasticsearch':
         if Elasticsearch(config.db_url).ping():
             return 'Elasticsearch connected', 200

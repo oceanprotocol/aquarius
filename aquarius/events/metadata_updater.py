@@ -53,6 +53,16 @@ class MetadataUpdater:
     DID_PREFIX = 'did:op:'
 
     def __init__(self, oceandb, other_db_index, web3, config):
+        """
+        Initialize the contract
+
+        Args:
+            self: (todo): write your description
+            oceandb: (todo): write your description
+            other_db_index: (int): write your description
+            web3: (todo): write your description
+            config: (todo): write your description
+        """
         self._oceandb = oceandb
         self._other_db_index = other_db_index
         self._web3 = web3
@@ -93,9 +103,21 @@ class MetadataUpdater:
 
     @property
     def is_running(self):
+        """
+        : return : true if is running.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._is_on
 
     def start(self):
+        """
+        Starts the daemon.
+
+        Args:
+            self: (todo): write your description
+        """
         if self._is_on:
             return
 
@@ -118,12 +140,30 @@ class MetadataUpdater:
         t.start()
 
     def is_first_update_enabled(self):
+        """
+        Returns true if the first update is enabled.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._do_first_update
 
     def stop(self):
+        """
+        Stops the manager.
+
+        Args:
+            self: (todo): write your description
+        """
         self._is_on = False
 
     def run(self):
+        """
+        Run the pool.
+
+        Args:
+            self: (todo): write your description
+        """
         if self._do_first_update:
             self.do_update()
 
@@ -142,6 +182,12 @@ class MetadataUpdater:
             time.sleep(self._quiet_time)
 
     def _get_all_assets(self):
+        """
+        Return an iterator of all assets.
+
+        Args:
+            self: (todo): write your description
+        """
         for asset in self._oceandb.list():
             try:
                 yield asset
@@ -149,6 +195,14 @@ class MetadataUpdater:
                 logging.error(str(e))
 
     def _get_event_signature(self, contract, event_name):
+        """
+        Return the signature for a contract.
+
+        Args:
+            self: (todo): write your description
+            contract: (todo): write your description
+            event_name: (str): write your description
+        """
         e = getattr(contract.events, event_name)
         if not e:
             raise ValueError(f'Event {event_name} not found in {contract.CONTRACT_NAME} contract.')
@@ -159,6 +213,12 @@ class MetadataUpdater:
         return self._web3.sha3(text=sig_str).hex()
 
     def get_last_processed_block(self):
+        """
+        Get the last block number.
+
+        Args:
+            self: (todo): write your description
+        """
         last_block_record = self._oceandb.driver.es.get(
             index=self._other_db_index,
             id='pool_events_last_block',
@@ -167,6 +227,13 @@ class MetadataUpdater:
         return last_block_record['last_block']
 
     def store_last_processed_block(self, block):
+        """
+        Store the last block at index
+
+        Args:
+            self: (todo): write your description
+            block: (todo): write your description
+        """
         record = {"last_block": block}
         try:
             self._oceandb.driver.es.index(
@@ -181,6 +248,14 @@ class MetadataUpdater:
             logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
 
     def get_dt_addresses_from_exchange_logs(self, from_block, to_block=None):
+        """
+        Get event addresses of the event.
+
+        Args:
+            self: (todo): write your description
+            from_block: (str): write your description
+            to_block: (str): write your description
+        """
         contract = FixedRateExchange(None)
         event_names = ['ExchangeCreated']  # , 'ExchangeRateChanged']
         topic0_list = [self._get_event_signature(contract, en) for en in event_names]
@@ -215,6 +290,14 @@ class MetadataUpdater:
         return address_exid
 
     def get_dt_addresses_from_pool_logs(self, from_block, to_block=None):
+        """
+        Get event logs for a given block.
+
+        Args:
+            self: (todo): write your description
+            from_block: (str): write your description
+            to_block: (str): write your description
+        """
         contract = BPool(None)
         event_names = ['LOG_JOIN', 'LOG_EXIT', 'LOG_SWAP']
         topic0_list = [self._get_event_signature(contract, en) for en in event_names]
@@ -251,6 +334,15 @@ class MetadataUpdater:
         return addresses_and_pools
 
     def get_datatoken_pools(self, dt_address, from_block=0, to_block='latest'):
+        """
+        Get a list of events.
+
+        Args:
+            self: (todo): write your description
+            dt_address: (str): write your description
+            from_block: (str): write your description
+            to_block: (str): write your description
+        """
         contract = BPool(None)
         topic0 = self._get_event_signature(contract, 'LOG_JOIN')
         topic2 = f'0x000000000000000000000000{remove_0x_prefix(dt_address).lower()}'
@@ -270,6 +362,14 @@ class MetadataUpdater:
         return pools
 
     def _get_liquidity_and_price(self, pools, dt_address):
+        """
+        Calculate price.
+
+        Args:
+            self: (todo): write your description
+            pools: (todo): write your description
+            dt_address: (str): write your description
+        """
         assert pools, f'pools should not be empty, got {pools}'
         _pool = pools[0]
         try:
@@ -300,6 +400,15 @@ class MetadataUpdater:
             return 0.0, 0.0, 0.0, _pool
 
     def _get_fixedrateexchange_price(self, dt_address, owner=None, exchange_id=None):
+        """
+        This method tomodify price for the given dt.
+
+        Args:
+            self: (todo): write your description
+            dt_address: (str): write your description
+            owner: (todo): write your description
+            exchange_id: (str): write your description
+        """
         fre = self.ex_contract
         try:
             if not exchange_id:
@@ -319,6 +428,12 @@ class MetadataUpdater:
             return None, None
 
     def get_all_pools(self):
+        """
+        Return a list of all the pool
+
+        Args:
+            self: (todo): write your description
+        """
         bfactory = BFactory(self._addresses.get(BFactory.CONTRACT_NAME))
         event_name = 'BPoolRegistered'
         event = getattr(bfactory.events, event_name)
@@ -345,6 +460,13 @@ class MetadataUpdater:
         return pools
 
     def do_single_update(self, asset):
+        """
+        Update a single did
+
+        Args:
+            self: (todo): write your description
+            asset: (todo): write your description
+        """
         did_prefix = self.DID_PREFIX
         prefix_len = len(did_prefix)
         did = asset['id']
@@ -393,6 +515,12 @@ class MetadataUpdater:
         self._oceandb.update(asset, did)
 
     def do_update(self):
+        """
+        Updates the list of addresses.
+
+        Args:
+            self: (todo): write your description
+        """
         did_prefix = self.DID_PREFIX
         prefix_len = len(did_prefix)
         pools = self.get_all_pools()
@@ -469,6 +597,13 @@ class MetadataUpdater:
             self._oceandb.update(asset, did)
 
     def update_dt_assets_with_exchange_info(self, dt_address_exid):
+        """
+        Updates the dtoken information.
+
+        Args:
+            self: (todo): write your description
+            dt_address_exid: (str): write your description
+        """
         did_prefix = self.DID_PREFIX
         dao = Dao(oceandb=self._oceandb)
         _dt_address_ex_list = []
@@ -508,6 +643,13 @@ class MetadataUpdater:
                 logger.error(f'updating datatoken assets price values from exchange contract: {e}')
 
     def update_dt_assets(self, dt_address_pool_list):
+        """
+        Update the list of ddo list.
+
+        Args:
+            self: (todo): write your description
+            dt_address_pool_list: (list): write your description
+        """
         did_prefix = self.DID_PREFIX
         dao = Dao(oceandb=self._oceandb)
         _dt_address_pool_list = []
@@ -562,6 +704,12 @@ class MetadataUpdater:
                 logger.error(f'updating datatoken assets price/liquidity values: {e}')
 
     def process_pool_events(self):
+        """
+        Process all pending pool events.
+
+        Args:
+            self: (todo): write your description
+        """
         try:
             last_block = self.get_last_processed_block()
         except Exception as e:
