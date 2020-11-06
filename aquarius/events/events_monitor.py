@@ -321,7 +321,10 @@ class EventsMonitor:
         try:
             asset = self._oceandb.read(did)
         except Exception as e:
-            logger.warning(f'{did} is not registered, cannot update')
+            # TODO: check if this asset was deleted/hidden due to some violation issues
+            # if so, don't add it again
+            logger.warning(f'{did} is not registered, will add it as a new DDO.')
+            self.processNewDDO(event)
             return
 
         debug_log(f'block {block}, contract: {contract_address}, Sender: {sender_address} , txid: {txid}')
