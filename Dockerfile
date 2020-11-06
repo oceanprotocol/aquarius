@@ -34,7 +34,7 @@ ENV DB_NAMESPACE='namespace'
 ENV AQUARIUS_URL='http://0.0.0.0:5000'
 ENV ALLOW_FREE_ASSETS_ONLY='false'
 # docker-entrypoint.sh configuration file variables
-ENV AQUARIUS_WORKERS='1'
+ENV AQUARIUS_WORKERS='8'
 ENV EVENTS_ALLOW=''
 ENV RUN_EVENTS_MONITOR=''
 ENV EVENTS_RPC='http://127.0.0.1:8545'
