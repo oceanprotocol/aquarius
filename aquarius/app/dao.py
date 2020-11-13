@@ -89,3 +89,49 @@ class Dao(object):
             if service['type'] == 'metadata':
                 if 'curation' in service['attributes'] and 'isListed' in service['attributes']['curation']:
                     return service['attributes']['curation']['isListed']
+
+    def run_es_query(self, query, sort, page, offset, text=None):
+        """do an elasticsearch native query.
+
+        The query is expected to be in the elasticsearch search format.
+
+        :return: list of objects that match the query.
+        """
+        assert page >= 1, 'page value %s is invalid' % page
+
+        logging.debug(f'elasticsearch::query::{query}, text {text}')
+        if sort is not None:
+            self.oceandb._mapping_to_sort(sort.keys())
+            sort = self.oceandb._sort_object(sort)
+        else:
+            sort = [{"_id": "asc"}]
+
+        if text:
+            sort = [{"_score": "desc"}] + sort
+            if isinstance(text, str):
+                text = [text]
+
+            text = [t.strip() for t in text]
+            text = [t.replace('did:op:', '0x') for t in text if t]
+
+        if not query:
+            query = {'match_all': {}}
+
+        body = {
+            'sort': sort,
+            'from': (page - 1) * offset,
+            'size': offset,
+            'query': query
+        }
+        logging.info(f'running query: {body}')
+        page = self.oceandb.driver.es.search(
+            index=self.oceandb.driver.db_index,
+            body=body,
+            q=text or None
+        )
+
+        object_list = []
+        for x in page['hits']['hits']:
+            object_list.append(x['_source'])
+
+        return object_list, page['hits']['total']

@@ -241,6 +241,82 @@ def query_ddo():
                     content_type='application/json')
 
 
+@assets.route('/ddo/esquery', methods=['POST'])
+def es_query_ddo():
+    """Get a list of DDOs that match with the executed query.
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset metadata.
+        schema:
+          type: object
+          properties:
+            query:
+              type: string
+              description: Query to realize
+              example: {"value":1}
+            text:
+              type: string or list of strings
+              description: Fulltext query
+              example: ["text to search"]
+            sort:
+              type: object
+              description: Key or list of keys to sort the result
+              example: {"value":1}
+            offset:
+              type: int
+              description: Number of records per page
+              example: 100
+            page:
+              type: int
+              description: Page showed
+              example: 1
+    responses:
+      200:
+        description: successful action
+
+    example:
+        {"query": {"query_string": {"query": "(covid) -isInPurgatory:true"}}, "offset":1, "page": 1}
+
+    """
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    text = data.get('text', [])
+    query = data.get('query')
+    if not text and 'text' in query:
+        text = query.pop('text')
+
+    if isinstance(text, str):
+        text = [text]
+    temp = []
+    for v in text:
+        temp.append(v.replace(':', '\\'))
+    querystr = json.dumps(query)
+    did_str = 'did:op:'
+    esc_did_str = 'did\\\:op\\\:'
+    querystr = querystr.replace(esc_did_str, did_str)
+    query = json.loads(querystr.replace(did_str, esc_did_str))
+    text = temp
+
+    sort = data.get('sort')
+    page = data.get('page', 1)
+    offset = data.get('offset', 100)
+
+    query_result = dao.run_es_query(query, sort, page, offset, text)
+    for ddo in query_result[0]:
+        sanitize_record(ddo)
+
+    response = make_paginate_response(query_result, FullTextModel('', sort, offset, page))
+    return Response(json.dumps(response, default=datetime_converter), 200,
+                    content_type='application/json')
+
+
 ###########################
 # VALIDATE
 ###########################
