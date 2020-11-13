@@ -200,7 +200,7 @@ class EventsMonitor:
                 asset = self._oceandb.read(_id)
                 asset['isInPurgatory'] = True
                 asset['purgatoryData'] = {'did': _id, 'reason': reason}
-                self._oceandb.update(json.dumps(asset))
+                self._oceandb.update(json.dumps(asset), _id)
 
             except Exception:
                 pass
