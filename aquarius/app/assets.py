@@ -95,11 +95,10 @@ def get_asset_ddos():
       200:
         description: successful action
     """
-    assets_with_id = dao.get_all_listed_assets()
-    assets_metadata = {a['id']: a for a in assets_with_id}
-    for _, _record in assets_metadata.items():
+    _assets = dao.get_all_listed_assets()
+    for _record in _assets:
         sanitize_record(_record)
-    return Response(json.dumps(assets_metadata, default=datetime_converter), 200,
+    return Response(json.dumps(_assets, default=datetime_converter), 200,
                     content_type='application/json')
 
 

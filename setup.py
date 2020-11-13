@@ -28,7 +28,7 @@ install_requirements = [
     'PyYAML==5.3.1',
     'pytz==2020.1',
     'plecos==1.1.0',
-    'ocean-lib==0.5.1',
+    'ocean-lib==0.5.2',
     'eciespy'
 ]
 
@@ -81,6 +81,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/oceanprotocol/aquarius',
-    version='2.1.4',
+    version='2.1.5',
     zip_safe=False,
 )

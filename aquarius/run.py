@@ -15,6 +15,7 @@ from ocean_lib.web3_internal.web3_provider import Web3Provider
 from pymongo import MongoClient
 
 from aquarius.app.assets import assets
+from aquarius.app.pools import pools
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.events.util import get_artifacts_path
@@ -68,6 +69,7 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 # Register blueprint at URL
 app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
+app.register_blueprint(pools, url_prefix=BaseURLs.POOLS_URL)
 
 
 def get_status():
