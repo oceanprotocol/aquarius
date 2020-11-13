@@ -224,15 +224,23 @@ def query_ddo():
     data = request.json
     assert isinstance(
         data, dict), 'invalid `body` type, should be formatted as a dict.'
-    if 'query' in data:
-        search_model = QueryModel(query=data.get('query'), sort=data.get('sort'),
-                                  offset=data.get('offset', 100),
-                                  page=data.get('page', 1))
+
+    native_query = None
+    if 'nativeSearch' in data:
+        native_query = data.pop('nativeSearch')
+
+    query = data.get('query', {})
+    if not native_query and 'nativeSearch' in query:
+        native_query = query.pop('nativeSearch')
+
+    if native_query:
+        query_result, search_model = process_es_query(data)
     else:
-        search_model = QueryModel(query={}, sort=data.get('sort'),
+        search_model = QueryModel(query=query, sort=data.get('sort'),
                                   offset=data.get('offset', 100),
                                   page=data.get('page', 1))
-    query_result = dao.query(search_model)
+        query_result = dao.query(search_model)
+
     for ddo in query_result[0]:
         sanitize_record(ddo)
 
@@ -287,6 +295,16 @@ def es_query_ddo():
     """
     assert isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
+    query_result, search_model = process_es_query(data)
+    for ddo in query_result[0]:
+        sanitize_record(ddo)
+
+    response = make_paginate_response(query_result, search_model)
+    return Response(json.dumps(response, default=datetime_converter), 200,
+                    content_type='application/json')
+
+
+def process_es_query(data):
     text = data.get('text', [])
     query = data.get('query')
     if not text and 'text' in query:
@@ -309,12 +327,7 @@ def es_query_ddo():
     offset = data.get('offset', 100)
 
     query_result = dao.run_es_query(query, sort, page, offset, text)
-    for ddo in query_result[0]:
-        sanitize_record(ddo)
-
-    response = make_paginate_response(query_result, FullTextModel('', sort, offset, page))
-    return Response(json.dumps(response, default=datetime_converter), 200,
-                    content_type='application/json')
+    return query_result, FullTextModel('', sort, offset, page)
 
 
 ###########################
