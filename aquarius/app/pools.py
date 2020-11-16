@@ -44,9 +44,9 @@ def get_liquidity_history(poolAddress):
 
         result['oceanAddRemove'] = ocn_add_remove_list
         result['datatokenAddRemove'] = dt_add_remove_list
-        result['oceanReserve'] = ocn_reserve_history
-        result['datatokenReserve'] = dt_reserve_history
-        result['oceanPrice'] = price_history
+        result['oceanReserveHistory'] = ocn_reserve_history
+        result['datatokenReserveHistory'] = dt_reserve_history
+        result['datatokenPriceHistory'] = price_history
         return Response(json.dumps(result), 200, content_type='application/json')
     except Exception as e:
         logger.error(f'pools/history/{poolAddress}: {str(e)}', exc_info=1)
