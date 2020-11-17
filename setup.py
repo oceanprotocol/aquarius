@@ -29,7 +29,8 @@ install_requirements = [
     'pytz==2020.1',
     'plecos==1.1.0',
     'ocean-lib==0.5.2',
-    'eciespy'
+    'eciespy',
+    'gevent'
 ]
 
 setup_requirements = ['pytest-runner==5.2', ]
