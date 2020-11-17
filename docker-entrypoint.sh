@@ -15,7 +15,6 @@ if [ ${RUN_EVENTS_MONITOR} = "1" ]; then
 fi
 
 if [ ${RUN_AQUARIUS_SERVER} = "1" ]; then
-    gunicorn -b ${AQUARIUS_URL#*://} -w ${AQUARIUS_WORKERS} aquarius.run:app
+    gunicorn -b ${AQUARIUS_URL#*://} --worker-tmp-dir /dev/shm --worker-class=gevent --worker-connections=1000 -w ${AQUARIUS_WORKERS} aquarius.run:app
 fi
-
 tail -f /dev/null
