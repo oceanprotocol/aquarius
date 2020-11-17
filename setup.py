@@ -24,7 +24,7 @@ install_requirements = [
     'gunicorn==20.0.4',
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.2.2',
-    'oceandb-elasticsearch-driver==0.4.2',
+    'oceandb-elasticsearch-driver==0.4.3',
     'PyYAML==5.3.1',
     'pytz==2020.1',
     'plecos==1.1.0',
