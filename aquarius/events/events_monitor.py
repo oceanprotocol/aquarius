@@ -424,7 +424,7 @@ class EventsMonitor:
 
         _record = init_new_ddo(data,timestamp)
         #make sure that we do not alter created flag
-        _record['created'] = data['created']
+        _record['created'] = asset['created']
         # but we update 'updated'
         _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'))
 
