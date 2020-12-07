@@ -80,8 +80,9 @@ def reorder_services_list(services):
 
 def init_new_ddo(data,timestamp):
     _record = copy.deepcopy(data)
-    _record['created'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'))
+    _record['created'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S'))
     _record['updated'] = _record['created']
+
     if 'accessWhiteList' not in data:
         _record['accessWhiteList'] = []
     else:

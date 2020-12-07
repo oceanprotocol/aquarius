@@ -426,8 +426,7 @@ class EventsMonitor:
         #make sure that we do not alter created flag
         _record['created'] = asset['created']
         # but we update 'updated'
-        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'))
-
+        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S'))
         _record['event'] = dict()
         _record['event']['txid'] = txid
         _record['event']['blockNo'] = block
@@ -460,7 +459,8 @@ class EventsMonitor:
     def get_event_data(self, event):
         tx_id = event.transactionHash.hex()
         sender = event.args.get('createdBy', event.args.get('updatedBy'))
-        timestamp = self._web3.eth.getBlock(event.blockNumber)
+        blockInfo = self._web3.eth.getBlock(event.blockNumber)
+        timestamp = blockInfo['timestamp']
         return (
             f'did:op:{remove_0x_prefix(event.args.dataToken)}',
             event.blockNumber,
