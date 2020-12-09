@@ -20,13 +20,13 @@ import ecies
 from oceandb_driver_interface import OceanDb
 
 from aquarius.app.util import (
-    get_timestamp,
     get_metadata_from_services,
     list_errors,
     validate_data,
-    get_sender_from_txid,
     init_new_ddo,
-    format_timestamp)
+    format_timestamp,
+    DATETIME_FORMAT_NO_Z,
+)
 from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
 from plecos.plecos import (
     is_valid_dict_remote,
@@ -426,7 +426,7 @@ class EventsMonitor:
         #make sure that we do not alter created flag
         _record['created'] = asset['created']
         # but we update 'updated'
-        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S'))
+        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT_NO_Z))
         _record['event'] = dict()
         _record['event']['txid'] = txid
         _record['event']['blockNo'] = block
