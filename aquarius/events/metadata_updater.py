@@ -362,7 +362,8 @@ class MetadataUpdater:
                 'value': price,
                 'type': 'pool',
                 'address': pool_address,
-                'pools': pools
+                'pools': pools,
+                'isConsumable': 'true' if price and price > 0.0 else 'false'
             }
         else:
             owner = asset['proof'].get('creator')
@@ -377,7 +378,8 @@ class MetadataUpdater:
                 'value': price or 0.0,
                 'type': 'exchange' if price is not None else '',
                 'address': self.ex_contract.address if price is not None else '',
-                'pools': []
+                'pools': [],
+                'isConsumable': str(bool(dt_supply)).lower() if price is not None else ''
             }
 
         asset['price'] = price_dict
@@ -442,7 +444,8 @@ class MetadataUpdater:
                     'value': price or 0.0,
                     'type': 'exchange' if price is not None else '',
                     'address': frexchange_address if price is not None else '',
-                    'pools': []
+                    'pools': [],
+                    'isConsumable': str(bool(dt_supply)).lower() if price is not None else ''
                 }
 
             else:
@@ -453,7 +456,8 @@ class MetadataUpdater:
                     'value': price,
                     'type': 'pool',
                     'address': pool_address,
-                    'pools': pools
+                    'pools': pools,
+                    'isConsumable': 'true' if price and price > 0.0 else 'false'
                 }
 
             asset['price'] = price_dict
@@ -496,7 +500,8 @@ class MetadataUpdater:
                     'value': price,
                     'type': 'exchange',
                     'address': self.ex_contract.address,
-                    'pools': []
+                    'pools': [],
+                    'isConsumable': str(bool(dt_supply)).lower() if price is not None else ''
                 }
                 asset['price'] = price_dict
                 asset['dataTokenInfo'] = get_datatoken_info(_dt_address)
@@ -551,7 +556,8 @@ class MetadataUpdater:
                     'value': price,
                     'type': 'pool',
                     'address': pool_address,
-                    'pools': _pools
+                    'pools': _pools,
+                    'isConsumable': 'true' if price and price > 0.0 else 'false'
                 }
                 asset['price'] = price_dict
                 asset['dataTokenInfo'] = get_datatoken_info(_dt_address)

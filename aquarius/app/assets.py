@@ -55,8 +55,7 @@ def get_assets_ids():
     """
     asset_with_id = dao.get_all_listed_assets()
     asset_ids = [a['id'] for a in asset_with_id]
-    resp_body = dict({'ids': asset_ids})
-    return Response(sanitize_record(resp_body), 200, content_type='application/json')
+    return Response(json.dumps(asset_ids), 200, content_type='application/json')
 
 
 @assets.route('/ddo/<did>', methods=['GET'])
