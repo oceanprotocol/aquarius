@@ -13,7 +13,7 @@ RUN apt-get update && \
 COPY . /aquarius
 WORKDIR /aquarius
 
-RUN python3.8 -m pip install -U pip
+RUN python3.8 -m pip install -U pip==20.2.2
 RUN pip install setuptools
 RUN pip install wheel
 RUN pip install .
