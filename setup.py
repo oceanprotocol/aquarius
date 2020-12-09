@@ -28,7 +28,7 @@ install_requirements = [
     'PyYAML==5.3.1',
     'pytz==2020.4',
     'plecos==1.1.0',
-    'ocean-lib==0.5.2',
+    'ocean-lib==0.5.3',
     'eciespy',
     'gevent'
 ]
