@@ -18,7 +18,7 @@ install_requirements = [
     'Flask==1.1.2',
     'Flask-Cors==3.0.9',
     'flask-swagger==0.2.14',
-    'flask-swagger-ui==3.25.0',
+    'flask-swagger-ui==3.36.0',
     'Jinja2>=2.10.1',
     'requests>=2.21.0',
     'gunicorn==20.0.4',
@@ -26,7 +26,7 @@ install_requirements = [
     'oceandb-mongodb-driver==0.2.2',
     'oceandb-elasticsearch-driver==0.4.3',
     'PyYAML==5.3.1',
-    'pytz==2020.1',
+    'pytz==2020.4',
     'plecos==1.1.0',
     'ocean-lib==0.5.2',
     'eciespy',
@@ -40,7 +40,7 @@ dev_requirements = [
     'pkginfo==1.5.0.1',
     'twine==3.2.0',
     # not virtualenv: devs should already have it before pip-installing
-    'watchdog==0.10.3',
+    'watchdog==0.10.4',
 ]
 
 test_requirements = [
