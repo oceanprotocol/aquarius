@@ -350,7 +350,7 @@ class EventsMonitor:
             'type': '',
             'address': '',
             'pools': [],
-            'isConsumable': 'false'
+            'isConsumable': ''
         }
         dt_address = _record.get('dataToken')
         assert dt_address == add_0x_prefix(did[len('did:op:'):])
