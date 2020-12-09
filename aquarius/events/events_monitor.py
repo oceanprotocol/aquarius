@@ -204,7 +204,7 @@ class EventsMonitor:
         return {(a['did'], a['reason']) for a in response.json() if a and 'did' in a}
 
     def _update_purgatory_list(self):
-        now = int(datetime.datetime.now().timestamp())
+        now = int(datetime.now().timestamp())
         if self._purgatory_update_time and (now - self._purgatory_update_time) < 3600:
             return
 
