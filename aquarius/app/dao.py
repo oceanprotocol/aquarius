@@ -14,19 +14,7 @@ class Dao(object):
         self.oceandb = oceandb or OceanDb(config_file).plugin
 
     def get_all_listed_assets(self):
-        assets = self.oceandb.list()
-        asset_with_id = []
-        for asset in assets:
-            try:
-                if len(asset) == 1:
-                    continue
-
-                if self.is_listed(asset['service']):
-                    asset_with_id.append(asset)
-            except Exception as e:
-                logging.error(f'Dao.get_all_listed_assets: {str(e)}')
-
-        return asset_with_id
+        return list(self.oceandb.list())
 
     def get_all_assets(self):
         return [a for a in self.oceandb.list()]
