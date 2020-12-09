@@ -18,7 +18,7 @@ from aquarius.app.assets import assets
 from aquarius.app.pools import pools
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
-from aquarius.events.util import get_artifacts_path
+from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.myapp import app
 from aquarius.events.events_monitor import EventsMonitor
 
@@ -97,6 +97,9 @@ if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
     rpc = os.environ.get('EVENTS_RPC', '')
     Web3Provider.init_web3(provider=get_web3_connection_provider(rpc))
     ContractHandler.set_artifacts_path(get_artifacts_path())
+    if get_network_name().lower() == 'rinkeby':
+        from web3.middleware import geth_poa_middleware
+        Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
 
     monitor = EventsMonitor(
         Web3Provider.get_web3(),

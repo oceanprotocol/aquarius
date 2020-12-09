@@ -27,13 +27,16 @@ from aquarius.app.util import (
     list_errors,
     get_request_data)
 from aquarius.events.metadata_updater import MetadataUpdater
-from aquarius.events.util import get_artifacts_path
+from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 
 ConfigProvider.set_config(OceanConfig(app.config['CONFIG_FILE']))
 Web3Provider.init_web3(provider=get_web3_connection_provider(os.environ.get('EVENTS_RPC', '')))
 ContractHandler.set_artifacts_path(get_artifacts_path())
+if get_network_name().lower() == 'rinkeby':
+    from web3.middleware import geth_poa_middleware
+    Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
 
 setup_logging()
 assets = Blueprint('assets', __name__)
