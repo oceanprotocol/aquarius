@@ -25,7 +25,7 @@ from aquarius.app.util import (
     validate_data,
     init_new_ddo,
     format_timestamp,
-    DATETIME_FORMAT_NO_Z,
+    DATETIME_FORMAT,
 )
 from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
 from plecos.plecos import (
@@ -426,7 +426,7 @@ class EventsMonitor:
         #make sure that we do not alter created flag
         _record['created'] = asset['created']
         # but we update 'updated'
-        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT_NO_Z))
+        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT))
         _record['event'] = dict()
         _record['event']['txid'] = txid
         _record['event']['blockNo'] = block
