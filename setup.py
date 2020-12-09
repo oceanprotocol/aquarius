@@ -37,7 +37,7 @@ setup_requirements = ['pytest-runner==5.2', ]
 
 dev_requirements = [
     'bumpversion==0.6.0',
-    'pkginfo==1.5.0.1',
+    'pkginfo==1.6.1',
     'twine==3.2.0',
     # not virtualenv: devs should already have it before pip-installing
     'watchdog==0.10.4',
