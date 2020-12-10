@@ -72,7 +72,8 @@ class EventsMonitor:
         self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
-        self._updater = MetadataUpdater(self._oceandb, self._other_db_index, self._web3, ConfigProvider.get_config())
+        if bool(int(os.getenv('PROCESS_POOL_EVENTS', 1)) == 1):
+            self._updater = MetadataUpdater(self._oceandb, self._other_db_index, self._web3, ConfigProvider.get_config())
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
@@ -115,9 +116,9 @@ class EventsMonitor:
             logger.error(
                 f"Contract address {self._contract_address} is not a valid address. Events thread not starting")
             self._contract = None
-
-        self._purgatory_list = set()
-        self._purgatory_update_time = None
+        if bool(int(os.getenv('PROCESS_PURGATORY', 1)) == 1):
+            self._purgatory_list = set()
+            self._purgatory_update_time = None
 
 
     @property
@@ -149,11 +150,13 @@ class EventsMonitor:
 
     def stop_monitor(self):
         self._monitor_is_on = False
-        if self._updater.is_running():
-            self._updater.stop()
+        if bool(int(os.getenv('PROCESS_POOL_EVENTS', 1)) == 1):
+            if self._updater.is_running():
+                self._updater.stop()
 
     def run_monitor(self):
-        first_update = self._updater.is_first_update_enabled()
+        if bool(int(os.getenv('PROCESS_POOL_EVENTS', 1)) == 1):
+            first_update = self._updater.is_first_update_enabled()
         if bool(int(os.getenv('UPDATE_ALL_PURGATORY', 1)) == 1):
             self._update_existing_assets()
 
@@ -163,10 +166,10 @@ class EventsMonitor:
                     return
 
                 self.process_current_blocks()
-                if first_update:
-                    self._updater.do_update()
-                    first_update = False
                 if bool(int(os.getenv('PROCESS_POOL_EVENTS', 1)) == 1):
+                    if first_update:
+                        self._updater.do_update()
+                        first_update = False
                     self._updater.process_pool_events()
                 if bool(int(os.getenv('PROCESS_PURGATORY', 1)) == 1):
                     self._update_purgatory_list()
