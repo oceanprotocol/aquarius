@@ -166,9 +166,10 @@ class EventsMonitor:
                 if first_update:
                     self._updater.do_update()
                     first_update = False
-
-                self._updater.process_pool_events()
-                self._update_purgatory_list()
+                if bool(int(os.getenv('PROCESS_POOL_EVENTS', 1)) == 1):
+                    self._updater.process_pool_events()
+                if bool(int(os.getenv('PROCESS_PURGATORY', 1)) == 1):
+                    self._update_purgatory_list()
 
             except (KeyError, Exception) as e:
                 logger.error(f'Error processing event:')
