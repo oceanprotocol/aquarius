@@ -271,33 +271,40 @@ class MetadataUpdater:
 
     def _get_liquidity_and_price(self, pools, dt_address):
         assert pools, f'pools should not be empty, got {pools}'
-        _pool = pools[0]
-        try:
-            pool = BPool(_pool)
-            dt_reserve = pool.getBalance(dt_address)
-            ocn_reserve = pool.getBalance(self._checksum_ocean)
+        for _pool in pools:
+        #_pool = pools[0]
+            try:
+                pool = BPool(_pool)
+                if not pool.isBound(dt_address):
+                    break
+                dt_reserve = pool.getBalance(dt_address)
+                if not pool.isBound(self._checksum_ocean):
+                    break
+                ocn_reserve = pool.getBalance(self._checksum_ocean)
 
-            # price = pool.getSpotPrice(self._checksum_ocean, dt_address)
-            price_base = pool.calcInGivenOut(
-                ocn_reserve,
-                pool.getDenormalizedWeight(self._checksum_ocean),
-                dt_reserve,
-                pool.getDenormalizedWeight(dt_address),
-                to_base_18(1.0),
-                pool.getSwapFee()
-            )
-            price = from_base_18(price_base)
-            ocn_reserve = from_base_18(ocn_reserve)
-            dt_reserve = from_base_18(dt_reserve)
-            if dt_reserve <= 1.0:
-                price = 0.0
-            if price > 1000000000:
-                price = 0.0
+                # price = pool.getSpotPrice(self._checksum_ocean, dt_address)
+                price_base = pool.calcInGivenOut(
+                    ocn_reserve,
+                    pool.getDenormalizedWeight(self._checksum_ocean),
+                    dt_reserve,
+                    pool.getDenormalizedWeight(dt_address),
+                    to_base_18(1.0),
+                    pool.getSwapFee()
+                )
+                price = from_base_18(price_base)
+                ocn_reserve = from_base_18(ocn_reserve)
+                dt_reserve = from_base_18(dt_reserve)
+                if dt_reserve <= 1.0:
+                    price = 0.0
+                if price > 1000000000:
+                    price = 0.0
 
-            return dt_reserve, ocn_reserve, price, _pool
-        except Exception as e:
-            logger.error(f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
-            return 0.0, 0.0, 0.0, _pool
+                return dt_reserve, ocn_reserve, price, _pool
+            except Exception as e:
+                logger.error(f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
+                return 0.0, 0.0, 0.0, _pool
+        #no pool was found
+        return 0.0, 0.0, 0.0, _pool
 
     def _get_fixedrateexchange_price(self, dt_address, owner=None, exchange_id=None):
         fre = self.ex_contract
