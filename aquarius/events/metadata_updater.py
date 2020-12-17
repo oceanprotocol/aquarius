@@ -302,7 +302,7 @@ class MetadataUpdater:
                 return dt_reserve, ocn_reserve, price, _pool
             except Exception as e:
                 logger.error(f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
-                return 0.0, 0.0, 0.0, _pool
+                #return 0.0, 0.0, 0.0, _pool
         #no pool was found
         return 0.0, 0.0, 0.0, _pool
 
