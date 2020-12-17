@@ -51,6 +51,7 @@ class MetadataUpdater:
 
     """
     DID_PREFIX = 'did:op:'
+    PRICE_TOO_LARGE = 1000000000
 
     def __init__(self, oceandb, other_db_index, web3, config):
         self._oceandb = oceandb
@@ -271,40 +272,54 @@ class MetadataUpdater:
 
     def _get_liquidity_and_price(self, pools, dt_address):
         assert pools, f'pools should not be empty, got {pools}'
+        dt_address_lower = dt_address.lower()
+        pool_to_price = dict()
         for _pool in pools:
-        #_pool = pools[0]
             try:
                 pool = BPool(_pool)
-                if not pool.isBound(dt_address):
-                    break
-                dt_reserve = pool.getBalance(dt_address)
-                if not pool.isBound(self._checksum_ocean):
-                    break
-                ocn_reserve = pool.getBalance(self._checksum_ocean)
+                pool.getCurrentTokens()
+                try:
+                    ptokens = {a.lower() for a in pool.getCurrentTokens()}
+                except Exception:
+                    continue
 
-                # price = pool.getSpotPrice(self._checksum_ocean, dt_address)
-                price_base = pool.calcInGivenOut(
-                    ocn_reserve,
-                    pool.getDenormalizedWeight(self._checksum_ocean),
-                    dt_reserve,
-                    pool.getDenormalizedWeight(dt_address),
-                    to_base_18(1.0),
-                    pool.getSwapFee()
-                )
-                price = from_base_18(price_base)
-                ocn_reserve = from_base_18(ocn_reserve)
-                dt_reserve = from_base_18(dt_reserve)
-                if dt_reserve <= 1.0:
-                    price = 0.0
-                if price > 1000000000:
-                    price = 0.0
+                if self._OCEAN not in ptokens or dt_address_lower not in ptokens:
+                    continue
 
-                return dt_reserve, ocn_reserve, price, _pool
+                price = from_base_18(pool.getSpotPrice(self._checksum_ocean, dt_address))
+                if price <= 0.0 or price > self.PRICE_TOO_LARGE:
+                    continue
+                pool_to_price[_pool] = price
+
             except Exception as e:
                 logger.error(f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
                 #return 0.0, 0.0, 0.0, _pool
-        #no pool was found
-        return 0.0, 0.0, 0.0, _pool
+
+        if pool_to_price:
+            _pool = sorted(pool_to_price.items(), key=lambda x: x[1])[0]
+            pool = BPool(_pool)
+            dt_reserve = pool.getBalance(dt_address)
+            ocn_reserve = pool.getBalance(self._checksum_ocean)
+            price_base = pool.calcInGivenOut(
+                ocn_reserve,
+                pool.getDenormalizedWeight(self._checksum_ocean),
+                dt_reserve,
+                pool.getDenormalizedWeight(dt_address),
+                to_base_18(1.0),
+                pool.getSwapFee()
+            )
+            price = from_base_18(price_base)
+            ocn_reserve = from_base_18(ocn_reserve)
+            dt_reserve = from_base_18(dt_reserve)
+            if dt_reserve <= 1.0:
+                price = 0.0
+            if price > self.PRICE_TOO_LARGE:
+                price = 0.0
+
+            return dt_reserve, ocn_reserve, price, _pool
+
+        # no pool or no pool with price was found
+        return 0.0, 0.0, 0.0, pools[0]
 
     def _get_fixedrateexchange_price(self, dt_address, owner=None, exchange_id=None):
         fre = self.ex_contract
