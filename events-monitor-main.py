@@ -8,7 +8,7 @@ from ocean_lib.web3_internal.contract_handler import ContractHandler
 from ocean_lib.web3_internal.web3_provider import Web3Provider
 
 from aquarius.events.events_monitor import EventsMonitor
-from aquarius.events.util import get_artifacts_path
+from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.log import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -37,6 +37,9 @@ def run_events_monitor():
 
     Web3Provider.init_web3(provider=get_web3_connection_provider(network_rpc))
     ContractHandler.set_artifacts_path(get_artifacts_path())
+    if get_network_name().lower() == 'rinkeby':
+        from web3.middleware import geth_poa_middleware
+        Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
 
     monitor = EventsMonitor(Web3Provider.get_web3(), config_file)
     monitor.start_events_monitor()

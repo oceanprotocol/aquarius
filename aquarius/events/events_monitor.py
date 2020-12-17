@@ -8,6 +8,7 @@ import lzma as Lzma
 import json
 from json import JSONDecodeError
 from threading import Thread
+from datetime import datetime
 
 import elasticsearch
 import requests
@@ -19,12 +20,13 @@ import ecies
 from oceandb_driver_interface import OceanDb
 
 from aquarius.app.util import (
-    get_timestamp,
     get_metadata_from_services,
     list_errors,
     validate_data,
-    get_sender_from_txid,
-    init_new_ddo)
+    init_new_ddo,
+    format_timestamp,
+    DATETIME_FORMAT,
+)
 from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
 from plecos.plecos import (
     is_valid_dict_remote,
@@ -202,7 +204,7 @@ class EventsMonitor:
         return {(a['did'], a['reason']) for a in response.json() if a and 'did' in a}
 
     def _update_purgatory_list(self):
-        now = int(datetime.datetime.now().timestamp())
+        now = int(datetime.now().timestamp())
         if self._purgatory_update_time and (now - self._purgatory_update_time) < 3600:
             return
 
@@ -308,7 +310,7 @@ class EventsMonitor:
         return publisher_address in self._allowed_publishers
 
     def processNewDDO(self, event):
-        did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
+        did, block, txid, contract_address, sender_address, flags, rawddo, timestamp = self.get_event_data(event)
         logger.info(f'Process new DDO, did from event log:{did}, sender:{sender_address}')
         if not self.is_publisher_allowed(sender_address):
             logger.warning(f'Sender {sender_address} is not in ALLOWED_PUBLISHERS.')
@@ -335,7 +337,7 @@ class EventsMonitor:
             logger.warning(msg)
             return
 
-        _record = init_new_ddo(data)
+        _record = init_new_ddo(data,timestamp)
         # this will be used when updating the doo
         _record['event'] = dict()
         _record['event']['txid'] = txid
@@ -349,7 +351,8 @@ class EventsMonitor:
             'value': 0.0,
             'type': '',
             'address': '',
-            'pools': []
+            'pools': [],
+            'isConsumable': ''
         }
         dt_address = _record.get('dataToken')
         assert dt_address == add_0x_prefix(did[len('did:op:'):])
@@ -378,7 +381,7 @@ class EventsMonitor:
             return False
 
     def processUpdateDDO(self, event):
-        did, block, txid, contract_address, sender_address, flags, rawddo = self.get_event_data(event)
+        did, block, txid, contract_address, sender_address, flags, rawddo, timestamp = self.get_event_data(event)
         debug_log(f'Process update DDO, did from event log:{did}')
         try:
             asset = self._oceandb.read(did)
@@ -420,9 +423,11 @@ class EventsMonitor:
             logger.error(msg)
             return
 
-        _record = init_new_ddo(data)
-        _record['updated'] = get_timestamp()
-
+        _record = init_new_ddo(data,timestamp)
+        #make sure that we do not alter created flag
+        _record['created'] = asset['created']
+        # but we update 'updated'
+        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT))
         _record['event'] = dict()
         _record['event']['txid'] = txid
         _record['event']['blockNo'] = block
@@ -455,6 +460,8 @@ class EventsMonitor:
     def get_event_data(self, event):
         tx_id = event.transactionHash.hex()
         sender = event.args.get('createdBy', event.args.get('updatedBy'))
+        blockInfo = self._web3.eth.getBlock(event.blockNumber)
+        timestamp = blockInfo['timestamp']
         return (
             f'did:op:{remove_0x_prefix(event.args.dataToken)}',
             event.blockNumber,
@@ -462,7 +469,8 @@ class EventsMonitor:
             event.address,
             sender,
             event.args.get('flags', None),
-            event.args.get('data', None)
+            event.args.get('data', None),
+            timestamp
         )
 
     def decode_ddo(self, rawddo, flags):
