@@ -296,7 +296,7 @@ class MetadataUpdater:
                 #return 0.0, 0.0, 0.0, _pool
 
         if pool_to_price:
-            _pool = sorted(pool_to_price.items(), key=lambda x: x[1])[0]
+            _pool = sorted(pool_to_price.items(), key=lambda x: x[1])[0][0]
             pool = BPool(_pool)
             dt_reserve = pool.getBalance(dt_address)
             ocn_reserve = pool.getBalance(self._checksum_ocean)
