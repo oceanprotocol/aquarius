@@ -389,8 +389,8 @@ def update_ddo_info(did):
         asset_record = dao.get(did)
         if not asset_record:
             return jsonify(error=f'Asset {did} not found.'), 404
-
-        updater = MetadataUpdater(oceandb=dao.oceandb,other_db_index=None, web3=Web3Provider.get_web3(), config=ConfigProvider.get_config())
+        _other_db_index = f'{dao.oceandb.driver.db_index}_plus'
+        updater = MetadataUpdater(oceandb=dao.oceandb,other_db_index=_other_db_index, web3=Web3Provider.get_web3(), config=ConfigProvider.get_config())
         updater.do_single_update(asset_record)
 
         return jsonify('acknowledged.'), 200
