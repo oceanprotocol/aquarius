@@ -316,17 +316,17 @@ class MetadataUpdater:
 
         if pool_to_price_with_value:
             _pool = sorted(pool_to_price_with_value.items(), key=lambda x: x[1])[0][0]
-            dt_reserve, ocn_reserve, price, _pool = self.get_reserves_and_price(_pool, dt_address)
+            dt_reserve, ocn_reserve, price, _pool = self.get_pool_reserves_and_price(_pool, dt_address)
             return dt_reserve, ocn_reserve, price, _pool
 
         if pool_to_price:
             _pool = sorted(pool_to_price.items(), key=lambda x: x[1])[0][0]
-            dt_reserve, ocn_reserve, price, _pool = self.get_reserves_and_price(_pool, dt_address)
+            dt_reserve, ocn_reserve, price, _pool = self.get_pool_reserves_and_price(_pool, dt_address)
             return dt_reserve, ocn_reserve, price, _pool
         # no pool or no pool with price was found
         return 0.0, 0.0, 0.0, pools[0]
 
-    def get_reserves_and_price(self, _pool, dt_address):
+    def get_pool_reserves_and_price(self, _pool, dt_address):
         pool = BPool(_pool)
         dt_reserve = pool.getBalance(dt_address)
         ocn_reserve = pool.getBalance(self._checksum_ocean)
