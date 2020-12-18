@@ -284,7 +284,6 @@ class MetadataUpdater:
         logger.debug(f' Searching {pools} for {dt_address}')
         dt_address_lower = dt_address.lower()
         ocean_address_lower = self._OCEAN.lower()
-        pool_to_price_with_value = dict()
         pool_to_price = dict()
         for _pool in pools:
             logger.debug(f' Searching {_pool}')
@@ -305,9 +304,7 @@ class MetadataUpdater:
                     self._checksum_ocean, dt_address))
                 if price <= 0.0 or price > self.PRICE_TOO_LARGE:
                     continue
-                if price > 0:
-                    pool_to_price_with_value[_pool] = price
-
+                
                 pool_to_price[_pool] = price
                 logger.debug(f' Adding pool {_pool} with price {price}')
 
@@ -315,11 +312,6 @@ class MetadataUpdater:
                 logger.error(
                     f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
                 # return 0.0, 0.0, 0.0, _pool
-
-        if pool_to_price_with_value:
-            _pool = sorted(pool_to_price_with_value.items(), key=lambda x: x[1])[0][0]
-            dt_reserve, ocn_reserve, price, _pool = self.get_pool_reserves_and_price(_pool, dt_address)
-            return dt_reserve, ocn_reserve, price, _pool
 
         if pool_to_price:
             _pool = sorted(pool_to_price.items(), key=lambda x: x[1])[0][0]
