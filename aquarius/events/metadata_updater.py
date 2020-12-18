@@ -610,7 +610,7 @@ class MetadataUpdater:
                 _pools = _price_dict.get('pools', [])
                 _dt_address = self._web3.toChecksumAddress(address)
                 _pools.extend([p for p in pools if p not in _pools])
-                logger.info(f'updating price info for datatoken: {address}, pools {pools}')
+                logger.debug(f'Pools to be checked: {_pools}')
                 dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(
                     _pools, _dt_address)
                 price_dict = {
