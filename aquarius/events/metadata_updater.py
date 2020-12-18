@@ -281,11 +281,13 @@ class MetadataUpdater:
 
     def _get_liquidity_and_price(self, pools, dt_address):
         assert pools, f'pools should not be empty, got {pools}'
+        logger.debug(f' Searching {pools} for {dt_address}')
         dt_address_lower = dt_address.lower()
         ocean_address_lower = self._OCEAN.lower()
         pool_to_price_with_value = dict()
         pool_to_price = dict()
         for _pool in pools:
+            logger.debug(f' Searching {_pool}')
             try:
                 pool = BPool(_pool)
                 pool.getCurrentTokens()
@@ -616,9 +618,9 @@ class MetadataUpdater:
                 _pools = _price_dict.get('pools', [])
                 _dt_address = self._web3.toChecksumAddress(address)
                 _pools.extend([p for p in pools if p not in _pools])
-
+                logger.info(f'updating price info for datatoken: {address}, pools {pools}')
                 dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(
-                    pools, _dt_address)
+                    _pools, _dt_address)
                 price_dict = {
                     'datatoken': dt_reserve,
                     'ocean': ocn_reserve,
