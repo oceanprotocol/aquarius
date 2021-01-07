@@ -256,8 +256,7 @@ class MetadataUpdater:
                         [(parsed_log.args.get(arg, ''), parsed_log.address) for arg in args])
                     # all_logs.append(parsed_log)
 
-        addresses_and_pools = [(a, pool) if a and a.lower(
-        ) != self._OCEAN else ('', pool) for (a, pool) in addresses]
+        addresses_and_pools = [(a, pool) if a and a.lower() != self._OCEAN else ('', pool) for (a, pool) in addresses]
         return addresses_and_pools
 
     def get_datatoken_pools(self, dt_address, from_block=0, to_block='latest'):
@@ -283,10 +282,8 @@ class MetadataUpdater:
         assert pools, f'pools should not be empty, got {pools}'
         logger.debug(f' Searching {pools} for {dt_address}')
         dt_address_lower = dt_address.lower()
-        ocean_address_lower = self._OCEAN.lower()
         pool_to_price = dict()
         for _pool in pools:
-            logger.debug(f' Searching {_pool}')
             try:
                 pool = BPool(_pool)
                 pool.getCurrentTokens()
@@ -295,9 +292,9 @@ class MetadataUpdater:
                 except Exception:
                     continue
 
-                if ocean_address_lower not in ptokens or dt_address_lower not in ptokens:
+                if self._OCEAN not in ptokens or dt_address_lower not in ptokens:
                     logger.debug(
-                        f' ignore pool {_pool}, cannot find {ocean_address_lower} and {dt_address_lower} in tokens list')
+                        f' ignore pool {_pool}, cannot find {self._OCEAN} and {dt_address_lower} in tokens list')
                     continue
 
                 price = from_base_18(pool.getSpotPrice(
@@ -311,7 +308,7 @@ class MetadataUpdater:
             except Exception as e:
                 logger.error(
                     f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
-                # return 0.0, 0.0, 0.0, _pool
+                
 
         if pool_to_price:
             _pool = sorted(pool_to_price.items(), key=lambda x: x[1])[0][0]
