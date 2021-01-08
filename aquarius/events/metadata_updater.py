@@ -244,8 +244,8 @@ class MetadataUpdater:
             try:
                 logs = self._web3.eth.getLogs(_filter)
             except ValueError as e:
-                logger.error(f'get_dt_addresses_from_pool_logs -> web3.eth.getLogs (filter={_filter}) failed: '
-                             f'{e}..')
+                logger.error(f'get_dt_addresses_from_pool_logs -> web3.eth.getLogs '
+                             f'(filter={_filter}) failed: {e}..')
                 logs = []
 
             if logs:
