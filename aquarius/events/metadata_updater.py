@@ -275,8 +275,8 @@ class MetadataUpdater:
         if not logs:
             return None
 
-        pools = [get_event_data(event_abi, log).address for log in logs]
-        return list(set(pools))
+        pools = {get_event_data(event_abi, log).address for log in logs}
+        return list(pools)
 
     def _get_liquidity_and_price(self, pools, dt_address):
         assert pools, f'pools should not be empty, got {pools}'
