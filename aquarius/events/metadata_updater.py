@@ -286,7 +286,6 @@ class MetadataUpdater:
         for _pool in pools:
             try:
                 pool = BPool(_pool)
-                pool.getCurrentTokens()
                 try:
                     ptokens = {a.lower() for a in pool.getCurrentTokens()}
                 except Exception:
@@ -294,26 +293,26 @@ class MetadataUpdater:
 
                 if self._OCEAN not in ptokens or dt_address_lower not in ptokens:
                     logger.debug(
-                        f' ignore pool {_pool}, cannot find {self._OCEAN} and {dt_address_lower} in tokens list')
+                        f' ignore pool {_pool}, cannot find {self._OCEAN} and {dt_address_lower} in tokens list {ptokens}')
                     continue
 
                 price = from_base_18(pool.getSpotPrice(
                     self._checksum_ocean, dt_address))
                 if price <= 0.0 or price > self.PRICE_TOO_LARGE:
                     continue
-                
+
                 pool_to_price[_pool] = price
                 logger.debug(f' Adding pool {_pool} with price {price}')
 
             except Exception as e:
                 logger.error(
-                    f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}')
-                
+                    f'failed to get liquidity/price info from pool {_pool} and datatoken {dt_address}: {e}')
 
         if pool_to_price:
             _pool = sorted(pool_to_price.items(), key=lambda x: x[1])[0][0]
             dt_reserve, ocn_reserve, price, _pool = self.get_pool_reserves_and_price(_pool, dt_address)
             return dt_reserve, ocn_reserve, price, _pool
+
         # no pool or no pool with price was found
         return 0.0, 0.0, 0.0, pools[0]
 
@@ -373,7 +372,7 @@ class MetadataUpdater:
                 event,
                 None,
                 from_block=_from,
-                to_block=_from+chunk-1
+                to_block=_from + chunk - 1
             )
             try:
                 logs = event_filter.get_all_entries(max_tries=10)
