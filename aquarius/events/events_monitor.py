@@ -74,7 +74,14 @@ class EventsMonitor:
         self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
-        self._updater = MetadataUpdater(self._oceandb, self._other_db_index, self._web3, ConfigProvider.get_config())
+        self._pool_monitor = None
+        if bool(int(os.getenv('PROCESS_POOL_EVENTS', 1)) == 1):
+            self._pool_monitor = MetadataUpdater(
+                self._oceandb,
+                self._other_db_index,
+                self._web3,
+                ConfigProvider.get_config()
+            )
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
@@ -117,7 +124,7 @@ class EventsMonitor:
             logger.error(
                 f"Contract address {self._contract_address} is not a valid address. Events thread not starting")
             self._contract = None
-
+        self._purgatory_enabled = bool(int(os.getenv('PROCESS_PURGATORY', 1)) == 1)
         self._purgatory_list = set()
         self._purgatory_update_time = None
 
@@ -151,13 +158,13 @@ class EventsMonitor:
 
     def stop_monitor(self):
         self._monitor_is_on = False
-        if self._updater.is_running():
-            self._updater.stop()
+        if self._pool_monitor and self._pool_monitor.is_running():
+            self._pool_monitor.stop()
 
     def run_monitor(self):
-        first_update = self._updater.is_first_update_enabled()
-        if bool(int(os.getenv('UPDATE_ALL_PURGATORY', 1)) == 1):
-            self._update_existing_assets()
+        first_update = bool(self._pool_monitor and self._pool_monitor.is_first_update_enabled())
+        if self._purgatory_enabled:
+            self._update_existing_assets_purgatory_data()
 
         while True:
             try:
@@ -165,12 +172,11 @@ class EventsMonitor:
                     return
 
                 self.process_current_blocks()
-                if first_update:
-                    self._updater.do_update()
-                    first_update = False
+                self._process_pool_events(first_update)
+                first_update = False
 
-                self._updater.process_pool_events()
-                self._update_purgatory_list()
+                if self._purgatory_enabled:
+                    self._update_purgatory_list()
 
             except (KeyError, Exception) as e:
                 logger.error(f'Error processing event:')
@@ -178,7 +184,16 @@ class EventsMonitor:
 
             time.sleep(self._monitor_sleep_time)
 
-    def _update_existing_assets(self):
+    def _process_pool_events(self, first_update=False):
+        if not self._pool_monitor:
+            return
+
+        if first_update:
+            self._pool_monitor.do_update()
+
+        self._pool_monitor.process_pool_events()
+
+    def _update_existing_assets_purgatory_data(self):
         for asset in self._oceandb.list():
             did = asset.get('id', None)
             if not did or not did.startswith('did:op:'):
@@ -196,7 +211,8 @@ class EventsMonitor:
             except Exception as e:
                 logger.warning(f'updating ddo {did} purgatory attribute failed: {e}')
 
-    def _get_reference_purgatory_list(self):
+    @staticmethod
+    def _get_reference_purgatory_list():
         response = requests.get('https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json')
         if response.status_code != requests.codes.ok:
             return set()
