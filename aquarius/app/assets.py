@@ -57,7 +57,7 @@ def get_assets_ids():
         description: successful action
     """
     asset_with_id = dao.get_all_listed_assets()
-    asset_ids = [a['id'] for a in asset_with_id]
+    asset_ids = [a['id'] for a in asset_with_id if 'id' in a]
     return Response(json.dumps(asset_ids), 200, content_type='application/json')
 
 
