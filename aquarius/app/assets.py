@@ -390,7 +390,10 @@ def update_ddo_info(did):
         if not asset_record:
             return jsonify(error=f'Asset {did} not found.'), 404
         _other_db_index = f'{dao.oceandb.driver.db_index}_plus'
-        updater = MetadataUpdater(oceandb=dao.oceandb,other_db_index=_other_db_index, web3=Web3Provider.get_web3(), config=ConfigProvider.get_config())
+        updater = MetadataUpdater(
+            oceandb=dao.oceandb, other_db_index=_other_db_index,
+            web3=Web3Provider.get_web3(), config=ConfigProvider.get_config()
+        )
         updater.do_single_update(asset_record)
 
         return jsonify('acknowledged.'), 200
@@ -420,7 +423,11 @@ def delist_ddo(did):
         if not asset_record:
             return jsonify(error=f'Asset {did} not found.'), 404
 
-        updater = MetadataUpdater(oceandb=dao.oceandb, web3=Web3Provider.get_web3(), config=ConfigProvider.get_config())
+        _other_db_index = f'{dao.oceandb.driver.db_index}_plus'
+        updater = MetadataUpdater(
+            oceandb=dao.oceandb, other_db_index=_other_db_index,
+            web3=Web3Provider.get_web3(), config=ConfigProvider.get_config()
+        )
         updater.do_single_update(asset_record)
 
         return jsonify('acknowledged.'), 200
