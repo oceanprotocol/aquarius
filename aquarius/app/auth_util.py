@@ -19,7 +19,7 @@ def get_signer_address(message, signature, logger):
         logger.debug(f'got "{address_recovered}" as address_recovered')
         return address_recovered
     except Exception as e:
-        logger.error(f'get_signer_address: {e}')
+        logger.error(f"get_signer_address: {e}")
         return None
 
 
@@ -35,8 +35,8 @@ def compare_eth_addresses(address, checker, logger):
     :param logger: instance of logging
     :return: boolean
     """
-    logger.debug('compare_eth_addresses address: %s' % address)
-    logger.debug('compare_eth_addresses checker: %s' % checker)
+    logger.debug("compare_eth_addresses address: %s" % address)
+    logger.debug("compare_eth_addresses checker: %s" % checker)
     if not Web3.isAddress(address):
         logger.debug("Address is not web3 valid")
         return False
@@ -47,7 +47,7 @@ def compare_eth_addresses(address, checker, logger):
 
 
 def has_update_request_permission(address):
-    vip_list = os.getenv('AQUA_VIP_ACCOUNTS', '[]')
+    vip_list = os.getenv("AQUA_VIP_ACCOUNTS", "[]")
     try:
         vip_list = json.loads(vip_list)
         return isinstance(vip_list, list) and bool(address in vip_list)

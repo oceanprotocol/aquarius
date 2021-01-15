@@ -12,12 +12,12 @@ from ocean_lib.ocean.util import from_base_18
 from aquarius.app.pool_helper import build_liquidity_and_price_history
 from aquarius.app.util import get_request_data
 
-pools = Blueprint('pools', __name__)
+pools = Blueprint("pools", __name__)
 
 logger = logging.getLogger(__name__)
 
 
-@pools.route('/history/<poolAddress>', methods=['GET'])
+@pools.route("/history/<poolAddress>", methods=["GET"])
 def get_liquidity_history(poolAddress):
     """
 
@@ -34,26 +34,32 @@ def get_liquidity_history(poolAddress):
         ocn_weight = from_base_18(pool.getDenormalizedWeight(ocean.OCEAN_address))
         dt_weight = from_base_18(pool.getDenormalizedWeight(dt_address))
 
-        ocn_add_remove_list, dt_add_remove_list = ocean.pool.get_liquidity_history(poolAddress)
+        ocn_add_remove_list, dt_add_remove_list = ocean.pool.get_liquidity_history(
+            poolAddress
+        )
         ocn_add_remove_list = [(v, int(t)) for v, t in ocn_add_remove_list]
         dt_add_remove_list = [(v, int(t)) for v, t in dt_add_remove_list]
 
-        ocn_reserve_history, dt_reserve_history, price_history = build_liquidity_and_price_history(
+        (
+            ocn_reserve_history,
+            dt_reserve_history,
+            price_history,
+        ) = build_liquidity_and_price_history(
             ocn_add_remove_list, dt_add_remove_list, ocn_weight, dt_weight, swap_fee
         )
 
-        result['oceanAddRemove'] = ocn_add_remove_list
-        result['datatokenAddRemove'] = dt_add_remove_list
-        result['oceanReserveHistory'] = ocn_reserve_history
-        result['datatokenReserveHistory'] = dt_reserve_history
-        result['datatokenPriceHistory'] = price_history
-        return Response(json.dumps(result), 200, content_type='application/json')
+        result["oceanAddRemove"] = ocn_add_remove_list
+        result["datatokenAddRemove"] = dt_add_remove_list
+        result["oceanReserveHistory"] = ocn_reserve_history
+        result["datatokenReserveHistory"] = dt_reserve_history
+        result["datatokenPriceHistory"] = price_history
+        return Response(json.dumps(result), 200, content_type="application/json")
     except Exception as e:
-        logger.error(f'pools/history/{poolAddress}: {str(e)}', exc_info=1)
-        return f'Get pool liquidity/price history failed: {str(e)}', 500
+        logger.error(f"pools/history/{poolAddress}: {str(e)}", exc_info=1)
+        return f"Get pool liquidity/price history failed: {str(e)}", 500
 
 
-@pools.route('/liquidity/<poolAddress>', methods=['GET'])
+@pools.route("/liquidity/<poolAddress>", methods=["GET"])
 def get_current_liquidity_stats(poolAddress):
     """
 
@@ -62,18 +68,20 @@ def get_current_liquidity_stats(poolAddress):
     """
     try:
         data = get_request_data(request) or {}
-        dt_address = data.get('datatokenAddress', None)
-        from_block = data.get('fromBlock', None)
-        to_block = data.get('toBlock', None)
+        dt_address = data.get("datatokenAddress", None)
+        from_block = data.get("fromBlock", None)
+        to_block = data.get("toBlock", None)
         ocean = Ocean(ConfigProvider.get_config())
-        pool_info = ocean.pool.get_short_pool_info(poolAddress, dt_address, from_block, to_block)
-        return Response(json.dumps(pool_info), 200, content_type='application/json')
+        pool_info = ocean.pool.get_short_pool_info(
+            poolAddress, dt_address, from_block, to_block
+        )
+        return Response(json.dumps(pool_info), 200, content_type="application/json")
     except Exception as e:
-        logger.error(f'pools/liquidity/{poolAddress}: {str(e)}')
-        return f'Get pool current liquidity stats failed: {str(e)}', 500
+        logger.error(f"pools/liquidity/{poolAddress}: {str(e)}")
+        return f"Get pool current liquidity stats failed: {str(e)}", 500
 
 
-@pools.route('/user/<userAddress>', methods=['GET'])
+@pools.route("/user/<userAddress>", methods=["GET"])
 def get_user_balances(userAddress):
     """
 
@@ -82,10 +90,10 @@ def get_user_balances(userAddress):
     """
     try:
         data = get_request_data(request) or {}
-        from_block = data.get('fromBlock', int(os.getenv('BFACTORY_BLOCK', 0)))
+        from_block = data.get("fromBlock", int(os.getenv("BFACTORY_BLOCK", 0)))
         ocean = Ocean(ConfigProvider.get_config())
         result = ocean.pool.get_user_balances(userAddress, from_block)
-        return Response(json.dumps(result), 200, content_type='application/json')
+        return Response(json.dumps(result), 200, content_type="application/json")
     except Exception as e:
-        logger.error(f'pools/user/{userAddress}: {str(e)}')
-        return f'Get pool user balances failed: {str(e)}', 500
+        logger.error(f"pools/user/{userAddress}: {str(e)}")
+        return f"Get pool user balances failed: {str(e)}", 500

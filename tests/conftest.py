@@ -20,13 +20,13 @@ EVENTS_INSTANCE = None
 
 @pytest.fixture
 def base_ddo_url():
-    return BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo'
+    return BaseURLs.BASE_AQUARIUS_URL + "/assets/ddo"
 
 
 @pytest.fixture
 def client_with_no_data():
     client = app.test_client()
-    client.delete(BaseURLs.BASE_AQUARIUS_URL + '/assets/ddo')
+    client.delete(BaseURLs.BASE_AQUARIUS_URL + "/assets/ddo")
     yield client
 
 
@@ -41,8 +41,8 @@ def client():
 def events_object():
     global EVENTS_INSTANCE
     if not EVENTS_INSTANCE:
-        config_file = os.getenv('CONFIG_FILE', 'config.ini')
-        network_rpc = os.environ.get('EVENTS_RPC', 'http://127.0.0.1:8545')
+        config_file = os.getenv("CONFIG_FILE", "config.ini")
+        network_rpc = os.environ.get("EVENTS_RPC", "http://127.0.0.1:8545")
 
         ConfigProvider.set_config(Config(config_file))
         from ocean_lib.ocean.util import get_web3_connection_provider
@@ -51,8 +51,7 @@ def events_object():
         ContractHandler.set_artifacts_path(get_artifacts_path())
 
         EVENTS_INSTANCE = EventsMonitor(
-            Web3Provider.get_web3(),
-            app.config['CONFIG_FILE']
+            Web3Provider.get_web3(), app.config["CONFIG_FILE"]
         )
         EVENTS_INSTANCE.store_last_processed_block(0)
     return EVENTS_INSTANCE
