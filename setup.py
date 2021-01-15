@@ -33,9 +33,7 @@ install_requirements = [
     "gevent",
 ]
 
-setup_requirements = [
-    "pytest-runner==5.2",
-]
+setup_requirements = ["pytest-runner==5.2"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
@@ -44,6 +42,7 @@ dev_requirements = [
     "flake8",
     "isort",
     "black",
+    "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
     "watchdog==1.0.2",
 ]
