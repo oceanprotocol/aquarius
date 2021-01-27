@@ -112,7 +112,7 @@ class MetadataUpdater:
                 'Cannot start MetadataUpdater  without an OceanDB instance.')
             return
 
-        logger.info(f'Starting the MetadataUpdater.')
+        logger.info('Starting the MetadataUpdater.')
         t = Thread(
             target=self.run,
             daemon=True,
@@ -138,7 +138,7 @@ class MetadataUpdater:
                 self.process_pool_events()
 
             except (KeyError, Exception) as e:
-                logger.error(f'Error doing update of Metadata.')
+                logger.error('Error doing update of Metadata.')
                 logger.error(e)
                 raise
 
@@ -385,6 +385,77 @@ class MetadataUpdater:
 
         return pools
 
+    def _get_price_updates_from_fixed_rate_exchange(self, _dt_address, owner=None, exchange_id=None):
+        if exchange_id:
+            price, dt_supply = self._get_fixedrateexchange_price(
+                _dt_address, exchange_id=exchange_id
+            )
+        else:
+            price, dt_supply = self._get_fixedrateexchange_price(_dt_address, owner)  # noqa
+
+        logger.info(
+            f'Updating price for asset with address {_dt_address}, with'
+            f'owner={owner}' if owner else f'echange_id={exchange_id}, '
+            f'from FIXED RATE EXCHANGE.'
+        )
+
+        is_consumable = str(bool(
+            dt_supply is not None and dt_supply > 1
+        )).lower()
+
+        price_dict = {
+            'datatoken': dt_supply or 0.0,
+            'ocean': 0.0,
+            'pools': [],
+            'value': price or 0.0,
+            'isConsumable': is_consumable
+        }
+
+        logger.info(
+            f'Setting datatoken={dt_supply or 0.0}, ocean=0.0, pools=[], '
+            f'value={price or 0.0}. Found dt_supply={dt_supply}, setting '
+            f'isConsumable={is_consumable}. '
+        )
+
+        if price is not None:
+            logger.info(
+                'Found price not None, setting '
+                f'address={self.ex_contract.address} and type as empty string.'
+            )
+            price_dict.update({
+                'address': self.ex_contract.address, 'type': 'exchange'
+            })
+        else:
+            logger.info('Found price=None, setting address and type as empty string.')  # noqa
+            price_dict.update({'address': '', 'type': ''})
+
+        return price_dict
+
+    def _get_price_updates_from_liquidity(self, pools, _dt_address):
+        dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(
+            pools, _dt_address
+        )
+
+        is_consumable = str(bool(price is not None and price > 0.0)).lower()
+
+        logger.info(
+            f'Updating price for asset with address {_dt_address}, with'
+            f' {len(pools)} pools found from LIQUIDITY AND PRICE.'
+            f'Setting datatoken={dt_reserve}, ocean={ocn_reserve}, '
+            f'value={price}, type=pool, address={pool_address}'
+            f'isConsumable={is_consumable}. '
+        )
+
+        return {
+            'datatoken': dt_reserve,
+            'ocean': ocn_reserve,
+            'value': price,
+            'type': 'pool',
+            'address': pool_address,
+            'pools': pools,
+            'isConsumable': is_consumable
+        }
+
     def do_single_update(self, asset):
         did_prefix = self.DID_PREFIX
         prefix_len = len(did_prefix)
@@ -397,17 +468,11 @@ class MetadataUpdater:
         pools = self.get_datatoken_pools(
             dt_address, from_block=self.bfactory_block)
         if pools:
-            dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(
-                pools, _dt_address)
-            price_dict = {
-                'datatoken': dt_reserve,
-                'ocean': ocn_reserve,
-                'value': price,
-                'type': 'pool',
-                'address': pool_address,
-                'pools': pools,
-                'isConsumable': 'true' if price and price > 0.0 else 'false'
-            }
+            logger.info(
+                f'Found pools for asset with address={_dt_address}, '
+                f'Updating price from LIQUIDITY AND PRICE.'
+            )
+            price_dict = self._get_price_updates_from_liquidity(pools, _dt_address)
         else:
             owner = asset['proof'].get('creator')
             if not owner or not self._web3.isAddress(owner):
@@ -415,19 +480,15 @@ class MetadataUpdater:
                     f'updating price info for datatoken {dt_address} failed, invalid owner from ddo.proof (owner={owner}).')
                 return
 
-            price, dt_supply = self._get_fixedrateexchange_price(
-                _dt_address, owner)
-            price_dict = {
-                'datatoken': dt_supply or 0.0,
-                'ocean': 0.0,
-                'value': price or 0.0,
-                'type': 'exchange' if price is not None else '',
-                'address': self.ex_contract.address if price is not None else '',
-                'pools': [],
-                'isConsumable': str(bool(dt_supply)).lower() if price is not None else ''
-            }
+            logger.info(
+                f'NO pools found for asset with address={_dt_address}. '
+                f'Updating price from FIXED RATE EXCHANGE.'
+            )
+            price_dict = self._get_price_updates_from_fixed_rate_exchange(
+                dt_address, owner
+            )
 
-        asset['price'] = price_dict
+        asset['price'].update(price_dict)
         try:
             dt_info = get_datatoken_info(_dt_address)
         except Exception as e:
@@ -462,7 +523,6 @@ class MetadataUpdater:
 
             dt_to_pool[dt].append(pool_address)
 
-        frexchange_address = self.ex_contract.address
         for asset in self._get_all_assets():
             did = asset.get('id', None)
             if not did:
@@ -480,38 +540,28 @@ class MetadataUpdater:
             pools = dt_to_pool.get(dt_address, [])
 
             if not pools:
+                logger.info(
+                    f'NO pools found for asset with address={_dt_address}. '
+                    f'Updating price from FIXED RATE EXCHANGE.'
+                )
                 owner = asset['proof'].get('creator')
                 if not owner or not self._web3.isAddress(owner):
                     logger.warning(
                         f'updating price info for datatoken {dt_address} failed, invalid owner from ddo.proof (owner={owner}).')
                     continue
 
-                price, dt_supply = self._get_fixedrateexchange_price(
-                    _dt_address, owner)
-                price_dict = {
-                    'datatoken': dt_supply or 0.0,
-                    'ocean': 0.0,
-                    'value': price or 0.0,
-                    'type': 'exchange' if price is not None else '',
-                    'address': frexchange_address if price is not None else '',
-                    'pools': [],
-                    'isConsumable': str(bool(dt_supply)).lower() if price is not None else ''
-                }
-
+                price_dict = self._get_price_updates_from_fixed_rate_exchange(
+                    _dt_address, owner
+                )
             else:
-                dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(
-                    pools, _dt_address)
-                price_dict = {
-                    'datatoken': dt_reserve,
-                    'ocean': ocn_reserve,
-                    'value': price,
-                    'type': 'pool',
-                    'address': pool_address,
-                    'pools': pools,
-                    'isConsumable': 'true' if price and price > 0.0 else 'false'
-                }
+                logger.info(
+                    f'Found pools for asset with address={_dt_address}, '
+                    f'Updating price from LIQUIDITY AND PRICE.'
+                )
 
-            asset['price'] = price_dict
+                price_dict = self._get_price_updates_from_liquidity(pools, _dt_address)
+
+            asset['price'].update(price_dict)
             try:
                 dt_info = get_datatoken_info(_dt_address)
             except Exception as e:
@@ -528,7 +578,6 @@ class MetadataUpdater:
     def update_dt_assets_with_exchange_info(self, dt_address_exid):
         did_prefix = self.DID_PREFIX
         dao = Dao(oceandb=self._oceandb)
-        _dt_address_ex_list = []
         seen_exs = set()
         for address, exid in dt_address_exid:
             if not address or exid in seen_exs:
@@ -547,18 +596,16 @@ class MetadataUpdater:
                     continue
 
                 _dt_address = self._web3.toChecksumAddress(address)
-                price, dt_supply = self._get_fixedrateexchange_price(
-                    _dt_address, exchange_id=exid)
-                price_dict = {
-                    'datatoken': dt_supply,
-                    'ocean': 0.0,
-                    'value': price,
-                    'type': 'exchange',
-                    'address': self.ex_contract.address,
-                    'pools': [],
-                    'isConsumable': str(bool(dt_supply)).lower() if price is not None else ''
-                }
-                asset['price'] = price_dict
+                logger.info(
+                    f'Found asset with exchange info address={_dt_address}, '
+                    'Updating price from FIXED RATE EXCHANGE. '
+                    'Not searching for pools.'
+                )
+                price_dict = self._get_price_updates_from_fixed_rate_exchange(
+                    _dt_address, exchange_id=exid
+                )
+
+                asset['price'].update(price_dict)
                 asset['dataTokenInfo'] = get_datatoken_info(_dt_address)
 
                 self._oceandb.update(asset, did)
@@ -607,18 +654,14 @@ class MetadataUpdater:
                 _dt_address = self._web3.toChecksumAddress(address)
                 _pools.extend([p for p in pools if p not in _pools])
                 logger.debug(f'Pools to be checked: {_pools}')
-                dt_reserve, ocn_reserve, price, pool_address = self._get_liquidity_and_price(
-                    _pools, _dt_address)
-                price_dict = {
-                    'datatoken': dt_reserve,
-                    'ocean': ocn_reserve,
-                    'value': price,
-                    'type': 'pool',
-                    'address': pool_address,
-                    'pools': _pools,
-                    'isConsumable': 'true' if price and price > 0.0 else 'false'
-                }
-                asset['price'] = price_dict
+
+                logger.info(
+                    f'Found asset with exchange info address={_dt_address}, '
+                    'Updating price from LIQUIDITY AND PRICE. '
+                    f'Pools are assumed to exist ({len(_pools)}) found).'
+                )
+                price_dict = self._get_price_updates_from_liquidity(_pools, _dt_address)
+                asset['price'].update(price_dict)
                 asset['dataTokenInfo'] = get_datatoken_info(_dt_address)
 
                 self._oceandb.update(asset, did)
