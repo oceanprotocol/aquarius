@@ -421,24 +421,31 @@ def validate_remote():
 def update_ddo_info(did):
     assert request.json and isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    address = data.get('adminAddress', None)
-    if not address or not has_update_request_permission(address):
-        return jsonify(error=f'Unauthorized.'), 401
 
-    _address = None
-    signature = data.get('signature', None)
-    if signature:
-        _address = get_signer_address(address, signature, logger)
+    if request.remote_addr != '127.0.0.1':
+        address = data.get('adminAddress', None)
+        if not address or not has_update_request_permission(address):
+            return jsonify(error='Unauthorized.'), 401
 
-    if not _address or _address.lower() != address.lower():
-        return jsonify(error=f'Unauthorized.'), 401
+        _address = None
+        signature = data.get('signature', None)
+        if signature:
+            _address = get_signer_address(address, signature, logger)
+
+        if not _address or _address.lower() != address.lower():
+            return jsonify(error='Unauthorized.'), 401
 
     try:
         asset_record = dao.get(did)
         if not asset_record:
             return jsonify(error=f'Asset {did} not found.'), 404
         _other_db_index = f'{dao.oceandb.driver.db_index}_plus'
-        updater = MetadataUpdater(oceandb=dao.oceandb,other_db_index=_other_db_index, web3=Web3Provider.get_web3(), config=ConfigProvider.get_config())
+        updater = MetadataUpdater(
+            oceandb=dao.oceandb,
+            other_db_index=_other_db_index,
+            web3=Web3Provider.get_web3(),
+            config=ConfigProvider.get_config()
+        )
         updater.do_single_update(asset_record)
 
         return jsonify('acknowledged.'), 200
