@@ -25,7 +25,7 @@ install_requirements = [
     'oceandb-driver-interface==0.2.0',
     'oceandb-mongodb-driver==0.2.2',
     'oceandb-elasticsearch-driver==0.4.4',
-    'PyYAML==5.3.1',
+    'PyYAML==5.4.1',
     'pytz==2020.5',
     'plecos==1.1.0',
     'ocean-lib==0.5.5',
@@ -37,7 +37,7 @@ setup_requirements = ['pytest-runner==5.2', ]
 
 dev_requirements = [
     'bumpversion==0.6.0',
-    'pkginfo==1.6.1',
+    'pkginfo==1.7.0',
     'twine==3.3.0',
     # not virtualenv: devs should already have it before pip-installing
     'watchdog==1.0.2',

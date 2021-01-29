@@ -15,6 +15,8 @@ from ocean_lib.config import Config as OceanConfig
 from plecos.plecos import (
     is_valid_dict_local,
     list_errors_dict_local,
+    is_valid_dict_remote,
+    list_errors_dict_remote,
 )
 
 from aquarius.app.auth_util import has_update_request_permission, get_signer_address
@@ -369,21 +371,69 @@ def validate():
         return res
 
 
+@assets.route('/ddo/validate-remote', methods=['POST'])
+def validate_remote():
+    """Validate DDO content.
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Asset DDO.
+        schema:
+          type: object
+    responses:
+      200:
+        description: successfully request.
+      400:
+        description: Invalid DDO format
+      500:
+        description: Error
+    """
+    assert isinstance(request.json, dict), 'invalid payload format.'
+    data = request.json
+    assert isinstance(
+        data, dict
+    ), 'invalid `body` type, should be formatted as a dict.'
+
+    if 'service' not in data:
+        return jsonify(message="Invalid DDO format."), 400
+
+    data = get_metadata_from_services(data['service'])
+
+    if 'attributes' not in data:
+        return jsonify(message="Invalid DDO format."), 400
+
+    data = data['attributes']
+
+    if is_valid_dict_remote(data):
+        return jsonify(True)
+    else:
+        res = jsonify(list_errors(list_errors_dict_remote, data))
+        return res
+
+
 @assets.route('/ddo/update/<did>', methods=['PUT'])
 def update_ddo_info(did):
     assert request.json and isinstance(request.json, dict), 'invalid payload format.'
     data = request.json
-    address = data.get('adminAddress', None)
-    if not address or not has_update_request_permission(address):
-        return jsonify(error=f'Unauthorized.'), 401
 
-    _address = None
-    signature = data.get('signature', None)
-    if signature:
-        _address = get_signer_address(address, signature, logger)
+    if request.remote_addr != '127.0.0.1':
+        address = data.get('adminAddress', None)
+        if not address or not has_update_request_permission(address):
+            return jsonify(error='Unauthorized.'), 401
 
-    if not _address or _address.lower() != address.lower():
-        return jsonify(error=f'Unauthorized.'), 401
+        _address = None
+        signature = data.get('signature', None)
+        if signature:
+            _address = get_signer_address(address, signature, logger)
+
+        if not _address or _address.lower() != address.lower():
+            return jsonify(error='Unauthorized.'), 401
 
     try:
         asset_record = dao.get(did)
@@ -391,8 +441,10 @@ def update_ddo_info(did):
             return jsonify(error=f'Asset {did} not found.'), 404
         _other_db_index = f'{dao.oceandb.driver.db_index}_plus'
         updater = MetadataUpdater(
-            oceandb=dao.oceandb, other_db_index=_other_db_index,
-            web3=Web3Provider.get_web3(), config=ConfigProvider.get_config()
+            oceandb=dao.oceandb,
+            other_db_index=_other_db_index,
+            web3=Web3Provider.get_web3(),
+            config=ConfigProvider.get_config()
         )
         updater.do_single_update(asset_record)
 
