@@ -23,8 +23,12 @@ class Dao(object):
         try:
             asset = self.oceandb.read(asset_id)
         except elasticsearch.exceptions.NotFoundError as e:
-            logging.error(f'Dao.get -- asset with id {asset_id} was not found, original error was:{str(e)}')
-            raise
+            fallback_search = self.run_es_query(None, None, 1, 1, text=asset_id)
+            if fallback_search[0]:
+                asset = fallback_search[0][0]
+            else:
+                logging.error(f'Dao.get -- asset with id {asset_id} was not found, original error was:{str(e)}')
+                raise
 
         except Exception as e:
             logging.error(f'Dao.get: {str(e)}')

@@ -195,8 +195,9 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     )
     get_event(EVENT_METADATA_CREATED, block, ddo['id'])
     events_object.process_current_blocks()
+
+    # finds by id even if lowercase
+    assert len(run_request_get_data(client.get, base_ddo_url + f"/{ddo['id'].lower()}")) > 0
     assert len(
-        run_request_get_data(client.post, base_ddo_url + '/query',
-                             {"query": {"dataToken": [_ddo['dataToken']]}}
-                             )['results']
+        run_request_get_data(client.post, base_ddo_url + '/query', {"query": {"dataToken": [_ddo['dataToken']]}})['results']
     ) > 0
