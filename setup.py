@@ -47,7 +47,7 @@ test_requirements = [
     'plecos==1.1.0',
     'Flask==1.1.2',
     'codacy-coverage==1.3.11',
-    'coverage==5.3.1',
+    'coverage==5.4',
     'mccabe==0.6.1',
     'pylint==2.6.0',
     'pytest',
