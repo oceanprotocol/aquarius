@@ -25,7 +25,7 @@ install_requirements = [
     "oceandb-driver-interface==0.2.0",
     "oceandb-mongodb-driver==0.2.2",
     "oceandb-elasticsearch-driver==0.4.4",
-    "PyYAML==5.3.1",
+    "PyYAML==5.4.1",
     "pytz==2020.5",
     "plecos==1.1.0",
     "ocean-lib==0.5.5",
@@ -37,12 +37,8 @@ setup_requirements = ["pytest-runner==5.2"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
-    "pkginfo==1.6.1",
+    "pkginfo==1.7.0",
     "twine==3.3.0",
-    "flake8",
-    "isort",
-    "black",
-    "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
     "watchdog==1.0.2",
 ]
@@ -51,12 +47,11 @@ test_requirements = [
     "plecos==1.1.0",
     "Flask==1.1.2",
     "codacy-coverage==1.3.11",
-    "coverage==5.3.1",
+    "coverage==5.4",
     "mccabe==0.6.1",
     "pylint==2.6.0",
     "pytest",
     "tox",
-    "black",
 ]
 
 setup(
