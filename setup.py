@@ -39,6 +39,10 @@ dev_requirements = [
     "bumpversion==0.6.0",
     "pkginfo==1.7.0",
     "twine==3.3.0",
+    "flake8",
+    "isort",
+    "black",
+    "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
     "watchdog==1.0.2",
 ]
