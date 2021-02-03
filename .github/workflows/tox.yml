@@ -1,0 +1,32 @@
+name: Aquarius tests
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Aquarius
+        uses: actions/checkout@v2
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U tox-gh-actions -r requirements.txt
+      - name: Run elasticsearch
+        uses: elastic/elastic-github-actions/elasticsearch@master
+        with:
+          stack-version: 6.6.2
+      - name: Run Ganache
+        run: |
+          wget -q --waitretry=10 --wait=10 --retry-connrefused -T 145 -O - http://127.0.0.1:9200
+          docker pull trufflesuite/ganache-cli:latest
+          docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest --mnemonic "taxi music thumb unique chat sand crew more leg another off lamp"
+          sleep 5
+      - name: Test with tox
+        run: tox
