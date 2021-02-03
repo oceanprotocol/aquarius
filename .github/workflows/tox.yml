@@ -30,3 +30,5 @@ jobs:
           sleep 5
       - name: Test with tox
         run: tox
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
