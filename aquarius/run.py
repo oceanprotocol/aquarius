@@ -22,22 +22,22 @@ from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.myapp import app
 from aquarius.events.events_monitor import EventsMonitor
 
-config = Config(filename=app.config['CONFIG_FILE'])
+config = Config(filename=app.config["CONFIG_FILE"])
 aquarius_url = config.aquarius_url
 
 
 def get_version():
     conf = configparser.ConfigParser()
-    conf.read('.bumpversion.cfg')
-    return conf['bumpversion']['current_version']
+    conf.read(".bumpversion.cfg")
+    return conf["bumpversion"]["current_version"]
 
 
 @app.route("/")
 def version():
     info = dict()
-    info['software'] = Metadata.TITLE
-    info['version'] = get_version()
-    info['plugin'] = config.module
+    info["software"] = Metadata.TITLE
+    info["version"] = get_version()
+    info["plugin"] = config.module
     return jsonify(info)
 
 
@@ -49,10 +49,10 @@ def health():
 @app.route("/spec")
 def spec():
     swag = swagger(app)
-    swag['info']['version'] = get_version()
-    swag['info']['title'] = Metadata.TITLE
-    swag['info']['description'] = Metadata.DESCRIPTION + '`' + aquarius_url + '`.'
-    swag['info']['connected'] = get_status()
+    swag["info"]["version"] = get_version()
+    swag["info"]["title"] = Metadata.TITLE
+    swag["info"]["description"] = Metadata.DESCRIPTION + "`" + aquarius_url + "`."
+    swag["info"]["connected"] = get_status()
     # swag['basePath'] = BaseURLs.BASE_AQUARIUS_URL
     return jsonify(swag)
 
@@ -60,10 +60,8 @@ def spec():
 # Call factory function to create our blueprint
 swaggerui_blueprint = get_swaggerui_blueprint(
     BaseURLs.SWAGGER_URL,
-    aquarius_url + '/spec',
-    config={  # Swagger UI config overrides
-        'app_name': "Test application"
-    },
+    aquarius_url + "/spec",
+    config={"app_name": "Test application"},  # Swagger UI config overrides
 )
 
 # Register blueprint at URL
@@ -73,44 +71,47 @@ app.register_blueprint(pools, url_prefix=BaseURLs.POOLS_URL)
 
 
 def get_status():
-    if config.get('oceandb', 'module') == 'elasticsearch':
+    if config.get("oceandb", "module") == "elasticsearch":
         if Elasticsearch(config.db_url).ping():
-            return 'Elasticsearch connected', 200
+            return "Elasticsearch connected", 200
         else:
-            return 'Not connected to any database', 400
-    elif config.get('oceandb', 'module') == 'mongodb':
-        if MongoClient(config.db_url).get_database(config.get('oceandb', 'db.name')).command(
-                'ping'):
-            return 'Mongodb connected', 200
+            return "Not connected to any database", 400
+    elif config.get("oceandb", "module") == "mongodb":
+        if (
+            MongoClient(config.db_url)
+            .get_database(config.get("oceandb", "db.name"))
+            .command("ping")
+        ):
+            return "Mongodb connected", 200
         else:
-            return 'Not connected to any database', 400
+            return "Not connected to any database", 400
     else:
-        return 'Not connected to any database', 400
+        return "Not connected to any database", 400
 
 
 # Start events monitoring if required
-if bool(int(os.environ.get('EVENTS_ALLOW', '0'))):
-    _config = OceanConfig(app.config['CONFIG_FILE'])
+if bool(int(os.environ.get("EVENTS_ALLOW", "0"))):
+    _config = OceanConfig(app.config["CONFIG_FILE"])
     ConfigProvider.set_config(_config)
     from ocean_lib.ocean.util import get_web3_connection_provider
 
-    rpc = os.environ.get('EVENTS_RPC', '')
+    rpc = os.environ.get("EVENTS_RPC", "")
     Web3Provider.init_web3(provider=get_web3_connection_provider(rpc))
     ContractHandler.set_artifacts_path(get_artifacts_path())
-    if get_network_name().lower() == 'rinkeby':
+    if get_network_name().lower() == "rinkeby":
         from web3.middleware import geth_poa_middleware
+
         Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
 
-    monitor = EventsMonitor(
-        Web3Provider.get_web3(),
-        app.config['CONFIG_FILE']
-    )
+    monitor = EventsMonitor(Web3Provider.get_web3(), app.config["CONFIG_FILE"])
     monitor.start_events_monitor()
 
 
-if __name__ == '__main__':
-    if isinstance(config.aquarius_url.split(':')[-1], int):
-        app.run(host=config.aquarius_url.split(':')[1],
-                port=config.aquarius_url.split(':')[-1])
+if __name__ == "__main__":
+    if isinstance(config.aquarius_url.split(":")[-1], int):
+        app.run(
+            host=config.aquarius_url.split(":")[1],
+            port=config.aquarius_url.split(":")[-1],
+        )
     else:
         app.run()

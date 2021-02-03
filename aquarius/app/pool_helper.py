@@ -1,5 +1,3 @@
-
-
 # build accumulated liquidity
 def get_accumulative_values(values_list):
     acc_values = [values_list[0]]
@@ -13,7 +11,9 @@ def get_accumulative_values(values_list):
     return acc_values
 
 
-def build_liquidity_and_price_history(ocn_liquidity_changes, dt_liquidity_changes, ocn_weight, dt_weight, swap_fee):
+def build_liquidity_and_price_history(
+    ocn_liquidity_changes, dt_liquidity_changes, ocn_weight, dt_weight, swap_fee
+):
     # numer = ov / ocn_weight
     # denom = dtv / dt_weight
     # ratio = numer / denom
@@ -34,7 +34,9 @@ def build_liquidity_and_price_history(ocn_liquidity_changes, dt_liquidity_change
     _ocn_values = []
     _dt_values = []
     prices = []
-    all_times = sorted({tup[1] for tup in (accumulated_dt_values + accumulated_ocn_values)})
+    all_times = sorted(
+        {tup[1] for tup in (accumulated_dt_values + accumulated_ocn_values)}
+    )
 
     i = 0
     j = 0
@@ -42,17 +44,19 @@ def build_liquidity_and_price_history(ocn_liquidity_changes, dt_liquidity_change
     dtv, dtt = accumulated_dt_values[j]
     ocn_l = len(accumulated_ocn_values)
     dt_l = len(accumulated_dt_values)
-    assert ocnt == dtt, 'The first timestamp does not match between ocean and datatoken liquidity.'
-    assert all_times[0] == ocnt, ''
+    assert (
+        ocnt == dtt
+    ), "The first timestamp does not match between ocean and datatoken liquidity."
+    assert all_times[0] == ocnt, ""
 
     for t in all_times:
-        if (i+1) < ocn_l:
+        if (i + 1) < ocn_l:
             _v, _t = accumulated_ocn_values[i + 1]
             if _t <= t:
                 i += 1
                 ocnv = _v
 
-        if (j+1) < dt_l:
+        if (j + 1) < dt_l:
             _v, _t = accumulated_dt_values[j + 1]
             if _t <= t:
                 j += 1

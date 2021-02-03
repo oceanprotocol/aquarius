@@ -1,6 +1,5 @@
 #  Copyright 2020 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
-import datetime
 import logging
 import os
 import time
@@ -28,10 +27,7 @@ from aquarius.app.util import (
     DATETIME_FORMAT,
 )
 from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
-from plecos.plecos import (
-    is_valid_dict_remote,
-    list_errors_dict_remote,
-)
+from plecos.plecos import is_valid_dict_remote, list_errors_dict_remote
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.metadata_updater import MetadataUpdater
@@ -70,17 +66,17 @@ class EventsMonitor:
     def __init__(self, web3, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
 
-        self._other_db_index = f'{self._oceandb.driver.db_index}_plus'
+        self._other_db_index = f"{self._oceandb.driver.db_index}_plus"
         self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
         self._pool_monitor = None
-        if bool(int(os.getenv('PROCESS_POOL_EVENTS', 1)) == 1):
+        if bool(int(os.getenv("PROCESS_POOL_EVENTS", 1)) == 1):
             self._pool_monitor = MetadataUpdater(
                 self._oceandb,
                 self._other_db_index,
                 self._web3,
-                ConfigProvider.get_config()
+                ConfigProvider.get_config(),
             )
 
         if not metadata_contract:
@@ -89,12 +85,12 @@ class EventsMonitor:
         self._contract = metadata_contract
         self._contract_address = self._contract.address
 
-        self._ecies_private_key = os.getenv('EVENTS_ECIES_PRIVATE_KEY', '')
+        self._ecies_private_key = os.getenv("EVENTS_ECIES_PRIVATE_KEY", "")
         self._ecies_account = None
         if self._ecies_private_key:
             self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
 
-        metadata_block = int(os.getenv('METADATA_CONTRACT_BLOCK', 0))
+        metadata_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
         try:
             self.get_last_processed_block()
         except Exception:
@@ -102,32 +98,40 @@ class EventsMonitor:
 
         allowed_publishers = set()
         try:
-            publishers_str = os.getenv('ALLOWED_PUBLISHERS', '')
-            allowed_publishers = set(json.loads(publishers_str)) if publishers_str else set()
+            publishers_str = os.getenv("ALLOWED_PUBLISHERS", "")
+            allowed_publishers = (
+                set(json.loads(publishers_str)) if publishers_str else set()
+            )
         except (JSONDecodeError, TypeError, Exception) as e:
-            logger.error(f'Reading list of allowed publishers failed: {e}\n'
-                         f'ALLOWED_PUBLISHER is set to "{os.getenv("ALLOWED_PUBLISHER")}"')
+            logger.error(
+                f"Reading list of allowed publishers failed: {e}\n"
+                f'ALLOWED_PUBLISHER is set to "{os.getenv("ALLOWED_PUBLISHER")}"'
+            )
 
         self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
-        logger.debug(f'allowed publishers: {self._allowed_publishers}')
+        logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
-        logger.debug(f'EventsMonitor: using Metadata contract address {self._contract_address}.')
+        logger.debug(
+            f"EventsMonitor: using Metadata contract address {self._contract_address}."
+        )
         self._monitor_is_on = False
         default_sleep_time = 10
         try:
-            self._monitor_sleep_time = int(os.getenv('OCN_EVENTS_MONITOR_QUITE_TIME', default_sleep_time))
+            self._monitor_sleep_time = int(
+                os.getenv("OCN_EVENTS_MONITOR_QUITE_TIME", default_sleep_time)
+            )
         except ValueError:
             self._monitor_sleep_time = default_sleep_time
 
         self._monitor_sleep_time = max(self._monitor_sleep_time, default_sleep_time)
         if not self._contract or not self._web3.isAddress(self._contract_address):
             logger.error(
-                f"Contract address {self._contract_address} is not a valid address. Events thread not starting")
+                f"Contract address {self._contract_address} is not a valid address. Events thread not starting"
+            )
             self._contract = None
-        self._purgatory_enabled = bool(int(os.getenv('PROCESS_PURGATORY', 1)) == 1)
+        self._purgatory_enabled = bool(int(os.getenv("PROCESS_PURGATORY", 1)) == 1)
         self._purgatory_list = set()
         self._purgatory_update_time = None
-
 
     @property
     def is_monitor_running(self):
@@ -138,21 +142,17 @@ class EventsMonitor:
             return
 
         if self._contract_address is None:
-            logger.error(
-                'Cannot start events monitor without a valid contract address')
+            logger.error("Cannot start events monitor without a valid contract address")
             return
 
         if self._contract is None:
-            logger.error(
-                'Cannot start events monitor without a valid contract object')
+            logger.error("Cannot start events monitor without a valid contract object")
             return
 
         logger.info(
-            f'Starting the events monitor on contract {self._contract_address}.')
-        t = Thread(
-            target=self.run_monitor,
-            daemon=True,
+            f"Starting the events monitor on contract {self._contract_address}."
         )
+        t = Thread(target=self.run_monitor, daemon=True)
         self._monitor_is_on = True
         t.start()
 
@@ -162,7 +162,9 @@ class EventsMonitor:
             self._pool_monitor.stop()
 
     def run_monitor(self):
-        first_update = bool(self._pool_monitor and self._pool_monitor.is_first_update_enabled())
+        first_update = bool(
+            self._pool_monitor and self._pool_monitor.is_first_update_enabled()
+        )
         if self._purgatory_enabled:
             self._update_existing_assets_purgatory_data()
 
@@ -179,7 +181,7 @@ class EventsMonitor:
                     self._update_purgatory_list()
 
             except (KeyError, Exception) as e:
-                logger.error(f'Error processing event:')
+                logger.error("Error processing event:")
                 logger.error(e)
 
             time.sleep(self._monitor_sleep_time)
@@ -195,29 +197,31 @@ class EventsMonitor:
 
     def _update_existing_assets_purgatory_data(self):
         for asset in self._oceandb.list():
-            did = asset.get('id', None)
-            if not did or not did.startswith('did:op:'):
+            did = asset.get("id", None)
+            if not did or not did.startswith("did:op:"):
                 continue
 
-            purgatory = asset.get('isInPurgatory', 'false')
+            purgatory = asset.get("isInPurgatory", "false")
             if not isinstance(purgatory, str):
-                purgatory = 'true' if purgatory is True else 'false'
+                purgatory = "true" if purgatory is True else "false"
 
-            asset['isInPurgatory'] = purgatory
-            if 'purgatoryData' in asset:
-                asset.pop('purgatoryData')
+            asset["isInPurgatory"] = purgatory
+            if "purgatoryData" in asset:
+                asset.pop("purgatoryData")
             try:
                 self._oceandb.update(json.dumps(asset), did)
             except Exception as e:
-                logger.warning(f'updating ddo {did} purgatory attribute failed: {e}')
+                logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
 
     @staticmethod
     def _get_reference_purgatory_list():
-        response = requests.get('https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json')
+        response = requests.get(
+            "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json"
+        )
         if response.status_code != requests.codes.ok:
             return set()
 
-        return {(a['did'], a['reason']) for a in response.json() if a and 'did' in a}
+        return {(a["did"], a["reason"]) for a in response.json() if a and "did" in a}
 
     def _update_purgatory_list(self):
         now = int(datetime.now().timestamp())
@@ -237,9 +241,9 @@ class EventsMonitor:
         for _id, reason in new_ids:
             try:
                 asset = self._oceandb.read(_id)
-                asset['isInPurgatory'] = 'true'
-                if 'purgatoryData' in asset:
-                    asset.pop('purgatoryData')
+                asset["isInPurgatory"] = "true"
+                if "purgatoryData" in asset:
+                    asset.pop("purgatoryData")
 
                 self._oceandb.update(json.dumps(asset), _id)
 
@@ -254,71 +258,89 @@ class EventsMonitor:
             last_block = 0
 
         current_block = self._web3.eth.blockNumber
-        if not current_block or not isinstance(current_block, int) or current_block <= last_block:
+        if (
+            not current_block
+            or not isinstance(current_block, int)
+            or current_block <= last_block
+        ):
             return
 
         from_block = last_block
-        debug_log(f'Metadata monitor >>>> from_block:{from_block}, current_block:{current_block} <<<<')
-        for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, current_block):
+        debug_log(
+            f"Metadata monitor >>>> from_block:{from_block}, current_block:{current_block} <<<<"
+        )
+        for event in self.get_event_logs(
+            EVENT_METADATA_CREATED, from_block, current_block
+        ):
             try:
                 self.processNewDDO(event)
             except Exception as e:
-                logger.error(f'Error processing new metadata event: {e}\n'
-                             f'event={event}')
+                logger.error(
+                    f"Error processing new metadata event: {e}\n" f"event={event}"
+                )
 
-        for event in self.get_event_logs(EVENT_METADATA_UPDATED, from_block, current_block):
+        for event in self.get_event_logs(
+            EVENT_METADATA_UPDATED, from_block, current_block
+        ):
             try:
                 self.processUpdateDDO(event)
             except Exception as e:
-                logger.error(f'Error processing update metadata event: {e}\n'
-                             f'event={event}')
+                logger.error(
+                    f"Error processing update metadata event: {e}\n" f"event={event}"
+                )
 
         self.store_last_processed_block(current_block)
 
     def get_last_processed_block(self):
         last_block_record = self._oceandb.driver.es.get(
-            index=self._other_db_index,
-            id='events_last_block',
-            doc_type='_doc'
-        )['_source']
-        return last_block_record['last_block']
+            index=self._other_db_index, id="events_last_block", doc_type="_doc"
+        )["_source"]
+        return last_block_record["last_block"]
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}
         try:
             self._oceandb.driver.es.index(
                 index=self._other_db_index,
-                id='events_last_block',
+                id="events_last_block",
                 body=record,
-                doc_type='_doc',
-                refresh='wait_for'
-            )['_id']
+                doc_type="_doc",
+                refresh="wait_for",
+            )["_id"]
 
         except elasticsearch.exceptions.RequestError as e:
-            logger.error(f'store_last_processed_block: block={block} type={type(block)}, error={e}')
+            logger.error(
+                f"store_last_processed_block: block={block} type={type(block)}, error={e}"
+            )
 
     def get_event_logs(self, event_name, from_block, to_block):
         def _get_logs(event, _from_block, _to_block):
-            debug_log(f'get_event_logs ({event_name}, {from_block}, {to_block})..')
-            _filter = event().createFilter(
-                fromBlock=_from_block, toBlock=_to_block
-            )
+            debug_log(f"get_event_logs ({event_name}, {from_block}, {to_block})..")
+            _filter = event().createFilter(fromBlock=_from_block, toBlock=_to_block)
             return _filter.get_all_entries()
 
         try:
-            logs = _get_logs(getattr(self._contract.events, event_name), from_block, to_block)
+            logs = _get_logs(
+                getattr(self._contract.events, event_name), from_block, to_block
+            )
             return logs
         except ValueError as e:
-            logger.error(f'get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.\n Retrying once more.')
+            logger.error(
+                f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.\n Retrying once more."
+            )
 
         try:
-            logs = _get_logs(getattr(self._contract.events, event_name), from_block, to_block)
+            logs = _get_logs(
+                getattr(self._contract.events, event_name), from_block, to_block
+            )
             return logs
         except ValueError as e:
-            logger.error(f'get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.')
+            logger.error(
+                f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}."
+            )
 
     def is_publisher_allowed(self, publisher_address):
-        logger.debug(f'checking allowed publishers: {publisher_address}')
+        logger.debug(f"checking allowed publishers: {publisher_address}")
         if not self._allowed_publishers:
             return True
 
@@ -326,202 +348,245 @@ class EventsMonitor:
         return publisher_address in self._allowed_publishers
 
     def processNewDDO(self, event):
-        did, block, txid, contract_address, sender_address, flags, rawddo, timestamp = self.get_event_data(event)
-        logger.info(f'Process new DDO, did from event log:{did}, sender:{sender_address}')
+        (
+            did,
+            block,
+            txid,
+            contract_address,
+            sender_address,
+            flags,
+            rawddo,
+            timestamp,
+        ) = self.get_event_data(event)
+        logger.info(
+            f"Process new DDO, did from event log:{did}, sender:{sender_address}"
+        )
         if not self.is_publisher_allowed(sender_address):
-            logger.warning(f'Sender {sender_address} is not in ALLOWED_PUBLISHERS.')
+            logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
             return
 
         try:
             self._oceandb.read(did)
-            logger.warning(f'{did} is already registered')
+            logger.warning(f"{did} is already registered")
             return
         except Exception:
             pass
 
-        logger.info(f'Start processing {EVENT_METADATA_CREATED} event: did={did}')
-        debug_log(f'block {block}, contract: {contract_address}, Sender: {sender_address} , txid: {txid}')
+        logger.info(f"Start processing {EVENT_METADATA_CREATED} event: did={did}")
+        debug_log(
+            f"block {block}, contract: {contract_address}, Sender: {sender_address} , txid: {txid}"
+        )
 
-        logger.debug(f'decoding with did {did} and flags {flags}')
+        logger.debug(f"decoding with did {did} and flags {flags}")
         data = self.decode_ddo(rawddo, flags)
         if data is None:
-            logger.warning(f'Could not decode ddo using flags {flags}')
+            logger.warning(f"Could not decode ddo using flags {flags}")
             return
 
-        msg, status = validate_data(data, f'event {EVENT_METADATA_CREATED}')
+        msg, _ = validate_data(data, f"event {EVENT_METADATA_CREATED}")
         if msg:
             logger.warning(msg)
             return
 
-        _record = init_new_ddo(data,timestamp)
+        _record = init_new_ddo(data, timestamp)
         # this will be used when updating the doo
-        _record['event'] = dict()
-        _record['event']['txid'] = txid
-        _record['event']['blockNo'] = block
-        _record['event']['from'] = sender_address
-        _record['event']['contract'] = contract_address
+        _record["event"] = dict()
+        _record["event"]["txid"] = txid
+        _record["event"]["blockNo"] = block
+        _record["event"]["from"] = sender_address
+        _record["event"]["contract"] = contract_address
 
-        _record['price'] = {
-            'datatoken': 0.0,
-            'ocean': 0.0,
-            'value': 0.0,
-            'type': '',
-            'address': '',
-            'pools': [],
-            'isConsumable': ''
+        _record["price"] = {
+            "datatoken": 0.0,
+            "ocean": 0.0,
+            "value": 0.0,
+            "type": "",
+            "address": "",
+            "pools": [],
+            "isConsumable": "",
         }
-        dt_address = _record.get('dataToken')
-        assert dt_address == add_0x_prefix(did[len('did:op:'):])
+        dt_address = _record.get("dataToken")
+        assert dt_address == add_0x_prefix(did[len("did:op:") :])
         if dt_address:
-            _record['dataTokenInfo'] = get_datatoken_info(dt_address)
+            _record["dataTokenInfo"] = get_datatoken_info(dt_address)
 
-        if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
+        if not is_valid_dict_remote(
+            get_metadata_from_services(_record["service"])["attributes"]
+        ):
             errors = list_errors(
                 list_errors_dict_remote,
-                get_metadata_from_services(_record['service'])['attributes'])
-            logger.error(f'New ddo has validation errors: {errors}')
+                get_metadata_from_services(_record["service"])["attributes"],
+            )
+            logger.error(f"New ddo has validation errors: {errors}")
             return False
 
-        _record['isInPurgatory'] = 'false'
+        _record["isInPurgatory"] = "false"
 
         try:
             record_str = json.dumps(_record)
             self._oceandb.write(record_str, did)
             _record = json.loads(record_str)
             name = _record["service"][0]["attributes"]["main"]["name"]
-            debug_log(f'DDO saved: did={did}, name={name}, publisher={sender_address}')
-            logger.info(f'Done processing {EVENT_METADATA_CREATED} event: did={did}. DDO SAVED TO DB')
+            debug_log(f"DDO saved: did={did}, name={name}, publisher={sender_address}")
+            logger.info(
+                f"Done processing {EVENT_METADATA_CREATED} event: did={did}. DDO SAVED TO DB"
+            )
             return True
         except (KeyError, Exception) as err:
-            logger.error(f'encountered an error while saving the asset data to OceanDB: {str(err)}')
+            logger.error(
+                f"encountered an error while saving the asset data to OceanDB: {str(err)}"
+            )
             return False
 
     def processUpdateDDO(self, event):
-        did, block, txid, contract_address, sender_address, flags, rawddo, timestamp = self.get_event_data(event)
-        debug_log(f'Process update DDO, did from event log:{did}')
+        (
+            did,
+            block,
+            txid,
+            contract_address,
+            sender_address,
+            flags,
+            rawddo,
+            timestamp,
+        ) = self.get_event_data(event)
+        debug_log(f"Process update DDO, did from event log:{did}")
         try:
             asset = self._oceandb.read(did)
-        except Exception as e:
+        except Exception:
             # TODO: check if this asset was deleted/hidden due to some violation issues
             # if so, don't add it again
-            logger.warning(f'{did} is not registered, will add it as a new DDO.')
+            logger.warning(f"{did} is not registered, will add it as a new DDO.")
             self.processNewDDO(event)
             return
 
-        debug_log(f'block {block}, contract: {contract_address}, Sender: {sender_address} , txid: {txid}')
+        debug_log(
+            f"block {block}, contract: {contract_address}, Sender: {sender_address} , txid: {txid}"
+        )
 
         # do not update if we have the same txid
-        ddo_txid = asset['event']['txid']
+        ddo_txid = asset["event"]["txid"]
         if txid == ddo_txid:
-            logger.warning(f'asset has the same txid, no need to update: event-txid={txid} <> asset-event-txid={asset["event"]["txid"]}')
+            logger.warning(
+                f'asset has the same txid, no need to update: event-txid={txid} <> asset-event-txid={asset["event"]["txid"]}'
+            )
             return
 
         # check block
-        ddo_block = asset['event']['blockNo']
+        ddo_block = asset["event"]["blockNo"]
         if int(block) <= int(ddo_block):
             logger.warning(
-                f'asset was updated later (block: {ddo_block}) vs transaction block: {block}')
+                f"asset was updated later (block: {ddo_block}) vs transaction block: {block}"
+            )
             return
 
         # check owner
-        if not compare_eth_addresses(asset['publicKey'][0]['owner'], sender_address, logger):
-            logger.warning(f'Transaction sender must mach ddo owner')
+        if not compare_eth_addresses(
+            asset["publicKey"][0]["owner"], sender_address, logger
+        ):
+            logger.warning("Transaction sender must mach ddo owner")
             return
 
-        debug_log(f'decoding with did {did} and flags {flags}')
+        debug_log(f"decoding with did {did} and flags {flags}")
         data = self.decode_ddo(rawddo, flags)
         if data is None:
-            logger.warning('Cound not decode ddo')
+            logger.warning("Cound not decode ddo")
             return
 
-        msg, status = validate_data(data, 'event update')
+        msg, _ = validate_data(data, "event update")
         if msg:
             logger.error(msg)
             return
 
-        _record = init_new_ddo(data,timestamp)
-        #make sure that we do not alter created flag
-        _record['created'] = asset['created']
+        _record = init_new_ddo(data, timestamp)
+        # make sure that we do not alter created flag
+        _record["created"] = asset["created"]
         # but we update 'updated'
-        _record['updated'] = format_timestamp(datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT))
-        _record['event'] = dict()
-        _record['event']['txid'] = txid
-        _record['event']['blockNo'] = block
-        _record['event']['from'] = sender_address
-        _record['event']['contract'] = contract_address
+        _record["updated"] = format_timestamp(
+            datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT)
+        )
+        _record["event"] = dict()
+        _record["event"]["txid"] = txid
+        _record["event"]["blockNo"] = block
+        _record["event"]["from"] = sender_address
+        _record["event"]["contract"] = contract_address
 
-        if not is_valid_dict_remote(get_metadata_from_services(_record['service'])['attributes']):
-            errors = list_errors(list_errors_dict_remote, get_metadata_from_services(
-                _record['service'])['attributes'])
-            logger.error(f'ddo update has validation errors: {errors}')
+        if not is_valid_dict_remote(
+            get_metadata_from_services(_record["service"])["attributes"]
+        ):
+            errors = list_errors(
+                list_errors_dict_remote,
+                get_metadata_from_services(_record["service"])["attributes"],
+            )
+            logger.error(f"ddo update has validation errors: {errors}")
             return
 
-        _record['price'] = asset.get('price', {})
-        dt_address = _record.get('dataToken')
-        assert dt_address == add_0x_prefix(did[len('did:op:'):])
+        _record["price"] = asset.get("price", {})
+        dt_address = _record.get("dataToken")
+        assert dt_address == add_0x_prefix(did[len("did:op:") :])
         if dt_address:
-            _record['dataTokenInfo'] = get_datatoken_info(dt_address)
+            _record["dataTokenInfo"] = get_datatoken_info(dt_address)
 
-        _record['isInPurgatory'] = asset.get('isInPurgatory', 'false')
+        _record["isInPurgatory"] = asset.get("isInPurgatory", "false")
 
         try:
             self._oceandb.update(json.dumps(_record), did)
-            logger.info(f'updated DDO saved to db successfully (did={did}).')
+            logger.info(f"updated DDO saved to db successfully (did={did}).")
             return True
         except (KeyError, Exception) as err:
             logger.error(
-                f'encountered an error while updating the asset data to OceanDB: {str(err)}')
+                f"encountered an error while updating the asset data to OceanDB: {str(err)}"
+            )
             return
 
     def get_event_data(self, event):
         tx_id = event.transactionHash.hex()
-        sender = event.args.get('createdBy', event.args.get('updatedBy'))
+        sender = event.args.get("createdBy", event.args.get("updatedBy"))
         blockInfo = self._web3.eth.getBlock(event.blockNumber)
-        timestamp = blockInfo['timestamp']
+        timestamp = blockInfo["timestamp"]
         return (
-            f'did:op:{remove_0x_prefix(event.args.dataToken)}',
+            f"did:op:{remove_0x_prefix(event.args.dataToken)}",
             event.blockNumber,
             tx_id,
             event.address,
             sender,
-            event.args.get('flags', None),
-            event.args.get('data', None),
-            timestamp
+            event.args.get("flags", None),
+            event.args.get("data", None),
+            timestamp,
         )
 
     def decode_ddo(self, rawddo, flags):
-        debug_log(f'flags: {flags}')
+        debug_log(f"flags: {flags}")
         # debug_log(f'Before unpack rawddo:{rawddo}')
         if len(flags) < 1:
-            debug_log(f'Set check_flags to 0!')
+            debug_log("Set check_flags to 0!")
             check_flags = 0
         else:
             check_flags = flags[0]
 
         # always start with MSB -> LSB
-        debug_log(f'checkflags: {check_flags}')
+        debug_log(f"checkflags: {check_flags}")
         # bit 2:  check if ddo is ecies encrypted
         if check_flags & 2:
             try:
                 rawddo = self.ecies_decrypt(rawddo)
-                logger.debug(f'Decrypted to {rawddo}')
+                logger.debug(f"Decrypted to {rawddo}")
             except (KeyError, Exception) as err:
-                logger.error(f'Failed to decrypt: {str(err)}')
+                logger.error(f"Failed to decrypt: {str(err)}")
 
         # bit 1:  check if ddo is lzma compressed
         if check_flags & 1:
             try:
                 rawddo = Lzma.decompress(rawddo)
-                logger.debug(f'Decompressed to {rawddo}')
+                logger.debug(f"Decompressed to {rawddo}")
             except (KeyError, Exception) as err:
-                logger.error(f'Failed to decompress: {str(err)}')
+                logger.error(f"Failed to decompress: {str(err)}")
 
-        logger.debug(f'After unpack rawddo:{rawddo}')
+        logger.debug(f"After unpack rawddo:{rawddo}")
         try:
             ddo = json.loads(rawddo)
             return ddo
         except (KeyError, Exception) as err:
-            logger.error(f'encountered an error while decoding the ddo: {str(err)}')
+            logger.error(f"encountered an error while decoding the ddo: {str(err)}")
             return None
 
     def ecies_decrypt(self, rawddo):
