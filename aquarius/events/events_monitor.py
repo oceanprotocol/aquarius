@@ -27,10 +27,7 @@ from aquarius.app.util import (
     DATETIME_FORMAT,
 )
 from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
-from plecos.plecos import (
-    is_valid_dict_remote,
-    list_errors_dict_remote,
-)
+from plecos.plecos import is_valid_dict_remote, list_errors_dict_remote
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.metadata_updater import MetadataUpdater
@@ -155,10 +152,7 @@ class EventsMonitor:
         logger.info(
             f"Starting the events monitor on contract {self._contract_address}."
         )
-        t = Thread(
-            target=self.run_monitor,
-            daemon=True,
-        )
+        t = Thread(target=self.run_monitor, daemon=True)
         self._monitor_is_on = True
         t.start()
 
@@ -389,7 +383,7 @@ class EventsMonitor:
             logger.warning(f"Could not decode ddo using flags {flags}")
             return
 
-        msg, status = validate_data(data, f"event {EVENT_METADATA_CREATED}")
+        msg, _ = validate_data(data, f"event {EVENT_METADATA_CREATED}")
         if msg:
             logger.warning(msg)
             return
@@ -498,7 +492,7 @@ class EventsMonitor:
             logger.warning("Cound not decode ddo")
             return
 
-        msg, status = validate_data(data, "event update")
+        msg, _ = validate_data(data, "event update")
         if msg:
             logger.error(msg)
             return
