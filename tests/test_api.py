@@ -56,6 +56,31 @@ def run_request(client_method, url, data=None):
     return _response
 
 
+def add_assets(_events_object, total=5):
+    block = get_web3().eth.blockNumber
+    assets = []
+    txs = []
+    for i in range(total):
+        ddo = new_ddo(test_account1, get_web3(), f"dt.{i+block}", json_dict)
+        assets.append(ddo)
+
+        txs.append(
+            send_create_update_tx(
+                "create",
+                ddo.id,
+                bytes([1]),
+                lzma.compress(Web3.toBytes(text=json.dumps(dict(ddo.items())))),
+                test_account1,
+            )
+        )
+
+    for ddo in assets:
+        get_event(EVENT_METADATA_CREATED, block, ddo.id)
+        _events_object.process_current_blocks()
+
+    return assets
+
+
 def test_version(client):
     """Test version in root endpoint"""
     rv = client.get("/")
@@ -97,27 +122,7 @@ def test_query_metadata(client, base_ddo_url, events_object):
     dao = Dao(config_file=os.environ["CONFIG_FILE"])
     dao.delete_all()
 
-    block = get_web3().eth.blockNumber
-    assets = []
-    txs = []
-    for i in range(5):
-        ddo = new_ddo(test_account1, get_web3(), f"dt.{i+block}", json_dict)
-        assets.append(ddo)
-
-        txs.append(
-            send_create_update_tx(
-                "create",
-                ddo.id,
-                bytes([1]),
-                lzma.compress(Web3.toBytes(text=json.dumps(dict(ddo.items())))),
-                test_account1,
-            )
-        )
-
-    for ddo in assets:
-        get_event(EVENT_METADATA_CREATED, block, ddo.id)
-        events_object.process_current_blocks()
-
+    assets = add_assets(events_object, 5)
     num_assets = len(assets)
 
     offset = 2
@@ -218,7 +223,8 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     )
 
 
-def test_get_assets_names(client):
+def test_get_assets_names(client, events_object):
+    add_assets(events_object, 3)
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
     dids = run_request_get_data(client.get, base_url)
     did_to_name = run_request_get_data(
