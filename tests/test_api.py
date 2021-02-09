@@ -9,6 +9,7 @@ from web3 import Web3
 
 from aquarius.app.dao import Dao
 from aquarius.app.util import validate_date_format
+from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
@@ -215,3 +216,16 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
         )
         > 0
     )
+
+
+def test_get_assets_names(client):
+    base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
+    dids = run_request_get_data(client.get, base_url)
+    did_to_name = run_request_get_data(
+        client.get,
+        base_url + f"/names",
+        json.dumps({"didList": dids})
+    )
+    for did in dids:
+        assert did in did_to_name, "did not found in response."
+        assert did_to_name[did], "did name not found."
