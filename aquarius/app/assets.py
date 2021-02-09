@@ -189,11 +189,7 @@ def get_assets_names():
             except Exception:
                 names[did] = ""
 
-        return Response(
-            json.dumps(names),
-            200,
-            content_type="application/json"
-        )
+        return Response(json.dumps(names), 200, content_type="application/json")
     except Exception as e:
         logger.error(f"get_assets_names failed: {str(e)}")
         return jsonify(error=f" get_assets_names failed: {str(e)}"), 404

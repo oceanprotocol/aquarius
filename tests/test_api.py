@@ -228,9 +228,7 @@ def test_get_assets_names(client, events_object):
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
     dids = run_request_get_data(client.get, base_url)
     did_to_name = run_request_get_data(
-        client.get,
-        base_url + f"/names",
-        {"didList": dids}
+        client.get, base_url + f"/names", {"didList": dids}
     )
     for did in dids:
         assert did in did_to_name, "did not found in response."
