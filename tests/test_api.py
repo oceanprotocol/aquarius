@@ -224,7 +224,7 @@ def test_get_assets_names(client):
     did_to_name = run_request_get_data(
         client.get,
         base_url + f"/names",
-        json.dumps({"didList": dids})
+        {"didList": dids}
     )
     for did in dids:
         assert did in did_to_name, "did not found in response."
