@@ -224,9 +224,9 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
 
 
 def test_get_assets_names(client, events_object):
-    add_assets(events_object, 3)
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
-    dids = run_request_get_data(client.get, base_url)
+    assets = add_assets(events_object, 3)
+    dids = [ddo["id"] for ddo in assets]
     did_to_name = run_request_get_data(
         client.post, base_url + f"/names", {"didList": dids}
     )
