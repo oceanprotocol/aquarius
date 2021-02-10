@@ -122,8 +122,9 @@ def test_query_metadata(client, base_ddo_url, events_object):
     dao = Dao(config_file=os.environ["CONFIG_FILE"])
     dao.delete_all()
 
+    num_old_assets = len(dao.get_all_assets())
     assets = add_assets(events_object, 5)
-    num_assets = len(assets)
+    num_assets = len(assets) + num_old_assets
 
     offset = 2
     response = run_request_get_data(
