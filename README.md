@@ -134,7 +134,7 @@ Then
 ./start_ocean.sh
 ```
 
-The setup for `Aquarius` and Alastic search in `barge` is in `compose-files/aquarius_elasticsearch.yml`
+The setup for `Aquarius` and Elasticsearch in `barge` is in `compose-files/aquarius_elasticsearch.yml`
 
 ### Running Locally, for Dev and Test
 
