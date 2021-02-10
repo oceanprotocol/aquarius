@@ -410,12 +410,10 @@ class EventsMonitor:
         if dt_address:
             _record["dataTokenInfo"] = get_datatoken_info(dt_address)
 
-        if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])["attributes"]
-        ):
+        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
                 list_errors_dict_remote,
-                get_metadata_from_services(_record["service"])["attributes"],
+                get_metadata_from_services(_record["service"]),
             )
             logger.error(f"New ddo has validation errors: {errors}")
             return False
@@ -510,12 +508,10 @@ class EventsMonitor:
         _record["event"]["from"] = sender_address
         _record["event"]["contract"] = contract_address
 
-        if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])["attributes"]
-        ):
+        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
                 list_errors_dict_remote,
-                get_metadata_from_services(_record["service"])["attributes"],
+                get_metadata_from_services(_record["service"]),
             )
             logger.error(f"ddo update has validation errors: {errors}")
             return

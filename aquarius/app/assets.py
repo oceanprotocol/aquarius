@@ -142,6 +142,59 @@ def get_metadata(did):
         return f"{did} asset DID is not in OceanDB", 404
 
 
+@assets.route("/names", methods=["POST"])
+def get_assets_names():
+    """Get names of assets as specified in the payload
+    ---
+    tags:
+      - name
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: list of asset DIDs
+        schema:
+          type: object
+          properties:
+            didList:
+              type: list
+              description: list of dids
+              example: ["did:op:123455644356", "did:op:533443322223344"]
+    responses:
+      200:
+        description: successful operation.
+      404:
+        description: assets not found
+    """
+    try:
+        data = get_request_data(request)
+        assert isinstance(
+            data, dict
+        ), "invalid `args` type, should already be formatted into a dict."
+        if "didList" not in data:
+            return jsonify(error="`didList` is required in the request payload."), 400
+
+        did_list = data.get("didList", [])
+        if not did_list:
+            return jsonify(message="the requested didList is empty"), 400
+
+        names = dict()
+        for did in did_list:
+            try:
+                asset_record = dao.get(did)
+                metadata = get_metadata_from_services(asset_record["service"])
+                names[did] = metadata["main"]["name"]
+            except Exception:
+                names[did] = ""
+
+        return Response(json.dumps(names), 200, content_type="application/json")
+    except Exception as e:
+        logger.error(f"get_assets_names failed: {str(e)}")
+        return jsonify(error=f" get_assets_names failed: {str(e)}"), 404
+
+
 ###########################
 # SEARCH
 ###########################
@@ -427,10 +480,8 @@ def validate_remote():
 
     data = get_metadata_from_services(data["service"])
 
-    if "attributes" not in data:
+    if "main" not in data:
         return jsonify(message="Invalid DDO format."), 400
-
-    data = data["attributes"]
 
     if is_valid_dict_remote(data):
         return jsonify(True)
