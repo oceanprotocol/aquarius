@@ -89,8 +89,7 @@ def get_status():
         return "Not connected to any database", 400
 
 
-# Start events monitoring if required
-if bool(int(os.environ.get("EVENTS_ALLOW", "0"))):
+def start_events_monitor():
     _config = OceanConfig(app.config["CONFIG_FILE"])
     ConfigProvider.set_config(_config)
     from ocean_lib.ocean.util import get_web3_connection_provider
@@ -105,6 +104,14 @@ if bool(int(os.environ.get("EVENTS_ALLOW", "0"))):
 
     monitor = EventsMonitor(Web3Provider.get_web3(), app.config["CONFIG_FILE"])
     monitor.start_events_monitor()
+
+
+# Start events monitoring if required
+try:
+    if bool(int(os.environ.get("EVENTS_ALLOW", "0"))):
+        start_events_monitor()
+except ValueError:
+    pass
 
 
 if __name__ == "__main__":
