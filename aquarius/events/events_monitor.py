@@ -406,16 +406,16 @@ class EventsMonitor:
             "isConsumable": "",
         }
         dt_address = _record.get("dataToken")
-        assert dt_address == add_0x_prefix(did[len("did:op:") :])
+        assert dt_address == add_0x_prefix(did[len("did:op:"):])
         if dt_address:
             _record["dataTokenInfo"] = get_datatoken_info(dt_address)
 
         if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])["attributes"]
+            get_metadata_from_services(_record["service"])
         ):
             errors = list_errors(
                 list_errors_dict_remote,
-                get_metadata_from_services(_record["service"])["attributes"],
+                get_metadata_from_services(_record["service"]),
             )
             logger.error(f"New ddo has validation errors: {errors}")
             return False
@@ -511,11 +511,11 @@ class EventsMonitor:
         _record["event"]["contract"] = contract_address
 
         if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])["attributes"]
+            get_metadata_from_services(_record["service"])
         ):
             errors = list_errors(
                 list_errors_dict_remote,
-                get_metadata_from_services(_record["service"])["attributes"],
+                get_metadata_from_services(_record["service"]),
             )
             logger.error(f"ddo update has validation errors: {errors}")
             return

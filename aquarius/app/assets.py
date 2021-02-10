@@ -480,10 +480,8 @@ def validate_remote():
 
     data = get_metadata_from_services(data["service"])
 
-    if "attributes" not in data:
+    if "main" not in data:
         return jsonify(message="Invalid DDO format."), 400
-
-    data = data["attributes"]
 
     if is_valid_dict_remote(data):
         return jsonify(True)

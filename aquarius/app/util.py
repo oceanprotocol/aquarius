@@ -57,17 +57,17 @@ def get_timestamp():
 
 
 def get_curation_metadata(services):
-    return get_metadata_from_services(services)["attributes"]["curation"]
+    return get_metadata_from_services(services)["curation"]
 
 
 def get_main_metadata(services):
-    return get_metadata_from_services(services)["attributes"]["main"]
+    return get_metadata_from_services(services)["main"]
 
 
 def get_metadata_from_services(services):
     for service in services:
         if service["type"] == "metadata":
-            return service
+            return service["attributes"]
 
 
 def reorder_services_list(services):
