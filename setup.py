@@ -25,10 +25,10 @@ install_requirements = [
     "oceandb-driver-interface==0.2.0",
     "oceandb-mongodb-driver==0.2.2",
     "oceandb-elasticsearch-driver==0.4.4",
-    "PyYAML==5.3.1",
+    "PyYAML==5.4.1",
     "pytz==2021.1",
     "plecos==1.1.0",
-    "ocean-lib==0.5.5",
+    "ocean-lib==0.5.7",
     "eciespy",
     "gevent",
 ]
