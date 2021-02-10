@@ -406,13 +406,11 @@ class EventsMonitor:
             "isConsumable": "",
         }
         dt_address = _record.get("dataToken")
-        assert dt_address == add_0x_prefix(did[len("did:op:"):])
+        assert dt_address == add_0x_prefix(did[len("did:op:") :])
         if dt_address:
             _record["dataTokenInfo"] = get_datatoken_info(dt_address)
 
-        if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])
-        ):
+        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
                 list_errors_dict_remote,
                 get_metadata_from_services(_record["service"]),
@@ -510,9 +508,7 @@ class EventsMonitor:
         _record["event"]["from"] = sender_address
         _record["event"]["contract"] = contract_address
 
-        if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])
-        ):
+        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
                 list_errors_dict_remote,
                 get_metadata_from_services(_record["service"]),
