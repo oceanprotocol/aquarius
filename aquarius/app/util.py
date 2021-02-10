@@ -69,7 +69,9 @@ def get_main_metadata(services):
 def get_metadata_from_services(services):
     for service in services:
         if service["type"] == "metadata":
-            assert hasattr(service, "attributes"), "metadata service is missing the `attributes` section."
+            assert hasattr(
+                service, "attributes"
+            ), "metadata service is missing the `attributes` section."
             return service["attributes"]
 
 
