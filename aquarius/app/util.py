@@ -62,15 +62,15 @@ def get_curation_metadata(services):
 
 def get_main_metadata(services):
     metadata = get_metadata_from_services(services)
-    assert hasattr(metadata, "main"), "metadata is missing the `main` section."
+    assert "main" in metadata, "metadata is missing the `main` section."
     return metadata["main"]
 
 
 def get_metadata_from_services(services):
     for service in services:
         if service["type"] == "metadata":
-            assert hasattr(
-                service, "attributes"
+            assert (
+                "attributes" in service
             ), "metadata service is missing the `attributes` section."
             return service["attributes"]
 

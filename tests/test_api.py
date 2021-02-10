@@ -56,12 +56,12 @@ def run_request(client_method, url, data=None):
     return _response
 
 
-def add_assets(_events_object, total=5):
+def add_assets(_events_object, name, total=5):
     block = get_web3().eth.blockNumber
     assets = []
     txs = []
     for i in range(total):
-        ddo = new_ddo(test_account1, get_web3(), f"dt.{i+block}", json_dict)
+        ddo = new_ddo(test_account1, get_web3(), f"{name}.{i+block}", json_dict)
         assets.append(ddo)
 
         txs.append(
@@ -74,8 +74,10 @@ def add_assets(_events_object, total=5):
             )
         )
 
+    block = txs[0].blockNumber
+    _events_object.store_last_processed_block(block)
     for ddo in assets:
-        get_event(EVENT_METADATA_CREATED, block, ddo.id)
+        _event = get_event(EVENT_METADATA_CREATED, block, ddo.id)
         _events_object.process_current_blocks()
 
     return assets
@@ -119,12 +121,12 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
 
 
 def test_query_metadata(client, base_ddo_url, events_object):
+    events_object.process_current_blocks()
     dao = Dao(config_file=os.environ["CONFIG_FILE"])
     dao.delete_all()
 
-    num_old_assets = len(dao.get_all_assets())
-    assets = add_assets(events_object, 5)
-    num_assets = len(assets) + num_old_assets
+    assets = add_assets(events_object, "query", 5)
+    num_assets = len(assets)
 
     offset = 2
     response = run_request_get_data(
@@ -226,7 +228,7 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
 
 def test_get_assets_names(client, events_object):
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
-    assets = add_assets(events_object, 3)
+    assets = add_assets(events_object, "dt_name", 3)
     dids = [ddo["id"] for ddo in assets]
     did_to_name = run_request_get_data(
         client.post, base_url + f"/names", {"didList": dids}
