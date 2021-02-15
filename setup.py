@@ -44,7 +44,7 @@ dev_requirements = [
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==1.0.2",
+    "watchdog==2.0.0",
 ]
 
 test_requirements = [
