@@ -33,7 +33,7 @@ install_requirements = [
     "gevent",
 ]
 
-setup_requirements = ["pytest-runner==5.2"]
+setup_requirements = ["pytest-runner==5.3.0"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
