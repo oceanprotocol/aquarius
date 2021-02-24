@@ -16,6 +16,7 @@ from pymongo import MongoClient
 
 from aquarius.app.assets import assets
 from aquarius.app.pools import pools
+from aquarius.app.util import get_bool_env_value
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.events.util import get_artifacts_path, get_network_name
@@ -97,7 +98,10 @@ def start_events_monitor():
     rpc = os.environ.get("EVENTS_RPC", "")
     Web3Provider.init_web3(provider=get_web3_connection_provider(rpc))
     ContractHandler.set_artifacts_path(get_artifacts_path())
-    if get_network_name().lower() == "rinkeby":
+    if (
+        get_bool_env_value("USE_POA_MIDDLEWARE", 0)
+        or get_network_name().lower() == "rinkeby"
+    ):
         from web3.middleware import geth_poa_middleware
 
         Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
@@ -107,11 +111,8 @@ def start_events_monitor():
 
 
 # Start events monitoring if required
-try:
-    if bool(int(os.environ.get("EVENTS_ALLOW", "0"))):
-        start_events_monitor()
-except ValueError:
-    pass
+if get_bool_env_value("EVENTS_ALLOW", 0):
+    start_events_monitor()
 
 
 if __name__ == "__main__":

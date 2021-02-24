@@ -14,6 +14,7 @@ from ocean_lib.web3_internal.event_filter import EventFilter
 from web3.utils.events import get_event_data
 
 from aquarius.app.dao import Dao
+from aquarius.app.util import get_bool_env_value
 from aquarius.events.util import (
     prepare_contracts,
     get_datatoken_info,
@@ -86,7 +87,7 @@ class MetadataUpdater:
         ), "Failed to load FixedRateExchange contract."
 
         self.bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
-        self._do_first_update = bool(int(os.getenv("METADATA_UPDATE_ALL", 1)) == 1)
+        self._do_first_update = get_bool_env_value("METADATA_UPDATE_ALL", 1)
         try:
             self.get_last_processed_block()
             # self._do_first_update = False
