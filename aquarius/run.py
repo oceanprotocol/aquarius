@@ -98,7 +98,10 @@ def start_events_monitor():
     rpc = os.environ.get("EVENTS_RPC", "")
     Web3Provider.init_web3(provider=get_web3_connection_provider(rpc))
     ContractHandler.set_artifacts_path(get_artifacts_path())
-    if get_bool_env_value("USE_POA_MIDDLEWARE", 0) or get_network_name().lower() == "rinkeby":
+    if (
+        get_bool_env_value("USE_POA_MIDDLEWARE", 0)
+        or get_network_name().lower() == "rinkeby"
+    ):
         from web3.middleware import geth_poa_middleware
 
         Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
