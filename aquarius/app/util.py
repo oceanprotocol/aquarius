@@ -3,6 +3,7 @@
 import copy
 import json
 import logging
+import os
 from collections import OrderedDict
 from datetime import datetime
 
@@ -31,6 +32,15 @@ def make_paginate_response(query_list_result, search_model):
     result["total_pages"] = int(total / offset) + int(total % offset > 0)
     result["total_results"] = total
     return result
+
+
+def get_bool_env_value(envvar_name, default_value=0):
+    assert default_value in (0, 1), "bad default value, must be either 0 or 1"
+    try:
+        value = bool(int(os.getenv(envvar_name, default_value)))
+    except Exception as _e:
+        value = bool(default_value)
+    return value
 
 
 def get_request_data(request, url_params_only=False):
