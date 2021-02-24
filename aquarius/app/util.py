@@ -37,10 +37,9 @@ def make_paginate_response(query_list_result, search_model):
 def get_bool_env_value(envvar_name, default_value=0):
     assert default_value in (0, 1), "bad default value, must be either 0 or 1"
     try:
-        value = bool(int(os.getenv(envvar_name, default_value)))
+        return bool(int(os.getenv(envvar_name, default_value)))
     except Exception as _e:
-        value = bool(default_value)
-    return value
+        return bool(default_value)
 
 
 def get_request_data(request, url_params_only=False):
