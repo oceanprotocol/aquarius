@@ -3,13 +3,19 @@ import os
 import time
 from pathlib import Path
 
+from ocean_lib.config import Config as OceanConfig, Config
 from ocean_lib.config_provider import ConfigProvider
+from ocean_lib.web3_internal.contract_handler import ContractHandler
+from ocean_lib.web3_internal.web3_provider import Web3Provider
 from ocean_lib.models.data_token import DataToken
 from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
 from ocean_lib.models.metadata import MetadataContract
 from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
 from ocean_lib.web3_internal.web3helper import Web3Helper
 from web3 import Web3
+
+from aquarius.app.util import get_bool_env_value
+from aquarius.events.events_monitor import EventsMonitor
 
 
 def get_network_name():
@@ -147,3 +153,29 @@ def get_datatoken_info(token_address):
         "minter": minter,
         "minterBalance": dt.token_balance(minter),
     }
+
+
+def start_events_monitor(config_file, _logger=None):
+    _config = Config(config_file)
+    ConfigProvider.set_config(_config)
+    from ocean_lib.ocean.util import get_web3_connection_provider
+
+    network_rpc = os.environ.get("EVENTS_RPC", "http:127.0.0.1:8545")
+    if _logger:
+        _logger.info(
+            f"EventsMonitor: starting with the following values: rpc={network_rpc}"
+        )
+
+    Web3Provider.init_web3(provider=get_web3_connection_provider(network_rpc))
+    ContractHandler.set_artifacts_path(get_artifacts_path())
+    if (
+        get_bool_env_value("USE_POA_MIDDLEWARE", 0)
+        or get_network_name().lower() == "rinkeby"
+    ):
+        from web3.middleware import geth_poa_middleware
+
+        Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
+
+    monitor = EventsMonitor(Web3Provider.get_web3(), config_file)
+    monitor.start_events_monitor()
+    return monitor
