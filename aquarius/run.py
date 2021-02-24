@@ -98,7 +98,7 @@ def start_events_monitor():
     Web3Provider.init_web3(provider=get_web3_connection_provider(rpc))
     ContractHandler.set_artifacts_path(get_artifacts_path())
     try:
-        use_poa_middleware = bool(int(os.getenv('USE_POA_MIDDLEWARE', '0')))
+        use_poa_middleware = bool(int(os.getenv("USE_POA_MIDDLEWARE", "0")))
     except Exception as _e:
         use_poa_middleware = False
 
