@@ -86,11 +86,14 @@ class MetadataUpdater:
             self.ex_contract and self.ex_contract.address
         ), "Failed to load FixedRateExchange contract."
 
-        self.bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
         self._do_first_update = get_bool_env_value("METADATA_UPDATE_ALL", 1)
+        self.bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
+        ignore_last_block = get_bool_env_value("IGNORE_LAST_BLOCK", 0)
         try:
-            self.get_last_processed_block()
-            # self._do_first_update = False
+            if ignore_last_block:
+                self.store_last_processed_block(self.bfactory_block)
+            else:
+                self.get_last_processed_block()
         except Exception:
             self.store_last_processed_block(self.bfactory_block)
 

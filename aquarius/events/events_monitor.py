@@ -91,9 +91,13 @@ class EventsMonitor:
         if self._ecies_private_key:
             self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
 
+        ignore_last_block = get_bool_env_value("IGNORE_LAST_BLOCK", 0)
         metadata_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
         try:
-            self.get_last_processed_block()
+            if ignore_last_block:
+                self.store_last_processed_block(metadata_block)
+            else:
+                self.get_last_processed_block()
         except Exception:
             self.store_last_processed_block(metadata_block)
 
