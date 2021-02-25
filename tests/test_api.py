@@ -210,7 +210,14 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
             run_request_get_data(
                 client.post,
                 base_ddo_url + "/query",
-                {"query": {"dataToken": [_ddo["dataToken"]]}},
+                {
+                    "query": {
+                        "query_string": {
+                            "query": _ddo["dataToken"],
+                            "default_field": "dataToken",
+                        }
+                    }
+                },
             )["results"]
         )
         > 0
