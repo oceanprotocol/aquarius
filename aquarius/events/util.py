@@ -155,7 +155,7 @@ def get_datatoken_info(token_address):
     }
 
 
-def start_events_monitor(config_file, _logger=None):
+def setup_web3(config_file, _logger=None):
     _config = Config(config_file)
     ConfigProvider.set_config(_config)
     from ocean_lib.ocean.util import get_web3_connection_provider
@@ -176,6 +176,4 @@ def start_events_monitor(config_file, _logger=None):
 
         Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
 
-    monitor = EventsMonitor(Web3Provider.get_web3(), config_file)
-    monitor.start_events_monitor()
-    return monitor
+    return Web3Provider.get_web3()

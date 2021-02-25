@@ -2,7 +2,8 @@ import logging
 import os
 import time
 
-from aquarius.events.util import start_events_monitor
+from aquarius.events.events_monitor import EventsMonitor
+from aquarius.events.util import setup_web3
 from aquarius.log import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,9 @@ def run_events_monitor():
             )
 
     config_file = os.getenv("CONFIG_FILE", "config.ini")
-    start_events_monitor(config_file, logger)
+    monitor = EventsMonitor(setup_web3(config_file, logger), config_file)
+    monitor.start_events_monitor()
+
     logger.info("EventsMonitor: started")
     while True:
         time.sleep(5)

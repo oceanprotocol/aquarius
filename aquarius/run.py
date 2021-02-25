@@ -14,7 +14,8 @@ from aquarius.app.pools import pools
 from aquarius.app.util import get_bool_env_value
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
-from aquarius.events.util import start_events_monitor
+from aquarius.events.events_monitor import EventsMonitor
+from aquarius.events.util import setup_web3
 from aquarius.myapp import app
 
 config = Config(filename=app.config["CONFIG_FILE"])
@@ -86,7 +87,9 @@ def get_status():
 
 # Start events monitoring if required
 if get_bool_env_value("EVENTS_ALLOW", 0):
-    start_events_monitor(app.config["CONFIG_FILE"])
+    config_file = app.config["CONFIG_FILE"]
+    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor.start_events_monitor()
 
 
 if __name__ == "__main__":
