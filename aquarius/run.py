@@ -2,16 +2,11 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 import configparser
-import os
 
 from elasticsearch import Elasticsearch
 from flask import jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
-from ocean_lib.config import Config as OceanConfig
-from ocean_lib.config_provider import ConfigProvider
-from ocean_lib.web3_internal.contract_handler import ContractHandler
-from ocean_lib.web3_internal.web3_provider import Web3Provider
 from pymongo import MongoClient
 
 from aquarius.app.assets import assets
@@ -19,9 +14,9 @@ from aquarius.app.pools import pools
 from aquarius.app.util import get_bool_env_value
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
-from aquarius.events.util import get_artifacts_path, get_network_name
-from aquarius.myapp import app
 from aquarius.events.events_monitor import EventsMonitor
+from aquarius.events.util import setup_web3
+from aquarius.myapp import app
 
 config = Config(filename=app.config["CONFIG_FILE"])
 aquarius_url = config.aquarius_url
@@ -90,29 +85,11 @@ def get_status():
         return "Not connected to any database", 400
 
 
-def start_events_monitor():
-    _config = OceanConfig(app.config["CONFIG_FILE"])
-    ConfigProvider.set_config(_config)
-    from ocean_lib.ocean.util import get_web3_connection_provider
-
-    rpc = os.environ.get("EVENTS_RPC", "")
-    Web3Provider.init_web3(provider=get_web3_connection_provider(rpc))
-    ContractHandler.set_artifacts_path(get_artifacts_path())
-    if (
-        get_bool_env_value("USE_POA_MIDDLEWARE", 0)
-        or get_network_name().lower() == "rinkeby"
-    ):
-        from web3.middleware import geth_poa_middleware
-
-        Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
-
-    monitor = EventsMonitor(Web3Provider.get_web3(), app.config["CONFIG_FILE"])
-    monitor.start_events_monitor()
-
-
 # Start events monitoring if required
 if get_bool_env_value("EVENTS_ALLOW", 0):
-    start_events_monitor()
+    config_file = app.config["CONFIG_FILE"]
+    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor.start_events_monitor()
 
 
 if __name__ == "__main__":
