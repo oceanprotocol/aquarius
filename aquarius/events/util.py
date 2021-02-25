@@ -3,7 +3,7 @@ import os
 import time
 from pathlib import Path
 
-from ocean_lib.config import Config as OceanConfig, Config
+from ocean_lib.config import Config
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.web3_internal.contract_handler import ContractHandler
 from ocean_lib.web3_internal.web3_provider import Web3Provider
@@ -15,7 +15,6 @@ from ocean_lib.web3_internal.web3helper import Web3Helper
 from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
-from aquarius.events.events_monitor import EventsMonitor
 
 
 def get_network_name():
