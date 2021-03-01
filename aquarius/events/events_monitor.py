@@ -1,5 +1,7 @@
-#  Copyright 2020 Ocean Protocol Foundation
-#  SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import logging
 import os
 import time
@@ -413,8 +415,7 @@ class EventsMonitor:
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
-                list_errors_dict_remote,
-                get_metadata_from_services(_record["service"]),
+                list_errors_dict_remote, get_metadata_from_services(_record["service"])
             )
             logger.error(f"New ddo has validation errors: {errors}")
             return False
@@ -511,8 +512,7 @@ class EventsMonitor:
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
-                list_errors_dict_remote,
-                get_metadata_from_services(_record["service"]),
+                list_errors_dict_remote, get_metadata_from_services(_record["service"])
             )
             logger.error(f"ddo update has validation errors: {errors}")
             return
