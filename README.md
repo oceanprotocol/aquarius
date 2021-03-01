@@ -1,5 +1,7 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
+[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/10c8fddd5e8547c29de4906410a16ae7.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3abc62f24f0a4fe78c6aeb7dc16399a8)](https://www.codacy.com/gh/oceanprotocol/ocean.py/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=oceanprotocol/ocean.py&amp;utm_campaign=Badge_Grade)
+
 # Aquarius
 
 > 🐋 Aquarius provides an off-chain database cache for metadata that is published on-chain.
@@ -10,7 +12,6 @@ on-chain and stores it in the database backend (elasticsearch).
 
 > It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
 
-[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius) [![Codacy coverage](https://img.shields.io/codacy/coverage/10c8fddd5e8547c29de4906410a16ae7.svg)](https://app.codacy.com/project/ocean-protocol/aquarius/dashboard) [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/) [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3abc62f24f0a4fe78c6aeb7dc16399a8)](https://www.codacy.com/gh/oceanprotocol/ocean.py/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=oceanprotocol/ocean.py&amp;utm_campaign=Badge_Grade)
 ---
 
 **🐲🦑 THERE BE DRAGONS AND SQUIDS. This is in alpha state and you can expect running into problems. If you run into them, please open up [a new issue](https://github.com/oceanprotocol/aquarius/issues). 🦑🐲**
