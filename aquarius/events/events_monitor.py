@@ -1,5 +1,7 @@
-#  Copyright 2020 Ocean Protocol Foundation
-#  SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import json
 import logging
 import lzma as Lzma

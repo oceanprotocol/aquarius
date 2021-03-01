@@ -1,3 +1,7 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 ddo_event_sample = {
     "@context": "https://w3id.org/did/v1",
     "id": "did:op:ffa5037987b74fbab600d7515605146bb7babcb929c94c60ba93ac5ceda56775",

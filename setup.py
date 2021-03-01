@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 
 """The setup script."""
 #  Copyright 2018 Ocean Protocol Foundation
@@ -28,7 +32,7 @@ install_requirements = [
     "PyYAML==5.4.1",
     "pytz==2021.1",
     "plecos==1.1.0",
-    "ocean-lib==0.5.7",
+    "ocean-lib==0.5.11",
     "eciespy",
     "gevent",
 ]
@@ -44,16 +48,17 @@ dev_requirements = [
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==2.0.1",
+    "watchdog==2.0.2",
+    "licenseheaders",
 ]
 
 test_requirements = [
     "plecos==1.1.0",
     "Flask==1.1.2",
     "codacy-coverage==1.3.11",
-    "coverage==5.4",
+    "coverage==5.5",
     "mccabe==0.6.1",
-    "pylint==2.7.0",
+    "pylint==2.7.2",
     "pytest",
     "tox",
 ]

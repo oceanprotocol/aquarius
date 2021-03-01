@@ -1,3 +1,7 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 json_dict2 = {
     "@context": "https://w3id.org/did/v1",
     "id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
@@ -57,10 +61,7 @@ json_dict2 = {
                             "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
                             "index": 1,
                         },
-                        {
-                            "index": 2,
-                            "contentType": "text/csv",
-                        },
+                        {"index": 2, "contentType": "text/csv"},
                     ],
                 },
                 "encryptedFiles": '<tests.resources.mocks.secret_store_mock.SecretStoreMock object at 0x7f8146a94710>.0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430!![{"url": "https://testocnfiles.blob.core.windows.net/testfiles/testzkp.pdf", "checksum": "efb2c764274b745f5fc37f97c6b0e761", "checksumType": "MD5", "contentLength": "4535431", "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"}, {"url": "s3://ocean-test-osmosis-data-plugin-dataseeding-1537375953/data.txt", "checksum": "efb2c764274b745f5fc37f97c6b0e761", "contentLength": "4535431", "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932"}, {"url": "http://ipv4.download.thinkbroadband.com/5MB.zip"}]!!0',
