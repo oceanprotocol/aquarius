@@ -27,7 +27,6 @@ from aquarius.app.util import (
     get_metadata_from_services,
     sanitize_record,
     list_errors,
-    get_request_data,
 )
 from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_artifacts_path, get_network_name
@@ -145,65 +144,6 @@ def get_metadata(did):
 ###########################
 # SEARCH
 ###########################
-
-
-@assets.route("/ddo/query", methods=["GET"])
-def query_text():
-    """Get a list of DDOs that match with the given text.
-    ---
-    tags:
-      - ddo
-    parameters:
-      - name: text
-        in: query
-        description: ID of the asset.
-        required: true
-        type: string
-      - name: sort
-        in: query
-        type: object
-        description: Key or list of keys to sort the result
-        example: {"value":1}
-      - name: offset
-        in: query
-        type: int
-        description: Number of records per page
-        example: 100
-      - name: page
-        in: query
-        type: int
-        description: Page showed
-        example: 1
-    responses:
-      200:
-        description: successful action
-    """
-    data = get_request_data(request)
-    assert isinstance(
-        data, dict
-    ), "invalid `args` type, should already formatted into a dict."
-    sort = data.get("sort", None)
-    if sort is not None and isinstance(sort, str):
-        sort = json.loads(sort)
-
-    search_model = FullTextModel(
-        text=data.get("text", None),
-        sort=sort,
-        offset=int(data.get("offset", 100)),
-        page=int(data.get("page", 1)),
-    )
-    query_result = dao.query(search_model)
-    for i in query_result[0]:
-        sanitize_record(i)
-
-    response = make_paginate_response(query_result, search_model)
-    return Response(
-        json.dumps(response, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
-
-
 @assets.route("/ddo/query", methods=["POST"])
 def es_query_ddo():
     """Get a list of DDOs that match with the executed query.
