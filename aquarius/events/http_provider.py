@@ -1,3 +1,7 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 from web3 import HTTPProvider
 
 from aquarius.events.request import make_post_request

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 
 """The setup script."""
 #  Copyright 2018 Ocean Protocol Foundation
@@ -45,6 +49,7 @@ dev_requirements = [
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
     "watchdog==2.0.2",
+    "licenseheaders",
 ]
 
 test_requirements = [

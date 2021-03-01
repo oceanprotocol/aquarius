@@ -1,3 +1,7 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 json_before = {
     "@context": "https://w3id.org/future-method/v1",
     "created": "2016-02-08T16:02:20Z",
