@@ -29,6 +29,7 @@ from aquarius.app.util import (
     get_metadata_from_services,
     sanitize_record,
     list_errors,
+    get_request_data,
 )
 from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_artifacts_path, get_network_name

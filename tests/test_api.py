@@ -13,6 +13,7 @@ from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
+from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample_updates import json_before, json_valid
 from tests.helpers import (
     get_event,
@@ -76,7 +77,7 @@ def add_assets(_events_object, name, total=5):
     block = txs[0].blockNumber
     _events_object.store_last_processed_block(block)
     for ddo in assets:
-        _event = get_event(EVENT_METADATA_CREATED, block, ddo.id)
+        _ = get_event(EVENT_METADATA_CREATED, block, ddo.id)
         _events_object.process_current_blocks()
 
     return assets
@@ -195,7 +196,7 @@ def test_get_assets_names(client, events_object):
     assets = add_assets(events_object, "dt_name", 3)
     dids = [ddo["id"] for ddo in assets]
     did_to_name = run_request_get_data(
-        client.post, base_url + f"/names", {"didList": dids}
+        client.post, base_url + "/names", {"didList": dids}
     )
     for did in dids:
         assert did in did_to_name, "did not found in response."
