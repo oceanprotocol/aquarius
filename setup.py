@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 
 """The setup script."""
 #  Copyright 2018 Ocean Protocol Foundation
@@ -25,15 +29,15 @@ install_requirements = [
     "oceandb-driver-interface==0.2.0",
     "oceandb-mongodb-driver==0.2.2",
     "oceandb-elasticsearch-driver==0.4.4",
-    "PyYAML==5.3.1",
-    "pytz==2020.5",
+    "PyYAML==5.4.1",
+    "pytz==2021.1",
     "plecos==1.1.0",
-    "ocean-lib==0.5.5",
+    "ocean-lib==0.5.11",
     "eciespy",
     "gevent",
 ]
 
-setup_requirements = ["pytest-runner==5.2"]
+setup_requirements = ["pytest-runner==5.3.0"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
@@ -44,16 +48,17 @@ dev_requirements = [
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==1.0.2",
+    "watchdog==2.0.2",
+    "licenseheaders",
 ]
 
 test_requirements = [
     "plecos==1.1.0",
     "Flask==1.1.2",
     "codacy-coverage==1.3.11",
-    "coverage==5.4",
+    "coverage==5.5",
     "mccabe==0.6.1",
-    "pylint==2.6.0",
+    "pylint==2.7.2",
     "pytest",
     "tox",
     "pytest-env",
@@ -87,6 +92,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/oceanprotocol/aquarius",
-    version="2.2.2",
+    version="version='2.2.4'",
     zip_safe=False,
 )

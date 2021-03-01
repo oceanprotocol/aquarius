@@ -1,8 +1,11 @@
-#  Copyright 2018 Ocean Protocol Foundation
-#  SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import copy
 import json
 import logging
+import os
 from collections import OrderedDict
 from datetime import datetime
 
@@ -33,6 +36,14 @@ def make_paginate_response(query_list_result, search_model):
     return result
 
 
+def get_bool_env_value(envvar_name, default_value=0):
+    assert default_value in (0, 1), "bad default value, must be either 0 or 1"
+    try:
+        return bool(int(os.getenv(envvar_name, default_value)))
+    except Exception as _e:
+        return bool(default_value)
+
+
 def get_request_data(request, url_params_only=False):
     if url_params_only:
         return request.args
@@ -57,17 +68,22 @@ def get_timestamp():
 
 
 def get_curation_metadata(services):
-    return get_metadata_from_services(services)["attributes"]["curation"]
+    return get_metadata_from_services(services).get("curation", {})
 
 
 def get_main_metadata(services):
-    return get_metadata_from_services(services)["attributes"]["main"]
+    metadata = get_metadata_from_services(services)
+    assert "main" in metadata, "metadata is missing the `main` section."
+    return metadata["main"]
 
 
 def get_metadata_from_services(services):
     for service in services:
         if service["type"] == "metadata":
-            return service
+            assert (
+                "attributes" in service
+            ), "metadata service is missing the `attributes` section."
+            return service["attributes"]
 
 
 def reorder_services_list(services):

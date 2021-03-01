@@ -1,5 +1,7 @@
-#  Copyright 2018 Ocean Protocol Foundation
-#  SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 
 import configparser
 import logging
@@ -15,14 +17,10 @@ MODULE = "module"
 DB_HOSTNAME = "db.hostname"
 DB_PORT = "db.port"
 
-environ_names = {
-    NAME_AQUARIUS_URL: ["AQUARIUS_URL", "Aquarius URL"],
-}
+environ_names = {NAME_AQUARIUS_URL: ["AQUARIUS_URL", "Aquarius URL"]}
 
 config_defaults = {
-    ConfigSections.RESOURCES: {
-        NAME_AQUARIUS_URL: DEFAULT_NAME_AQUARIUS_URL,
-    }
+    ConfigSections.RESOURCES: {NAME_AQUARIUS_URL: DEFAULT_NAME_AQUARIUS_URL}
 }
 
 

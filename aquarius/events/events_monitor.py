@@ -1,5 +1,7 @@
-#  Copyright 2020 Ocean Protocol Foundation
-#  SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import logging
 import os
 import time
@@ -25,6 +27,7 @@ from aquarius.app.util import (
     init_new_ddo,
     format_timestamp,
     DATETIME_FORMAT,
+    get_bool_env_value,
 )
 from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
 from plecos.plecos import is_valid_dict_remote, list_errors_dict_remote
@@ -71,7 +74,7 @@ class EventsMonitor:
 
         self._web3 = web3
         self._pool_monitor = None
-        if bool(int(os.getenv("PROCESS_POOL_EVENTS", 1)) == 1):
+        if get_bool_env_value("PROCESS_POOL_EVENTS", 1):
             self._pool_monitor = MetadataUpdater(
                 self._oceandb,
                 self._other_db_index,
@@ -129,7 +132,7 @@ class EventsMonitor:
                 f"Contract address {self._contract_address} is not a valid address. Events thread not starting"
             )
             self._contract = None
-        self._purgatory_enabled = bool(int(os.getenv("PROCESS_PURGATORY", 1)) == 1)
+        self._purgatory_enabled = get_bool_env_value("PROCESS_PURGATORY", 1)
         self._purgatory_list = set()
         self._purgatory_update_time = None
 
@@ -410,12 +413,9 @@ class EventsMonitor:
         if dt_address:
             _record["dataTokenInfo"] = get_datatoken_info(dt_address)
 
-        if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])["attributes"]
-        ):
+        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
-                list_errors_dict_remote,
-                get_metadata_from_services(_record["service"])["attributes"],
+                list_errors_dict_remote, get_metadata_from_services(_record["service"])
             )
             logger.error(f"New ddo has validation errors: {errors}")
             return False
@@ -510,12 +510,9 @@ class EventsMonitor:
         _record["event"]["from"] = sender_address
         _record["event"]["contract"] = contract_address
 
-        if not is_valid_dict_remote(
-            get_metadata_from_services(_record["service"])["attributes"]
-        ):
+        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
-                list_errors_dict_remote,
-                get_metadata_from_services(_record["service"])["attributes"],
+                list_errors_dict_remote, get_metadata_from_services(_record["service"])
             )
             logger.error(f"ddo update has validation errors: {errors}")
             return

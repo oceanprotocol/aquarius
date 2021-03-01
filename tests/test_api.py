@@ -1,5 +1,7 @@
-#  Copyright 2018 Ocean Protocol Foundation
-#  SPDX-License-Identifier: Apache-2.0
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import json
 import lzma
 
@@ -7,6 +9,7 @@ from eth_account.messages import defunct_hash_message
 from web3 import Web3
 
 from aquarius.app.util import validate_date_format
+from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
@@ -50,6 +53,33 @@ def run_request(client_method, url, data=None):
         )
 
     return _response
+
+
+def add_assets(_events_object, name, total=5):
+    block = get_web3().eth.blockNumber
+    assets = []
+    txs = []
+    for i in range(total):
+        ddo = new_ddo(test_account1, get_web3(), f"{name}.{i+block}", json_dict)
+        assets.append(ddo)
+
+        txs.append(
+            send_create_update_tx(
+                "create",
+                ddo.id,
+                bytes([1]),
+                lzma.compress(Web3.toBytes(text=json.dumps(dict(ddo.items())))),
+                test_account1,
+            )
+        )
+
+    block = txs[0].blockNumber
+    _events_object.store_last_processed_block(block)
+    for ddo in assets:
+        _event = get_event(EVENT_METADATA_CREATED, block, ddo.id)
+        _events_object.process_current_blocks()
+
+    return assets
 
 
 def test_version(client):
@@ -158,3 +188,15 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
         )
         > 0
     )
+
+
+def test_get_assets_names(client, events_object):
+    base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
+    assets = add_assets(events_object, "dt_name", 3)
+    dids = [ddo["id"] for ddo in assets]
+    did_to_name = run_request_get_data(
+        client.post, base_url + f"/names", {"didList": dids}
+    )
+    for did in dids:
+        assert did in did_to_name, "did not found in response."
+        assert did_to_name[did], "did name not found."

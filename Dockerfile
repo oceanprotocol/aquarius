@@ -1,3 +1,7 @@
+##
+## Copyright 2021 Ocean Protocol Foundation
+## SPDX-License-Identifier: Apache-2.0
+##
 FROM ubuntu:18.04
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
@@ -35,6 +39,7 @@ ENV AQUARIUS_URL='http://0.0.0.0:5000'
 ENV ALLOW_FREE_ASSETS_ONLY='false'
 # docker-entrypoint.sh configuration file variables
 ENV AQUARIUS_WORKERS='8'
+ENV USE_POA_MIDDLEWARE='1'
 ENV EVENTS_ALLOW=''
 ENV RUN_EVENTS_MONITOR='1'
 ENV PROCESS_POOL_EVENTS='1'

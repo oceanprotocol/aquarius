@@ -1,3 +1,8 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
+
 # build accumulated liquidity
 def get_accumulative_values(values_list):
     acc_values = [values_list[0]]

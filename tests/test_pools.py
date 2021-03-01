@@ -1,3 +1,7 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 from aquarius.app.pool_helper import (
     get_accumulative_values,
     build_liquidity_and_price_history,
