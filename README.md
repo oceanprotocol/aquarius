@@ -13,7 +13,6 @@ on-chain and stores it in the database backend (elasticsearch).
 > It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
 
 ---
-
 **🐲🦑 THERE BE DRAGONS AND SQUIDS. This is in alpha state and you can expect running into problems. If you run into them, please open up [a new issue](https://github.com/oceanprotocol/aquarius/issues). 🦑🐲**
 
 ---
