@@ -2,17 +2,14 @@
 #  SPDX-License-Identifier: Apache-2.0
 import json
 import lzma
-import os
 
 from eth_account.messages import defunct_hash_message
 from web3 import Web3
 
-from aquarius.app.dao import Dao
 from aquarius.app.util import validate_date_format
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.run import get_status, get_version
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
-from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample_updates import json_before, json_valid
 from tests.helpers import (
     get_event,
@@ -90,67 +87,6 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
         )
     except Exception:
         pass
-
-
-def test_query_metadata(client, base_ddo_url, events_object):
-    dao = Dao(config_file=os.environ["CONFIG_FILE"])
-    dao.delete_all()
-
-    block = get_web3().eth.blockNumber
-    assets = []
-    txs = []
-    for i in range(5):
-        ddo = new_ddo(test_account1, get_web3(), f"dt.{i+block}", json_dict)
-        assets.append(ddo)
-
-        txs.append(
-            send_create_update_tx(
-                "create",
-                ddo.id,
-                bytes([1]),
-                lzma.compress(Web3.toBytes(text=json.dumps(dict(ddo.items())))),
-                test_account1,
-            )
-        )
-
-    for ddo in assets:
-        get_event(EVENT_METADATA_CREATED, block, ddo.id)
-        events_object.process_current_blocks()
-
-    num_assets = len(assets)
-
-    offset = 2
-    response = run_request_get_data(
-        client.get, base_ddo_url + f"/query?text=white&page=1&offset={offset}"
-    )
-    assert response["page"] == 1
-    assert response["total_pages"] == int(num_assets / offset) + int(
-        num_assets % offset > 0
-    )
-    assert response["total_results"] == num_assets
-    assert len(response["results"]) == offset
-
-    response = run_request_get_data(
-        client.get, base_ddo_url + f"/query?text=white&page=3&offset={offset}"
-    )
-    assert response["page"] == 3
-    assert response["total_pages"] == int(num_assets / offset) + int(
-        num_assets % offset > 0
-    )
-    assert response["total_results"] == num_assets
-    assert len(response["results"]) == num_assets - (
-        offset * (response["total_pages"] - 1)
-    )
-
-    response = run_request_get_data(
-        client.get, base_ddo_url + f"/query?text=white&page=4&offset={offset}"
-    )
-    assert response["page"] == 4
-    assert response["total_pages"] == int(num_assets / offset) + int(
-        num_assets % offset > 0
-    )
-    assert response["total_results"] == num_assets
-    assert len(response["results"]) == 0
 
 
 def test_validate(client_with_no_data, base_ddo_url):
