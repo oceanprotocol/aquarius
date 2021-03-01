@@ -4,8 +4,7 @@ import time
 from threading import Thread
 
 import elasticsearch
-from eth_utils import add_0x_prefix
-from eth_utils import remove_0x_prefix
+from eth_utils import add_0x_prefix, remove_0x_prefix
 from ocean_lib.models.bfactory import BFactory
 from ocean_lib.models.bpool import BPool
 from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
@@ -15,16 +14,17 @@ from web3.utils.events import get_event_data
 
 from aquarius.app.dao import Dao
 from aquarius.app.util import get_bool_env_value
+from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.util import (
-    prepare_contracts,
     get_datatoken_info,
     get_exchange_contract,
+    prepare_contracts,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class MetadataUpdater:
+class MetadataUpdater(BlockProcessingClass):
     """Update price/liquidity info of all known assets.
 
     The update happens in two stages:
@@ -87,15 +87,7 @@ class MetadataUpdater:
         ), "Failed to load FixedRateExchange contract."
 
         self._do_first_update = get_bool_env_value("METADATA_UPDATE_ALL", 1)
-        self.bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
-        ignore_last_block = get_bool_env_value("IGNORE_LAST_BLOCK", 0)
-        try:
-            if ignore_last_block:
-                self.store_last_processed_block(self.bfactory_block)
-            else:
-                self.get_last_processed_block()
-        except Exception:
-            self.store_last_processed_block(self.bfactory_block)
+        self.bfactory_block = self.get_or_set_last_block()
 
         self._is_on = False
         default_quiet_time = 10
@@ -109,6 +101,10 @@ class MetadataUpdater:
     @property
     def is_running(self):
         return self._is_on
+
+    @property
+    def block_envvar(self):
+        return "BFACTORY_BLOCK"
 
     def start(self):
         if self._is_on:
