@@ -224,10 +224,6 @@ def es_query_ddo():
               type: string
               description: Query to realize
               example: {"value":1}
-            text:
-              type: string or list of strings
-              description: Fulltext query
-              example: ["text to search"]
             sort:
               type: object
               description: Key or list of keys to sort the result
