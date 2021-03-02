@@ -201,7 +201,7 @@ def get_assets_names():
 # SEARCH
 ###########################
 @assets.route("/ddo/query", methods=["POST"])
-def es_query_ddo():
+def query_ddo():
     """Get a list of DDOs that match with the executed query.
     ---
     tags:
