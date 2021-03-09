@@ -6,6 +6,7 @@ import ecies
 import json
 import logging
 import os
+from web3 import Web3
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
@@ -518,20 +519,28 @@ def encrypt_ddo():
           type: object
     responses:
       200:
-        description: successfully request.
+        description: successfully request. data is converted to hex
       400:
         description: Invalid format
       500:
         description: Error
     """
-    assert request.content_type == "application/octet-stream", "invalid content-type"
+    if request.content_type != "application/octet-stream":
+        return "invalid content-type", 400
     data = request.get_data()
     ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-    assert ecies_private_key, "invalid EVENTS_ECIES_PRIVATE_KEY"
-    ecies_account = Account.privateKeyToAccount(ecies_private_key)
-    key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
-    encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
-    return encrypted_data
+    if ecies_private_key is None:
+        return "no privatekey configured", 400
+    try:
+        ecies_account = Account.privateKeyToAccount(ecies_private_key)
+        key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+        encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
+        response = Response(encrypted_data)
+        response.headers.set("Content-Type", "application/octet-stream")
+        return response
+    except Exception as e:
+        logger.error(f"encrypt error:{str(e)}")
+        return "Encrypt error", 500
 
 
 @assets.route("/ddo/update/<did>", methods=["PUT"])

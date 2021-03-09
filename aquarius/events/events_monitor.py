@@ -559,7 +559,9 @@ class EventsMonitor:
             check_flags = 0
         else:
             check_flags = flags[0]
-
+        if self._only_encrypted_ddo and (not check_flags & 2):
+            logger.error("This aquarius can cache only encrypted ddos")
+            return None
         # always start with MSB -> LSB
         debug_log(f"checkflags: {check_flags}")
         # bit 2:  check if ddo is ecies encrypted
@@ -579,9 +581,6 @@ class EventsMonitor:
                 logger.error(f"Failed to decompress: {str(err)}")
 
         logger.debug(f"After unpack rawddo:{rawddo}")
-        if self._only_encrypted_ddo and (not check_flags & 2):
-            logger.error("This aquarius can cache only encrypted ddos")
-            return None
         try:
             ddo = json.loads(rawddo)
             return ddo
