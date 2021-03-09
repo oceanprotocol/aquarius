@@ -2,46 +2,46 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import json
 import logging
+import lzma as Lzma
 import os
 import time
-import lzma as Lzma
-import json
+from datetime import datetime
 from json import JSONDecodeError
 from threading import Thread
-from datetime import datetime
 
-import elasticsearch
-import requests
-from eth_utils import remove_0x_prefix, add_0x_prefix
-from ocean_lib.config_provider import ConfigProvider
-from eth_account import Account
-import eth_keys
 import ecies
+import elasticsearch
+import eth_keys
+import requests
+from eth_account import Account
+from eth_utils import add_0x_prefix, remove_0x_prefix
+from ocean_lib.config_provider import ConfigProvider
 from oceandb_driver_interface import OceanDb
-
-from aquarius.app.util import (
-    get_metadata_from_services,
-    list_errors,
-    validate_data,
-    init_new_ddo,
-    format_timestamp,
-    DATETIME_FORMAT,
-    get_bool_env_value,
-)
-from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
 from plecos.plecos import is_valid_dict_remote, list_errors_dict_remote
 
+from aquarius.app.auth_util import compare_eth_addresses, sanitize_addresses
+from aquarius.app.util import (
+    DATETIME_FORMAT,
+    format_timestamp,
+    get_bool_env_value,
+    get_metadata_from_services,
+    init_new_ddo,
+    list_errors,
+    validate_data,
+)
+from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.metadata_updater import MetadataUpdater
-from aquarius.events.util import get_metadata_contract, get_datatoken_info
+from aquarius.events.util import get_datatoken_info, get_metadata_contract
 
 logger = logging.getLogger(__name__)
 
 debug_log = logger.debug
 
 
-class EventsMonitor:
+class EventsMonitor(BlockProcessingClass):
     """Detect on-chain published Metadata and cache it in the database for
     fast retrieval and searchability.
 
@@ -93,12 +93,8 @@ class EventsMonitor:
         if self._ecies_private_key:
             self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
         self._only_encrypted_ddo = get_bool_env_value("ONLY_ENCRYPTED_DDO", 0)
-        metadata_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
-        try:
-            self.get_last_processed_block()
-        except Exception:
-            self.store_last_processed_block(metadata_block)
 
+        self.get_or_set_last_block()
         allowed_publishers = set()
         try:
             publishers_str = os.getenv("ALLOWED_PUBLISHERS", "")
@@ -135,6 +131,10 @@ class EventsMonitor:
         self._purgatory_enabled = get_bool_env_value("PROCESS_PURGATORY", 1)
         self._purgatory_list = set()
         self._purgatory_update_time = None
+
+    @property
+    def block_envvar(self):
+        return "METADATA_CONTRACT_BLOCK"
 
     @property
     def is_monitor_running(self):
