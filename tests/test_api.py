@@ -238,3 +238,17 @@ def test_get_assets_names(client, events_object):
     for did in dids:
         assert did in did_to_name, "did not found in response."
         assert did_to_name[did], "did name not found."
+
+
+def test_encrypt_ddo(client, base_ddo_url, events_object):
+    ddo = new_ddo(
+        test_account1, get_web3(), "encrypt_test", json_dict_no_valid_metadata
+    )
+    ddo_string = json.dumps(dict(ddo.items()))
+    compressed_ddo = lzma.compress(Web3.toBytes(text=ddo_string))
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data=compressed_ddo,
+        content_type="application/octet-stream",
+    )
+    assert _response.status_code == 200

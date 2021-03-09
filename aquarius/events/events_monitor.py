@@ -92,7 +92,7 @@ class EventsMonitor:
         self._ecies_account = None
         if self._ecies_private_key:
             self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
-
+        self._only_encrypted_ddo = get_bool_env_value("ONLY_ENCRYPTED_DDO", 0)
         metadata_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
         try:
             self.get_last_processed_block()
@@ -579,6 +579,9 @@ class EventsMonitor:
                 logger.error(f"Failed to decompress: {str(err)}")
 
         logger.debug(f"After unpack rawddo:{rawddo}")
+        if self._only_encrypted_ddo and (not check_flags & 2):
+            logger.error(f"This aquarius can cache only encrypted ddos")
+            return None
         try:
             ddo = json.loads(rawddo)
             return ddo

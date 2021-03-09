@@ -2,7 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-
+import ecies
 import json
 import logging
 import os
@@ -35,6 +35,8 @@ from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from eth_account import Account
+import eth_keys
 
 ConfigProvider.set_config(OceanConfig(app.config["CONFIG_FILE"]))
 Web3Provider.init_web3(
@@ -490,6 +492,45 @@ def validate_remote():
     else:
         res = jsonify(list_errors(list_errors_dict_remote, data))
         return res
+
+
+###########################
+# ENCRYPT DDO
+#
+# Since this method is public, this is just an example of how to do. You should either add some auth methods here, or protect this endpoint from your nginx
+# Using it like this, means that anyone call encrypt their ddo, so they will be able to publish to your market.
+###########################
+@assets.route("/ddo/encrypt", methods=["POST"])
+def encrypt_ddo():
+    """Encrypt a DDO.
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/octet-stream
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: data
+        schema:
+          type: object
+    responses:
+      200:
+        description: successfully request.
+      400:
+        description: Invalid format
+      500:
+        description: Error
+    """
+    assert request.content_type == "application/octet-stream", "invalid content-type"
+    data = request.get_data()
+    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
+    assert ecies_private_key, "invalid EVENTS_ECIES_PRIVATE_KEY"
+    ecies_account = Account.privateKeyToAccount(ecies_private_key)
+    key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+    encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
+    return encrypted_data
 
 
 @assets.route("/ddo/update/<did>", methods=["PUT"])
