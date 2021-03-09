@@ -500,6 +500,7 @@ def validate_remote():
 # Using it like this, means that anyone call encrypt their ddo, so they will be able to publish to your market.
 ###########################
 
+
 @assets.route("/ddo/encrypt", methods=["POST"])
 def encrypt_ddo():
     """Encrypt a DDO.
