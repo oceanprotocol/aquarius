@@ -6,7 +6,6 @@ import ecies
 import json
 import logging
 import os
-from web3 import Web3
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel

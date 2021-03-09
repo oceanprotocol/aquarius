@@ -7,7 +7,6 @@ import lzma
 import os
 
 from eth_account.messages import defunct_hash_message
-from eth_account import Account
 import ecies
 from web3 import Web3
 import eth_keys
