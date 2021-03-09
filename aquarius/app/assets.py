@@ -500,6 +500,7 @@ def validate_remote():
 # Since this method is public, this is just an example of how to do. You should either add some auth methods here, or protect this endpoint from your nginx
 # Using it like this, means that anyone call encrypt their ddo, so they will be able to publish to your market.
 ###########################
+
 @assets.route("/ddo/encrypt", methods=["POST"])
 def encrypt_ddo():
     """Encrypt a DDO.

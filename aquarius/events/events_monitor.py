@@ -580,7 +580,7 @@ class EventsMonitor:
 
         logger.debug(f"After unpack rawddo:{rawddo}")
         if self._only_encrypted_ddo and (not check_flags & 2):
-            logger.error(f"This aquarius can cache only encrypted ddos")
+            logger.error("This aquarius can cache only encrypted ddos")
             return None
         try:
             ddo = json.loads(rawddo)
