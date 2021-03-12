@@ -4,14 +4,12 @@
 #
 import json
 import lzma
-import os
 
 from eth_account.messages import defunct_hash_message
 import ecies
 from web3 import Web3
 import eth_keys
 
-from aquarius.app.dao import Dao
 from aquarius.app.util import validate_date_format
 from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
@@ -82,7 +80,7 @@ def add_assets(_events_object, name, total=5):
     block = txs[0].blockNumber
     _events_object.store_last_processed_block(block)
     for ddo in assets:
-        _event = get_event(EVENT_METADATA_CREATED, block, ddo.id)
+        _ = get_event(EVENT_METADATA_CREATED, block, ddo.id)
         _events_object.process_current_blocks()
 
     return assets
@@ -123,48 +121,6 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
         )
     except Exception:
         pass
-
-
-def test_query_metadata(client, base_ddo_url, events_object):
-    events_object.process_current_blocks()
-    dao = Dao(config_file=os.environ["CONFIG_FILE"])
-    dao.delete_all()
-
-    assets = add_assets(events_object, "query", 5)
-    num_assets = len(assets)
-
-    offset = 2
-    response = run_request_get_data(
-        client.get, base_ddo_url + f"/query?text=white&page=1&offset={offset}"
-    )
-    assert response["page"] == 1
-    assert response["total_pages"] == int(num_assets / offset) + int(
-        num_assets % offset > 0
-    )
-    assert response["total_results"] == num_assets
-    assert len(response["results"]) == offset
-
-    response = run_request_get_data(
-        client.get, base_ddo_url + f"/query?text=white&page=3&offset={offset}"
-    )
-    assert response["page"] == 3
-    assert response["total_pages"] == int(num_assets / offset) + int(
-        num_assets % offset > 0
-    )
-    assert response["total_results"] == num_assets
-    assert len(response["results"]) == num_assets - (
-        offset * (response["total_pages"] - 1)
-    )
-
-    response = run_request_get_data(
-        client.get, base_ddo_url + f"/query?text=white&page=4&offset={offset}"
-    )
-    assert response["page"] == 4
-    assert response["total_pages"] == int(num_assets / offset) + int(
-        num_assets % offset > 0
-    )
-    assert response["total_results"] == num_assets
-    assert len(response["results"]) == 0
 
 
 def test_validate(client_with_no_data, base_ddo_url):
@@ -224,7 +180,14 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
             run_request_get_data(
                 client.post,
                 base_ddo_url + "/query",
-                {"query": {"dataToken": [_ddo["dataToken"]]}},
+                {
+                    "query": {
+                        "query_string": {
+                            "query": _ddo["dataToken"],
+                            "default_field": "dataToken",
+                        }
+                    }
+                },
             )["results"]
         )
         > 0
@@ -236,7 +199,7 @@ def test_get_assets_names(client, events_object):
     assets = add_assets(events_object, "dt_name", 3)
     dids = [ddo["id"] for ddo in assets]
     did_to_name = run_request_get_data(
-        client.post, base_url + f"/names", {"didList": dids}
+        client.post, base_url + "/names", {"didList": dids}
     )
     for did in dids:
         assert did in did_to_name, "did not found in response."

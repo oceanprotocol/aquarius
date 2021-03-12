@@ -61,6 +61,7 @@ test_requirements = [
     "pylint==2.7.2",
     "pytest",
     "tox",
+    "pytest-env",
 ]
 
 setup(

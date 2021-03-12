@@ -8,7 +8,7 @@ import logging
 import os
 
 from flask import Blueprint, jsonify, request, Response
-from oceandb_driver_interface.search_model import FullTextModel, QueryModel
+from oceandb_driver_interface.search_model import FullTextModel
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.web3_internal.contract_handler import ContractHandler
 from ocean_lib.web3_internal.web3_provider import Web3Provider
@@ -202,65 +202,6 @@ def get_assets_names():
 ###########################
 # SEARCH
 ###########################
-
-
-@assets.route("/ddo/query", methods=["GET"])
-def query_text():
-    """Get a list of DDOs that match with the given text.
-    ---
-    tags:
-      - ddo
-    parameters:
-      - name: text
-        in: query
-        description: ID of the asset.
-        required: true
-        type: string
-      - name: sort
-        in: query
-        type: object
-        description: Key or list of keys to sort the result
-        example: {"value":1}
-      - name: offset
-        in: query
-        type: int
-        description: Number of records per page
-        example: 100
-      - name: page
-        in: query
-        type: int
-        description: Page showed
-        example: 1
-    responses:
-      200:
-        description: successful action
-    """
-    data = get_request_data(request)
-    assert isinstance(
-        data, dict
-    ), "invalid `args` type, should already formatted into a dict."
-    sort = data.get("sort", None)
-    if sort is not None and isinstance(sort, str):
-        sort = json.loads(sort)
-
-    search_model = FullTextModel(
-        text=data.get("text", None),
-        sort=sort,
-        offset=int(data.get("offset", 100)),
-        page=int(data.get("page", 1)),
-    )
-    query_result = dao.query(search_model)
-    for i in query_result[0]:
-        sanitize_record(i)
-
-    response = make_paginate_response(query_result, search_model)
-    return Response(
-        json.dumps(response, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
-
-
 @assets.route("/ddo/query", methods=["POST"])
 def query_ddo():
     """Get a list of DDOs that match with the executed query.
@@ -296,80 +237,6 @@ def query_ddo():
     responses:
       200:
         description: successful action
-    """
-    assert isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-    assert isinstance(data, dict), "invalid `body` type, should be formatted as a dict."
-
-    native_query = None
-    if "nativeSearch" in data:
-        native_query = data.pop("nativeSearch")
-
-    query = data.get("query", {})
-    if not native_query and "nativeSearch" in query:
-        native_query = query.pop("nativeSearch")
-
-    if native_query:
-        query_result, search_model = process_es_query(data)
-    else:
-        search_model = QueryModel(
-            query=query,
-            sort=data.get("sort"),
-            offset=data.get("offset", 100),
-            page=data.get("page", 1),
-        )
-        query_result = dao.query(search_model)
-
-    for ddo in query_result[0]:
-        sanitize_record(ddo)
-
-    response = make_paginate_response(query_result, search_model)
-    return Response(
-        json.dumps(response, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
-
-
-@assets.route("/ddo/esquery", methods=["POST"])
-def es_query_ddo():
-    """Get a list of DDOs that match with the executed query.
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/json
-    parameters:
-      - in: body
-        name: body
-        required: true
-        description: Asset metadata.
-        schema:
-          type: object
-          properties:
-            query:
-              type: string
-              description: Query to realize
-              example: {"value":1}
-            text:
-              type: string or list of strings
-              description: Fulltext query
-              example: ["text to search"]
-            sort:
-              type: object
-              description: Key or list of keys to sort the result
-              example: {"value":1}
-            offset:
-              type: int
-              description: Number of records per page
-              example: 100
-            page:
-              type: int
-              description: Page showed
-              example: 1
-    responses:
-      200:
-        description: successful action
 
     example:
         {"query": {"query_string": {"query": "(covid) -isInPurgatory:true"}}, "offset":1, "page": 1}
@@ -377,7 +244,22 @@ def es_query_ddo():
     """
     assert isinstance(request.json, dict), "invalid payload format."
     data = request.json
-    query_result, search_model = process_es_query(data)
+    query = data.get("query")
+
+    assert "query_string" in query, "No query_string found."
+    querystr = json.dumps(query)
+    did_str = "did:op:"
+    esc_did_str = "did\\\:op\\\:"  # noqa
+    querystr = querystr.replace(esc_did_str, did_str)
+    data["query"] = json.loads(querystr.replace(did_str, esc_did_str))
+
+    data.setdefault("page", 1)
+    data.setdefault("offset", 100)
+
+    query_result = dao.run_es_query(data)
+
+    search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
+
     for ddo in query_result[0]:
         sanitize_record(ddo)
 
@@ -387,32 +269,6 @@ def es_query_ddo():
         200,
         content_type="application/json",
     )
-
-
-def process_es_query(data):
-    text = data.get("text", [])
-    query = data.get("query")
-    if not text and "text" in query:
-        text = query.pop("text")
-
-    if isinstance(text, str):
-        text = [text]
-    temp = []
-    for v in text:
-        temp.append(v.replace(":", "\\"))
-    querystr = json.dumps(query)
-    did_str = "did:op:"
-    esc_did_str = "did\\\:op\\\:"
-    querystr = querystr.replace(esc_did_str, did_str)
-    query = json.loads(querystr.replace(did_str, esc_did_str))
-    text = temp
-
-    sort = data.get("sort")
-    page = data.get("page", 1)
-    offset = data.get("offset", 100)
-
-    query_result = dao.run_es_query(query, sort, page, offset, text)
-    return query_result, FullTextModel("", sort, offset, page)
 
 
 ###########################

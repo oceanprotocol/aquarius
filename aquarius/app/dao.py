@@ -84,33 +84,28 @@ class Dao(object):
                 ):
                     return service["attributes"]["curation"]["isListed"]
 
-    def run_es_query(self, query, sort, page, offset, text=None):
+    def run_es_query(self, data):
         """do an elasticsearch native query.
 
         The query is expected to be in the elasticsearch search format.
 
         :return: list of objects that match the query.
         """
+        page = data.get("page")
         assert page >= 1, "page value %s is invalid" % page
 
-        logging.debug(f"elasticsearch::query::{query}, text {text}")
+        sort = data.get("sort")
         if sort is not None:
             self.oceandb._mapping_to_sort(sort.keys())
             sort = self.oceandb._sort_object(sort)
         else:
             sort = [{"_id": "asc"}]
 
-        if text:
-            sort = [{"_score": "desc"}] + sort
-            if isinstance(text, str):
-                text = [text]
-
-            text = [t.strip() for t in text]
-            text = [t.replace("did:op:", "0x") for t in text if t]
-
+        query = data.get("query")
         if not query:
             query = {"match_all": {}}
 
+        offset = data.get("offset")
         body = {
             "sort": sort,
             "from": (page - 1) * offset,
@@ -119,7 +114,7 @@ class Dao(object):
         }
         logging.info(f"running query: {body}")
         page = self.oceandb.driver.es.search(
-            index=self.oceandb.driver.db_index, body=body, q=text or None
+            index=self.oceandb.driver.db_index, body=body
         )
 
         object_list = []
