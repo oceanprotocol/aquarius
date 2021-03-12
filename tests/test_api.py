@@ -7,7 +7,9 @@ import lzma
 import os
 
 from eth_account.messages import defunct_hash_message
+import ecies
 from web3 import Web3
+import eth_keys
 
 from aquarius.app.dao import Dao
 from aquarius.app.util import validate_date_format
@@ -23,6 +25,7 @@ from tests.helpers import (
     new_ddo,
     send_create_update_tx,
     test_account1,
+    ecies_account,
 )
 
 
@@ -238,3 +241,39 @@ def test_get_assets_names(client, events_object):
     for did in dids:
         assert did in did_to_name, "did not found in response."
         assert did_to_name[did], "did name not found."
+
+
+def test_encrypt_ddo(client, base_ddo_url, events_object):
+    block = get_web3().eth.blockNumber
+    ddo = new_ddo(test_account1, get_web3(), "encrypt_test")
+    ddo_string = json.dumps(dict(ddo.items()))
+    compressed_ddo = lzma.compress(Web3.toBytes(text=ddo_string))
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data=compressed_ddo,
+        content_type="application/octet-stream",
+    )
+    assert _response.status_code == 200
+    encrypted_ddo = _response.data
+    key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+    decrypted_ddo = ecies.decrypt(key.to_hex(), Web3.toBytes(encrypted_ddo))
+    assert decrypted_ddo == compressed_ddo
+    send_create_update_tx(
+        "create",
+        ddo["id"],
+        bytes([3]),
+        Web3.toBytes(encrypted_ddo),
+        test_account1,
+    )
+    get_event(EVENT_METADATA_CREATED, block, ddo["id"])
+    events_object.process_current_blocks()
+    assert (
+        len(
+            run_request_get_data(
+                client.post,
+                base_ddo_url + "/query",
+                {"query": {"dataToken": [ddo["dataToken"]]}},
+            )["results"]
+        )
+        > 0
+    )

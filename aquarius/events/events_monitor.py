@@ -92,6 +92,7 @@ class EventsMonitor(BlockProcessingClass):
         self._ecies_account = None
         if self._ecies_private_key:
             self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
+        self._only_encrypted_ddo = get_bool_env_value("ONLY_ENCRYPTED_DDO", 0)
 
         self.get_or_set_last_block()
         allowed_publishers = set()
@@ -558,7 +559,9 @@ class EventsMonitor(BlockProcessingClass):
             check_flags = 0
         else:
             check_flags = flags[0]
-
+        if self._only_encrypted_ddo and (not check_flags & 2):
+            logger.error("This aquarius can cache only encrypted ddos")
+            return None
         # always start with MSB -> LSB
         debug_log(f"checkflags: {check_flags}")
         # bit 2:  check if ddo is ecies encrypted
