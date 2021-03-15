@@ -222,11 +222,7 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     decrypted_ddo = ecies.decrypt(key.to_hex(), Web3.toBytes(encrypted_ddo))
     assert decrypted_ddo == compressed_ddo
     send_create_update_tx(
-        "create",
-        ddo["id"],
-        bytes([3]),
-        Web3.toBytes(encrypted_ddo),
-        test_account1,
+        "create", ddo["id"], bytes([3]), Web3.toBytes(encrypted_ddo), test_account1
     )
     get_event(EVENT_METADATA_CREATED, block, ddo["id"])
     events_object.process_current_blocks()
@@ -235,7 +231,14 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
             run_request_get_data(
                 client.post,
                 base_ddo_url + "/query",
-                {"query": {"dataToken": [ddo["dataToken"]]}},
+                {
+                    "query": {
+                        "query_string": {
+                            "query": ddo["dataToken"],
+                            "default_field": "dataToken",
+                        }
+                    }
+                },
             )["results"]
         )
         > 0
