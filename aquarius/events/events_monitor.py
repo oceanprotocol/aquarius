@@ -404,7 +404,7 @@ class EventsMonitor(BlockProcessingClass):
             "ocean": 0.0,
             "value": 0.0,
             "type": "",
-            "address": "",
+            "exchange_id": "",
             "pools": [],
             "isConsumable": "",
         }
