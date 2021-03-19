@@ -246,7 +246,6 @@ def query_ddo():
     data = request.json
     query = data.get("query")
 
-    assert "query_string" in query, "No query_string found."
     querystr = json.dumps(query)
     did_str = "did:op:"
     esc_did_str = "did\\\:op\\\:"  # noqa
