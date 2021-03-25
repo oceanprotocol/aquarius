@@ -91,7 +91,7 @@ class Dao(object):
 
         :return: list of objects that match the query.
         """
-        page = data.get("page")
+        page = data.get("page", 1)
         assert page >= 1, "page value %s is invalid" % page
 
         sort = data.get("sort")
@@ -105,7 +105,7 @@ class Dao(object):
         if not query:
             query = {"match_all": {}}
 
-        offset = data.get("offset")
+        offset = data.get("offset", 0)
         body = {
             "sort": sort,
             "from": (page - 1) * offset,
