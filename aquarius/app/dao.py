@@ -23,10 +23,8 @@ class Dao(object):
     def get(self, asset_id):
         try:
             asset = self.oceandb.read(asset_id)
-        except elasticsearch.exceptions.NotFoundError as e:
-            logging.error(
-                f"Dao.get -- asset with id {asset_id} was not found, original error was:{str(e)}"
-            )
+        except elasticsearch.exceptions.NotFoundError:
+            logging.info(f"Dao.get: asset with id {asset_id} was not found in OceanDB.")
             raise
 
         except Exception as e:
