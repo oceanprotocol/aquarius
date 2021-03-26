@@ -34,7 +34,7 @@ class MetadataUpdater(BlockProcessingClass):
     The update happens in two stages:
      1. Initial update is performed if this is ran for the first time. This is determined by
         checking for a cached block number from a previous run. The initial update extracts all
-        Datatoken<>Ocean balancer pools by looking at the BFactory `BPoolRegistered` event. Then
+        Datatoken Ocean balancer pools by looking at the BFactory `BPoolRegistered` event. Then
         each Asset in the database is updated with the liquidity/price information from the
         corresponding pool.
      2. Periodic update is continuously running to detect liquidity updates by looking at the
