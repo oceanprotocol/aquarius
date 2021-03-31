@@ -461,14 +461,14 @@ class MetadataUpdater(BlockProcessingClass):
                 "Found price not None, setting "
                 f"address={self.ex_contract.address} and type as empty string."
             )
-            price_dict.update({"exchange_id": exchange_id, "type": "exchange"})
-            price_dict.update({"address": "", "type": ""})
+            price_dict.update(
+                {"exchange_id": exchange_id, "type": "exchange", "address": ""}
+            )
         else:
             logger.info(
                 "Found price=None, setting address and type as empty string."
             )  # noqa
-            price_dict.update({"address": "", "type": ""})
-            price_dict.update({"exchange_id": "", "type": ""})
+            price_dict.update({"address": "", "type": "", "exchange_id": ""})
         return price_dict
 
     def _get_price_updates_from_liquidity(self, pools, _dt_address):
