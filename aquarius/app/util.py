@@ -27,9 +27,13 @@ def sanitize_record(data_record):
 def make_paginate_response(query_list_result, search_model):
     total = query_list_result[1]
     offset = search_model.offset
+
     result = dict()
     result["results"] = query_list_result[0]
     result["page"] = search_model.page
+
+    if len(query_list_result) == 3:
+        result["resultsMetadata"] = query_list_result[2]
 
     result["total_pages"] = int(total / offset) + int(total % offset > 0)
     result["total_results"] = total
@@ -40,7 +44,7 @@ def get_bool_env_value(envvar_name, default_value=0):
     assert default_value in (0, 1), "bad default value, must be either 0 or 1"
     try:
         return bool(int(os.getenv(envvar_name, default_value)))
-    except Exception as _e:
+    except Exception:
         return bool(default_value)
 
 
@@ -207,3 +211,11 @@ def get_sender_from_txid(web3, txid):
     if transaction is not None:
         return transaction["from"]
     return None
+
+
+def rename_metadata_keys(bucket):
+    for d in bucket:
+        d["name"] = d.pop("key")
+        d["count"] = d.pop("doc_count")
+
+    return bucket

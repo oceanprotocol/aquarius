@@ -8,6 +8,7 @@ import logging
 import elasticsearch
 from oceandb_driver_interface import OceanDb
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
+from aquarius.app.util import rename_metadata_keys
 
 
 class Dao(object):
@@ -84,7 +85,7 @@ class Dao(object):
                 ):
                     return service["attributes"]["curation"]["isListed"]
 
-    def run_es_query(self, data):
+    def run_es_query(self, data, with_metadata=False):
         """do an elasticsearch native query.
 
         The query is expected to be in the elasticsearch search format.
@@ -112,6 +113,7 @@ class Dao(object):
             "size": offset,
             "query": query,
         }
+
         logging.info(f"running query: {body}")
         page = self.oceandb.driver.es.search(
             index=self.oceandb.driver.db_index, body=body
@@ -121,4 +123,25 @@ class Dao(object):
         for x in page["hits"]["hits"]:
             object_list.append(x["_source"])
 
-        return object_list, page["hits"]["total"]
+        if not with_metadata:
+            return object_list, page["hits"]["total"]
+
+        body = {
+            "size": 0,
+            "query": query,
+            "aggs": {
+                "licenses": {
+                    "terms": {"field": "service.attributes.main.license.keyword"}
+                }
+            },
+        }
+        logging.info(f"running metadata query: {body}")
+        metadata = self.oceandb.driver.es.search(
+            index=self.oceandb.driver.db_index, body=body
+        )
+        metadata = {
+            key: rename_metadata_keys(value["buckets"])
+            for key, value in metadata["aggregations"].items()
+        }
+
+        return object_list, page["hits"]["total"], metadata

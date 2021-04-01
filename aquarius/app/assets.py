@@ -255,7 +255,7 @@ def query_ddo():
     data.setdefault("page", 1)
     data.setdefault("offset", 100)
 
-    query_result = dao.run_es_query(data)
+    query_result = dao.run_es_query(data, with_metadata=True)
 
     search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
 
