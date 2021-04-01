@@ -385,17 +385,17 @@ class MetadataUpdater(BlockProcessingClass):
 
             ex_data = fre.getExchange(exchange_id)
             if not ex_data or not ex_data.exchangeOwner:
-                return None, None
+                return None, None, None
 
             price = from_base_18(ex_data.fixedRate)
             supply = from_base_18(ex_data.supply)
-            return price, supply
+            return price, supply, exchange_id
         except Exception as e:
             logger.error(
                 f"Reading exchange price failed for datatoken {dt_address}, "
                 f"owner {owner}, exchangeId {exchange_id}: {e}"
             )
-            return None, None
+            return None, None, None
 
     def get_all_pools(self):
         bfactory = BFactory(self._addresses.get(BFactory.CONTRACT_NAME))
@@ -429,7 +429,7 @@ class MetadataUpdater(BlockProcessingClass):
                 _dt_address, exchange_id=exchange_id
             )
         else:
-            price, dt_supply = self._get_fixedrateexchange_price(
+            price, dt_supply, exchange_id = self._get_fixedrateexchange_price(
                 _dt_address, owner
             )  # noqa
 
@@ -461,13 +461,14 @@ class MetadataUpdater(BlockProcessingClass):
                 "Found price not None, setting "
                 f"address={self.ex_contract.address} and type as empty string."
             )
-            price_dict.update({"address": self.ex_contract.address, "type": "exchange"})
+            price_dict.update(
+                {"exchange_id": exchange_id, "type": "exchange", "address": ""}
+            )
         else:
             logger.info(
                 "Found price=None, setting address and type as empty string."
             )  # noqa
-            price_dict.update({"address": "", "type": ""})
-
+            price_dict.update({"address": "", "type": "", "exchange_id": ""})
         return price_dict
 
     def _get_price_updates_from_liquidity(self, pools, _dt_address):
