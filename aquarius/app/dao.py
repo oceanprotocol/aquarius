@@ -132,7 +132,12 @@ class Dao(object):
             "aggs": {
                 "licenses": {
                     "terms": {"field": "service.attributes.main.license.keyword"}
-                }
+                },
+                "tags": {
+                    "terms": {
+                        "field": "service.attributes.additionalInformation.tags.keyword"
+                    }
+                },
             },
         }
         logging.info(f"running metadata query: {body}")
