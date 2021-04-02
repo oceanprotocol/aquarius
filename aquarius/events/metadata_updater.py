@@ -434,10 +434,10 @@ class MetadataUpdater(BlockProcessingClass):
             )  # noqa
 
         logger.info(
-            f"Updating price for asset with address {_dt_address}, with"
+            f"Updating price for asset with address {_dt_address}, with "
             f"owner={owner}"
             if owner
-            else f"echange_id={exchange_id}, " f"from FIXED RATE EXCHANGE."
+            else f"exchange_id={exchange_id}, " f"from FIXED RATE EXCHANGE."
         )
 
         is_consumable = str(bool(dt_supply is not None and dt_supply > 1)).lower()
@@ -459,14 +459,16 @@ class MetadataUpdater(BlockProcessingClass):
         if price is not None:
             logger.info(
                 "Found price not None, setting "
-                f"address={self.ex_contract.address} and type as empty string."
+                f"address={self.ex_contract.address}, type=exchange, and "
+                "exchange_id as empty string."
             )
             price_dict.update(
                 {"exchange_id": exchange_id, "type": "exchange", "address": ""}
             )
         else:
             logger.info(
-                "Found price=None, setting address and type as empty string."
+                "Found price=None, setting address, type, and exchange_id as "
+                "empty string."
             )  # noqa
             price_dict.update({"address": "", "type": "", "exchange_id": ""})
         return price_dict
