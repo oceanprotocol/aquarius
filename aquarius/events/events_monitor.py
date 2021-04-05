@@ -35,6 +35,7 @@ from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_datatoken_info, get_metadata_contract
+from aquarius.events.processors import MetadataCreatedProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -276,7 +277,11 @@ class EventsMonitor(BlockProcessingClass):
             EVENT_METADATA_CREATED, from_block, current_block
         ):
             try:
-                self.processNewDDO(event)
+                event_processor = MetadataCreatedProcessor(
+                    event, self._oceandb, self._web3, self._ecies_account
+                )
+                event_processor.setAllowedPublishers(self._allowed_publishers)
+                event_processor.process()
             except Exception as e:
                 logger.error(
                     f"Error processing new metadata event: {e}\n" f"event={event}"
@@ -537,6 +542,7 @@ class EventsMonitor(BlockProcessingClass):
             return
 
     def get_event_data(self, event):
+        # TODO: move in processors
         tx_id = event.transactionHash.hex()
         sender = event.args.get("createdBy", event.args.get("updatedBy"))
         blockInfo = self._web3.eth.getBlock(event.blockNumber)
@@ -553,6 +559,7 @@ class EventsMonitor(BlockProcessingClass):
         )
 
     def decode_ddo(self, rawddo, flags):
+        # TODO move in processors
         debug_log(f"flags: {flags}")
         # debug_log(f'Before unpack rawddo:{rawddo}')
         if len(flags) < 1:
@@ -590,6 +597,7 @@ class EventsMonitor(BlockProcessingClass):
             return None
 
     def ecies_decrypt(self, rawddo):
+        # TODO: move in processors
         if self._ecies_account is not None:
             key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.privateKey)
             rawddo = ecies.decrypt(key.to_hex(), rawddo)
