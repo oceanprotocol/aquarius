@@ -85,13 +85,7 @@ class Dao(object):
                 ):
                     return service["attributes"]["curation"]["isListed"]
 
-    def run_es_query(self, data, with_metadata=False):
-        """do an elasticsearch native query.
-
-        The query is expected to be in the elasticsearch search format.
-
-        :return: list of objects that match the query.
-        """
+    def refine_query_parameters(self, data):
         page = data.get("page", 1)
         assert page >= 1, "page value %s is invalid" % page
 
@@ -107,6 +101,17 @@ class Dao(object):
             query = {"match_all": {}}
 
         offset = data.get("offset", 0)
+
+        return query, sort, page, offset
+
+    def run_es_query(self, data):
+        """do an elasticsearch native query.
+
+        The query is expected to be in the elasticsearch search format.
+
+        :return: list of objects that match the query.
+        """
+        query, sort, page, offset = self.refine_query_parameters(data)
         body = {
             "sort": sort,
             "from": (page - 1) * offset,
@@ -123,8 +128,10 @@ class Dao(object):
         for x in page["hits"]["hits"]:
             object_list.append(x["_source"])
 
-        if not with_metadata:
-            return object_list, page["hits"]["total"]
+        return object_list, page["hits"]["total"]
+
+    def run_metadata_query(self, data):
+        query, _, _, _ = self.refine_query_parameters(data)
 
         body = {
             "size": 0,
@@ -140,6 +147,7 @@ class Dao(object):
                 },
             },
         }
+
         logging.info(f"running metadata query: {body}")
         metadata = self.oceandb.driver.es.search(
             index=self.oceandb.driver.db_index, body=body
@@ -149,4 +157,4 @@ class Dao(object):
             for key, value in metadata["aggregations"].items()
         }
 
-        return object_list, page["hits"]["total"], metadata
+        return metadata

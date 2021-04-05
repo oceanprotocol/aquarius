@@ -255,14 +255,15 @@ def query_ddo():
     data.setdefault("page", 1)
     data.setdefault("offset", 100)
 
-    query_result = dao.run_es_query(data, with_metadata=True)
+    query_result = dao.run_es_query(data)
+    metadata = dao.run_metadata_query(data)
 
     search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
 
     for ddo in query_result[0]:
         sanitize_record(ddo)
 
-    response = make_paginate_response(query_result, search_model)
+    response = make_paginate_response(query_result, search_model, metadata)
     return Response(
         json.dumps(response, default=datetime_converter),
         200,
