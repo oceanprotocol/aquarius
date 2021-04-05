@@ -175,23 +175,21 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     )
     get_event(EVENT_METADATA_CREATED, block, ddo["id"])
     events_object.process_current_blocks()
-    assert (
-        len(
-            run_request_get_data(
-                client.post,
-                base_ddo_url + "/query",
-                {
-                    "query": {
-                        "query_string": {
-                            "query": _ddo["dataToken"],
-                            "default_field": "dataToken",
-                        }
-                    }
-                },
-            )["results"]
-        )
-        > 0
+    result = run_request_get_data(
+        client.post,
+        base_ddo_url + "/query",
+        {
+            "query": {
+                "query_string": {
+                    "query": _ddo["dataToken"],
+                    "default_field": "dataToken",
+                }
+            }
+        },
     )
+    assert len(result["results"]) > 0
+    assert "licenses" in result["resultsMetadata"]
+    assert "tags" in result["resultsMetadata"]
 
 
 def test_get_assets_names(client, events_object):

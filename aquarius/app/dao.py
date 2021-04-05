@@ -8,6 +8,7 @@ import logging
 import elasticsearch
 from oceandb_driver_interface import OceanDb
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
+from aquarius.app.util import rename_metadata_keys
 
 
 class Dao(object):
@@ -82,13 +83,7 @@ class Dao(object):
                 ):
                     return service["attributes"]["curation"]["isListed"]
 
-    def run_es_query(self, data):
-        """do an elasticsearch native query.
-
-        The query is expected to be in the elasticsearch search format.
-
-        :return: list of objects that match the query.
-        """
+    def refine_query_parameters(self, data):
         page = data.get("page", 1)
         assert page >= 1, "page value %s is invalid" % page
 
@@ -104,12 +99,24 @@ class Dao(object):
             query = {"match_all": {}}
 
         offset = data.get("offset", 0)
+
+        return query, sort, page, offset
+
+    def run_es_query(self, data):
+        """do an elasticsearch native query.
+
+        The query is expected to be in the elasticsearch search format.
+
+        :return: list of objects that match the query.
+        """
+        query, sort, page, offset = self.refine_query_parameters(data)
         body = {
             "sort": sort,
             "from": (page - 1) * offset,
             "size": offset,
             "query": query,
         }
+
         logging.info(f"running query: {body}")
         page = self.oceandb.driver.es.search(
             index=self.oceandb.driver.db_index, body=body
@@ -120,3 +127,32 @@ class Dao(object):
             object_list.append(x["_source"])
 
         return object_list, page["hits"]["total"]
+
+    def run_metadata_query(self, data):
+        query, _, _, _ = self.refine_query_parameters(data)
+
+        body = {
+            "size": 0,
+            "query": query,
+            "aggs": {
+                "licenses": {
+                    "terms": {"field": "service.attributes.main.license.keyword"}
+                },
+                "tags": {
+                    "terms": {
+                        "field": "service.attributes.additionalInformation.tags.keyword"
+                    }
+                },
+            },
+        }
+
+        logging.info(f"running metadata query: {body}")
+        metadata = self.oceandb.driver.es.search(
+            index=self.oceandb.driver.db_index, body=body
+        )
+        metadata = {
+            key: rename_metadata_keys(value["buckets"])
+            for key, value in metadata["aggregations"].items()
+        }
+
+        return metadata
