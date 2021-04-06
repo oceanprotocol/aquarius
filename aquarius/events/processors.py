@@ -23,7 +23,6 @@ from aquarius.events.util import get_datatoken_info
 from aquarius.events.decryptor import Decryptor
 
 logger = logging.getLogger(__name__)
-debug_log = logger.debug
 
 
 class EventProcessor(ABC):
@@ -59,7 +58,8 @@ class MetadataCreatedProcessor(EventProcessor):
 
     def make_record(self, data):
         _record = init_new_ddo(data, self.timestamp)
-        # this will be used when updating the doo
+
+        # the event record will be used when updating the ddo
         _record["event"] = {
             "txid": self.txid,
             "blockNo": self.block,
@@ -111,7 +111,7 @@ class MetadataCreatedProcessor(EventProcessor):
             pass
 
         logger.info(f"Start processing {EVENT_METADATA_CREATED} event: did={did}")
-        debug_log(
+        logger.debug(
             f"block {self.block}, contract: {self.contract_address}, Sender: {sender_address} , txid: {self.txid}"
         )
 
@@ -133,7 +133,9 @@ class MetadataCreatedProcessor(EventProcessor):
             self._oceandb.write(record_str, did)
             _record = json.loads(record_str)
             name = _record["service"][0]["attributes"]["main"]["name"]
-            debug_log(f"DDO saved: did={did}, name={name}, publisher={sender_address}")
+            logger.debug(
+                f"DDO saved: did={did}, name={name}, publisher={sender_address}"
+            )
             logger.info(
                 f"Done processing {EVENT_METADATA_CREATED} event: did={did}. DDO SAVED TO DB"
             )
@@ -180,7 +182,7 @@ class MetadataUpdatedProcessor(EventProcessor):
 
     def process(self):
         did, sender_address = self.did, self.sender_address
-        debug_log(f"Process update DDO, did from event log:{did}")
+        logger.debug(f"Process update DDO, did from event log:{did}")
         try:
             asset = self._oceandb.read(did)
         except Exception:
@@ -197,7 +199,7 @@ class MetadataUpdatedProcessor(EventProcessor):
             event_processor.process()
             return
 
-        debug_log(
+        logger.debug(
             f"block {self.block}, contract: {self.contract_address}, Sender: {sender_address} , txid: {self.txid}"
         )
 
@@ -224,7 +226,7 @@ class MetadataUpdatedProcessor(EventProcessor):
             logger.warning("Transaction sender must mach ddo owner")
             return
 
-        debug_log(f"decoding with did {did} and flags {self.flags}")
+        logger.debug(f"decoding with did {did} and flags {self.flags}")
         data = self.decryptor.decode_ddo(self.rawddo, self.flags)
         if data is None:
             logger.warning("Cound not decode ddo")

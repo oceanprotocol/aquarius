@@ -11,7 +11,6 @@ import lzma as Lzma
 from aquarius.app.util import get_bool_env_value
 
 logger = logging.getLogger(__name__)
-debug_log = logger.debug
 
 
 class Decryptor:
@@ -25,10 +24,10 @@ class Decryptor:
         return rawddo
 
     def decode_ddo(self, rawddo, flags):
-        debug_log(f"flags: {flags}")
-        # debug_log(f'Before unpack rawddo:{rawddo}')
+        logger.debug(f"flags: {flags}")
+
         if len(flags) < 1:
-            debug_log("Set check_flags to 0!")
+            logger.debug("Set check_flags to 0!")
             check_flags = 0
         else:
             check_flags = flags[0]
@@ -38,7 +37,7 @@ class Decryptor:
             logger.error("This aquarius can cache only encrypted ddos")
             return None
         # always start with MSB -> LSB
-        debug_log(f"checkflags: {check_flags}")
+        logger.debug(f"checkflags: {check_flags}")
         # bit 2:  check if ddo is ecies encrypted
         if check_flags & 2:
             try:
