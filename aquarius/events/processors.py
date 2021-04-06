@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class EventProcessor(ABC):
     def __init__(self, event, oceandb, web3, ecies_account, allowed_publishers):
+        """Initialises common Event processing properties."""
         self.event = event
         self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
         self.block = event.blockNumber

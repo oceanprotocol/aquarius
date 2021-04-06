@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class Decryptor:
     def __init__(self, ecies_account):
+        """Initialises Decryptor object based on ecies account."""
         self._ecies_account = ecies_account
 
     def ecies_decrypt(self, rawddo):
