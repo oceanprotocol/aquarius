@@ -194,9 +194,8 @@ class MetadataUpdater(BlockProcessingClass):
 
     def get_dt_addresses_from_exchange_logs(self, from_block, to_block=None):
         contract = FixedRateExchange(None)
-        event_names = ["ExchangeCreated"]  # , 'ExchangeRateChanged']
+        event_names = ["ExchangeCreated", "ExchangeRateChanged"]
         topic0_list = [self._get_event_signature(contract, en) for en in event_names]
-        args_list = [("dataToken",)]
         filters = []
         to_block = to_block or "latest"
         for i, event_name in enumerate(event_names):
@@ -207,7 +206,6 @@ class MetadataUpdater(BlockProcessingClass):
                     "topics": [topic0_list[i]],
                 }
             )
-
         events = [getattr(contract.events, en) for en in event_names]
         event_abis = [e().abi for e in events]
         address_exid = []
@@ -222,20 +220,30 @@ class MetadataUpdater(BlockProcessingClass):
                 logs = []
 
             if logs:
-                args = args_list[i]
                 for log in logs:
+                    log_topics = log["topics"]
                     parsed_log = get_event_data(event_abis[i], log)
-                    address_exid.extend(
-                        [
-                            (
-                                parsed_log.args.get(arg, ""),
+                    if log_topics[0] == topic0_list[0]:
+                        logger.debug(f"Processing ExchangeCreated: {parsed_log}")
+                        address_exid.extend(
+                            [
+                                parsed_log.args.get("dataToken", ""),
                                 add_0x_prefix(parsed_log.args.exchangeId.hex()),
-                            )
-                            for arg in args
-                        ]
-                    )
+                            ]
+                        )
+                    else:
+                        # update event
+                        logger.debug(f"Processing ExchangeRateChanged: {parsed_log}")
+                        exchange_info = contract.getExchange(
+                            parsed_log.args.exchangeId.hex()
+                        )
+                        address_exid.extend(
+                            [
+                                exchange_info.dataToken,
+                                add_0x_prefix(parsed_log.args.exchangeId.hex()),
+                            ]
+                        )
                     # all_logs.append(parsed_log)
-
         return address_exid
 
     def get_dt_addresses_from_pool_logs(self, from_block, to_block=None):
@@ -620,14 +628,13 @@ class MetadataUpdater(BlockProcessingClass):
             )
             self._oceandb.update(asset, did)
 
-    def update_dt_assets_with_exchange_info(self, dt_address_exid):
+    def update_dt_assets_with_exchange_info(self, dt_address_exids):
         did_prefix = self.DID_PREFIX
         dao = Dao(oceandb=self._oceandb)
         seen_exs = set()
-        for address, exid in dt_address_exid:
+        for address, exid in zip(dt_address_exids[::2], dt_address_exids[1::2]):
             if not address or exid in seen_exs:
                 continue
-
             seen_exs.add(exid)
             logger.info(
                 f"updating price info for datatoken: {address}, exchangeId {exid}"
@@ -738,10 +745,12 @@ class MetadataUpdater(BlockProcessingClass):
             dt_address_pool_list = self.get_dt_addresses_from_pool_logs(
                 from_block=from_block, to_block=block
             )
+            logger.debug(f"Got pools: {dt_address_pool_list}")
             self.update_dt_assets(dt_address_pool_list)
             dt_address_exchange = self.get_dt_addresses_from_exchange_logs(
                 from_block=from_block, to_block=block
             )
+            logger.debug(f"Got dt/exchanges: {dt_address_exchange}")
             self.update_dt_assets_with_exchange_info(dt_address_exchange)
             ok = True
 
