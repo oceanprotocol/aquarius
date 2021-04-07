@@ -433,7 +433,7 @@ class MetadataUpdater(BlockProcessingClass):
         self, _dt_address, owner=None, exchange_id=None
     ):
         if exchange_id:
-            price, dt_supply = self._get_fixedrateexchange_price(
+            price, dt_supply, exchange_id = self._get_fixedrateexchange_price(
                 _dt_address, exchange_id=exchange_id
             )
         else:
@@ -639,7 +639,7 @@ class MetadataUpdater(BlockProcessingClass):
             if not address or exid in seen_exs:
                 continue
             seen_exs.add(exid)
-            logger.info(
+            logger.debug(
                 f"updating price info for datatoken: {address}, exchangeId {exid}"
             )
             did = did_prefix + remove_0x_prefix(address)
@@ -660,10 +660,8 @@ class MetadataUpdater(BlockProcessingClass):
                 price_dict = self._get_price_updates_from_fixed_rate_exchange(
                     _dt_address, exchange_id=exid
                 )
-
                 asset["price"].update(price_dict)
                 asset["dataTokenInfo"] = get_datatoken_info(_dt_address)
-
                 self._oceandb.update(asset, did)
                 logger.info(
                     f"updated price info: dt={address}, exchangeAddress={self.ex_contract.address}, "
