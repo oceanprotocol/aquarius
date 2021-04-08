@@ -8,15 +8,13 @@ SPDX-License-Identifier: Apache-2.0
 
 # Aquarius
 
-> 🐋 Aquarius provides an off-chain database cache for metadata that is published on-chain.
-This enables faster query operations on datasets metadata.
-The latest version of Aquarius consist of a Flask application to support fetching and
-searching metadata and a blockchain events monitor that picks up new metadata published
-on-chain and stores it in the database backend (elasticsearch).
+> Off-chain database cache for metadata that is published on-chain.
 
-> It's part of the [Ocean Protocol](https://oceanprotocol.com) software stack.
+Aquarius enables fast query operations on datasets metadata. It consists of:
+- a Flask application to support fetching and searching metadata, and
+- a blockchain events monitor that picks up new metadata published on-chain, then stores it in the database backend (elasticsearch).
 
----
+It's part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
 
 ## What Aquarius does
 * Aquarius runs a Flask RESTful server to support fetching and searching metadata of datasets that are published on-chain
