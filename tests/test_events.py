@@ -91,15 +91,19 @@ def test_publish_and_update_ddo_with_lzma_and_ecies(
     run_test(client, base_ddo_url, events_object, 0, ecies_account.privateKey)
 
 
-def test_publish(client, base_ddo_url, events_object):
+def do_publish(client, base_ddo_url, events_object):
     _ddo = new_ddo(test_account1, get_web3(), "dt.0")
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))
     data = Web3.toBytes(text=ddo_string)
     send_create_update_tx("create", did, bytes([0]), data, test_account1)
     events_object.process_current_blocks()
-    published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["id"] == did
+    return _ddo, get_ddo(client, base_ddo_url, did)
+
+
+def test_publish(client, base_ddo_url, events_object):
+    _ddo, published_ddo = do_publish(client, base_ddo_url, events_object)
+    assert published_ddo["id"] == _ddo.id
 
 
 def test_publish_unallowed_address(client, base_ddo_url, events_object):
@@ -114,14 +118,7 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
 
 
 def test_fixed_rate_events(client, base_ddo_url, events_object):
-    _ddo = new_ddo(test_account1, get_web3(), "dt.0")
-    did = _ddo.id
-    ddo_string = json.dumps(dict(_ddo))
-    data = Web3.toBytes(text=ddo_string)
-    send_create_update_tx("create", did, bytes([0]), data, test_account1)
-    events_object.process_current_blocks()
-    published_ddo = get_ddo(client, base_ddo_url, did)
-
+    _ddo, published_ddo = do_publish(client, base_ddo_url, events_object)
     dt_address_2 = deploy_datatoken(
         get_web3(), test_account1.privateKey, "dt.1", "dt.1", test_account1.address
     )
@@ -131,8 +128,10 @@ def test_fixed_rate_events(client, base_ddo_url, events_object):
     test_account1_wallet = Wallet(get_web3(), private_key=test_account1.privateKey)
     x_id = ox.create(_ddo["dataToken"], 0.9, test_account1_wallet)
     events_object._process_pool_events()
-    published_ddo = get_ddo(client, base_ddo_url, did)
+    published_ddo = get_ddo(client, base_ddo_url, _ddo.id)
     assert published_ddo["price"]["exchange_id"] == "0x" + x_id.hex()
+
+    # TODO: test rate changed event once available in ocean.py
 
 
 def _get_exchange_address():
