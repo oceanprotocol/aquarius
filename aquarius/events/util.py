@@ -14,7 +14,7 @@ from ocean_lib.web3_internal.web3_provider import Web3Provider
 from ocean_lib.models.data_token import DataToken
 from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
 from ocean_lib.models.metadata import MetadataContract
-from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
+from ocean_lib.ocean.util import get_contracts_addresses, from_base_18, to_base_18
 from ocean_lib.web3_internal.web3helper import Web3Helper
 from web3 import Web3
 
@@ -88,7 +88,7 @@ def deploy_datatoken(web3, private_key, name, symbol, minter_address):
         name,
         symbol,
         minter_address,
-        1000,
+        to_base_18(1000),
         "no blob",
         minter_address,
     )
