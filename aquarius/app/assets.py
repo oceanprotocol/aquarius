@@ -32,7 +32,6 @@ from aquarius.app.util import (
     list_errors,
     get_request_data,
 )
-from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.log import setup_logging
 from aquarius.myapp import app
@@ -423,14 +422,6 @@ def update_ddo_info(did):
         asset_record = dao.get(did)
         if not asset_record:
             return jsonify(error=f"Asset {did} not found."), 404
-        _other_db_index = f"{dao.oceandb.driver.db_index}_plus"
-        updater = MetadataUpdater(
-            oceandb=dao.oceandb,
-            other_db_index=_other_db_index,
-            web3=Web3Provider.get_web3(),
-            config=ConfigProvider.get_config(),
-        )
-        updater.do_single_update(asset_record)
 
         return jsonify("acknowledged."), 200
     except Exception as e:
@@ -458,15 +449,6 @@ def delist_ddo(did):
         asset_record = dao.get(did)
         if not asset_record:
             return jsonify(error=f"Asset {did} not found."), 404
-
-        _other_db_index = f"{dao.oceandb.driver.db_index}_plus"
-        updater = MetadataUpdater(
-            oceandb=dao.oceandb,
-            other_db_index=_other_db_index,
-            web3=Web3Provider.get_web3(),
-            config=ConfigProvider.get_config(),
-        )
-        updater.do_single_update(asset_record)
 
         return jsonify("acknowledged."), 200
     except Exception as e:
