@@ -17,7 +17,6 @@ import eth_keys
 import requests
 from eth_account import Account
 from eth_utils import add_0x_prefix, remove_0x_prefix
-from ocean_lib.config_provider import ConfigProvider
 from oceandb_driver_interface import OceanDb
 from plecos.plecos import is_valid_dict_remote, list_errors_dict_remote
 
@@ -33,7 +32,6 @@ from aquarius.app.util import (
 )
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
-from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_datatoken_info, get_metadata_contract
 
 logger = logging.getLogger(__name__)
@@ -74,13 +72,6 @@ class EventsMonitor(BlockProcessingClass):
 
         self._web3 = web3
         self._pool_monitor = None
-        if get_bool_env_value("PROCESS_POOL_EVENTS", 1):
-            self._pool_monitor = MetadataUpdater(
-                self._oceandb,
-                self._other_db_index,
-                self._web3,
-                ConfigProvider.get_config(),
-            )
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
@@ -165,9 +156,6 @@ class EventsMonitor(BlockProcessingClass):
             self._pool_monitor.stop()
 
     def run_monitor(self):
-        first_update = bool(
-            self._pool_monitor and self._pool_monitor.is_first_update_enabled()
-        )
         if self._purgatory_enabled:
             self._update_existing_assets_purgatory_data()
 
@@ -177,8 +165,6 @@ class EventsMonitor(BlockProcessingClass):
                     return
 
                 self.process_current_blocks()
-                self._process_pool_events(first_update)
-                first_update = False
 
                 if self._purgatory_enabled:
                     self._update_purgatory_list()
@@ -188,15 +174,6 @@ class EventsMonitor(BlockProcessingClass):
                 logger.error(e)
 
             time.sleep(self._monitor_sleep_time)
-
-    def _process_pool_events(self, first_update=False):
-        if not self._pool_monitor:
-            return
-
-        if first_update:
-            self._pool_monitor.do_update()
-
-        self._pool_monitor.process_pool_events()
 
     def _update_existing_assets_purgatory_data(self):
         for asset in self._oceandb.list():
