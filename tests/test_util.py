@@ -6,8 +6,13 @@ import os
 import json
 import logging
 import pytest
+from datetime import datetime
 
-from aquarius.app.util import get_bool_env_value
+from aquarius.app.util import (
+    get_bool_env_value,
+    datetime_converter,
+    check_no_urls_in_files,
+)
 from aquarius.app.auth_util import compare_eth_addresses, has_update_request_permission
 from aquarius.block_utils import BlockProcessingClass
 
@@ -84,3 +89,14 @@ def test_has_update_request_permission(monkeypatch):
 
 
 # TODO: add test for get_signer_address after clarification of the pending functions
+
+
+def test_datetime_converter():
+    assert datetime_converter(datetime.now())
+
+
+def test_check_no_urls_in_files_fails():
+    main = {"files": [{"url": "test"}]}
+    message, code = check_no_urls_in_files(main, "GET")
+    assert message == "GET request failed: url is not allowed in files "
+    assert code == 400

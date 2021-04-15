@@ -71,10 +71,6 @@ def get_timestamp():
     return f"{datetime.utcnow().replace(microsecond=0).isoformat()}Z"
 
 
-def get_curation_metadata(services):
-    return get_metadata_from_services(services).get("curation", {})
-
-
 def get_main_metadata(services):
     metadata = get_metadata_from_services(services)
     assert "main" in metadata, "metadata is missing the `main` section."
@@ -139,8 +135,8 @@ def validate_date_format(date):
 
 def check_no_urls_in_files(main, method):
     if "files" in main:
-        for file in main["files"]:
-            if "url" in file:
+        for file_var in main["files"]:
+            if "url" in file_var:
                 logger.error("%s request failed: url is not allowed in files " % method)
                 return "%s request failed: url is not allowed in files " % method, 400
     return None, None
@@ -152,7 +148,6 @@ def check_required_attributes(required_attributes, data, method):
     ), "invalid `body` type, should already formatted into a dict."
     logger.info("got %s request: %s" % (method, data))
     if not data:
-        logger.error("%s request failed: data is empty." % method)
         logger.error("%s request failed: data is empty." % method)
         return "payload seems empty.", 400
 
@@ -204,13 +199,6 @@ def validate_data(data, method):
         return msg, status
 
     return None, None
-
-
-def get_sender_from_txid(web3, txid):
-    transaction = web3.eth.getTransaction(txid)
-    if transaction is not None:
-        return transaction["from"]
-    return None
 
 
 def rename_metadata_keys(bucket):
