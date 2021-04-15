@@ -12,7 +12,6 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from pymongo import MongoClient
 
 from aquarius.app.assets import assets
-from aquarius.app.pools import pools
 from aquarius.app.util import get_bool_env_value
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
@@ -65,7 +64,6 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 # Register blueprint at URL
 app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
-app.register_blueprint(pools, url_prefix=BaseURLs.POOLS_URL)
 
 
 def get_status():
