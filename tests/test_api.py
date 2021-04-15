@@ -295,10 +295,26 @@ def test_asset_metadata_not_found(client):
     assert result.status == "404 NOT FOUND"
 
 
-def test_encrypt_ddo_content_type(client, base_ddo_url, events_object):
+def test_encrypt_ddo_content_failures(client, base_ddo_url, events_object, monkeypatch):
     _response = client.post(
         base_ddo_url + "/encrypt",
         data="irrelevant",
         content_type="application/not-octet-stream",
     )
     assert _response.status_code == 400
+
+    monkeypatch.delenv("EVENTS_ECIES_PRIVATE_KEY")
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="application/octet-stream",
+    )
+    assert _response.status_code == 400
+
+    monkeypatch.setenv("EVENTS_ECIES_PRIVATE_KEY", "thisIsNotValid")
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="application/octet-stream",
+    )
+    assert _response.status_code == 500
