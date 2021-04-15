@@ -141,10 +141,27 @@ def test_validate_remote(client_with_no_data, base_ddo_url):
     )
     assert post.status_code == 400
     assert post.data == b'{"message":"Invalid DDO format."}\n'
+
+    # main key missing from metadata service - should fail from Aqua
+    val = json_before["service"][2]["attributes"].pop("main")
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
     )
+    assert post.status_code == 400
 
+    # main key empty in metadata service - should fail from Plecos
+    json_before["service"][2]["attributes"]["main"] = {}
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
+    )
+    assert post.status_code == 200
+    assert json.loads(post.data)[0]["message"] == "'name' is a required property"
+
+    # putting back the correct value in metadata main service - should pass
+    json_before["service"][2]["attributes"]["main"] = val
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
+    )
     assert post.data == b"true\n"
 
 
@@ -194,6 +211,15 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
 
 def test_get_assets_names(client, events_object):
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
+
+    response = run_request(client.post, base_url + "/names", {"notTheDidList": ["a"]})
+
+    assert response.status == "400 BAD REQUEST"
+
+    response = run_request(client.post, base_url + "/names", {"didList": []})
+
+    assert response.status == "400 BAD REQUEST"
+
     assets = add_assets(events_object, "dt_name", 3)
     dids = [ddo["id"] for ddo in assets]
     did_to_name = run_request_get_data(
@@ -241,3 +267,38 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
         )
         > 0
     )
+
+    result = run_request_get_data(
+        client.get, "api/v1/aquarius/assets/metadata/" + ddo["id"]
+    )
+    assert "main" in result
+    assert "name" in result["main"]
+    assert result["main"]["name"] == "Event DDO sample"
+
+
+def test_get_asset_ids(client, base_ddo_url):
+    result = run_request_get_data(client.get, "/api/v1/aquarius/assets")
+
+    assert len(result)
+    assert result[0].startswith("did:op:")
+
+
+def test_get_asset_ddos(client, base_ddo_url):
+    result = run_request_get_data(client.get, base_ddo_url)
+
+    assert len(result)
+    assert "id" in result[0]
+
+
+def test_asset_metadata_not_found(client):
+    result = run_request(client.get, "api/v1/aquarius/assets/metadata/missing")
+    assert result.status == "404 NOT FOUND"
+
+
+def test_encrypt_ddo_content_type(client, base_ddo_url, events_object):
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="application/not-octet-stream",
+    )
+    assert _response.status_code == 400
