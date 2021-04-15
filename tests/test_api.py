@@ -318,3 +318,11 @@ def test_encrypt_ddo_content_failures(client, base_ddo_url, events_object, monke
         content_type="application/octet-stream",
     )
     assert _response.status_code == 500
+
+
+def test_spec(client):
+    result = run_request_get_data(client.get, "/spec")
+    assert "version" in result["info"]
+    assert "title" in result["info"]
+    assert "description" in result["info"]
+    assert "connected" in result["info"]
