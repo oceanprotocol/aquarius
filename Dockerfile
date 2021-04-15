@@ -23,20 +23,11 @@ RUN pip install wheel
 RUN pip install .
 
 # config.ini configuration file variables
-ENV DB_MODULE='mongodb'
+ENV DB_MODULE='elasticsearch'
 ENV DB_HOSTNAME='localhost'
 ENV DB_PORT='27017'
-#MONGO
-ENV DB_NAME='aquarius'
-ENV DB_COLLECTION='ddo'
 #ELASTIC
 ENV DB_INDEX='aquarius'
-#BDB
-ENV DB_SECRET=''
-ENV DB_SCHEME='http'
-ENV DB_NAMESPACE='namespace'
-ENV AQUARIUS_URL='http://0.0.0.0:5000'
-ENV ALLOW_FREE_ASSETS_ONLY='false'
 # docker-entrypoint.sh configuration file variables
 ENV AQUARIUS_WORKERS='8'
 ENV USE_POA_MIDDLEWARE='1'
