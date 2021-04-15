@@ -3,11 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import os
-
+import json
+import logging
 import pytest
 
 from aquarius.app.util import get_bool_env_value
+from aquarius.app.auth_util import compare_eth_addresses, has_update_request_permission
 from aquarius.block_utils import BlockProcessingClass
+
+logger = logging.getLogger(__name__)
 
 
 def test_get_bool_env_value():
@@ -61,3 +65,22 @@ def test_get_set_last_block_without_ignore(monkeypatch):
     mu = MetadataUpdaterTestClass()
 
     assert mu.get_or_set_last_block() == 100
+
+
+def test_compare_eth_addresses():
+    address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
+    assert not compare_eth_addresses(address, "notAnAddress", logger)
+    assert not compare_eth_addresses("notAnAddress", address, logger)
+    assert compare_eth_addresses(address.upper(), address, logger)
+
+
+def test_has_update_request_permission(monkeypatch):
+    monkeypatch.setenv("AQUA_VIP_ACCOUNTS", "badjson")
+    assert has_update_request_permission("") is False
+
+    address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
+    monkeypatch.setenv("AQUA_VIP_ACCOUNTS", json.dumps([address]))
+    assert has_update_request_permission(address)
+
+
+# TODO: add test for get_signer_address after clarification of the pending functions
