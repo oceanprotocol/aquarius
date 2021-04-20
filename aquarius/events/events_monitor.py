@@ -254,7 +254,7 @@ class EventsMonitor(BlockProcessingClass):
                 pass
 
     def process_current_blocks(self):
-        """Process all blocks from the last processed block to the current block"""
+        """Process all blocks from the last processed block to the current block."""
         try:
             last_block = self.get_last_processed_block()
         except Exception as e:
@@ -283,7 +283,7 @@ class EventsMonitor(BlockProcessingClass):
         self.process_block_range(end_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
-        """ Process a range of blocks"""
+        """Process a range of blocks."""
         if from_block >= to_block:
             return
 
