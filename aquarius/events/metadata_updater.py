@@ -741,15 +741,23 @@ class MetadataUpdater(BlockProcessingClass):
         logger.debug(
             f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{block} <<<<"
         )
+
+        start_block_chunk = from_block
+        for end_block_chunk in range(from_block, last_block + 1000, 1000):
+            self.process_block_range(start_block_chunk, end_block_chunk)
+
+    def process_block_range(self, from_block, to_block):
+        if from_block >= to_block:
+            return
         ok = False
         try:
             dt_address_pool_list = self.get_dt_addresses_from_pool_logs(
-                from_block=from_block, to_block=block
+                from_block=from_block, to_block=to_block
             )
             logger.debug(f"Got pools: {dt_address_pool_list}")
             self.update_dt_assets(dt_address_pool_list)
             dt_address_exchange = self.get_dt_addresses_from_exchange_logs(
-                from_block=from_block, to_block=block
+                from_block=from_block, to_block=to_block
             )
             logger.debug(f"Got dt/exchanges: {dt_address_exchange}")
             self.update_dt_assets_with_exchange_info(dt_address_exchange)
@@ -759,5 +767,5 @@ class MetadataUpdater(BlockProcessingClass):
             logging.error(f"process_pool_events: {e}")
 
         finally:
-            if ok and isinstance(block, int):
-                self.store_last_processed_block(block)
+            if ok and isinstance(to_block, int):
+                self.store_last_processed_block(to_block)
