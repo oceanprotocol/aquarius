@@ -290,7 +290,7 @@ class EventsMonitor(BlockProcessingClass):
         debug_log(
             f"Metadata monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
         )
-        if from_block >= to_block:
+        if from_block > to_block:
             return
 
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, to_block):

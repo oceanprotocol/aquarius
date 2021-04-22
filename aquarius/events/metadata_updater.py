@@ -776,7 +776,7 @@ class MetadataUpdater(BlockProcessingClass):
         logger.debug(
             f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
         )
-        if from_block >= to_block:
+        if from_block > to_block:
             return
 
         ok = False
