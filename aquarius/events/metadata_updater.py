@@ -101,6 +101,10 @@ class MetadataUpdater(BlockProcessingClass):
             self._quiet_time = 0
 
         self._quiet_time = max(self._quiet_time, default_quiet_time)
+        try:
+            self._blockchain_chunk_size = int(os.getenv("BLOCKS_CHUNK_SIZE", 1000))
+        except ValueError:
+            self._blockchain_chunk_size = 1000
 
     @property
     def is_running(self):
@@ -411,7 +415,7 @@ class MetadataUpdater(BlockProcessingClass):
         event = getattr(bfactory.events, event_name)
         latest_block = self._web3.eth.blockNumber
         _from = self.bfactory_block
-        chunk = 10000
+        chunk = self._blockchain_chunk_size
         pools = []
         while _from < latest_block:
             event_filter = EventFilter(
@@ -733,22 +737,32 @@ class MetadataUpdater(BlockProcessingClass):
             logger.warning(f"exception thrown reading last_block from db: {e}")
             last_block = 0
 
-        block = self._web3.eth.blockNumber
-        if not block or not isinstance(block, int) or block <= last_block:
+        current_block = self._web3.eth.blockNumber
+        if (
+            not current_block
+            or not isinstance(current_block, int)
+            or current_block <= last_block
+        ):
             return
 
         from_block = last_block
-        logger.debug(
-            f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{block} <<<<"
-        )
 
         start_block_chunk = from_block
-        for end_block_chunk in range(from_block, last_block + 1000, 1000):
+        for end_block_chunk in range(
+            from_block, current_block, self._blockchain_chunk_size
+        ):
             self.process_block_range(start_block_chunk, end_block_chunk)
+            start_block_chunk = end_block_chunk
+        # Process last few blocks because range(start, end) doesn't include end
+        self.process_block_range(start_block_chunk, end_block_chunk)
 
     def process_block_range(self, from_block, to_block):
+        logger.debug(
+            f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
+        )
         if from_block >= to_block:
             return
+
         ok = False
         try:
             dt_address_pool_list = self.get_dt_addresses_from_pool_logs(

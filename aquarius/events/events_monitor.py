@@ -131,6 +131,10 @@ class EventsMonitor(BlockProcessingClass):
         self._purgatory_enabled = get_bool_env_value("PROCESS_PURGATORY", 1)
         self._purgatory_list = set()
         self._purgatory_update_time = None
+        try:
+            self._blockchain_chunk_size = int(os.getenv("BLOCKS_CHUNK_SIZE", 1000))
+        except ValueError:
+            self._blockchain_chunk_size = 1000
 
     @property
     def block_envvar(self):
@@ -270,12 +274,11 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         from_block = last_block
-        debug_log(
-            f"Metadata monitor >>>> from_block:{from_block}, current_block:{current_block} <<<<"
-        )
 
         start_block_chunk = from_block
-        for end_block_chunk in range(from_block, current_block, 1000):
+        for end_block_chunk in range(
+            from_block, current_block, self._blockchain_chunk_size
+        ):
             self.process_block_range(start_block_chunk, end_block_chunk)
             start_block_chunk = end_block_chunk
 
@@ -284,6 +287,9 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_block_range(self, from_block, to_block):
         """Process a range of blocks."""
+        debug_log(
+            f"Metadata monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
+        )
         if from_block >= to_block:
             return
 
