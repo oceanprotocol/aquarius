@@ -171,12 +171,26 @@ class MetadataUpdater(BlockProcessingClass):
         return self._web3.sha3(text=sig_str).hex()
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb.driver.es.get(
-            index=self._other_db_index, id="pool_events_last_block", doc_type="_doc"
-        )["_source"]
-        return last_block_record["last_block"]
+        block = 0
+        try:
+            last_block_record = self._oceandb.driver.es.get(
+                index=self._other_db_index, id="pool_events_last_block", doc_type="_doc"
+            )["_source"]
+            block = last_block_record["last_block"]
+        except Exception as e:
+            logger.error(f"Cannot get last_block error={e}")
+        # no need to start from 0 if we have a deployment block
+        bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
+        if block < bfactory_block:
+            block = bfactory_block
+        return block
 
     def store_last_processed_block(self, block):
+        # make sure that we don't write a block < then needed
+        stored_block = self.get_last_processed_block()
+        if block <= stored_block:
+            return
+
         record = {"last_block": block}
         try:
             self._oceandb.driver.es.index(
@@ -411,7 +425,7 @@ class MetadataUpdater(BlockProcessingClass):
         event = getattr(bfactory.events, event_name)
         latest_block = self._web3.eth.blockNumber
         _from = self.bfactory_block
-        chunk = 10000
+        chunk = self.blockchain_chunk_size
         pools = []
         while _from < latest_block:
             event_filter = EventFilter(
@@ -727,28 +741,33 @@ class MetadataUpdater(BlockProcessingClass):
                 logger.error(f"updating datatoken assets price/liquidity values: {e}")
 
     def process_pool_events(self):
-        try:
-            last_block = self.get_last_processed_block()
-        except Exception as e:
-            logger.warning(f"exception thrown reading last_block from db: {e}")
-            last_block = 0
-
-        block = self._web3.eth.blockNumber
-        if not block or not isinstance(block, int) or block <= last_block:
+        last_block = self.get_last_processed_block()
+        current_block = self._web3.eth.blockNumber
+        if (
+            not current_block
+            or not isinstance(current_block, int)
+            or current_block <= last_block
+        ):
             return
 
         from_block = last_block
-        logger.debug(
-            f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{block} <<<<"
-        )
 
         start_block_chunk = from_block
-        for end_block_chunk in range(from_block, last_block + 1000, 1000):
+        for end_block_chunk in range(
+            from_block, current_block, self.blockchain_chunk_size
+        ):
             self.process_block_range(start_block_chunk, end_block_chunk)
+            start_block_chunk = end_block_chunk
+        # Process last few blocks because range(start, end) doesn't include end
+        self.process_block_range(start_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
-        if from_block >= to_block:
+        logger.debug(
+            f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
+        )
+        if from_block > to_block:
             return
+
         ok = False
         try:
             dt_address_pool_list = self.get_dt_addresses_from_pool_logs(

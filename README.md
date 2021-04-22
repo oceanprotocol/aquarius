@@ -79,6 +79,8 @@ METADATA_CONTRACT_BLOCK
 USE_POA_MIDDLEWARE
 # if set to 1, read events from the first Metadata and BFactory block number, or a specific block number (used for debugging)
 IGNORE_LAST_BLOCK
+# When scanning for events, limit the chunk size. Infura accepts 10k blocks, but others will take only 1000 (default value)
+BLOCKS_CHUNK_SIZE
 ```
 
 ## For Aquarius Operators

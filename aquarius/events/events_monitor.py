@@ -255,12 +255,7 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
-        try:
-            last_block = self.get_last_processed_block()
-        except Exception as e:
-            debug_log(e)
-            last_block = 0
-
+        last_block = self.get_last_processed_block()
         current_block = self._web3.eth.blockNumber
         if (
             not current_block
@@ -270,12 +265,11 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         from_block = last_block
-        debug_log(
-            f"Metadata monitor >>>> from_block:{from_block}, current_block:{current_block} <<<<"
-        )
 
         start_block_chunk = from_block
-        for end_block_chunk in range(from_block, current_block, 1000):
+        for end_block_chunk in range(
+            from_block, current_block, self.blockchain_chunk_size
+        ):
             self.process_block_range(start_block_chunk, end_block_chunk)
             start_block_chunk = end_block_chunk
 
@@ -284,7 +278,10 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_block_range(self, from_block, to_block):
         """Process a range of blocks."""
-        if from_block >= to_block:
+        debug_log(
+            f"Metadata monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
+        )
+        if from_block > to_block:
             return
 
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, to_block):
@@ -306,12 +303,25 @@ class EventsMonitor(BlockProcessingClass):
         self.store_last_processed_block(to_block)
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb.driver.es.get(
-            index=self._other_db_index, id="events_last_block", doc_type="_doc"
-        )["_source"]
-        return last_block_record["last_block"]
+        block = 0
+        try:
+            last_block_record = self._oceandb.driver.es.get(
+                index=self._other_db_index, id="events_last_block", doc_type="_doc"
+            )["_source"]
+            block = last_block_record["last_block"]
+        except Exception as e:
+            logger.error(f"Cannot get last_block error={e}")
+        # no need to start from 0 if we have a deployment block
+        metadata_contract_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
+        if block < metadata_contract_block:
+            block = metadata_contract_block
+        return block
 
     def store_last_processed_block(self, block):
+        # make sure that we don't write a block < then needed
+        stored_block = self.get_last_processed_block()
+        if block <= stored_block:
+            return
         record = {"last_block": block}
         try:
             self._oceandb.driver.es.index(
