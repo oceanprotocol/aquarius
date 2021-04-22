@@ -101,10 +101,6 @@ class MetadataUpdater(BlockProcessingClass):
             self._quiet_time = 0
 
         self._quiet_time = max(self._quiet_time, default_quiet_time)
-        try:
-            self._blockchain_chunk_size = int(os.getenv("BLOCKS_CHUNK_SIZE", 1000))
-        except ValueError:
-            self._blockchain_chunk_size = 1000
 
     @property
     def is_running(self):
@@ -181,7 +177,7 @@ class MetadataUpdater(BlockProcessingClass):
                 index=self._other_db_index, id="pool_events_last_block", doc_type="_doc"
             )["_source"]
             block = last_block_record["last_block"]
-        except elasticsearch.exceptions.RequestError as e:
+        except Exception as e:
             logger.error(f"Cannot get last_block error={e}")
         # no need to start from 0 if we have a deployment block
         bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
@@ -747,12 +743,7 @@ class MetadataUpdater(BlockProcessingClass):
                 logger.error(f"updating datatoken assets price/liquidity values: {e}")
 
     def process_pool_events(self):
-        try:
-            last_block = self.get_last_processed_block()
-        except Exception as e:
-            logger.warning(f"exception thrown reading last_block from db: {e}")
-            last_block = 0
-
+        last_block = self.get_last_processed_block()
         current_block = self._web3.eth.blockNumber
         if (
             not current_block

@@ -27,3 +27,7 @@ class BlockProcessingClass(ABC):
             self.store_last_processed_block(_block)
 
             return _block
+        try:
+            self._blockchain_chunk_size = int(os.getenv("BLOCKS_CHUNK_SIZE", 1000))
+        except ValueError:
+            self._blockchain_chunk_size = 1000

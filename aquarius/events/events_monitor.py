@@ -131,10 +131,6 @@ class EventsMonitor(BlockProcessingClass):
         self._purgatory_enabled = get_bool_env_value("PROCESS_PURGATORY", 1)
         self._purgatory_list = set()
         self._purgatory_update_time = None
-        try:
-            self._blockchain_chunk_size = int(os.getenv("BLOCKS_CHUNK_SIZE", 1000))
-        except ValueError:
-            self._blockchain_chunk_size = 1000
 
     @property
     def block_envvar(self):
@@ -259,12 +255,7 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
-        try:
-            last_block = self.get_last_processed_block()
-        except Exception as e:
-            debug_log(e)
-            last_block = 0
-
+        last_block = self.get_last_processed_block()
         current_block = self._web3.eth.blockNumber
         if (
             not current_block
@@ -318,7 +309,7 @@ class EventsMonitor(BlockProcessingClass):
                 index=self._other_db_index, id="events_last_block", doc_type="_doc"
             )["_source"]
             block = last_block_record["last_block"]
-        except elasticsearch.exceptions.RequestError as e:
+        except Exception as e:
             logger.error(f"Cannot get last_block error={e}")
         # no need to start from 0 if we have a deployment block
         metadata_contract_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
