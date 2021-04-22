@@ -321,9 +321,7 @@ class EventsMonitor(BlockProcessingClass):
         # make sure that we don't write a block < then needed
         stored_block = self.get_last_processed_block()
         if block <= stored_block:
-            logger.error(
-                f"Trying to write {block} as last_block, but we already have {stored_block}."
-            )
+            return
         record = {"last_block": block}
         try:
             self._oceandb.driver.es.index(

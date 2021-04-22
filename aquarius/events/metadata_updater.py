@@ -189,9 +189,7 @@ class MetadataUpdater(BlockProcessingClass):
         # make sure that we don't write a block < then needed
         stored_block = self.get_last_processed_block()
         if block <= stored_block:
-            logger.error(
-                f"Trying to write {block} as last_block, but we already have {stored_block}."
-            )
+            return
 
         record = {"last_block": block}
         try:
@@ -761,7 +759,7 @@ class MetadataUpdater(BlockProcessingClass):
             self.process_block_range(start_block_chunk, end_block_chunk)
             start_block_chunk = end_block_chunk
         # Process last few blocks because range(start, end) doesn't include end
-        self.process_block_range(start_block_chunk, end_block_chunk)
+        self.process_block_range(start_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
         logger.debug(
