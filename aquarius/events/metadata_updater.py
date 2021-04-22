@@ -427,7 +427,7 @@ class MetadataUpdater(BlockProcessingClass):
         event = getattr(bfactory.events, event_name)
         latest_block = self._web3.eth.blockNumber
         _from = self.bfactory_block
-        chunk = self._blockchain_chunk_size
+        chunk = self.blockchain_chunk_size
         pools = []
         while _from < latest_block:
             event_filter = EventFilter(
@@ -756,7 +756,7 @@ class MetadataUpdater(BlockProcessingClass):
 
         start_block_chunk = from_block
         for end_block_chunk in range(
-            from_block, current_block, self._blockchain_chunk_size
+            from_block, current_block, self.blockchain_chunk_size
         ):
             self.process_block_range(start_block_chunk, end_block_chunk)
             start_block_chunk = end_block_chunk
