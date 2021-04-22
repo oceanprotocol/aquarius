@@ -16,7 +16,10 @@ class BlockProcessingClass(ABC):
     def get_or_set_last_block(self):
         ignore_last_block = get_bool_env_value("IGNORE_LAST_BLOCK", 0)
         _block = int(os.getenv(self.block_envvar, 0))
-        self.blockchain_chunk_size = 1000
+        try:
+            self.blockchain_chunk_size = int(os.getenv("BLOCKS_CHUNK_SIZE", 1000))
+        except ValueError:
+            self.blockchain_chunk_size = 1000
         try:
             if ignore_last_block:
                 self.store_last_processed_block(_block)
@@ -28,7 +31,3 @@ class BlockProcessingClass(ABC):
             self.store_last_processed_block(_block)
 
             return _block
-        try:
-            self.blockchain_chunk_size = int(os.getenv("BLOCKS_CHUNK_SIZE", 1000))
-        except ValueError:
-            self.blockchain_chunk_size = 1000
