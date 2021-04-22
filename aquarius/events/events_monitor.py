@@ -312,10 +312,19 @@ class EventsMonitor(BlockProcessingClass):
         self.store_last_processed_block(to_block)
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb.driver.es.get(
-            index=self._other_db_index, id="events_last_block", doc_type="_doc"
-        )["_source"]
-        return last_block_record["last_block"]
+        block = 0
+        try:
+            last_block_record = self._oceandb.driver.es.get(
+                index=self._other_db_index, id="events_last_block", doc_type="_doc"
+            )["_source"]
+            block = last_block_record["last_block"]
+        except elasticsearch.exceptions.RequestError as e:
+            logger.error(f"Cannot get last_block error={e}")
+        # no need to start from 0 if we have a deployment block
+        metadata_contract_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
+        if block < metadata_contract_block:
+            block = metadata_contract_block
+        return block
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}

@@ -175,10 +175,19 @@ class MetadataUpdater(BlockProcessingClass):
         return self._web3.sha3(text=sig_str).hex()
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb.driver.es.get(
-            index=self._other_db_index, id="pool_events_last_block", doc_type="_doc"
-        )["_source"]
-        return last_block_record["last_block"]
+        block = 0
+        try:
+            last_block_record = self._oceandb.driver.es.get(
+                index=self._other_db_index, id="pool_events_last_block", doc_type="_doc"
+            )["_source"]
+            block = last_block_record["last_block"]
+        except elasticsearch.exceptions.RequestError as e:
+            logger.error(f"Cannot get last_block error={e}")
+        # no need to start from 0 if we have a deployment block
+        bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
+        if block < bfactory_block:
+            block = bfactory_block
+        return block
 
     def store_last_processed_block(self, block):
         record = {"last_block": block}
