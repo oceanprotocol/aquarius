@@ -32,10 +32,10 @@ jobs:
           docker pull trufflesuite/ganache-cli:latest
           docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest --mnemonic "taxi music thumb unique chat sand crew more leg another off lamp"
           sleep 5
-      - name: Test with tox
-        run: tox
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@master
+      - name: Test with tox and publish code coverage
+        uses: paambaati/codeclimate-action@v2.7.5
+        env:
+          CC_TEST_REPORTER_ID: d9a74ea9daf38479941f0f0b7502b0f67578d122cc660a9fca96bc06df5a1d99
         with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: /github/workspace/coverage.xml
+          coverageCommand: tox
+          debug: true
