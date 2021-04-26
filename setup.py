@@ -91,6 +91,9 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/oceanprotocol/aquarius",
-    version="2.2.8",
+    # fmt: off
+    # bumpversion needs single quotes
+    version='2.2.11',
+    # fmt: on
     zip_safe=False,
 )
