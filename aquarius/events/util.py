@@ -10,12 +10,12 @@ from pathlib import Path
 from ocean_lib.config import Config
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.web3_internal.contract_handler import ContractHandler
+import ocean_lib.web3_internal.utils
 from ocean_lib.web3_internal.web3_provider import Web3Provider
 from ocean_lib.models.data_token import DataToken
 from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
 from ocean_lib.models.metadata import MetadataContract
 from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
-from ocean_lib.web3_internal.web3helper import Web3Helper
 from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
@@ -25,7 +25,7 @@ def get_network_name():
     try:
         network_name = os.getenv("NETWORK_NAME")
         if not network_name:
-            network_name = Web3Helper.get_network_name().lower()
+            network_name = ocean_lib.web3_internal.utils.get_network_name().lower()
     except Exception:
         network = os.getenv("EVENTS_RPC")
         if network.startswith("wss://"):
