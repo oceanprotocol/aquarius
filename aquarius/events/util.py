@@ -10,7 +10,7 @@ from pathlib import Path
 from ocean_lib.config import Config
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.web3_internal.contract_handler import ContractHandler
-import ocean_lib.web3_internal.utils
+from ocean_lib.web3_internal.utils import get_network_name as web3_network_name
 from ocean_lib.web3_internal.web3_provider import Web3Provider
 from ocean_lib.models.data_token import DataToken
 from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
@@ -25,7 +25,7 @@ def get_network_name():
     try:
         network_name = os.getenv("NETWORK_NAME")
         if not network_name:
-            network_name = ocean_lib.web3_internal.utils.get_network_name().lower()
+            network_name = web3_network_name().lower()
     except Exception:
         network = os.getenv("EVENTS_RPC")
         if network.startswith("wss://"):
