@@ -7,4 +7,7 @@
 #  SPDX-License-Identifier: Apache-2.0
 
 __author__ = """OceanProtocol"""
-__version__ = "2.2.6"
+# fmt: off
+# bumpversion needs single quotes
+__version__ = '2.2.11'
+# fmt: on

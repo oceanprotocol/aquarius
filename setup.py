@@ -25,7 +25,7 @@ install_requirements = [
     "flask-swagger-ui==3.36.0",
     "Jinja2>=2.10.1",
     "requests>=2.21.0",
-    "gunicorn==20.0.4",
+    "gunicorn==20.1.0",
     "oceandb-driver-interface==0.2.0",
     "oceandb-mongodb-driver==0.2.2",
     "oceandb-elasticsearch-driver==0.4.4",
@@ -42,13 +42,13 @@ setup_requirements = ["pytest-runner==5.3.0"]
 dev_requirements = [
     "bumpversion==0.6.0",
     "pkginfo==1.7.0",
-    "twine==3.3.0",
+    "twine==3.4.1",
     "flake8",
     "isort",
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==2.0.2",
+    "watchdog==2.1.0",
     "licenseheaders",
 ]
 
@@ -58,7 +58,7 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==5.5",
     "mccabe==0.6.1",
-    "pylint==2.7.2",
+    "pylint==2.8.2",
     "pytest",
     "tox",
     "pytest-env",
@@ -92,6 +92,9 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/oceanprotocol/aquarius",
-    version="2.2.6",
+    # fmt: off
+    # bumpversion needs single quotes
+    version='2.2.11',
+    # fmt: on
     zip_safe=False,
 )

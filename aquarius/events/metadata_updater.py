@@ -171,12 +171,26 @@ class MetadataUpdater(BlockProcessingClass):
         return self._web3.sha3(text=sig_str).hex()
 
     def get_last_processed_block(self):
-        last_block_record = self._oceandb.driver.es.get(
-            index=self._other_db_index, id="pool_events_last_block", doc_type="_doc"
-        )["_source"]
-        return last_block_record["last_block"]
+        block = 0
+        try:
+            last_block_record = self._oceandb.driver.es.get(
+                index=self._other_db_index, id="pool_events_last_block", doc_type="_doc"
+            )["_source"]
+            block = last_block_record["last_block"]
+        except Exception as e:
+            logger.error(f"Cannot get last_block error={e}")
+        # no need to start from 0 if we have a deployment block
+        bfactory_block = int(os.getenv("BFACTORY_BLOCK", 0))
+        if block < bfactory_block:
+            block = bfactory_block
+        return block
 
     def store_last_processed_block(self, block):
+        # make sure that we don't write a block < then needed
+        stored_block = self.get_last_processed_block()
+        if block <= stored_block:
+            return
+
         record = {"last_block": block}
         try:
             self._oceandb.driver.es.index(
@@ -194,9 +208,8 @@ class MetadataUpdater(BlockProcessingClass):
 
     def get_dt_addresses_from_exchange_logs(self, from_block, to_block=None):
         contract = FixedRateExchange(None)
-        event_names = ["ExchangeCreated"]  # , 'ExchangeRateChanged']
+        event_names = ["ExchangeCreated", "ExchangeRateChanged"]
         topic0_list = [self._get_event_signature(contract, en) for en in event_names]
-        args_list = [("dataToken",)]
         filters = []
         to_block = to_block or "latest"
         for i, event_name in enumerate(event_names):
@@ -207,7 +220,6 @@ class MetadataUpdater(BlockProcessingClass):
                     "topics": [topic0_list[i]],
                 }
             )
-
         events = [getattr(contract.events, en) for en in event_names]
         event_abis = [e().abi for e in events]
         address_exid = []
@@ -222,20 +234,30 @@ class MetadataUpdater(BlockProcessingClass):
                 logs = []
 
             if logs:
-                args = args_list[i]
                 for log in logs:
+                    log_topics = log["topics"]
                     parsed_log = get_event_data(event_abis[i], log)
-                    address_exid.extend(
-                        [
-                            (
-                                parsed_log.args.get(arg, ""),
+                    if log_topics[0] == topic0_list[0]:
+                        logger.debug(f"Processing ExchangeCreated: {parsed_log}")
+                        address_exid.extend(
+                            [
+                                parsed_log.args.get("dataToken", ""),
                                 add_0x_prefix(parsed_log.args.exchangeId.hex()),
-                            )
-                            for arg in args
-                        ]
-                    )
+                            ]
+                        )
+                    else:
+                        # update event
+                        logger.debug(f"Processing ExchangeRateChanged: {parsed_log}")
+                        exchange_info = contract.getExchange(
+                            parsed_log.args.exchangeId.hex()
+                        )
+                        address_exid.extend(
+                            [
+                                exchange_info.dataToken,
+                                add_0x_prefix(parsed_log.args.exchangeId.hex()),
+                            ]
+                        )
                     # all_logs.append(parsed_log)
-
         return address_exid
 
     def get_dt_addresses_from_pool_logs(self, from_block, to_block=None):
@@ -385,17 +407,17 @@ class MetadataUpdater(BlockProcessingClass):
 
             ex_data = fre.getExchange(exchange_id)
             if not ex_data or not ex_data.exchangeOwner:
-                return None, None
+                return None, None, None
 
             price = from_base_18(ex_data.fixedRate)
             supply = from_base_18(ex_data.supply)
-            return price, supply
+            return price, supply, exchange_id
         except Exception as e:
             logger.error(
                 f"Reading exchange price failed for datatoken {dt_address}, "
                 f"owner {owner}, exchangeId {exchange_id}: {e}"
             )
-            return None, None
+            return None, None, None
 
     def get_all_pools(self):
         bfactory = BFactory(self._addresses.get(BFactory.CONTRACT_NAME))
@@ -403,7 +425,7 @@ class MetadataUpdater(BlockProcessingClass):
         event = getattr(bfactory.events, event_name)
         latest_block = self._web3.eth.blockNumber
         _from = self.bfactory_block
-        chunk = 10000
+        chunk = self.blockchain_chunk_size
         pools = []
         while _from < latest_block:
             event_filter = EventFilter(
@@ -425,19 +447,19 @@ class MetadataUpdater(BlockProcessingClass):
         self, _dt_address, owner=None, exchange_id=None
     ):
         if exchange_id:
-            price, dt_supply = self._get_fixedrateexchange_price(
+            price, dt_supply, exchange_id = self._get_fixedrateexchange_price(
                 _dt_address, exchange_id=exchange_id
             )
         else:
-            price, dt_supply = self._get_fixedrateexchange_price(
+            price, dt_supply, exchange_id = self._get_fixedrateexchange_price(
                 _dt_address, owner
             )  # noqa
 
         logger.info(
-            f"Updating price for asset with address {_dt_address}, with"
+            f"Updating price for asset with address {_dt_address}, with "
             f"owner={owner}"
             if owner
-            else f"echange_id={exchange_id}, " f"from FIXED RATE EXCHANGE."
+            else f"exchange_id={exchange_id}, " f"from FIXED RATE EXCHANGE."
         )
 
         is_consumable = str(bool(dt_supply is not None and dt_supply > 1)).lower()
@@ -459,15 +481,18 @@ class MetadataUpdater(BlockProcessingClass):
         if price is not None:
             logger.info(
                 "Found price not None, setting "
-                f"address={self.ex_contract.address} and type as empty string."
+                f"address={self.ex_contract.address}, type=exchange, and "
+                "exchange_id as empty string."
             )
-            price_dict.update({"address": self.ex_contract.address, "type": "exchange"})
+            price_dict.update(
+                {"exchange_id": exchange_id, "type": "exchange", "address": ""}
+            )
         else:
             logger.info(
-                "Found price=None, setting address and type as empty string."
+                "Found price=None, setting address, type, and exchange_id as "
+                "empty string."
             )  # noqa
-            price_dict.update({"address": "", "type": ""})
-
+            price_dict.update({"address": "", "type": "", "exchange_id": ""})
         return price_dict
 
     def _get_price_updates_from_liquidity(self, pools, _dt_address):
@@ -620,16 +645,15 @@ class MetadataUpdater(BlockProcessingClass):
             )
             self._oceandb.update(asset, did)
 
-    def update_dt_assets_with_exchange_info(self, dt_address_exid):
+    def update_dt_assets_with_exchange_info(self, dt_address_exids):
         did_prefix = self.DID_PREFIX
         dao = Dao(oceandb=self._oceandb)
         seen_exs = set()
-        for address, exid in dt_address_exid:
+        for address, exid in zip(dt_address_exids[::2], dt_address_exids[1::2]):
             if not address or exid in seen_exs:
                 continue
-
             seen_exs.add(exid)
-            logger.info(
+            logger.debug(
                 f"updating price info for datatoken: {address}, exchangeId {exid}"
             )
             did = did_prefix + remove_0x_prefix(address)
@@ -650,10 +674,8 @@ class MetadataUpdater(BlockProcessingClass):
                 price_dict = self._get_price_updates_from_fixed_rate_exchange(
                     _dt_address, exchange_id=exid
                 )
-
                 asset["price"].update(price_dict)
                 asset["dataTokenInfo"] = get_datatoken_info(_dt_address)
-
                 self._oceandb.update(asset, did)
                 logger.info(
                     f"updated price info: dt={address}, exchangeAddress={self.ex_contract.address}, "
@@ -719,29 +741,44 @@ class MetadataUpdater(BlockProcessingClass):
                 logger.error(f"updating datatoken assets price/liquidity values: {e}")
 
     def process_pool_events(self):
-        try:
-            last_block = self.get_last_processed_block()
-        except Exception as e:
-            logger.warning(f"exception thrown reading last_block from db: {e}")
-            last_block = 0
-
-        block = self._web3.eth.blockNumber
-        if not block or not isinstance(block, int) or block <= last_block:
+        last_block = self.get_last_processed_block()
+        current_block = self._web3.eth.blockNumber
+        if (
+            not current_block
+            or not isinstance(current_block, int)
+            or current_block <= last_block
+        ):
             return
 
         from_block = last_block
+
+        start_block_chunk = from_block
+        for end_block_chunk in range(
+            from_block, current_block, self.blockchain_chunk_size
+        ):
+            self.process_block_range(start_block_chunk, end_block_chunk)
+            start_block_chunk = end_block_chunk
+        # Process last few blocks because range(start, end) doesn't include end
+        self.process_block_range(start_block_chunk, current_block)
+
+    def process_block_range(self, from_block, to_block):
         logger.debug(
-            f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{block} <<<<"
+            f"Price/Liquidity monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
         )
+        if from_block > to_block:
+            return
+
         ok = False
         try:
             dt_address_pool_list = self.get_dt_addresses_from_pool_logs(
-                from_block=from_block, to_block=block
+                from_block=from_block, to_block=to_block
             )
+            logger.debug(f"Got pools: {dt_address_pool_list}")
             self.update_dt_assets(dt_address_pool_list)
             dt_address_exchange = self.get_dt_addresses_from_exchange_logs(
-                from_block=from_block, to_block=block
+                from_block=from_block, to_block=to_block
             )
+            logger.debug(f"Got dt/exchanges: {dt_address_exchange}")
             self.update_dt_assets_with_exchange_info(dt_address_exchange)
             ok = True
 
@@ -749,5 +786,5 @@ class MetadataUpdater(BlockProcessingClass):
             logging.error(f"process_pool_events: {e}")
 
         finally:
-            if ok and isinstance(block, int):
-                self.store_last_processed_block(block)
+            if ok and isinstance(to_block, int):
+                self.store_last_processed_block(to_block)

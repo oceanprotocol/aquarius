@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import ecies
+import elasticsearch
 import json
 import logging
 import os
@@ -94,6 +95,8 @@ def get_ddo(did):
         return Response(
             sanitize_record(asset_record), 200, content_type="application/json"
         )
+    except elasticsearch.exceptions.NotFoundError:
+        return f"{did} asset DID is not in OceanDB", 404
     except Exception as e:
         logger.error(f"get_ddo: {str(e)}")
         return f"{did} asset DID is not in OceanDB", 404
@@ -256,13 +259,14 @@ def query_ddo():
     data.setdefault("offset", 100)
 
     query_result = dao.run_es_query(data)
+    metadata = dao.run_metadata_query(data)
 
     search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
 
     for ddo in query_result[0]:
         sanitize_record(ddo)
 
-    response = make_paginate_response(query_result, search_model)
+    response = make_paginate_response(query_result, search_model, metadata)
     return Response(
         json.dumps(response, default=datetime_converter),
         200,
