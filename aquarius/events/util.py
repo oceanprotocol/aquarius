@@ -112,14 +112,14 @@ def get_contract_address_and_abi_file(name):
     contract_abi_file = (
         Path(os.path.join(artifacts_path, file_name)).expanduser().resolve()
     )
-    address_file = get_address_file(artifacts_path)
+    address_file = ConfigProvider.get_config().address_file
     contract_address = read_ddo_contract_address(
-        address_file, name, network=os.environ.get("NETWORK_NAME", "ganache")
+        address_file, name, network=os.environ.get("NETWORK_NAME", "development")
     )
     return contract_address, contract_abi_file
 
 
-def read_ddo_contract_address(file_path, name, network="ganache"):
+def read_ddo_contract_address(file_path, name, network="development"):
     with open(file_path) as f:
         network_to_address = json.load(f)
         return network_to_address[network][name]

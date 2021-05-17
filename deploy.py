@@ -6,7 +6,6 @@
 import json
 import os
 import time
-from pathlib import Path
 
 from ocean_lib.config import Config
 from ocean_lib.config_provider import ConfigProvider
@@ -24,7 +23,7 @@ from ocean_lib.web3_internal.web3_provider import Web3Provider
 
 
 def main():
-    network = "ganache"
+    network = "development"
     private_key = os.getenv("EVENTS_TESTS_PRIVATE_KEY")
     network_rpc = os.getenv("EVENTS_RPC", "http://127.0.0.1:8545")
 
@@ -32,12 +31,7 @@ def main():
     ConfigProvider.set_config(config)
     # artifacts_path = os.getenv('ARTIFACTS_PATH', )
     artifacts_path = config.artifacts_path
-    address_file = (
-        Path(os.getenv("ADDRESS_FILE", os.path.join(artifacts_path, "address.json")))
-        .expanduser()
-        .resolve()
-    )
-    print(f"deploying contracts and saving addresses in {address_file}")
+    address_file = config.address_file
 
     Web3Provider.init_web3(provider=get_web3_connection_provider(network_rpc))
     ContractHandler.set_artifacts_path(artifacts_path)
@@ -123,20 +117,7 @@ def main():
         minter_addr = deployer_wallet.address
         OCEAN_cap = 1410 * 10 ** 6  # 1.41B
         OCEAN_cap_base = to_base_18(float(OCEAN_cap))
-        OCEAN_token = DataToken(
-            DataToken.deploy(
-                web3,
-                deployer_wallet,
-                artifacts_path,
-                "Ocean",
-                "OCEAN",
-                minter_addr,
-                OCEAN_cap_base,
-                "",
-                minter_addr,
-            )
-        )
-        addresses["Ocean"] = OCEAN_token.address
+        OCEAN_token = DataToken(address=network_addresses["development"]["Ocean"])
         print("****Deploy fake OCEAN: done****\n")
 
         print("****Mint fake OCEAN: begin****")
@@ -164,13 +145,6 @@ def main():
                 )
 
         print("****Distribute fake OCEAN: done****\n")
-
-    network_addresses[network].update(addresses)
-
-    with open(address_file, "w") as f:
-        json.dump(network_addresses, f, indent=2)
-    print(f"contracts deployed: {network_addresses}")
-    return addresses
 
 
 if __name__ == "__main__":
