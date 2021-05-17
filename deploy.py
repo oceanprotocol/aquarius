@@ -111,7 +111,7 @@ def main():
     )
     print("****Deploy 'Metadata': done****\n")
 
-    if network == "ganache" and "Ocean" not in _addresses:
+    if network == "development" and "Ocean" not in _addresses:
         print("****Deploy fake OCEAN: begin****")
         # For simplicity, hijack DataTokenTemplate.
         minter_addr = deployer_wallet.address
@@ -145,6 +145,13 @@ def main():
                 )
 
         print("****Distribute fake OCEAN: done****\n")
+
+    network_addresses[network].update(addresses)
+
+    with open(address_file, "w") as f:
+        json.dump(network_addresses, f, indent=2)
+    print(f"contracts deployed: {network_addresses}")
+    return addresses
 
 
 if __name__ == "__main__":
