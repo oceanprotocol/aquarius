@@ -9,11 +9,7 @@ import time
 
 from ocean_lib.config import Config
 from ocean_lib.config_provider import ConfigProvider
-from ocean_lib.models.bfactory import BFactory
-from ocean_lib.models.bpool import BPool
 from ocean_lib.models.data_token import DataToken
-from ocean_lib.models.dtfactory import DTFactory
-from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
 from ocean_lib.models.metadata import MetadataContract
 from ocean_lib.ocean.util import get_web3_connection_provider, to_base_18
 from ocean_lib.web3_internal.contract_handler import ContractHandler
@@ -62,48 +58,6 @@ def main():
     deployer_wallet = Wallet(web3, private_key=factory_deployer_private_key)
     minter_addr = deployer_wallet.address
     _ = 2 ** 255
-
-    print("****Deploy DataTokenTemplate: begin****")
-    dt_address = DataToken.deploy(
-        web3,
-        deployer_wallet,
-        artifacts_path,
-        "Template Contract",
-        "TEMPLATE",
-        minter_addr,
-        DataToken.DEFAULT_CAP_BASE,
-        DTFactory.FIRST_BLOB,
-        minter_addr,
-    )
-    addresses[DataToken.CONTRACT_NAME] = dt_address
-    print("****Deploy DataTokenTemplate: done****\n")
-
-    print("****Deploy DTFactory: begin****")
-    dtfactory = DTFactory(
-        DTFactory.deploy(web3, deployer_wallet, artifacts_path, dt_address, minter_addr)
-    )
-    addresses[DTFactory.CONTRACT_NAME] = dtfactory.address
-    print("****Deploy DTFactory: done****\n")
-
-    print("****Deploy BPool: begin****")
-    bpool_address = BPool.deploy(web3, deployer_wallet, artifacts_path)
-    bpool_template = BPool(bpool_address)
-    addresses[BPool.CONTRACT_NAME] = bpool_address
-    print("****Deploy BPool: done****\n")
-
-    print("****Deploy 'BFactory': begin****")
-    bfactory_address = BFactory.deploy(
-        web3, deployer_wallet, artifacts_path, bpool_template.address
-    )
-    _ = BFactory(bfactory_address)
-    addresses[BFactory.CONTRACT_NAME] = bfactory_address
-    print("****Deploy 'BFactory': done****\n")
-
-    print("****Deploy 'FixedRateExchange': begin****")
-    addresses[FixedRateExchange.CONTRACT_NAME] = FixedRateExchange.deploy(
-        web3, deployer_wallet, artifacts_path
-    )
-    print("****Deploy 'FixedRateExchange': done****\n")
 
     print("****Deploy 'Metadata': begin****")
     addresses[MetadataContract.CONTRACT_NAME] = MetadataContract.deploy(
