@@ -7,13 +7,14 @@ import os
 import time
 from pathlib import Path
 
+from jsonsempai import magic  # noqa: F401
+from artifacts import address as ocean_contracts_addresses, Metadata
 from ocean_lib.config import Config
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.web3_internal.contract_handler import ContractHandler
 from ocean_lib.web3_internal.utils import get_network_name as web3_network_name
 from ocean_lib.web3_internal.web3_provider import Web3Provider
 from ocean_lib.models.data_token import DataToken
-from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
 from ocean_lib.models.metadata import MetadataContract
 from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
 from web3 import Web3
@@ -95,50 +96,22 @@ def deploy_datatoken(web3, private_key, name, symbol, minter_address):
 
 
 def get_artifacts_path():
-    path = ConfigProvider.get_config().artifacts_path
+    path = os.getenv("ARTIFACTS_PATH", ConfigProvider.get_config().artifacts_path)
     return Path(path).expanduser().resolve()
 
 
-def get_address_file(artifacts_path):
-    address_file = os.environ.get(
-        "ADDRESS_FILE", os.path.join(artifacts_path, "address.json")
-    )
-    return Path(address_file).expanduser().resolve()
-
-
-def get_contract_address_and_abi_file(name):
-    file_name = name + ".json"
-    artifacts_path = get_artifacts_path()
-    contract_abi_file = (
-        Path(os.path.join(artifacts_path, file_name)).expanduser().resolve()
-    )
-    address_file = ConfigProvider.get_config().address_file
-    contract_address = read_ddo_contract_address(
-        address_file, name, network=os.environ.get("NETWORK_NAME", "development")
-    )
-    return contract_address, contract_abi_file
-
-
-def read_ddo_contract_address(file_path, name, network="development"):
-    with open(file_path) as f:
-        network_to_address = json.load(f)
-        return network_to_address[network][name]
+def get_address_file():
+    file = os.getenv("ADDRESS_FILE", ConfigProvider.get_config().address_file)
+    return Path(file).expanduser().resolve()
 
 
 def get_metadata_contract(web3):
-    contract_address, abi_file = get_contract_address_and_abi_file(
-        MetadataContract.CONTRACT_NAME
+    network = get_network_name()
+    address = getattr(
+        getattr(ocean_contracts_addresses, network), MetadataContract.CONTRACT_NAME
     )
-    abi_json = json.load(open(abi_file))
-    return web3.eth.contract(address=contract_address, abi=abi_json["abi"])
-
-
-def get_exchange_contract(web3):
-    contract_address, abi_file = get_contract_address_and_abi_file(
-        FixedRateExchange.CONTRACT_NAME
-    )
-    abi_json = json.load(open(abi_file))
-    return web3.eth.contract(address=contract_address, abi=abi_json["abi"])
+    abi = Metadata.abi
+    return web3.eth.contract(address=address, abi=abi)
 
 
 def get_datatoken_info(token_address):

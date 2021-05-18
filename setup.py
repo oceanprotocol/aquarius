@@ -34,6 +34,7 @@ install_requirements = [
     "ocean-lib==0.5.22",
     "eciespy",
     "gevent",
+    "json-sempai==0.4.0",
 ]
 
 setup_requirements = ["pytest-runner==5.3.0"]
