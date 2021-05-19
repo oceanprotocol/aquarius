@@ -88,7 +88,7 @@ def get_event(event_name, block, did, timeout=45):
         if time.time() - start > timeout:
             break
 
-    assert logs, "no events found {event_name}, block {block}."
+    assert logs, f"no events found {event_name}, block {block}."
     print(
         f"done waiting for {event_name} event, got {len(logs)} logs, and datatokens: {[l.args.dataToken for l in logs]}"
     )

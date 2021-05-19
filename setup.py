@@ -31,9 +31,10 @@ install_requirements = [
     "PyYAML==5.4.1",
     "pytz==2021.1",
     "plecos==1.1.0",
-    "ocean-lib==0.5.20",
+    "ocean-lib==0.5.22",
     "eciespy",
     "gevent",
+    "json-sempai==0.4.0",
 ]
 
 setup_requirements = ["pytest-runner==5.3.0"]
