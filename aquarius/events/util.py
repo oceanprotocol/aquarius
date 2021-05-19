@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 
 from jsonsempai import magic  # noqa: F401
-from artifacts import address as ocean_contracts_addresses, Metadata
+from artifacts import address as contract_addresses, Metadata
 from ocean_lib.config import Config
 from ocean_lib.config_provider import ConfigProvider
 from ocean_lib.web3_internal.contract_handler import ContractHandler
@@ -20,6 +20,13 @@ from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
 from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
+
+
+ENV_ADDRESS_FILE = "ADDRESS_FILE"
+ENV_ARTIFACTS_PATH = "ARTIFACTS_PATH"
+
+ADDRESS_FILE_NAME = "address.json"
+METADATA_ABI_FILE_NAME = "Metadata.json"
 
 
 def get_network_name():
@@ -96,21 +103,53 @@ def deploy_datatoken(web3, private_key, name, symbol, minter_address):
 
 
 def get_artifacts_path():
-    path = os.getenv("ARTIFACTS_PATH", ConfigProvider.get_config().artifacts_path)
-    return Path(path).expanduser().resolve()
+    """Returns Path to the artifacts directory where ocean ABIs are stored.
+    Checks envvar first, fallback to artifacts included with ocean-contracts.
+    """
+    env_path = os.getenv(ENV_ARTIFACTS_PATH)
+    return (
+        Path(env_path).expanduser().resolve()
+        if env_path
+        else Path(contract_addresses.__file__).parent.expanduser().resolve()
+    )
 
 
 def get_address_file():
-    file = os.getenv("ADDRESS_FILE", ConfigProvider.get_config().address_file)
-    return Path(file).expanduser().resolve()
+    """Returns Path to the address.json file
+    Checks envvar first, fallback to address.json included with ocean-contracts.
+    """
+    env_file = os.getenv(ENV_ADDRESS_FILE)
+    return (
+        Path(env_file).expanduser().resolve()
+        if env_file
+        else Path(contract_addresses.__file__).expanduser().resolve()
+    )
 
 
 def get_metadata_contract(web3):
+    """Returns a Contract built from the Metadata contract address and ABI"""
+    address_file = get_address_file()
+
+    with open(address_file) as f:
+        address_json = json.load(f)
+
     network = get_network_name()
-    address = getattr(
-        getattr(ocean_contracts_addresses, network), MetadataContract.CONTRACT_NAME
-    )
-    abi = Metadata.abi
+    address = address_json[network][MetadataContract.CONTRACT_NAME]
+
+    env_path = os.getenv(ENV_ARTIFACTS_PATH)
+
+    if env_path:
+        abi_file = (
+            Path(env_path).joinpath(METADATA_ABI_FILE_NAME).expanduser().resolve()
+        )
+
+        with open(abi_file) as f:
+            abi_json = json.load(f)
+
+        abi = abi_json["abi"]
+    else:
+        abi = Metadata.abi
+
     return web3.eth.contract(address=address, abi=abi)
 
 
