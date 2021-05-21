@@ -131,7 +131,7 @@ def is_valid_dict_remote(this_json_dict):
 
 # %% Wrapper over jschema.Draft7Validator.iter_errors()
 def list_errors(json_dict, schema_file):
-    """ Iterate over the validation errors, print to log.warn
+    """Iterate over the validation errors, print to log.warn
 
     :param json_dict:
     :param schema_file:
