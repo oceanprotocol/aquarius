@@ -1,0 +1,381 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "required": [
+    "base"
+  ],
+  "properties": {
+    "base": {
+      "$id": "#/properties/base",
+      "type": "object",
+      "required": [
+        "name",
+        "dateCreated",
+        "author",
+        "license",
+        "contentType",
+        "price",
+        "files",
+        "checksum"
+      ],
+      "properties": {
+        "name": {
+          "$id": "#/properties/base/properties/name",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "UK Weather information 2011"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "dateCreated": {
+          "$id": "#/properties/base/properties/dateCreated",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "2012-02-01T10:55:11Z"
+          ],
+          "pattern": "^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
+        },
+        "author": {
+          "$id": "#/properties/base/properties/author",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "Met Office"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "license": {
+          "$id": "#/properties/base/properties/license",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "CC-BY"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "contentType": {
+          "$id": "#/properties/base/properties/contentType",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "text/csv"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "price": {
+          "$id": "#/properties/base/properties/price",
+          "type": "integer",
+          "default": 0,
+          "examples": [
+            10
+          ]
+        },
+        "files": {
+          "$id": "#/properties/base/properties/files",
+          "type": "array",
+          "items": {
+            "$id": "#/properties/base/properties/files/items",
+            "type": "object",
+            "required": [
+              "url"
+            ],
+            "properties": {
+              "url": {
+                "$id": "#/properties/base/properties/files/items/properties/url",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "234ab87234acbd09543085340abffh21983ddhiiee982143827423421"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "checksum": {
+                "$id": "#/properties/base/properties/files/items/properties/checksum",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "efb2c764274b745f5fc37f97c6b0e761"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "checksumType": {
+                "$id": "#/properties/base/properties/files/items/properties/checksumType",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "MD5"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "contentLength": {
+                "$id": "#/properties/base/properties/files/items/properties/contentLength",
+                "type": "integer",
+                "default": 0,
+                "examples": [
+                  4535431
+                ],
+                "pattern": "^(.*)$"
+              },
+              "resourceId": {
+                "$id": "#/properties/base/properties/files/items/properties/resourceId",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "access-log2018-02-13-15-17-29-18386C502CAEA932"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "checksum": {
+          "$id": "#/properties/base/properties/checksum",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "a52c764274b745f5fc37f97c6b0e77a0"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "categories": {
+          "$id": "#/properties/base/properties/categories",
+          "type": "array",
+          "default": null,
+          "items": {
+            "$id": "#/properties/base/properties/categories/items",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "weather",
+              "meteorology"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "tags": {
+          "$id": "#/properties/base/properties/tags",
+          "type": "array",
+          "items": {
+            "$id": "#/properties/base/properties/tags/items",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "weather",
+              "uk",
+              "2011",
+              "temperature",
+              "humidity"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "type": {
+          "$id": "#/properties/base/properties/type",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "dataset"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "description": {
+          "$id": "#/properties/base/properties/description",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "Weather information of UK including temperature and humidity"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "size": {
+          "$id": "#/properties/base/properties/size",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "3.1gb"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "copyrightHolder": {
+          "$id": "#/properties/base/properties/copyrightHolder",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "Met Office"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "encoding": {
+          "$id": "#/properties/base/properties/encoding",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "UTF-8"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "compression": {
+          "$id": "#/properties/base/properties/compression",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "zip"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "workExample": {
+          "$id": "#/properties/base/properties/workExample",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "stationId,latitude,longitude,datetime,temperature,humidity\\n423432fsd,51.509865,-0.118092,2011-01-01T10:55:11+00:00,7.2,68"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "links": {
+          "$id": "#/properties/base/properties/links",
+          "type": "array",
+          "default": null,
+          "items": {
+            "$id": "#/properties/base/properties/links/items",
+            "type": "object",
+            "required": [
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "$id": "#/properties/base/properties/links/items/properties/name",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "Sample of Asset Data"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "type": {
+                "$id": "#/properties/base/properties/links/items/properties/type",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "sample"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "url": {
+                "$id": "#/properties/base/properties/links/items/properties/url",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "https://foo.com/sample.csv"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "inLanguage": {
+          "$id": "#/properties/base/properties/inLanguage",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "en"
+          ],
+          "pattern": "^(.*)$"
+        }
+      }
+    },
+    "curation": {
+      "$id": "#/properties/curation",
+      "type": "object",
+      "default": null,
+      "required": [
+        "rating",
+        "numVotes"
+      ],
+      "properties": {
+        "rating": {
+          "$id": "#/properties/curation/properties/rating",
+          "type": "number",
+          "default": 0.0,
+          "examples": [
+            0.93
+          ]
+        },
+        "numVotes": {
+          "$id": "#/properties/curation/properties/numVotes",
+          "type": "integer",
+          "default": 0,
+          "examples": [
+            123
+          ]
+        },
+        "schema": {
+          "$id": "#/properties/curation/properties/schema",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "Binary Voting"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "flag": {
+          "$id": "#/properties/curation/properties/flag",
+          "type": "boolean",
+          "default": false,
+          "examples": [
+            false
+          ]
+        }
+      }
+    },
+    "additionalInformation": {
+      "$id": "#/properties/additionalInformation",
+      "type": "object",
+      "default": null,
+      "properties": {
+        "updateFrequency": {
+          "$id": "#/properties/additionalInformation/properties/updateFrequency",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "yearly"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "structuredMarkup": {
+          "$id": "#/properties/additionalInformation/properties/structuredMarkup",
+          "type": "array",
+          "default": null,
+          "items": {
+            "$id": "#/properties/additionalInformation/properties/structuredMarkup/items",
+            "type": "object",
+            "properties": {
+              "uri": {
+                "$id": "#/properties/additionalInformation/properties/structuredMarkup/items/properties/uri",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "http://skos.um.es/unescothes/C01194/jsonld"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "mediaType": {
+                "$id": "#/properties/additionalInformation/properties/structuredMarkup/items/properties/mediaType",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "application/ld+json"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
