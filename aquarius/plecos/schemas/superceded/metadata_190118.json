@@ -1,0 +1,260 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "required": [
+    "base",
+    "curation",
+    "additionalInformation"
+  ],
+  "properties": {
+    "base": {
+      "$id": "#/properties/base",
+      "type": "object",
+      "required": [
+        "name",
+        "dateCreated",
+        "author",
+        "license",
+        "contentType",
+        "price",
+        "files",
+        "checksum",
+        "categories",
+        "tags",
+        "type",
+        "description",
+        "size",
+        "copyrightHolder",
+        "encoding",
+        "compression",
+        "workExample",
+        "links",
+        "inLanguage"
+      ],
+      "properties": {
+        "name": {
+          "$id": "#/properties/base/properties/name",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "dateCreated": {
+          "$id": "#/properties/base/properties/dateCreated",
+          "type": "string",
+          "pattern": "^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
+        },
+        "author": {
+          "$id": "#/properties/base/properties/author",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "license": {
+          "$id": "#/properties/base/properties/license",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "contentType": {
+          "$id": "#/properties/base/properties/contentType",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "price": {
+          "$id": "#/properties/base/properties/price",
+          "type": "integer"
+        },
+        "files": {
+          "$id": "#/properties/base/properties/files",
+          "type": "array",
+          "items": {
+            "$id": "#/properties/base/properties/files/items",
+            "type": "object",
+            "required": [
+              "url"
+            ],
+            "properties": {
+              "url": {
+                "$id": "#/properties/base/properties/files/items/properties/url",
+                "type": "string",
+                "pattern": "^(.*)$"
+              },
+              "checksum": {
+                "$id": "#/properties/base/properties/files/items/properties/checksum",
+                "type": "string",
+                "pattern": "^(.*)$"
+              },
+              "contentLength": {
+                "$id": "#/properties/base/properties/files/items/properties/contentLength",
+                "type": "string",
+                "pattern": "^(.*)$"
+              },
+              "resourceId": {
+                "$id": "#/properties/base/properties/files/items/properties/resourceId",
+                "type": "string",
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "checksum": {
+          "$id": "#/properties/base/properties/checksum",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "categories": {
+          "$id": "#/properties/base/properties/categories",
+          "type": "array",
+          "items": {
+            "$id": "#/properties/base/properties/categories/items",
+            "type": "string",
+            "pattern": "^(.*)$"
+          }
+        },
+        "tags": {
+          "$id": "#/properties/base/properties/tags",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "type": {
+          "$id": "#/properties/base/properties/type",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "description": {
+          "$id": "#/properties/base/properties/description",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "size": {
+          "$id": "#/properties/base/properties/size",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "copyrightHolder": {
+          "$id": "#/properties/base/properties/copyrightHolder",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "encoding": {
+          "$id": "#/properties/base/properties/encoding",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "compression": {
+          "$id": "#/properties/base/properties/compression",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "workExample": {
+          "$id": "#/properties/base/properties/workExample",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "links": {
+          "$id": "#/properties/base/properties/links",
+          "type": "array",
+          "items": {
+            "$id": "#/properties/base/properties/links/items",
+            "type": "object",
+            "required": [
+              "name",
+              "type",
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "$id": "#/properties/base/properties/links/items/properties/name",
+                "type": "string",
+                "pattern": "^(.*)$"
+              },
+              "type": {
+                "$id": "#/properties/base/properties/links/items/properties/type",
+                "type": "string",
+                "pattern": "^(.*)$"
+              },
+              "url": {
+                "$id": "#/properties/base/properties/links/items/properties/url",
+                "type": "string",
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "inLanguage": {
+          "$id": "#/properties/base/properties/inLanguage",
+          "type": "string",
+          "pattern": "^(.*)$"
+        }
+      }
+    },
+    "curation": {
+      "$id": "#/properties/curation",
+      "type": "object",
+      "required": [
+        "rating",
+        "numVotes",
+        "schema"
+      ],
+      "properties": {
+        "rating": {
+          "$id": "#/properties/curation/properties/rating",
+          "type": "number"
+        },
+        "numVotes": {
+          "$id": "#/properties/curation/properties/numVotes",
+          "type": "integer"
+        },
+        "schema": {
+          "$id": "#/properties/curation/properties/schema",
+          "type": "string",
+          "pattern": "^(.*)$"
+        }
+      }
+    },
+    "additionalInformation": {
+      "$id": "#/properties/additionalInformation",
+      "type": "object",
+      "required": [
+        "checksum",
+        "updateFrequency",
+        "structuredMarkup"
+      ],
+      "properties": {
+        "checksum": {
+          "$id": "#/properties/additionalInformation/properties/checksum",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "updateFrequency": {
+          "$id": "#/properties/additionalInformation/properties/updateFrequency",
+          "type": "string",
+          "pattern": "^(.*)$"
+        },
+        "structuredMarkup": {
+          "$id": "#/properties/additionalInformation/properties/structuredMarkup",
+          "type": "array",
+          "items": {
+            "$id": "#/properties/additionalInformation/properties/structuredMarkup/items",
+            "type": "object",
+            "required": [
+              "uri",
+              "mediaType"
+            ],
+            "properties": {
+              "uri": {
+                "$id": "#/properties/additionalInformation/properties/structuredMarkup/items/properties/uri",
+                "type": "string",
+                "pattern": "^(.*)$"
+              },
+              "mediaType": {
+                "$id": "#/properties/additionalInformation/properties/structuredMarkup/items/properties/mediaType",
+                "type": "string",
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

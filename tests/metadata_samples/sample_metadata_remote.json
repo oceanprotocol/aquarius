@@ -1,0 +1,69 @@
+{
+  "main": {
+    "name": "Madrid Weather forecast",
+    "dateCreated": "2012-02-01T10:55:11Z",
+    "datePublished": "2019-05-16T12:41:01Z",
+    "author": "Norwegian Meteorological Institute",
+    "license": "CC0: Public Domain",
+    "files": [
+      {
+        "index": 0,
+        "contentType": "application/zip",
+        "encoding": "UTF-8",
+        "compression": "zip",
+        "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
+        "checksumType": "MD5",
+        "contentLength": "12057507"
+      },
+      {
+        "index": 1,
+        "contentLength": "0",
+        "contentType": "text/xml",
+        "compression": "none"
+      }
+    ],
+    "type": "dataset"
+  },
+  "encryptedFiles": "234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421",
+  "curation": {
+    "rating": 0.93,
+    "numVotes": 123,
+    "schema": "Binary Voting",
+    "isListed": true
+  },
+  "additionalInformation": {
+    "description": "EXAMPLE ONLY ",
+    "copyrightHolder": "Unknown",
+    "categories": [
+      "image"
+    ],
+    "links": [
+      {
+        "name": "example model",
+        "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
+      },
+      {
+        "name": "example code",
+        "type": "example code",
+        "url": "https://github.com/slothkong/CNN_classification_10_monkey_species"
+      },
+      {
+        "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
+        "name": "n5151.jpg",
+        "type": "discovery",
+        "reviewed": true
+      },
+      {
+        "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
+        "name": "sample.zip",
+        "type": "sample"
+      }
+    ],
+    "inLanguage": "en",
+    "tags": [
+      "image data",
+      " animals"
+    ],
+    "workExample": "image path, id, label"
+  }
+}

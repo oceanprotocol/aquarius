@@ -30,7 +30,6 @@ install_requirements = [
     "oceandb-elasticsearch-driver==0.4.4",
     "PyYAML==5.4.1",
     "pytz==2021.1",
-    "plecos==1.1.0",
     "ocean-lib==0.5.22",
     "eciespy",
     "gevent",
@@ -53,7 +52,6 @@ dev_requirements = [
 ]
 
 test_requirements = [
-    "plecos==1.1.0",
     "Flask==1.1.2",
     "codacy-coverage==1.3.11",
     "coverage==5.5",
