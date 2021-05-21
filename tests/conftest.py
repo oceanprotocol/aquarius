@@ -16,7 +16,7 @@ from aquarius.events.events_monitor import EventsMonitor
 from aquarius.constants import BaseURLs
 from aquarius.events.util import get_artifacts_path
 from aquarius.run import app
-from aquarius.plecos import plecos
+from aquarius.ddo_checker import ddo_checker
 
 app = app
 
@@ -92,14 +92,15 @@ def _load_sample_path(path, msg):
 @pytest.fixture
 def schema_local_dict():
     return _load_sample_path(
-        plecos.LOCAL_SCHEMA_FILE, f"Loaded schema: {plecos.LOCAL_SCHEMA_FILE}"
+        ddo_checker.LOCAL_SCHEMA_FILE, f"Loaded schema: {ddo_checker.LOCAL_SCHEMA_FILE}"
     )
 
 
 @pytest.fixture
 def schema_remote_dict():
     return _load_sample_path(
-        plecos.REMOTE_SCHEMA_FILE, f"Loaded schema: {plecos.REMOTE_SCHEMA_FILE}"
+        ddo_checker.REMOTE_SCHEMA_FILE,
+        f"Loaded schema: {ddo_checker.REMOTE_SCHEMA_FILE}",
     )
 
 

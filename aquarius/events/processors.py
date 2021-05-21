@@ -8,7 +8,10 @@ from eth_utils import add_0x_prefix, remove_0x_prefix
 import json
 import logging
 
-from aquarius.plecos.plecos import is_valid_dict_remote, list_errors_dict_remote
+from aquarius.ddo_checker.ddo_checker import (
+    is_valid_dict_remote,
+    list_errors_dict_remote,
+)
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.app.util import (
     DATETIME_FORMAT,

@@ -12,7 +12,7 @@ from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 from jsonschema.validators import Draft7Validator
 
-from aquarius.plecos import plecos
+from aquarius.ddo_checker import ddo_checker
 
 
 # %%
@@ -184,26 +184,26 @@ def test_assert_remote_without_file_url(
 
 
 def test_validate_file(path_sample_metadata_local):
-    plecos.validate_file_local(path_sample_metadata_local)
+    ddo_checker.validate_file_local(path_sample_metadata_local)
 
 
 def test_validate_dict(sample_metadata_dict_local):
-    plecos.validate_dict_local(sample_metadata_dict_local)
+    ddo_checker.validate_dict_local(sample_metadata_dict_local)
 
 
 def test_is_valid_file(path_sample_metadata_local):
-    assert plecos.is_valid_file_local(path_sample_metadata_local)
+    assert ddo_checker.is_valid_file_local(path_sample_metadata_local)
 
 
 def test_is_valid_dict(sample_metadata_dict_local):
-    assert plecos.is_valid_dict_local(sample_metadata_dict_local)
+    assert ddo_checker.is_valid_dict_local(sample_metadata_dict_local)
 
 
 def test_list_errors_dict(sample_metadata_dict_local):
-    assert len(plecos.list_errors_dict_local(sample_metadata_dict_local)) == 0
+    assert len(ddo_checker.list_errors_dict_local(sample_metadata_dict_local)) == 0
 
     del sample_metadata_dict_local["main"]["name"]
-    errors = plecos.list_errors_dict_local(sample_metadata_dict_local)
+    errors = ddo_checker.list_errors_dict_local(sample_metadata_dict_local)
 
     for i, err in enumerate(errors):
         stack_path = list(err[1].relative_path)
@@ -215,44 +215,44 @@ def test_list_errors_dict(sample_metadata_dict_local):
 
 def test_description_attr_regex_match(sample_metadata_dict_local):
     # Original metadata should have no problems
-    errors = plecos.list_errors_dict_local(sample_metadata_dict_local)
+    errors = ddo_checker.list_errors_dict_local(sample_metadata_dict_local)
     assert [] == list(errors), "Should have no validation errors."
 
     # Modify description to include new lines, should also be valid.
     sample_metadata_dict_local["additionalInformation"][
         "description"
     ] = "multiline description. \n 2nd line. \n"
-    errors = plecos.list_errors_dict_local(sample_metadata_dict_local)
+    errors = ddo_checker.list_errors_dict_local(sample_metadata_dict_local)
     assert [] == list(errors), "Should have no validation errors."
 
 
 def test_algorithm_metadata_local(sample_algorithm_md_dict_local):
-    errors = plecos.list_errors_dict_local(sample_algorithm_md_dict_local)
+    errors = ddo_checker.list_errors_dict_local(sample_algorithm_md_dict_local)
     assert [] == list(errors), "Should have no validation errors."
 
     _copy = copy.deepcopy(sample_algorithm_md_dict_local)
     _copy["main"]["algorithm"].pop("container")
-    errors = plecos.list_errors_dict_local(_copy)
+    errors = ddo_checker.list_errors_dict_local(_copy)
     assert 1 == len(errors), "Should have one validation error."
 
     _copy = copy.deepcopy(sample_algorithm_md_dict_local)
     _copy["main"]["algorithm"]["container"].pop("entrypoint")
-    errors = plecos.list_errors_dict_local(_copy)
+    errors = ddo_checker.list_errors_dict_local(_copy)
     assert 1 == len(errors), "Should have one validation error."
 
 
 def test_algorithm_metadata_remote(sample_algorithm_md_dict_remote):
-    errors = plecos.list_errors_dict_remote(sample_algorithm_md_dict_remote)
+    errors = ddo_checker.list_errors_dict_remote(sample_algorithm_md_dict_remote)
     assert [] == list(errors), "Should have no validation errors."
 
     _copy = copy.deepcopy(sample_algorithm_md_dict_remote)
     _copy["main"]["algorithm"].pop("container")
-    errors = plecos.list_errors_dict_remote(_copy)
+    errors = ddo_checker.list_errors_dict_remote(_copy)
     assert 1 == len(errors), "Should have one validation error."
 
     _copy = copy.deepcopy(sample_algorithm_md_dict_remote)
     _copy["main"]["algorithm"]["container"].pop("entrypoint")
-    errors = plecos.list_errors_dict_remote(_copy)
+    errors = ddo_checker.list_errors_dict_remote(_copy)
     assert 1 == len(errors), "Should have one validation error."
 
 
@@ -263,7 +263,7 @@ def test_status_present_empty(
     sample_metadata_dict_remote,
 ):
     sample_metadata_dict_remote["status"] = {}
-    errors = plecos.list_errors_dict_remote(sample_metadata_dict_remote)
+    errors = ddo_checker.list_errors_dict_remote(sample_metadata_dict_remote)
     assert 0 == len(errors), "Should be valid."
     validate(instance=sample_metadata_dict_remote, schema=schema_remote_dict)
 
@@ -275,7 +275,7 @@ def test_status_present_with_booleans(
     sample_metadata_dict_remote,
 ):
     sample_metadata_dict_remote["status"] = {"isListed": True}
-    errors = plecos.list_errors_dict_remote(sample_metadata_dict_remote)
+    errors = ddo_checker.list_errors_dict_remote(sample_metadata_dict_remote)
     assert 0 == len(errors), "Should be valid."
     validate(instance=sample_metadata_dict_remote, schema=schema_remote_dict)
 
@@ -287,7 +287,7 @@ def test_status_present_with_invalid_string(
     sample_metadata_dict_remote,
 ):
     sample_metadata_dict_remote["status"] = {"isListed": "blabla"}
-    errors = plecos.list_errors_dict_remote(sample_metadata_dict_remote)
+    errors = ddo_checker.list_errors_dict_remote(sample_metadata_dict_remote)
     assert 1 == len(errors), "Should be invalid."
     with pytest.raises(ValidationError) as e_info:
         validate(instance=sample_metadata_dict_remote, schema=schema_remote_dict)
@@ -305,7 +305,7 @@ def test_status_present_with_two_invalid_strings(
         "isListed": "blabla",
         "isRetired": "bleble",
     }
-    errors = plecos.list_errors_dict_remote(sample_metadata_dict_remote)
+    errors = ddo_checker.list_errors_dict_remote(sample_metadata_dict_remote)
     assert 2 == len(errors), "Should be invalid."
     with pytest.raises(ValidationError) as e_info:
         validate(instance=sample_metadata_dict_remote, schema=schema_remote_dict)
@@ -320,7 +320,7 @@ def test_status_present_with_one_inadmissible_boolean(
     sample_metadata_dict_remote,
 ):
     sample_metadata_dict_remote["status"] = {"isSomethingElse": True}
-    errors = plecos.list_errors_dict_remote(sample_metadata_dict_remote)
+    errors = ddo_checker.list_errors_dict_remote(sample_metadata_dict_remote)
     assert 1 == len(errors), "Should be invalid."
     with pytest.raises(ValidationError) as e_info:
         validate(instance=sample_metadata_dict_remote, schema=schema_remote_dict)

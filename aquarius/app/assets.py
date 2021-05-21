@@ -15,7 +15,7 @@ from ocean_lib.web3_internal.contract_handler import ContractHandler
 from ocean_lib.web3_internal.web3_provider import Web3Provider
 from ocean_lib.ocean.util import get_web3_connection_provider
 from ocean_lib.config import Config as OceanConfig
-from aquarius.plecos.plecos import (
+from aquarius.ddo_checker.ddo_checker import (
     is_valid_dict_local,
     list_errors_dict_local,
     is_valid_dict_remote,

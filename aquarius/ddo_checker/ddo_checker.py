@@ -15,13 +15,13 @@ import pkg_resources
 # Here is the Schema file, loaded as the default to validate against
 LOCAL_SCHEMA_FILE = Path(
     pkg_resources.resource_filename(
-        "aquarius", "plecos/schemas/metadata_local_v0_6.json"
+        "aquarius", "ddo_checker/schemas/metadata_local_v0_6.json"
     )
 )
 assert LOCAL_SCHEMA_FILE.exists(), "Can't find schema file {}".format(LOCAL_SCHEMA_FILE)
 REMOTE_SCHEMA_FILE = Path(
     pkg_resources.resource_filename(
-        "aquarius", "plecos/schemas/metadata_remote_v0_6.json"
+        "aquarius", "ddo_checker/schemas/metadata_remote_v0_6.json"
     )
 )
 assert LOCAL_SCHEMA_FILE.exists(), "Can't find schema file {}".format(

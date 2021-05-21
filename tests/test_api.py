@@ -149,7 +149,7 @@ def test_validate_remote(client_with_no_data, base_ddo_url):
     )
     assert post.status_code == 400
 
-    # main key empty in metadata service - should fail from Plecos
+    # main key empty in metadata service - should fail from DDO Checker
     json_before["service"][2]["attributes"]["main"] = {}
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
