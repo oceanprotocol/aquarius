@@ -70,7 +70,7 @@ class MetadataCreatedProcessor(EventProcessor):
             "from": self.sender_address,
             "contract": self.contract_address,
         }
-        _record["chainId"] = self._web3.eth.chain_id
+        _record["chainId"] = self._web3.Eth.chain_id
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
