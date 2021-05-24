@@ -36,7 +36,7 @@ install_requirements = [
     "json-sempai==0.4.0",
 ]
 
-setup_requirements = ["pytest-runner==5.3.0"]
+setup_requirements = ["pytest-runner==5.3.1"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
