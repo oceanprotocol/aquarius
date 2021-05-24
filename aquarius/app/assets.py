@@ -374,7 +374,9 @@ def encrypt_ddo():
     try:
         ecies_account = Account.privateKeyToAccount(ecies_private_key)
         key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+        logger.debug(f"Encrypting:{data} with {key.public_key.to_hex()}")
         encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
+        logger.debug(f"Got encrypted ddo: {encrypted_data}")
         response = Response(encrypted_data)
         response.headers.set("Content-Type", "application/octet-stream")
         return response
