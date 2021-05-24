@@ -1,12 +1,16 @@
+<!--
+Copyright 2021 Ocean Protocol Foundation
+SPDX-License-Identifier: Apache-2.0
+-->
 - [Kubernetes deployment](#kubernetes-deployment)
   * [Elasticsearch](#elasticsearch)
   * [Aquarius](#aquarius)
 - [Docker Compose deployment](#docker-compose-deployment)
   * [Single systemd service (Aquarius+Elasticsearch)](#single-systemd-service-aquariuselasticsearch)
   * [Separate systemd services for Aquarius and Elasticsearch](#separate-systemd-services-for-aquarius-and-elasticsearch)
-  
-  
-  
+
+
+
 
 
 
@@ -14,12 +18,12 @@
 
 [Aquarius](https://github.com/oceanprotocol/aquarius) depends on the backend database and in this example we will deploy the following resources:
 
-- Elasticsearch  (as [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/))  - database backend. 
+- Elasticsearch  (as [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/))  - database backend.
 
 - Aquarius ([Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/))
 
 
-Templates (yaml files) are provided and could be customized based on the environment's specifics. 
+Templates (yaml files) are provided and could be customized based on the environment's specifics.
 
 
 
@@ -230,7 +234,7 @@ metadata:
     release: elasticsearch
   name: elasticsearch-master
 spec:
-  clusterIP: 
+  clusterIP:
   ports:
   - name: http
     port: 9200
@@ -291,7 +295,7 @@ service/elasticsearch-master-headless   ClusterIP   None           <none>       
 Once the Elasticsearch pods are running, the database service should be available:
 
 ```
-$ kubectl port-forward --namespace ocean svc/elasticsearch-master 9200:9200 
+$ kubectl port-forward --namespace ocean svc/elasticsearch-master 9200:9200
 Forwarding from 127.0.0.1:9200 -> 9200
 Forwarding from [::1]:9200 -> 9200
 ```
@@ -324,7 +328,7 @@ Handling connection for 9200
 
 For Aquarius deployment we can use the following templates for guidance.
 Some parameters are [optional](https://github.com/oceanprotocol/aquarius) and the template could be adjusted based on these considerations.
-One common case is the deployment for one of the following Ethereum networks: 
+One common case is the deployment for one of the following Ethereum networks:
 
 - mainnet
 - rinkeby
@@ -366,22 +370,14 @@ spec:
           value: http://0.0.0.0:5000
         - name: AQUARIUS_WORKERS
           value: "1"
-        - name: DB_COLLECTION
-          value: ddo
         - name: DB_HOSTNAME
           value: < Elasticsearch service >
         - name: DB_INDEX
           value: aquarius
         - name: DB_MODULE
           value: elasticsearch
-        - name: DB_NAME
-          value: aquarius
-        - name: DB_NAMESPACE
-          value: namespace
         - name: DB_PORT
           value: "9200"
-        - name: DB_SCHEME
-          value: http
         - name: DB_USERNAME
           value: elastic
         - name: DB_PASSWORD
@@ -463,7 +459,7 @@ Tip: before deployment you can [validate](https://github.com/instrumenta/kubeval
 $ kubectl apply -f aquarius-standard-networks-deployment.yaml
 deployment.apps/aquarius created
 
-$ kubectl get pods -l app=aquarius 
+$ kubectl get pods -l app=aquarius
 NAME                        READY   STATUS    RESTARTS   AGE
 aquarius-57b459946d-nxzwq   1/1     Running   0          55s
 ```
@@ -502,7 +498,7 @@ next step is to create a [service](https://kubernetes.io/docs/concepts/services-
 
 a) create */etc/docker/compose/aquarius/docker-compose.yml* file
 
- */etc/docker/compose/aquarius/docker-compose.yml* (annotated - this example use ropsten network) 
+ */etc/docker/compose/aquarius/docker-compose.yml* (annotated - this example use ropsten network)
 
 ```yaml
 version: '3'
@@ -515,7 +511,7 @@ services:
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
       MAX_MAP_COUNT: "64000"
       discovery.type: "single-node"
-    volumes: 
+    volumes:
       - data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
@@ -563,7 +559,7 @@ b) create */etc/systemd/system/docker-compose@aquarius.service* file
 [Unit]
 Description=%i service with docker compose
 Requires=docker.service
-After=docker.service 
+After=docker.service
 
 [Service]
 Type=oneshot
@@ -729,7 +725,7 @@ default log level: 10, env var LOG_LEVEL DEBUG
 2021-03-30 10:32:13,541 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
 2021-03-30 10:32:13,547 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
 default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:16,655 - aquarius.events.metadata_updater - DEBUG - Ocean token address: 0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9, 
+2021-03-30 10:32:16,655 - aquarius.events.metadata_updater - DEBUG - Ocean token address: 0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9,
 all deployed addresses: dict_items([('DTFactory', '0x6ebcCa6df2CAba986FCF44E64Ee82251c1455Dcc'), ('BFactory', '0x75be6e18c80A487C8b49663bf14f80A6495045B2'), ('FixedRateExchange', '0xA7a711A09396DF82D9be46A26B48BafdB9BB4fA6'), ('Metadata', '0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726'), ('Ocean', '0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9')])
 2021-03-30 10:32:18,386 - aquarius.events.events_monitor - DEBUG - allowed publishers: set()
 2021-03-30 10:32:18,386 - aquarius.events.events_monitor - DEBUG - EventsMonitor: using Metadata contract address 0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726.
@@ -777,7 +773,7 @@ services:
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
       MAX_MAP_COUNT: "262144"
       discovery.type: "single-node"
-    volumes: 
+    volumes:
       - data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
@@ -857,7 +853,7 @@ ExecStop=/usr/bin/env docker-compose -p $PROJECT stop
 WantedBy=multi-user.target
 ```
 
- 
+
 
 d) create */etc/systemd/system/docker-compose@aquarius.service* file (make sure Aquarius service will start after Elasticsearch if enabled at boot)
 
@@ -882,7 +878,7 @@ ExecStopPost=/usr/bin/env docker-compose down
 WantedBy=multi-user.target
 ```
 
- 
+
 
 e) run:
 
@@ -908,7 +904,7 @@ $ sudo systemctl start docker-compose@elasticsearch.service
 check status:
 
 ```shell
-$ sudo systemctl status docker-compose@elasticsearch.service 
+$ sudo systemctl status docker-compose@elasticsearch.service
 ● docker-compose@elasticsearch.service - elasticsearch service with docker compose
    Loaded: loaded (/etc/systemd/system/docker-compose@elasticsearch.service; enabled; vendor preset: disabled)
    Active: active (exited) since Tue 2021-03-30 07:24:41 UTC; 6s ago
@@ -931,7 +927,7 @@ Mar 30 07:24:41 ip-172-31-32-61.eu-central-1.compute.internal systemd[1]: Starte
 
 
 
-confirm Elasticsearch service is accessible on localhost port 9200/tcp 
+confirm Elasticsearch service is accessible on localhost port 9200/tcp
 
 ```shell
 $ curl localhost:9200
@@ -967,7 +963,7 @@ $ sudo systemctl start docker-compose@aquarius.service
 check the status:
 
 ```shell
-$ sudo systemctl status docker-compose@aquarius.service 
+$ sudo systemctl status docker-compose@aquarius.service
 ● docker-compose@aquarius.service - aquarius service with docker compose
    Loaded: loaded (/etc/systemd/system/docker-compose@aquarius.service; enabled; vendor preset: disabled)
    Active: active (exited) since Tue 2021-03-30 07:28:36 UTC; 5s ago
@@ -1023,7 +1019,7 @@ $ docker logs f44327bd3c33 [--follow]
 2021-03-30 07:28:42 f44327bd3c33 __main__[11] INFO EventsMonitor: preparing
 2021-03-30 07:28:42 f44327bd3c33 __main__[11] INFO EventsMonitor: starting with the following values: rpc=ropsten
 default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:44,689 - aquarius.events.metadata_updater - DEBUG - Ocean token address: 0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9, 
+2021-03-30 07:28:44,689 - aquarius.events.metadata_updater - DEBUG - Ocean token address: 0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9,
 all deployed addresses: dict_items([('DTFactory', '0x6ebcCa6df2CAba986FCF44E64Ee82251c1455Dcc'), ('BFactory', '0x75be6e18c80A487C8b49663bf14f80A6495045B2'), ('FixedRateExchange', '0xA7a711A09396DF82D9be46A26B48BafdB9BB4fA6'), ('Metadata', '0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726'), ('Ocean', '0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9')])
 default log level: 10, env var LOG_LEVEL DEBUG
 2021-03-30 07:28:45,735 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
@@ -1074,7 +1070,7 @@ default log level: 10, env var LOG_LEVEL DEBUG
 
 
 
-confirm Aquarius service is accessible on localhost port 5000/tcp 
+confirm Aquarius service is accessible on localhost port 5000/tcp
 
 ```shell
 $ curl localhost:5000
