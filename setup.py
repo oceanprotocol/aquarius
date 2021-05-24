@@ -19,7 +19,7 @@ with open("CHANGELOG.md") as history_file:
 
 install_requirements = [
     "coloredlogs==15.0",
-    "Flask==1.1.2",
+    "Flask==2.0.1",
     "Flask-Cors==3.0.10",
     "flask-swagger==0.2.14",
     "flask-swagger-ui==3.36.0",
@@ -47,12 +47,12 @@ dev_requirements = [
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==2.1.1",
+    "watchdog==2.1.2",
     "licenseheaders",
 ]
 
 test_requirements = [
-    "Flask==1.1.2",
+    "Flask==2.0.1",
     "codacy-coverage==1.3.11",
     "coverage==5.5",
     "mccabe==0.6.1",
