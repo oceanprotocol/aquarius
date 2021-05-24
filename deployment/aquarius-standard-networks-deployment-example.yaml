@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: aquarius
+  name: aquarius
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: aquarius
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: aquarius
+    spec:
+      containers:
+      - env:
+        - name: LOG_LEVEL
+          value: < DEBUG or INFO >
+        - name: AQUARIUS_URL
+          value: http://0.0.0.0:5000
+        - name: AQUARIUS_WORKERS
+          value: "1"
+        - name: DB_COLLECTION
+          value: ddo
+        - name: DB_HOSTNAME
+          value: < elasticsearch service >
+        - name: DB_INDEX
+          value: aquarius
+        - name: DB_MODULE
+          value: elasticsearch
+        - name: DB_NAME
+          value: aquarius
+        - name: DB_NAMESPACE
+          value: namespace
+        - name: DB_PORT
+          value: "9200"
+        - name: DB_SCHEME
+          value: http
+        - name: DB_USERNAME
+          value: elastic
+        - name: DB_PASSWORD
+          value: <your password>
+        - name: DB_SSL
+          value: "false"
+        - name: DB_VERIFY_CERTS
+          value: "false"
+        - name: EVENTS_ALLOW
+          value: "0"
+        - name: EVENTS_RPC
+          value: wss://rinkeby.infura.io/ws/v3/<YOUR-PROJECT-ID>
+        - name: RUN_EVENTS_MONITOR
+          value: "1"
+        - name: ALLOWED_PUBLISHERS
+          value: '[""]'
+        - name: BFACTORY_BLOCK
+          value: "< The blockNumber of `Metadata` contract deployment >"
+        - name: INFURA_PROJECT_ID
+          value: < INFURA_PROJECT_ID >
+        - name: METADATA_CONTRACT_BLOCK
+          value: "< metadata contract block >"
+        - name: NETWORK_NAME
+          value: < mainnet, rinkeby or ropsten >
+        - name: NETWORK_URL
+          value: < option selected as NETWORK_NAME above >
+        - name: METADATA_UPDATE_ALL
+          value: "0"
+        - name: UPDATE_ALL_PURGATORY
+          value: "0"
+        - name: OCEAN_ADDRESS
+          value: 0x8967BCF84170c91B0d24D4302C2376283b0B3a07
+        image: oceanprotocol/aquarius:<tag from hub.docker.com> -- check: https://hub.docker.com/repository/docker/oceanprotocol/aquarius/tags?page=1&ordering=last_updated --
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        name: aquarius
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30

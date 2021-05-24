@@ -1,0 +1,184 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: elasticsearch-master
+    release: elasticsearch
+  name: elasticsearch-master
+spec:
+  podManagementPolicy: Parallel
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: elasticsearch-master
+  serviceName: elasticsearch-master-headless
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: elasticsearch-master
+        release: elasticsearch
+      name: elasticsearch-master
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - elasticsearch-master
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - env:
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: discovery.zen.minimum_master_nodes
+          value: "2"
+        - name: discovery.zen.ping.unicast.hosts
+          value: elasticsearch-master-headless
+        - name: cluster.name
+          value: elasticsearch
+        - name: network.host
+          value: 0.0.0.0
+        - name: ES_JAVA_OPTS
+          value: -Xmx1g -Xms1g
+        - name: node.data
+          value: "true"
+        - name: node.ingest
+          value: "true"
+        - name: node.master
+          value: "true"
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.8.13
+        imagePullPolicy: IfNotPresent
+        name: elasticsearch
+        ports:
+        - containerPort: 9200
+          name: http
+          protocol: TCP
+        - containerPort: 9300
+          name: transport
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - |
+              #!/usr/bin/env bash -e
+              # If the node is starting up wait for the cluster to be ready (request params: "wait_for_status=green&timeout=1s" )
+              # Once it has started only check that the node itself is responding
+              START_FILE=/tmp/.es_start_file
+
+              # Disable nss cache to avoid filling dentry cache when calling curl
+              # This is required with Elasticsearch Docker using nss < 3.52
+              export NSS_SDB_USE_CACHE=no
+
+              http () {
+                local path="${1}"
+                local args="${2}"
+                set -- -XGET -s
+
+                if [ "$args" != "" ]; then
+                  set -- "$@" $args
+                fi
+
+                if [ -n "${ELASTIC_USERNAME}" ] && [ -n "${ELASTIC_PASSWORD}" ]; then
+                  set -- "$@" -u "${ELASTIC_USERNAME}:${ELASTIC_PASSWORD}"
+                fi
+
+                curl --output /dev/null -k "$@" "http://127.0.0.1:9200${path}"
+              }
+
+              if [ -f "${START_FILE}" ]; then
+                echo 'Elasticsearch is already running, lets check the node is healthy'
+                HTTP_CODE=$(http "/" "-w %{http_code}")
+                RC=$?
+                if [[ ${RC} -ne 0 ]]; then
+                  echo "curl --output /dev/null -k -XGET -s -w '%{http_code}' \${BASIC_AUTH} http://127.0.0.1:9200/ failed with RC ${RC}"
+                  exit ${RC}
+                fi
+                # ready if HTTP code 200, 503 is tolerable if ES version is 6.x
+                if [[ ${HTTP_CODE} == "200" ]]; then
+                  exit 0
+                elif [[ ${HTTP_CODE} == "503" && "6" == "6" ]]; then
+                  exit 0
+                else
+                  echo "curl --output /dev/null -k -XGET -s -w '%{http_code}' \${BASIC_AUTH} http://127.0.0.1:9200/ failed with HTTP code ${HTTP_CODE}"
+                  exit 1
+                fi
+
+              else
+                echo 'Waiting for elasticsearch cluster to become ready (request params: "wait_for_status=green&timeout=1s" )'
+                if http "/_cluster/health?wait_for_status=green&timeout=1s" "--fail" ; then
+                  touch ${START_FILE}
+                  exit 0
+                else
+                  echo 'Cluster is not yet ready (request params: "wait_for_status=green&timeout=1s" )'
+                  exit 1
+                fi
+              fi
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 3
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2Gi
+          requests:
+            cpu: "1"
+            memory: 2Gi
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /usr/share/elasticsearch/data
+          name: elasticsearch-master
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: true
+      initContainers:
+      - command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.8.13
+        imagePullPolicy: IfNotPresent
+        name: configure-sysctl
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      terminationGracePeriodSeconds: 120
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: elasticsearch-master
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
