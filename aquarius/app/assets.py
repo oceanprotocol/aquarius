@@ -40,7 +40,6 @@ import eth_keys
 Web3Provider.init_web3(
     provider=get_web3_connection_provider(os.environ.get("EVENTS_RPC", ""))
 )
-ContractHandler.set_artifacts_path(get_artifacts_path())
 if get_network_name().lower() == "rinkeby":
     from web3.middleware import geth_poa_middleware
 
