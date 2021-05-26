@@ -157,16 +157,12 @@ def get_datatoken_info(token_address):
     token_address = Web3.toChecksumAddress(token_address)
     dt = DataToken(token_address)
     contract = dt.contract_concise
-    minter = contract.minter()
     return {
         "address": token_address,
         "name": contract.name(),
         "symbol": contract.symbol(),
         "decimals": contract.decimals(),
-        "totalSupply": from_base_18(contract.totalSupply()),
         "cap": from_base_18(contract.cap()),
-        "minter": minter,
-        "minterBalance": dt.token_balance(minter),
     }
 
 
