@@ -137,14 +137,15 @@ def get_metadata_contract(web3):
 
 def get_datatoken_info(token_address):
     token_address = Web3.toChecksumAddress(token_address)
-    dt = DataToken(token_address)
-    contract = dt.contract_concise
+    # TODO: reinstate in some form
+    # dt = DataToken(token_address)
+    # contract = dt.contract_concise
     return {
         "address": token_address,
-        "name": contract.name(),
-        "symbol": contract.symbol(),
-        "decimals": contract.decimals(),
-        "cap": from_base_18(contract.cap()),
+        # "name": contract.name(),
+        # "symbol": contract.symbol(),
+        # "decimals": contract.decimals(),
+        # "cap": from_base_18(contract.cap()),
     }
 
 
