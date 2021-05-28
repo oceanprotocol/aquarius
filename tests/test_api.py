@@ -216,8 +216,6 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     )
     assert _response.status_code == 200
     encrypted_ddo = _response.data
-    print("Encrypted ddo")
-    print(encrypted_ddo)
     key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
     decrypted_ddo = ecies.decrypt(key.to_hex(), Web3.toBytes(encrypted_ddo))
     assert decrypted_ddo == compressed_ddo
@@ -229,8 +227,6 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     )
     assert _response_hex.status_code == 200
     encrypted_ddo_hex = _response_hex.data.decode("utf-8")
-    print("Encrypted ddo_hex")
-    print(encrypted_ddo_hex)
     decrypted_ddo_from_hex = ecies.decrypt(
         key.to_hex(), Web3.toBytes(hexstr=encrypted_ddo_hex)
     )
