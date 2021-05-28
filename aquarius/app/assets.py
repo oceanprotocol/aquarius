@@ -2,7 +2,6 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import ecies
 import elasticsearch
 import json
 import logging
@@ -31,13 +30,13 @@ from aquarius.app.util import (
     sanitize_record,
     list_errors,
     get_request_data,
+    encrypt_data,
 )
 from aquarius.events.metadata_updater import MetadataUpdater
 from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from eth_account import Account
-import eth_keys
+from web3 import Web3
 
 ConfigProvider.set_config(OceanConfig(app.config["CONFIG_FILE"]))
 Web3Provider.init_web3(
@@ -355,7 +354,7 @@ def validate_remote():
 
 ###########################
 # ENCRYPT DDO
-# Since this method is public, this is just an example of how to do. You should either add some auth methods here, or protect this endpoint from your nginx
+# Since this methods are public, this is just an example of how to do. You should either add some auth methods here, or protect this endpoint from your nginx
 # Using it like this, means that anyone call encrypt their ddo, so they will be able to publish to your market.
 ###########################
 
@@ -389,16 +388,49 @@ def encrypt_ddo():
     ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
     if ecies_private_key is None:
         return "no privatekey configured", 400
-    try:
-        ecies_account = Account.privateKeyToAccount(ecies_private_key)
-        key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
-        encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
-        response = Response(encrypted_data)
-        response.headers.set("Content-Type", "application/octet-stream")
-        return response
-    except Exception as e:
-        logger.error(f"encrypt error:{str(e)}")
+    encrypted_data = encrypt_data(data)
+    if encrypt_data is None:
         return "Encrypt error", 500
+    response = Response(encrypted_data)
+    response.headers.set("Content-Type", "application/octet-stream")
+    return response
+
+
+@assets.route("/ddo/encryptashex", methods=["POST"])
+def encrypt_ddo_as_hex():
+    """Encrypt a DDO.
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/octet-stream
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: data
+        schema:
+          type: object
+    responses:
+      200:
+        description: successfully request. data is converted to hex
+      400:
+        description: Invalid format
+      500:
+        description: Error
+    """
+    if request.content_type != "application/text":
+        return "invalid content-type", 400
+    data = request.get_data()
+    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
+    if ecies_private_key is None:
+        return "no privatekey configured", 400
+    encrypted_data = encrypt_data(data)
+    if encrypt_data is None:
+        return "Encrypt error", 500
+    response = Response(Web3.toHex(encrypted_data))
+    response.headers.set("Content-Type", "application/text")
+    return response
 
 
 @assets.route("/ddo/update/<did>", methods=["PUT"])

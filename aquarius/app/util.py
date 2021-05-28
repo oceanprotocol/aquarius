@@ -3,11 +3,16 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import copy
+import ecies
+import eth_keys
 import json
 import logging
 import os
+
 from collections import OrderedDict
 from datetime import datetime
+from eth_account import Account
+
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
@@ -219,3 +224,17 @@ def rename_metadata_keys(bucket):
         d["count"] = d.pop("doc_count")
 
     return bucket
+
+
+def encrypt_data(data):
+    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
+    if ecies_private_key is None:
+        return None
+    try:
+        ecies_account = Account.privateKeyToAccount(ecies_private_key)
+        key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+        encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
+        return encrypted_data
+    except Exception as e:
+        logger.error(f"encrypt error:{str(e)}")
+        return None
