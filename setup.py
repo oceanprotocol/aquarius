@@ -30,7 +30,7 @@ install_requirements = [
     "oceandb-elasticsearch-driver==0.4.4",
     "PyYAML==5.4.1",
     "pytz==2021.1",
-    "ocean-lib==0.5.22",
+    "ocean-contracts==0.6.3",
     "eciespy",
     "gevent",
     "json-sempai==0.4.0",
