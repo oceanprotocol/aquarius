@@ -32,6 +32,7 @@ install_requirements = [
     "pytz==2021.1",
     "ocean-contracts==0.6.3",
     "web3==4.7.1",
+    "jsonschema==3.2.0",
     "eciespy",
     "gevent",
     "json-sempai==0.4.0",
