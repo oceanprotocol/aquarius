@@ -419,8 +419,6 @@ def encrypt_ddo_as_hex():
       500:
         description: Error
     """
-    if request.content_type != "application/text":
-        return "invalid content-type", 400
     data = request.get_data()
     ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
     if ecies_private_key is None:
@@ -429,7 +427,7 @@ def encrypt_ddo_as_hex():
     if encrypt_data is None:
         return "Encrypt error", 500
     response = Response(Web3.toHex(encrypted_data))
-    response.headers.set("Content-Type", "application/text")
+    response.headers.set("Content-Type", "text/plain")
     return response
 
 
