@@ -6,12 +6,11 @@ import json
 import os
 import time
 from pathlib import Path
+import pkg_resources
 
 from jsonsempai import magic  # noqa: F401
 from artifacts import address as contract_addresses, Metadata
 from aquarius.events.http_provider import CustomHTTPProvider
-from ocean_lib.models.data_token import DataToken
-from ocean_lib.ocean.util import from_base_18
 from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
@@ -135,17 +134,24 @@ def get_metadata_contract(web3):
     return web3.eth.contract(address=address, abi=abi)
 
 
-def get_datatoken_info(token_address):
+def get_datatoken_info(web3, token_address):
     token_address = Web3.toChecksumAddress(token_address)
-    # TODO: reinstate in some form
-    # dt = DataToken(token_address)
-    # contract = dt.contract_concise
+    dt_abi_path = Path(
+        pkg_resources.resource_filename("aquarius", "events/datatoken_abi.json")
+    ).resolve()
+    with open(dt_abi_path) as f:
+        datatoken_abi = json.load(f)
+
+    dt = web3.eth.contract(address=token_address, abi=datatoken_abi)
+    decimals = dt.functions.decimals().call()
+    cap_orig = dt.functions.cap().call()
+
     return {
         "address": token_address,
-        # "name": contract.name(),
-        # "symbol": contract.symbol(),
-        # "decimals": contract.decimals(),
-        # "cap": from_base_18(contract.cap()),
+        "name": dt.functions.name().call(),
+        "symbol": dt.functions.symbol().call(),
+        "decimals": decimals,
+        "cap": float(cap_orig / (10 ** decimals)),
     }
 
 
