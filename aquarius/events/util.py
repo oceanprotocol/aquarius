@@ -6,17 +6,11 @@ import json
 import os
 import time
 from pathlib import Path
+import pkg_resources
 
 from jsonsempai import magic  # noqa: F401
 from artifacts import address as contract_addresses, Metadata
-from ocean_lib.config import Config
-from ocean_lib.config_provider import ConfigProvider
-from ocean_lib.web3_internal.contract_handler import ContractHandler
-from ocean_lib.web3_internal.utils import get_network_name as web3_network_name
-from ocean_lib.web3_internal.web3_provider import Web3Provider
-from ocean_lib.models.data_token import DataToken
-from ocean_lib.models.metadata import MetadataContract
-from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
+from aquarius.events.http_provider import CustomHTTPProvider
 from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
@@ -30,11 +24,9 @@ METADATA_ABI_FILE_NAME = "Metadata.json"
 
 
 def get_network_name():
-    try:
-        network_name = os.getenv("NETWORK_NAME")
-        if not network_name:
-            network_name = web3_network_name().lower()
-    except Exception:
+    network_name = os.getenv("NETWORK_NAME", None)
+
+    if not network_name:
         network = os.getenv("EVENTS_RPC")
         if network.startswith("wss://"):
             network_name = network[len("wss://") :].split(".")[0]
@@ -47,17 +39,6 @@ def get_network_name():
             raise AssertionError("Cannot figure out the network name.")
 
     return network_name
-
-
-def prepare_contracts(web3, config):
-    addresses = get_contracts_addresses(get_network_name(), config)
-    if not addresses:
-        raise AssertionError(
-            f"Cannot find contracts addresses for network {get_network_name()}"
-        )
-
-    addresses = {name: web3.toChecksumAddress(a) for name, a in addresses.items()}
-    return addresses
 
 
 def deploy_contract(w3, _json, private_key, *args):
@@ -134,7 +115,7 @@ def get_metadata_contract(web3):
         address_json = json.load(f)
 
     network = get_network_name()
-    address = address_json[network][MetadataContract.CONTRACT_NAME]
+    address = address_json[network]["Metadata"]
 
     env_path = os.getenv(ENV_ARTIFACTS_PATH)
 
@@ -153,42 +134,43 @@ def get_metadata_contract(web3):
     return web3.eth.contract(address=address, abi=abi)
 
 
-def get_datatoken_info(token_address):
+def get_datatoken_info(web3, token_address):
     token_address = Web3.toChecksumAddress(token_address)
-    dt = DataToken(token_address)
-    contract = dt.contract_concise
-    minter = contract.minter()
+    dt_abi_path = Path(
+        pkg_resources.resource_filename("aquarius", "events/datatoken_abi.json")
+    ).resolve()
+    with open(dt_abi_path) as f:
+        datatoken_abi = json.load(f)
+
+    dt = web3.eth.contract(address=token_address, abi=datatoken_abi)
+    decimals = dt.functions.decimals().call()
+    cap_orig = dt.functions.cap().call()
+
     return {
         "address": token_address,
-        "name": contract.name(),
-        "symbol": contract.symbol(),
-        "decimals": contract.decimals(),
-        "totalSupply": from_base_18(contract.totalSupply()),
-        "cap": from_base_18(contract.cap()),
-        "minter": minter,
-        "minterBalance": dt.token_balance(minter),
+        "name": dt.functions.name().call(),
+        "symbol": dt.functions.symbol().call(),
+        "decimals": decimals,
+        "cap": float(cap_orig / (10 ** decimals)),
     }
 
 
 def setup_web3(config_file, _logger=None):
-    _config = Config(config_file)
-    ConfigProvider.set_config(_config)
-    from ocean_lib.ocean.util import get_web3_connection_provider
-
     network_rpc = os.environ.get("EVENTS_RPC", "http:127.0.0.1:8545")
     if _logger:
         _logger.info(
             f"EventsMonitor: starting with the following values: rpc={network_rpc}"
         )
 
-    Web3Provider.init_web3(provider=get_web3_connection_provider(network_rpc))
-    ContractHandler.set_artifacts_path(get_artifacts_path())
+    provider = CustomHTTPProvider(network_rpc)
+    web3 = Web3(provider)
+
     if (
         get_bool_env_value("USE_POA_MIDDLEWARE", 0)
         or get_network_name().lower() == "rinkeby"
     ):
         from web3.middleware import geth_poa_middleware
 
-        Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
+        web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
-    return Web3Provider.get_web3()
+    return web3
