@@ -396,8 +396,6 @@ spec:
           value: '[""]'
         - name: BFACTORY_BLOCK
           value: "< The blockNumber of `Metadata` contract deployment >"
-        - name: INFURA_PROJECT_ID
-          value: < INFURA_PROJECT_ID >
         - name: METADATA_CONTRACT_BLOCK
           value: "< metadata contract block >"
         - name: NETWORK_NAME
@@ -538,7 +536,6 @@ services:
       NETWORK_NAME: "ropsten"
       NETWORK_URL: "ropsten"
       EVENTS_RPC: "ropsten"
-      INFURA_PROJECT_ID: "< your Infura project id>"
       BFACTORY_BLOCK: 9227563
       METADATA_CONTRACT_BLOCK: 9227563
       EVENTS_ALLOW: 0
@@ -817,7 +814,6 @@ services:
       NETWORK_NAME: "ropsten"
       NETWORK_URL: "ropsten"
       EVENTS_RPC: "ropsten"
-      INFURA_PROJECT_ID: "< your INFURA project id"
       BFACTORY_BLOCK: 9227563
       METADATA_CONTRACT_BLOCK: 9227563
       EVENTS_ALLOW: 0

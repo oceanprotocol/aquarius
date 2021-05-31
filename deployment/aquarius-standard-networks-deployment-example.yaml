@@ -59,8 +59,6 @@ spec:
           value: '[""]'
         - name: BFACTORY_BLOCK
           value: "< The blockNumber of `Metadata` contract deployment >"
-        - name: INFURA_PROJECT_ID
-          value: < INFURA_PROJECT_ID >
         - name: METADATA_CONTRACT_BLOCK
           value: "< metadata contract block >"
         - name: NETWORK_NAME
