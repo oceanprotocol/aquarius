@@ -11,7 +11,7 @@ from pathlib import Path
 
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.constants import BaseURLs
-from aquarius.events.http_provider import CustomHTTPProvider
+from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.run import app
 from aquarius.ddo_checker import ddo_checker
 
@@ -44,7 +44,7 @@ def events_object():
     global EVENTS_INSTANCE
     if not EVENTS_INSTANCE:
         network_rpc = os.environ.get("EVENTS_RPC", "http://127.0.0.1:8545")
-        provider = CustomHTTPProvider(network_rpc)
+        provider = get_web3_connection_provider(network_rpc)
         web3 = Web3(provider)
 
         EVENTS_INSTANCE = EventsMonitor(web3, app.config["CONFIG_FILE"])

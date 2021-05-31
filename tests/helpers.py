@@ -14,11 +14,11 @@ from web3.datastructures import AttributeDict
 
 from aquarius.events.util import get_metadata_contract, deploy_datatoken
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
-from aquarius.events.http_provider import CustomHTTPProvider
+from aquarius.events.http_provider import get_web3_connection_provider
 from tests.ddos.ddo_event_sample import ddo_event_sample
 
 rpc = os.environ.get("EVENTS_RPC", "")
-provider = CustomHTTPProvider(rpc)
+provider = get_web3_connection_provider(rpc)
 WEB3_INSTANCE = Web3(provider)
 
 

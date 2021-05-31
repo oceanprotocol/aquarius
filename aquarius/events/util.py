@@ -10,7 +10,7 @@ import pkg_resources
 
 from jsonsempai import magic  # noqa: F401
 from artifacts import address as contract_addresses, Metadata
-from aquarius.events.http_provider import CustomHTTPProvider
+from aquarius.events.http_provider import get_web3_connection_provider
 from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
@@ -162,7 +162,7 @@ def setup_web3(config_file, _logger=None):
             f"EventsMonitor: starting with the following values: rpc={network_rpc}"
         )
 
-    provider = CustomHTTPProvider(network_rpc)
+    provider = get_web3_connection_provider(network_rpc)
     web3 = Web3(provider)
 
     if (

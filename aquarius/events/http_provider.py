@@ -2,9 +2,23 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import os
 from web3 import HTTPProvider
+from web3 import WebsocketProvider
 
 from aquarius.events.request import make_post_request
+
+GANACHE_URL = "http://127.0.0.1:8545"
+POLYGON_URL = "https://rpc.polygon.oceanprotocol.com"
+
+SUPPORTED_NETWORK_NAMES = {
+    "rinkeby",
+    "kovan",
+    "ganache",
+    "mainnet",
+    "ropsten",
+    "polygon",
+}
 
 
 class CustomHTTPProvider(HTTPProvider):
@@ -28,3 +42,28 @@ class CustomHTTPProvider(HTTPProvider):
             response,
         )
         return response
+
+
+def get_web3_connection_provider(network_url):
+    if network_url.startswith("http"):
+        provider = CustomHTTPProvider(network_url)
+    elif network_url.startswith("ws"):
+        provider = WebsocketProvider(network_url)
+    elif network_url == "ganache":
+        provider = CustomHTTPProvider(GANACHE_URL)
+    elif network_url == "polygon":
+        provider = CustomHTTPProvider(POLYGON_URL)
+    else:
+        assert network_url in SUPPORTED_NETWORK_NAMES, (
+            f"The given network_url *{network_url}* does not start with either "
+            f"`http` or `wss`, in this case a network name is expected and must "
+            f"be one of the supported networks {SUPPORTED_NETWORK_NAMES}."
+        )
+
+        network_url = os.getenv("NETWORK_URL")
+        if network_url.startswith("http"):
+            provider = CustomHTTPProvider(network_url)
+        else:
+            provider = WebsocketProvider(network_url)
+
+    return provider
