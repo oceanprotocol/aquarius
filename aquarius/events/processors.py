@@ -44,6 +44,7 @@ class EventProcessor(ABC):
 
         self._oceandb = oceandb
         self._web3 = web3
+        self._ecies_account = ecies_account
         self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
 
