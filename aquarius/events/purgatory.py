@@ -55,8 +55,6 @@ class Purgatory:
             return
 
         self.update_time = now
-        if not self.reference_list:
-            return
 
         new_list = self.retrieve_new_list()
         new_ids = new_list.difference(self.reference_list)
@@ -64,4 +62,4 @@ class Purgatory:
 
         for _id, reason in new_ids:
             asset = self._oceandb.read(_id)
-            self.update_asset_purgatory_status(self, asset)
+            self.update_asset_purgatory_status(asset)
