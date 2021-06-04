@@ -59,7 +59,6 @@ class EventsMonitor(BlockProcessingClass):
         self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
-        self._pool_monitor = None
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
@@ -143,8 +142,6 @@ class EventsMonitor(BlockProcessingClass):
 
     def stop_monitor(self):
         self._monitor_is_on = False
-        if self._pool_monitor and self._pool_monitor.is_running():
-            self._pool_monitor.stop()
 
     def run_monitor(self):
         if self.purgatory:

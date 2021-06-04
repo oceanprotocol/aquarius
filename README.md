@@ -30,11 +30,6 @@ It's part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
   * `MetadataCreated` event from the `Metadata` smartcontract
     * Reads the events `data` argument, decompresses the metadata json object
       then runs schema validation before saving it to the database
-  * `LOG_JOIN`, `LOG_EXIT` and `LOG_SWAP` events from the `BPool` smartcontracts
-    * Any of these events is an indication that liquidity and price have changed
-    * The watcher reads the liquidity of each token in the pool and updates the
-    corresponding metadata in the cache. This information is added to the metadata
-    to allow sorting and searching by price and/or liquidity volume
 
 ## Setup
 The following environment variables are required for running Aquarius:
