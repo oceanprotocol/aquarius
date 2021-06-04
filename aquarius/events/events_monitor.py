@@ -145,7 +145,7 @@ class EventsMonitor(BlockProcessingClass):
 
     def run_monitor(self):
         if self.purgatory:
-            self.purgatory.update_existing_assets_data()
+            self.purgatory.init_existing_assets()
 
         while True:
             try:
