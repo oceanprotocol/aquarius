@@ -24,13 +24,18 @@ class TestPurgatory(Purgatory):
         return self.current_test_list
 
 
-def test_publish(client, base_ddo_url, events_object):
+def publish_ddo(client, base_ddo_url, events_object):
     ddo = new_ddo(test_account1, get_web3(), "dt.0")
     did = ddo.id
     data = Web3.toBytes(text=json.dumps(dict(ddo)))
     send_create_update_tx("create", did, bytes([0]), data, test_account1)
     events_object.process_current_blocks()
-    published_ddo = get_ddo(client, base_ddo_url, did)
+
+    return did
+
+
+def test_update_list(client, base_ddo_url, events_object):
+    did = publish_ddo(client, base_ddo_url, events_object)
 
     purgatory = TestPurgatory(events_object._oceandb)
     purgatory.init_existing_assets()
@@ -41,3 +46,15 @@ def test_publish(client, base_ddo_url, events_object):
     purgatory.update_list()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "true"
+
+    # remove did from purgatory, but before 1h passed
+    purgatory.current_test_list = set()
+    purgatory.update_list()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["isInPurgatory"] == "true"
+
+    # instead of 1h passing, we use a trick here
+    purgatory.update_time = None
+    purgatory.update_list()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["isInPurgatory"] == "false"
