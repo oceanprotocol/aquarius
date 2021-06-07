@@ -4,6 +4,7 @@
 #
 import json
 from web3 import Web3
+from datetime import datetime, timedelta
 
 from tests.helpers import (
     get_web3,
@@ -13,6 +14,7 @@ from tests.helpers import (
     new_ddo,
 )
 from aquarius.events.purgatory import Purgatory
+from freezegun import freeze_time
 
 
 class TestPurgatory(Purgatory):
@@ -47,14 +49,19 @@ def test_update_list(client, base_ddo_url, events_object):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "true"
 
-    # remove did from purgatory, but before 1h passed
+    # remove did from purgatory, but before 1h passed (won't have an effect)
     purgatory.current_test_list = set()
     purgatory.update_list()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "true"
 
-    # instead of 1h passing, we use a trick here
-    purgatory.update_time = None
+    # simulate the passage of time (1 hour until next purgatory update)
+    in_one_hour = datetime.now() + timedelta(hours=1)
+    freezer = freeze_time(in_one_hour)
+    freezer.start()
+
+    # this time, removing the did from purgatory will take effect
     purgatory.update_list()
+    freezer.stop()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
