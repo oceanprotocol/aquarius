@@ -34,8 +34,11 @@ class Purgatory:
             if not did or not did.startswith("did:op:"):
                 continue
 
+            purgatory_dids = [x[0] for x in self.reference_asset_list]
+            purgatory_accounts = [x[0] for x in self.reference_account_list]
+
             purgatory_value = str(
-                did in [x[0] for x in self.reference_asset_list]
+                did in purgatory_dids or asset["event"]["from"] in purgatory_accounts
             ).lower()
 
             if purgatory_value != asset.get("isInPurgatory"):
@@ -60,7 +63,14 @@ class Purgatory:
         new_ids_for_purgatory = new_asset_list.difference(self.reference_asset_list)
         new_ids_forgiven = self.reference_asset_list.difference(new_asset_list)
 
+        new_account_list = self.retrieve_new_list("ACCOUNT_PURGATORY_URL")
+        new_accounts_for_purgatory = new_account_list.difference(
+            self.reference_account_list
+        )
+        new_accounts_forgiven = self.reference_account_list.difference(new_account_list)
+
         self.reference_asset_list = new_asset_list
+        self.reference_account_list = new_account_list
 
         for did, reason in new_ids_for_purgatory:
             asset = self._oceandb.read(did)
@@ -69,3 +79,5 @@ class Purgatory:
         for did, reason in new_ids_forgiven:
             asset = self._oceandb.read(did)
             self.update_asset_purgatory_status(asset, "false")
+
+        # TODO: uppdate assets published by those accounts
