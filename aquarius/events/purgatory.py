@@ -42,8 +42,6 @@ class Purgatory:
     def update_asset_purgatory_status(self, asset, purgatory="true"):
         did = asset["id"]
         asset["isInPurgatory"] = purgatory
-        if "purgatoryData" in asset:
-            asset.pop("purgatoryData")
         try:
             self._oceandb.update(json.dumps(asset), did)
         except Exception as e:
@@ -62,10 +60,10 @@ class Purgatory:
 
         self.reference_list = new_list
 
-        for _id, reason in new_ids_for_purgatory:
-            asset = self._oceandb.read(_id)
+        for did, reason in new_ids_for_purgatory:
+            asset = self._oceandb.read(did)
             self.update_asset_purgatory_status(asset)
 
-        for _id, reason in new_ids_forgiven:
-            asset = self._oceandb.read(_id)
+        for did, reason in new_ids_forgiven:
+            asset = self._oceandb.read(did)
             self.update_asset_purgatory_status(asset, "false")
