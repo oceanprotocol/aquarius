@@ -17,11 +17,11 @@ from aquarius.events.purgatory import Purgatory
 from freezegun import freeze_time
 
 
-class TestPurgatory(Purgatory):
+class PurgatoryForTesting(Purgatory):
     def __init__(self, oceandb):
         self.current_test_asset_list = set()
         self.current_test_account_list = set()
-        super(TestPurgatory, self).__init__(oceandb)
+        super(PurgatoryForTesting, self).__init__(oceandb)
 
     def retrieve_new_list(self, env_var):
         return (
@@ -52,7 +52,7 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = TestPurgatory(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._oceandb)
     purgatory.init_existing_assets()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
@@ -91,7 +91,7 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = TestPurgatory(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._oceandb)
     purgatory.init_existing_assets()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
@@ -101,3 +101,20 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     purgatory.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "true"
+
+    # remove account from purgatory, but before 1h passed (won't have an effect)
+    purgatory.current_test_account_list = set()
+    purgatory.update_lists()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["isInPurgatory"] == "true"
+
+    # simulate the passage of time (1 hour until next purgatory update)
+    in_one_hour = datetime.now() + timedelta(hours=1)
+    freezer = freeze_time(in_one_hour)
+    freezer.start()
+
+    # this time, removing the account from purgatory will take effect
+    purgatory.update_lists()
+    freezer.stop()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["isInPurgatory"] == "false"
