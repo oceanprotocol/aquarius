@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import os
 import json
 import logging
 import requests
@@ -14,12 +15,11 @@ class Purgatory:
     def __init__(self, oceandb):
         self.update_time = None
         self._oceandb = oceandb
-        self.reference_list = self.retrieve_new_list()
+        self.reference_asset_list = self.retrieve_new_list("ASSET_PURGATORY_URL")
+        self.reference_account_list = self.retrieve_new_list("ACCOUNT_PURGATORY_URL")
 
-    def retrieve_new_list(self):
-        response = requests.get(
-            "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json"
-        )
+    def retrieve_new_list(self, env_var):
+        response = requests.get(os.getenv(env_var))
 
         if response.status_code == requests.codes.ok:
             return {
@@ -34,7 +34,9 @@ class Purgatory:
             if not did or not did.startswith("did:op:"):
                 continue
 
-            purgatory_value = str(did in [x[0] for x in self.reference_list]).lower()
+            purgatory_value = str(
+                did in [x[0] for x in self.reference_asset_list]
+            ).lower()
 
             if purgatory_value != asset.get("isInPurgatory"):
                 self.update_asset_purgatory_status(asset, purgatory_value)
@@ -47,18 +49,18 @@ class Purgatory:
         except Exception as e:
             logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
 
-    def update_list(self):
+    def update_lists(self):
         now = int(datetime.now().timestamp())
         if self.update_time and (now - self.update_time) < 3600:
             return
 
         self.update_time = now
 
-        new_list = self.retrieve_new_list()
-        new_ids_for_purgatory = new_list.difference(self.reference_list)
-        new_ids_forgiven = self.reference_list.difference(new_list)
+        new_asset_list = self.retrieve_new_list("ASSET_PURGATORY_URL")
+        new_ids_for_purgatory = new_asset_list.difference(self.reference_asset_list)
+        new_ids_forgiven = self.reference_asset_list.difference(new_asset_list)
 
-        self.reference_list = new_list
+        self.reference_asset_list = new_asset_list
 
         for did, reason in new_ids_for_purgatory:
             asset = self._oceandb.read(did)

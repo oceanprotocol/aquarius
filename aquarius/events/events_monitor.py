@@ -109,7 +109,7 @@ class EventsMonitor(BlockProcessingClass):
 
         self.purgatory = (
             Purgatory(self._oceandb)
-            if get_bool_env_value("PROCESS_PURGATORY", 1)
+            if (os.getenv("ASSET_PURGATORY_URL") or os.getenv("ACCOUNT_PURGATORY_URL"))
             else None
         )
 
@@ -155,7 +155,7 @@ class EventsMonitor(BlockProcessingClass):
                 self.process_current_blocks()
 
                 if self.purgatory:
-                    self.purgatory.update_list()
+                    self.purgatory.update_lists()
             except (KeyError, Exception) as e:
                 logger.error("Error processing event:")
                 logger.error(e)

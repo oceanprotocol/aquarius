@@ -80,6 +80,9 @@ USE_POA_MIDDLEWARE
 IGNORE_LAST_BLOCK
 # When scanning for events, limit the chunk size. Infura accepts 10k blocks, but others will take only 1000 (default value)
 BLOCKS_CHUNK_SIZE
+# URLs of asset purgatory and account purgatory. If neither exists, the purgatory will not be processed
+ASSET_PURGATORY_URL
+ACCOUNT_PURGATORY_URL
 ```
 
 ## For Aquarius Operators
