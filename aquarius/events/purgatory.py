@@ -52,6 +52,30 @@ class Purgatory:
         except Exception as e:
             logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
 
+    def get_assets_authored_by(self, account_address):
+        body = {
+            "query": {
+                "query_string": {
+                    "query": account_address,
+                    "default_field": "event.from",
+                }
+            }
+        }
+        page = self._oceandb.driver.es.search(
+            index=self._oceandb.driver.db_index, body=body
+        )
+        total = page["hits"]["total"]
+        body["size"] = total
+        page = self._oceandb.driver.es.search(
+            index=self._oceandb.driver.db_index, body=body
+        )
+
+        object_list = []
+        for x in page["hits"]["hits"]:
+            object_list.append(x["_source"])
+
+        return object_list
+
     def update_lists(self):
         now = int(datetime.now().timestamp())
         if self.update_time and (now - self.update_time) < 3600:
@@ -80,4 +104,12 @@ class Purgatory:
             asset = self._oceandb.read(did)
             self.update_asset_purgatory_status(asset, "false")
 
-        # TODO: uppdate assets published by those accounts
+        for acc_id, reason in new_accounts_for_purgatory:
+            assets = self.get_assets_authored_by(acc_id)
+            for asset in assets:
+                self.update_asset_purgatory_status(asset)
+
+        for acc_id, reason in new_accounts_forgiven:
+            assets = self.get_assets_authored_by(acc_id)
+            for asset in assets:
+                self.update_asset_purgatory_status(asset, "false")

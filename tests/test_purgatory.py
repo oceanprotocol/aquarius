@@ -20,14 +20,14 @@ from freezegun import freeze_time
 class TestPurgatory(Purgatory):
     def __init__(self, oceandb):
         self.current_test_asset_list = set()
-        self.current_test_accounts_list = set()
+        self.current_test_account_list = set()
         super(TestPurgatory, self).__init__(oceandb)
 
     def retrieve_new_list(self, env_var):
         return (
             self.current_test_asset_list
             if env_var == "ASSET_PURGATORY_URL"
-            else self.current_test_accounts_list
+            else self.current_test_account_list
         )
 
 
@@ -78,3 +78,26 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     freezer.stop()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
+
+
+def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatch):
+    monkeypatch.setenv(
+        "ASSET_PURGATORY_URL",
+        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json",
+    )
+    monkeypatch.setenv(
+        "ACCOUNT_PURGATORY_URL",
+        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-accounts.json",
+    )
+    did = publish_ddo(client, base_ddo_url, events_object)
+
+    purgatory = TestPurgatory(events_object._oceandb)
+    purgatory.init_existing_assets()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["isInPurgatory"] == "false"
+
+    acc_id = events_object._oceandb.read(did)["event"]["from"]
+    purgatory.current_test_account_list = {(acc_id, "test_reason")}
+    purgatory.update_lists()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["isInPurgatory"] == "true"
