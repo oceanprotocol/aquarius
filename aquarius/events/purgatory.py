@@ -23,7 +23,9 @@ class Purgatory:
 
         if response.status_code == requests.codes.ok:
             return {
-                (a["did"], a["reason"]) for a in response.json() if a and "did" in a
+                (a["did"].lower(), a["reason"])
+                for a in response.json()
+                if a and "did" in a
             }
 
         return set()
@@ -38,7 +40,8 @@ class Purgatory:
             purgatory_accounts = [x[0] for x in self.reference_account_list]
 
             purgatory_value = str(
-                did in purgatory_dids or asset["event"]["from"] in purgatory_accounts
+                did.lower() in purgatory_dids
+                or asset["event"]["from"] in purgatory_accounts
             ).lower()
 
             if purgatory_value != asset.get("isInPurgatory"):
