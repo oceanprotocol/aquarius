@@ -60,7 +60,7 @@ def run_request(client_method, url, data=None):
 
 
 def add_assets(_events_object, name, total=5):
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     assets = []
     txs = []
     for i in range(total):
@@ -77,7 +77,7 @@ def add_assets(_events_object, name, total=5):
             )
         )
 
-    block = txs[0].blockNumber
+    block = txs[0].block_number
     _events_object.store_last_processed_block(block)
     for ddo in assets:
         _ = get_event(EVENT_METADATA_CREATED, block, ddo.id)
@@ -100,7 +100,7 @@ def test_health(client):
 
 
 def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", json_dict_no_valid_metadata)
     ddo_string = json.dumps(dict(ddo.items()))
     _ = send_create_update_tx(
@@ -180,7 +180,7 @@ def test_invalid_date():
 
 def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     client = client_with_no_data
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     _ddo = json_before.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
     send_create_update_tx(
@@ -231,7 +231,7 @@ def test_get_assets_names(client, events_object):
 
 
 def test_encrypt_ddo(client, base_ddo_url, events_object):
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     ddo = new_ddo(test_account1, get_web3(), "encrypt_test")
     ddo_string = json.dumps(dict(ddo.items()))
     compressed_ddo = lzma.compress(Web3.toBytes(text=ddo_string))

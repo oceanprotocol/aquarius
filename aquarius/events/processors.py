@@ -33,7 +33,7 @@ class EventProcessor(ABC):
         """Initialises common Event processing properties."""
         self.event = event
         self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
-        self.block = event.blockNumber
+        self.block = event.block_number
         self.txid = self.event.transactionHash.hex()
         self.contract_address = self.event.address
         self.sender_address = self.event.args.get(
@@ -48,7 +48,7 @@ class EventProcessor(ABC):
         self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
 
-        blockInfo = self._web3.eth.getBlock(self.event.blockNumber)
+        blockInfo = self._web3.eth.getBlock(self.event.block_number)
         self.timestamp = blockInfo["timestamp"]
 
 
@@ -73,7 +73,7 @@ class MetadataCreatedProcessor(EventProcessor):
         }
 
         _record["isInPurgatory"] = "false"
-        _record["chainId"] = self._web3.Eth.chain_id
+        _record["chainId"] = self._web3.eth.chain_id
 
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])

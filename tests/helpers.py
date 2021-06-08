@@ -22,18 +22,10 @@ provider = get_web3_connection_provider(rpc)
 WEB3_INSTANCE = Web3(provider)
 
 
-test_account1 = Account.privateKeyToAccount(
-    os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None)
-)
-test_account2 = Account.privateKeyToAccount(
-    os.environ.get("EVENTS_TESTS_PRIVATE_KEY2", None)
-)
-test_account3 = Account.privateKeyToAccount(
-    os.environ.get("EVENTS_TESTS_PRIVATE_KEY3", None)
-)
-ecies_account = Account.privateKeyToAccount(
-    os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-)
+test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
+test_account2 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY2", None))
+test_account3 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY3", None))
+ecies_account = Account.from_key(os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None))
 
 
 def get_web3():

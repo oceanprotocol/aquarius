@@ -42,7 +42,7 @@ def get_network_name():
 
 
 def deploy_contract(w3, _json, private_key, *args):
-    account = w3.eth.account.privateKeyToAccount(private_key)
+    account = w3.eth.account.from_key(private_key)
     _contract = w3.eth.contract(abi=_json["abi"], bytecode=_json["bytecode"])
     built_tx = _contract.constructor(*args).buildTransaction({"from": account.address})
     if "gas" not in built_tx:
@@ -59,9 +59,9 @@ def deploy_contract(w3, _json, private_key, *args):
 
 
 def sign_tx(web3, tx, private_key):
-    account = web3.eth.account.privateKeyToAccount(private_key)
+    account = web3.eth.account.from_key(private_key)
     nonce = web3.eth.getTransactionCount(account.address)
-    gas_price = int(web3.eth.gasPrice / 100)
+    gas_price = int(web3.eth.gas_price / 100)
     tx["gasPrice"] = gas_price
     tx["nonce"] = nonce
     signed_tx = web3.eth.account.signTransaction(tx, private_key)
