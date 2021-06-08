@@ -38,6 +38,11 @@ class Decryptor:
         if _only_encrypted_ddo and (not check_flags & 2):
             logger.error("This aquarius can cache only encrypted ddos")
             return None
+
+        if not rawddo:
+            logger.error("The rawddo is empty. Can not decrypt or decompress.")
+            return None
+
         # always start with MSB -> LSB
         logger.debug(f"checkflags: {check_flags}")
         # bit 2:  check if ddo is ecies encrypted
