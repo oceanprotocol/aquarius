@@ -20,12 +20,13 @@ class Decryptor:
 
     def ecies_decrypt(self, rawddo):
         if self._ecies_account is not None:
-            key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.privateKey)
+            key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.key)
             rawddo = ecies.decrypt(key.to_hex(), rawddo)
         return rawddo
 
     def decode_ddo(self, rawddo, flags):
         logger.debug(f"flags: {flags}")
+        logger.debug(f"Before unpack rawddo: {rawddo}")
 
         if len(flags) < 1:
             logger.debug("Set check_flags to 0!")

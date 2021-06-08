@@ -42,16 +42,16 @@ def get_network_name():
 
 
 def deploy_contract(w3, _json, private_key, *args):
-    account = w3.eth.account.privateKeyToAccount(private_key)
+    account = w3.eth.account.from_key(private_key)
     _contract = w3.eth.contract(abi=_json["abi"], bytecode=_json["bytecode"])
     built_tx = _contract.constructor(*args).buildTransaction({"from": account.address})
     if "gas" not in built_tx:
-        built_tx["gas"] = w3.eth.estimateGas(built_tx)
+        built_tx["gas"] = w3.eth.estimate_gas(built_tx)
     raw_tx = sign_tx(w3, built_tx, private_key)
-    tx_hash = w3.eth.sendRawTransaction(raw_tx)
+    tx_hash = w3.eth.send_raw_transaction(raw_tx)
     time.sleep(3)
     try:
-        address = w3.eth.getTransactionReceipt(tx_hash)["contractAddress"]
+        address = w3.eth.get_transaction_receipt(tx_hash)["contractAddress"]
         return address
     except Exception:
         print(f"tx not found: {tx_hash.hex()}")
@@ -59,12 +59,12 @@ def deploy_contract(w3, _json, private_key, *args):
 
 
 def sign_tx(web3, tx, private_key):
-    account = web3.eth.account.privateKeyToAccount(private_key)
-    nonce = web3.eth.getTransactionCount(account.address)
-    gas_price = int(web3.eth.gasPrice / 100)
+    account = web3.eth.account.from_key(private_key)
+    nonce = web3.eth.get_transaction_count(account.address)
+    gas_price = int(web3.eth.gas_price / 100)
     tx["gasPrice"] = gas_price
     tx["nonce"] = nonce
-    signed_tx = web3.eth.account.signTransaction(tx, private_key)
+    signed_tx = web3.eth.account.sign_transaction(tx, private_key)
     return signed_tx.rawTransaction
 
 

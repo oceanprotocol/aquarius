@@ -48,7 +48,7 @@ class EventProcessor(ABC):
         self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
 
-        blockInfo = self._web3.eth.getBlock(self.event.blockNumber)
+        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
         self.timestamp = blockInfo["timestamp"]
 
 
@@ -72,18 +72,8 @@ class MetadataCreatedProcessor(EventProcessor):
             "contract": self.contract_address,
         }
 
-        _record["price"] = {
-            "datatoken": 0.0,
-            "ocean": 0.0,
-            "value": 0.0,
-            "type": "",
-            "exchange_id": "",
-            "address": "",
-            "pools": [],
-            "isConsumable": "",
-        }
-
         _record["isInPurgatory"] = "false"
+        _record["chainId"] = self._web3.eth.chain_id
 
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])

@@ -11,6 +11,7 @@ from threading import Thread
 
 import elasticsearch
 from eth_account import Account
+from eth_utils import is_address
 from oceandb_driver_interface import OceanDb
 
 from aquarius.app.auth_util import sanitize_addresses
@@ -69,7 +70,7 @@ class EventsMonitor(BlockProcessingClass):
         self._ecies_private_key = os.getenv("EVENTS_ECIES_PRIVATE_KEY", "")
         self._ecies_account = None
         if self._ecies_private_key:
-            self._ecies_account = Account.privateKeyToAccount(self._ecies_private_key)
+            self._ecies_account = Account.from_key(self._ecies_private_key)
         self._only_encrypted_ddo = get_bool_env_value("ONLY_ENCRYPTED_DDO", 0)
 
         self.get_or_set_last_block()
@@ -101,7 +102,7 @@ class EventsMonitor(BlockProcessingClass):
             self._monitor_sleep_time = default_sleep_time
 
         self._monitor_sleep_time = max(self._monitor_sleep_time, default_sleep_time)
-        if not self._contract or not self._web3.isAddress(self._contract_address):
+        if not self._contract or not is_address(self._contract_address):
             logger.error(
                 f"Contract address {self._contract_address} is not a valid address. Events thread not starting"
             )
@@ -165,7 +166,7 @@ class EventsMonitor(BlockProcessingClass):
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
         last_block = self.get_last_processed_block()
-        current_block = self._web3.eth.blockNumber
+        current_block = self._web3.eth.block_number
         if (
             not current_block
             or not isinstance(current_block, int)
@@ -202,13 +203,9 @@ class EventsMonitor(BlockProcessingClass):
         ]
 
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, to_block):
-            try:
-                event_processor = MetadataCreatedProcessor(*([event] + processor_args))
-                event_processor.process()
-            except Exception as e:
-                logger.error(
-                    f"Error processing new metadata event: {e}\n" f"event={event}"
-                )
+            # try:
+            event_processor = MetadataCreatedProcessor(*([event] + processor_args))
+            event_processor.process()
 
         for event in self.get_event_logs(EVENT_METADATA_UPDATED, from_block, to_block):
             try:

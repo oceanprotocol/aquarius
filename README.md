@@ -70,9 +70,9 @@ ADDRESS_FILE
 NETWORK_NAME
 # Skip caching metadata of publishers that are not in this list
 ALLOWED_PUBLISHERS
-# The blockNumber of `BFactory` deployment
+# The block number of `BFactory` deployment
 BFACTORY_BLOCK
-# The blockNumber of `Metadata` contract deployment
+# The block number of `Metadata` contract deployment
 METADATA_CONTRACT_BLOCK
 # Enable the use of poa_middleware if the network is a POA network such as Rinkeby
 USE_POA_MIDDLEWARE

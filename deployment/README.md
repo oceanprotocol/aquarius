@@ -395,7 +395,7 @@ spec:
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         - name: BFACTORY_BLOCK
-          value: "< The blockNumber of `Metadata` contract deployment >"
+          value: "< The block number of `Metadata` contract deployment >"
         - name: METADATA_CONTRACT_BLOCK
           value: "< metadata contract block >"
         - name: NETWORK_NAME
