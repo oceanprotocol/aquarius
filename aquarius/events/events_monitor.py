@@ -575,7 +575,7 @@ class EventsMonitor(BlockProcessingClass):
 
     def decode_ddo(self, rawddo, flags):
         debug_log(f"flags: {flags}")
-        # debug_log(f'Before unpack rawddo:{rawddo}')
+        debug_log(f"Before unpack rawddo:{rawddo}")
         if len(flags) < 1:
             debug_log("Set check_flags to 0!")
             check_flags = 0

@@ -389,7 +389,7 @@ def encrypt_ddo():
     if ecies_private_key is None:
         return "no privatekey configured", 400
     encrypted_data = encrypt_data(data)
-    if encrypt_data is None:
+    if encrypted_data is None:
         return "Encrypt error", 500
     response = Response(encrypted_data)
     response.headers.set("Content-Type", "application/octet-stream")
@@ -424,7 +424,7 @@ def encrypt_ddo_as_hex():
     if ecies_private_key is None:
         return "no privatekey configured", 400
     encrypted_data = encrypt_data(data)
-    if encrypt_data is None:
+    if encrypted_data is None:
         return "Encrypt error", 500
     response = Response(Web3.toHex(encrypted_data))
     response.headers.set("Content-Type", "text/plain")
