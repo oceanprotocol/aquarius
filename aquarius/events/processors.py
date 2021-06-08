@@ -72,18 +72,8 @@ class MetadataCreatedProcessor(EventProcessor):
             "contract": self.contract_address,
         }
 
-        _record["price"] = {
-            "datatoken": 0.0,
-            "ocean": 0.0,
-            "value": 0.0,
-            "type": "",
-            "exchange_id": "",
-            "address": "",
-            "pools": [],
-            "isConsumable": "",
-        }
-
         _record["isInPurgatory"] = "false"
+        _record["chainId"] = self._web3.Eth.chain_id
 
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])

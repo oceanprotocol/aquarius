@@ -92,6 +92,7 @@ def test_publish(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
+    assert published_ddo["chainId"] == get_web3().Eth.chain_id
 
 
 def test_publish_unallowed_address(client, base_ddo_url, events_object):
