@@ -215,14 +215,22 @@ def rename_metadata_keys(bucket):
 def encrypt_data(data):
     ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
     if ecies_private_key is None:
-        return None
+        return False, "No private key configured."
 
     try:
         ecies_account = Account.from_key(ecies_private_key)
         key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
-        logger.debug(f"Encrypting:{data} with {key.public_key.to_hex()}")
+    except Exception:
+        msg = "ECIES Key malformed."
+        logger.error(msg)
+        return False, msg
+
+    logger.debug(f"Encrypting:{data} with {key.public_key.to_hex()}")
+    try:
         encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
-        return encrypted_data
     except Exception as e:
-        logger.error(f"encrypt error:{str(e)}")
-        return None
+        msg = f"Encryption error: {str(e)}"
+        logger.error(msg)
+        return False, msg
+
+    return True, encrypted_data

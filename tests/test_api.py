@@ -317,7 +317,7 @@ def test_encrypt_ddo_content_failures(client, base_ddo_url, events_object, monke
         data="irrelevant",
         content_type="application/octet-stream",
     )
-    assert _response.status_code == 500
+    assert _response.status_code == 400
 
 
 def test_spec(client):

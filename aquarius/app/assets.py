@@ -5,7 +5,6 @@
 import elasticsearch
 import json
 import logging
-import os
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel
@@ -365,12 +364,10 @@ def encrypt_ddo():
     if request.content_type != "application/octet-stream":
         return "invalid content-type", 400
     data = request.get_data()
-    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-    if ecies_private_key is None:
-        return "no privatekey configured", 400
-    encrypted_data = encrypt_data(data)
-    if encrypted_data is None:
-        return "Encrypt error", 500
+    result, encrypted_data = encrypt_data(data)
+    if not result:
+        return encrypted_data, 400
+
     response = Response(encrypted_data)
     response.headers.set("Content-Type", "application/octet-stream")
     return response
@@ -400,12 +397,10 @@ def encrypt_ddo_as_hex():
         description: Error
     """
     data = request.get_data()
-    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-    if ecies_private_key is None:
-        return "no privatekey configured", 400
-    encrypted_data = encrypt_data(data)
-    if encrypted_data is None:
-        return "Encrypt error", 500
+    result, encrypted_data = encrypt_data(data)
+    if not result:
+        return encrypted_data, 400
+
     response = Response(Web3.toHex(encrypted_data))
     response.headers.set("Content-Type", "text/plain")
     return response
