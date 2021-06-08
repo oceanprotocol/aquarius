@@ -83,6 +83,8 @@ class MetadataCreatedProcessor(EventProcessor):
             "isConsumable": "",
         }
 
+        _record["isInPurgatory"] = "false"
+
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
@@ -94,8 +96,6 @@ class MetadataCreatedProcessor(EventProcessor):
             )
             logger.error(f"New ddo has validation errors: {errors}")
             return False
-
-        _record["isInPurgatory"] = "false"
 
         return _record
 
@@ -161,12 +161,15 @@ class MetadataUpdatedProcessor(EventProcessor):
         _record["updated"] = format_timestamp(
             datetime.fromtimestamp(self.timestamp).strftime(DATETIME_FORMAT)
         )
+
         _record["event"] = {
             "txid": self.txid,
             "blockNo": self.block,
             "from": self.sender_address,
             "contract": self.contract_address,
         }
+
+        _record["isInPurgatory"] = asset.get("isInPurgatory", "false")
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
@@ -180,8 +183,6 @@ class MetadataUpdatedProcessor(EventProcessor):
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
             _record["dataTokenInfo"] = get_datatoken_info(self._web3, dt_address)
-
-        _record["isInPurgatory"] = asset.get("isInPurgatory", "false")
 
         return _record
 

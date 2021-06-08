@@ -6,12 +6,10 @@ import json
 import logging
 import os
 import time
-from datetime import datetime
 from json import JSONDecodeError
 from threading import Thread
 
 import elasticsearch
-import requests
 from eth_account import Account
 from oceandb_driver_interface import OceanDb
 
@@ -23,11 +21,10 @@ from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
 )
+from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_contract
 
 logger = logging.getLogger(__name__)
-
-debug_log = logger.debug
 
 
 class EventsMonitor(BlockProcessingClass):
@@ -62,7 +59,6 @@ class EventsMonitor(BlockProcessingClass):
         self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
-        self._pool_monitor = None
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
@@ -110,9 +106,12 @@ class EventsMonitor(BlockProcessingClass):
                 f"Contract address {self._contract_address} is not a valid address. Events thread not starting"
             )
             self._contract = None
-        self._purgatory_enabled = get_bool_env_value("PROCESS_PURGATORY", 1)
-        self._purgatory_list = set()
-        self._purgatory_update_time = None
+
+        self.purgatory = (
+            Purgatory(self._oceandb)
+            if (os.getenv("ASSET_PURGATORY_URL") or os.getenv("ACCOUNT_PURGATORY_URL"))
+            else None
+        )
 
     @property
     def block_envvar(self):
@@ -143,12 +142,10 @@ class EventsMonitor(BlockProcessingClass):
 
     def stop_monitor(self):
         self._monitor_is_on = False
-        if self._pool_monitor and self._pool_monitor.is_running():
-            self._pool_monitor.stop()
 
     def run_monitor(self):
-        if self._purgatory_enabled:
-            self._update_existing_assets_purgatory_data()
+        if self.purgatory:
+            self.purgatory.init_existing_assets()
 
         while True:
             try:
@@ -157,69 +154,13 @@ class EventsMonitor(BlockProcessingClass):
 
                 self.process_current_blocks()
 
-                if self._purgatory_enabled:
-                    self._update_purgatory_list()
-
+                if self.purgatory:
+                    self.purgatory.update_lists()
             except (KeyError, Exception) as e:
                 logger.error("Error processing event:")
                 logger.error(e)
 
             time.sleep(self._monitor_sleep_time)
-
-    def _update_existing_assets_purgatory_data(self):
-        for asset in self._oceandb.list():
-            did = asset.get("id", None)
-            if not did or not did.startswith("did:op:"):
-                continue
-
-            purgatory = asset.get("isInPurgatory", "false")
-            if not isinstance(purgatory, str):
-                purgatory = "true" if purgatory is True else "false"
-
-            asset["isInPurgatory"] = purgatory
-            if "purgatoryData" in asset:
-                asset.pop("purgatoryData")
-            try:
-                self._oceandb.update(json.dumps(asset), did)
-            except Exception as e:
-                logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
-
-    @staticmethod
-    def _get_reference_purgatory_list():
-        response = requests.get(
-            "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json"
-        )
-        if response.status_code != requests.codes.ok:
-            return set()
-
-        return {(a["did"], a["reason"]) for a in response.json() if a and "did" in a}
-
-    def _update_purgatory_list(self):
-        now = int(datetime.now().timestamp())
-        if self._purgatory_update_time and (now - self._purgatory_update_time) < 3600:
-            return
-
-        self._purgatory_update_time = now
-        bad_list = self._get_reference_purgatory_list()
-        if not bad_list:
-            return
-
-        if self._purgatory_list == bad_list:
-            return
-
-        new_ids = bad_list.difference(self._purgatory_list)
-        self._purgatory_list = bad_list
-        for _id, reason in new_ids:
-            try:
-                asset = self._oceandb.read(_id)
-                asset["isInPurgatory"] = "true"
-                if "purgatoryData" in asset:
-                    asset.pop("purgatoryData")
-
-                self._oceandb.update(json.dumps(asset), _id)
-
-            except Exception:
-                pass
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
@@ -246,7 +187,7 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_block_range(self, from_block, to_block):
         """Process a range of blocks."""
-        debug_log(
+        logger.debug(
             f"Metadata monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
         )
 
@@ -317,7 +258,7 @@ class EventsMonitor(BlockProcessingClass):
 
     def get_event_logs(self, event_name, from_block, to_block):
         def _get_logs(event, _from_block, _to_block):
-            debug_log(f"get_event_logs ({event_name}, {from_block}, {to_block})..")
+            logger.debug(f"get_event_logs ({event_name}, {from_block}, {to_block})..")
             _filter = event().createFilter(fromBlock=_from_block, toBlock=_to_block)
             return _filter.get_all_entries()
 
