@@ -49,7 +49,7 @@ def new_ddo(account, web3, name, ddo=None):
         _ddo["publicKey"] = [{"owner": ""}]
     _ddo["publicKey"][0]["owner"] = account.address
     _ddo["random"] = str(uuid.uuid4())
-    dt_address = deploy_datatoken(web3, account.privateKey, name, name, account.address)
+    dt_address = deploy_datatoken(web3, account.key, name, name, account.address)
     _ddo["id"] = new_did(dt_address)
     _ddo["dataToken"] = dt_address
     return AttributeDict(_ddo)
@@ -96,11 +96,11 @@ def get_event(event_name, block, did, timeout=45):
 
 
 def send_tx(fn_name, tx_args, account):
-    get_web3().eth.defaultAccount = account.address
+    get_web3().eth.default_account = account.address
     txn_hash = getattr(get_metadata_contract(get_web3()).functions, fn_name)(
         *tx_args
     ).transact()
-    txn_receipt = get_web3().eth.waitForTransactionReceipt(txn_hash)
+    txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
     return txn_receipt
 
 

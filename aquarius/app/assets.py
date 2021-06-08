@@ -373,7 +373,7 @@ def encrypt_ddo():
         return "no privatekey configured", 400
     try:
         ecies_account = Account.from_key(ecies_private_key)
-        key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+        key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
         logger.debug(f"Encrypting:{data} with {key.public_key.to_hex()}")
         encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
         logger.debug(f"Got encrypted ddo: {encrypted_data}")

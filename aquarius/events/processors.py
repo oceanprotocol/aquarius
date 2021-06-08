@@ -33,7 +33,7 @@ class EventProcessor(ABC):
         """Initialises common Event processing properties."""
         self.event = event
         self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
-        self.block = event.block_number
+        self.block = event.blockNumber
         self.txid = self.event.transactionHash.hex()
         self.contract_address = self.event.address
         self.sender_address = self.event.args.get(
@@ -48,7 +48,7 @@ class EventProcessor(ABC):
         self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
 
-        blockInfo = self._web3.eth.getBlock(self.event.block_number)
+        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
         self.timestamp = blockInfo["timestamp"]
 
 

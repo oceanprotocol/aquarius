@@ -20,7 +20,7 @@ class Decryptor:
 
     def ecies_decrypt(self, rawddo):
         if self._ecies_account is not None:
-            key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.privateKey)
+            key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.key)
             rawddo = ecies.decrypt(key.to_hex(), rawddo)
         return rawddo
 

@@ -77,7 +77,7 @@ def add_assets(_events_object, name, total=5):
             )
         )
 
-    block = txs[0].block_number
+    block = txs[0].blockNumber
     _events_object.store_last_processed_block(block)
     for ddo in assets:
         _ = get_event(EVENT_METADATA_CREATED, block, ddo.id)
@@ -242,7 +242,7 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     )
     assert _response.status_code == 200
     encrypted_ddo = _response.data
-    key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+    key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
     decrypted_ddo = ecies.decrypt(key.to_hex(), Web3.toBytes(encrypted_ddo))
     assert decrypted_ddo == compressed_ddo
     send_create_update_tx(

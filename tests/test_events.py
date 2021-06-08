@@ -80,7 +80,7 @@ def test_publish_and_update_ddo_with_lzma(client, base_ddo_url, events_object):
 def test_publish_and_update_ddo_with_lzma_and_ecies(
     client, base_ddo_url, events_object
 ):
-    run_test(client, base_ddo_url, events_object, 0, ecies_account.privateKey)
+    run_test(client, base_ddo_url, events_object, 0, ecies_account.key)
 
 
 def test_publish(client, base_ddo_url, events_object):

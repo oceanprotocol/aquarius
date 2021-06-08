@@ -203,13 +203,9 @@ class EventsMonitor(BlockProcessingClass):
         ]
 
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, to_block):
-            try:
-                event_processor = MetadataCreatedProcessor(*([event] + processor_args))
-                event_processor.process()
-            except Exception as e:
-                logger.error(
-                    f"Error processing new metadata event: {e}\n" f"event={event}"
-                )
+            # try:
+            event_processor = MetadataCreatedProcessor(*([event] + processor_args))
+            event_processor.process()
 
         for event in self.get_event_logs(EVENT_METADATA_UPDATED, from_block, to_block):
             try:
