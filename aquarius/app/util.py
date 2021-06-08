@@ -4,13 +4,14 @@
 #
 import copy
 import ecies
+import eth_keys
 import json
 import logging
 import os
+
 from collections import OrderedDict
 from datetime import datetime
 from eth_account import Account
-import eth_keys
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"

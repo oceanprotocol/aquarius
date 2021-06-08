@@ -245,6 +245,19 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
     decrypted_ddo = ecies.decrypt(key.to_hex(), Web3.toBytes(encrypted_ddo))
     assert decrypted_ddo == compressed_ddo
+    # test encrypt as hex
+    _response_hex = client.post(
+        base_ddo_url + "/encryptashex",
+        data=compressed_ddo,
+        content_type="application/text",
+    )
+    assert _response_hex.status_code == 200
+    encrypted_ddo_hex = _response_hex.data.decode("utf-8")
+    decrypted_ddo_from_hex = ecies.decrypt(
+        key.to_hex(), Web3.toBytes(hexstr=encrypted_ddo_hex)
+    )
+    assert decrypted_ddo_from_hex == compressed_ddo
+
     send_create_update_tx(
         "create", ddo["id"], bytes([3]), Web3.toBytes(encrypted_ddo), test_account1
     )
