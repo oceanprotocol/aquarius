@@ -26,6 +26,7 @@ class Decryptor:
 
     def decode_ddo(self, rawddo, flags):
         logger.debug(f"flags: {flags}")
+        logger.debug(f"Before unpack rawddo: {rawddo}")
 
         if len(flags) < 1:
             logger.debug("Set check_flags to 0!")
