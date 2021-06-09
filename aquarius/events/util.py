@@ -171,6 +171,6 @@ def setup_web3(config_file, _logger=None):
     ):
         from web3.middleware import geth_poa_middleware
 
-        web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+        web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     return web3
