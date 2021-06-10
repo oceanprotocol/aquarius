@@ -11,6 +11,7 @@ import os
 
 from collections import OrderedDict
 from datetime import datetime
+import dateutil.parser as parser
 from eth_account import Account
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -64,8 +65,6 @@ def datetime_converter(o):
 
 
 def format_timestamp(timestamp):
-    if len(timestamp) == 10:
-        timestamp += 'T00:00:00Z'
     try:
         return f"{datetime.strptime(timestamp, DATETIME_FORMAT).replace(microsecond=0).isoformat()}Z"
     except Exception:
@@ -118,7 +117,8 @@ def init_new_ddo(data, timestamp):
     for service in _record["service"]:
         if service["type"] == "metadata":
             samain = service["attributes"]["main"]
-            samain["dateCreated"] = format_timestamp(samain["dateCreated"])
+            date_created = parser.parse(samain["dateCreated"])
+            samain["dateCreated"] = date_created.strftime(DATETIME_FORMAT)
             samain["datePublished"] = get_timestamp()
 
             curation = dict()
