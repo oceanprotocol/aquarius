@@ -64,6 +64,8 @@ def datetime_converter(o):
 
 
 def format_timestamp(timestamp):
+    if len(timestamp) == 10:
+        timestamp += 'T00:00:00Z'
     try:
         return f"{datetime.strptime(timestamp, DATETIME_FORMAT).replace(microsecond=0).isoformat()}Z"
     except Exception:
