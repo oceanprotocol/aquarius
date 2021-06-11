@@ -117,8 +117,14 @@ def init_new_ddo(data, timestamp):
     for service in _record["service"]:
         if service["type"] == "metadata":
             samain = service["attributes"]["main"]
-            date_created = parser.parse(samain.get("dateCreated", get_timestamp()))
-            samain["dateCreated"] = date_created.strftime(DATETIME_FORMAT)
+            date_created = (
+                parser.parse(samain["dateCreated"]) if "dateCreated" in samain else None
+            )
+            samain["dateCreated"] = (
+                date_created.strftime(DATETIME_FORMAT)
+                if date_created
+                else get_timestamp()
+            )
             samain["datePublished"] = get_timestamp()
 
             curation = dict()
