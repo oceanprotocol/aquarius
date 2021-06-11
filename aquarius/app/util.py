@@ -118,7 +118,9 @@ def init_new_ddo(data, timestamp):
         if service["type"] == "metadata":
             samain = service["attributes"]["main"]
             date_created = (
-                parser.parse(samain["dateCreated"]) if "dateCreated" in samain else None
+                parser.parse(samain["dateCreated"].rstrip("Z"))
+                if "dateCreated" in samain
+                else None
             )
             samain["dateCreated"] = (
                 date_created.strftime(DATETIME_FORMAT)
