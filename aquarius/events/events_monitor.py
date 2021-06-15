@@ -149,17 +149,21 @@ class EventsMonitor(BlockProcessingClass):
             self.purgatory.init_existing_assets()
 
         while True:
+            if not self._monitor_is_on:
+                return
+
             try:
-                if not self._monitor_is_on:
-                    return
-
                 self.process_current_blocks()
-
-                if self.purgatory:
-                    self.purgatory.update_lists()
             except (KeyError, Exception) as e:
                 logger.error("Error processing event:")
                 logger.error(e)
+
+            if self.purgatory:
+                try:
+                    self.purgatory.update_lists()
+                except (KeyError, Exception) as e:
+                    logger.error("Error updating purgatory list:")
+                    logger.error(e)
 
             time.sleep(self._monitor_sleep_time)
 
