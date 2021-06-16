@@ -22,15 +22,22 @@ class Purgatory:
         response = requests.get(os.getenv(env_var))
 
         if response.status_code == requests.codes.ok:
+            logger.info(
+                f"PURGATORY: Successfully retrieved new purgatory list from {env_var} env var."
+            )
             return {
                 (a["did"].lower(), a["reason"])
                 for a in response.json()
                 if a and "did" in a
             }
 
+        logger.info(
+            f"PURGATORY: Failed to retrieve purgatory list from {env_var} env var."
+        )
         return set()
 
     def init_existing_assets(self):
+        logger.info("PURGATORY: running init_existing_assets to set purgatory value.")
         for asset in self._oceandb.list():
             did = asset.get("id", None)
             if not did or not did.startswith("did:op:"):
@@ -50,12 +57,14 @@ class Purgatory:
     def update_asset_purgatory_status(self, asset, purgatory="true"):
         did = asset["id"]
         asset["isInPurgatory"] = purgatory
+        logger.info(f"PURGATORY: updating asset {did} with value {purgatory}.")
         try:
             self._oceandb.update(json.dumps(asset), did)
         except Exception as e:
             logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
 
     def get_assets_authored_by(self, account_address):
+        logger.info(f"PURGATORY: getting assets authored by {account_address}.")
         body = {
             "query": {
                 "query_string": {
@@ -81,9 +90,13 @@ class Purgatory:
 
     def update_lists(self):
         now = int(datetime.now().timestamp())
-        if self.update_time and (now - self.update_time) < 3600:
+        req_diff = int(os.getenv("PURGATORY_UPDATE_INTERVAL", "60")) * 60
+        if self.update_time and (now - self.update_time) < req_diff:
             return
 
+        logger.info(
+            f"PURGATORY: updating purgatory list and setting update time to {now}."
+        )
         self.update_time = now
 
         new_asset_list = self.retrieve_new_list("ASSET_PURGATORY_URL")

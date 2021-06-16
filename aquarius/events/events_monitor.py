@@ -114,6 +114,11 @@ class EventsMonitor(BlockProcessingClass):
             else None
         )
 
+        if self.purgatory:
+            logger.info("PURGATORY: Enabling purgatory.")
+        else:
+            logger.info("PURGATORY: Purgatory is disabled.")
+
     @property
     def block_envvar(self):
         return "METADATA_CONTRACT_BLOCK"
