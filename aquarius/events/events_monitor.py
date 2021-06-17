@@ -206,6 +206,7 @@ class EventsMonitor(BlockProcessingClass):
             self._web3,
             self._ecies_account,
             self._allowed_publishers,
+            self.purgatory
         ]
 
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, to_block):

@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class EventProcessor(ABC):
-    def __init__(self, event, oceandb, web3, ecies_account, allowed_publishers):
+    def __init__(self, event, oceandb, web3, ecies_account, allowed_publishers, purgatory):
         """Initialises common Event processing properties."""
         self.event = event
         self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
@@ -47,6 +47,7 @@ class EventProcessor(ABC):
         self._ecies_account = ecies_account
         self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
+        self.purgatory = purgatory
 
         blockInfo = self._web3.eth.get_block(self.event.blockNumber)
         self.timestamp = blockInfo["timestamp"]
@@ -72,7 +73,11 @@ class MetadataCreatedProcessor(EventProcessor):
             "contract": self.contract_address,
         }
 
-        _record["isInPurgatory"] = "false"
+        if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
+            _record["isInPurgatory"] = "true"
+        else:
+            _record["isInPurgatory"] = "false"
+
         _record["chainId"] = self._web3.eth.chain_id
 
         dt_address = _record.get("dataToken")
@@ -159,7 +164,10 @@ class MetadataUpdatedProcessor(EventProcessor):
             "contract": self.contract_address,
         }
 
-        _record["isInPurgatory"] = asset.get("isInPurgatory", "false")
+        if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
+            _record["isInPurgatory"] = "true"
+        else:
+            _record["isInPurgatory"] = asset.get("isInPurgatory", "false")
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(

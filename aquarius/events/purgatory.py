@@ -91,16 +91,6 @@ class Purgatory:
         )
         new_accounts_forgiven = self.reference_account_list.difference(new_account_list)
 
-        for did, reason in new_ids_for_purgatory:
-            asset = self._oceandb.read(did)
-            self.update_asset_purgatory_status(asset)
-            self.reference_asset_list.add((did, reason))
-
-        for did, reason in new_ids_forgiven:
-            asset = self._oceandb.read(did)
-            self.update_asset_purgatory_status(asset, "false")
-            self.reference_asset_list.remove((did, reason))
-
         for acc_id, reason in new_accounts_for_purgatory:
             assets = self.get_assets_authored_by(acc_id)
             for asset in assets:
@@ -112,3 +102,22 @@ class Purgatory:
             for asset in assets:
                 self.update_asset_purgatory_status(asset, "false")
             self.reference_account_list.remove((acc_id, reason))
+
+        for did, reason in new_ids_for_purgatory:
+            asset = self._oceandb.read(did)
+            self.update_asset_purgatory_status(asset)
+            self.reference_asset_list.add((did, reason))
+
+        for did, reason in new_ids_forgiven:
+            asset = self._oceandb.read(did)
+            self.update_asset_purgatory_status(asset, "false")
+            self.reference_asset_list.remove((did, reason))
+
+
+    def is_account_banned(self, ref_account_id):
+        for acc_id, reason in self.reference_account_list:
+            if acc_id.lower() == ref_account_id.lower():
+                return True
+
+        return False
+
