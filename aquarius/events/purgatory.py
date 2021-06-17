@@ -120,10 +120,17 @@ class Purgatory:
             except elasticsearch.exceptions.NotFoundError:
                 continue
 
+        logger.info(
+            f"PURGATORY: reference asset list contains {len(self.reference_asset_list)} elements."
+        )
+
+        logger.info(
+            f"PURGATORY: reference account list contains {len(self.reference_account_list)} elements."
+        )
+
     def is_account_banned(self, ref_account_id):
         for acc_id, reason in self.reference_account_list:
             if acc_id.lower() == ref_account_id.lower():
                 return True
 
         return False
-

@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 
 
 class EventProcessor(ABC):
-    def __init__(self, event, oceandb, web3, ecies_account, allowed_publishers, purgatory):
+    def __init__(
+        self, event, oceandb, web3, ecies_account, allowed_publishers, purgatory
+    ):
         """Initialises common Event processing properties."""
         self.event = event
         self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
@@ -199,6 +201,7 @@ class MetadataUpdatedProcessor(EventProcessor):
                 self._web3,
                 self._ecies_account,
                 self.allowed_publishers,
+                self.purgatory,
             )
             event_processor.process()
             return
