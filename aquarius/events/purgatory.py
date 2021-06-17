@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import elasticsearch
 import os
 import json
 import logging
@@ -104,15 +105,20 @@ class Purgatory:
             self.reference_account_list.remove((acc_id, reason))
 
         for did, reason in new_ids_for_purgatory:
-            asset = self._oceandb.read(did)
-            self.update_asset_purgatory_status(asset)
-            self.reference_asset_list.add((did, reason))
+            try:
+                asset = self._oceandb.read(did)
+                self.update_asset_purgatory_status(asset)
+                self.reference_asset_list.add((did, reason))
+            except elasticsearch.exceptions.NotFoundError:
+                continue
 
         for did, reason in new_ids_forgiven:
-            asset = self._oceandb.read(did)
-            self.update_asset_purgatory_status(asset, "false")
-            self.reference_asset_list.remove((did, reason))
-
+            try:
+                asset = self._oceandb.read(did)
+                self.update_asset_purgatory_status(asset, "false")
+                self.reference_asset_list.remove((did, reason))
+            except elasticsearch.exceptions.NotFoundError:
+                continue
 
     def is_account_banned(self, ref_account_id):
         for acc_id, reason in self.reference_account_list:

@@ -41,6 +41,20 @@ def publish_ddo(client, base_ddo_url, events_object):
     return did
 
 
+def test_purgatory_before_init(client, base_ddo_url, events_object, monkeypatch):
+    monkeypatch.setenv(
+        "ASSET_PURGATORY_URL",
+        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json",
+    )
+    did = publish_ddo(client, base_ddo_url, events_object)
+
+    purgatory = PurgatoryForTesting(events_object._oceandb)
+    purgatory.current_test_asset_list = {("did:op:notexistyet", "test_reason")}
+    purgatory.update_lists()
+    # assert no change, since this did doesn't exist
+    assert purgatory.reference_asset_list == set()
+
+
 def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch):
     monkeypatch.setenv(
         "ASSET_PURGATORY_URL",
