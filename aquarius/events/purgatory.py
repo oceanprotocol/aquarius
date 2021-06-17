@@ -15,8 +15,8 @@ class Purgatory:
     def __init__(self, oceandb):
         self.update_time = None
         self._oceandb = oceandb
-        self.reference_asset_list = self.retrieve_new_list("ASSET_PURGATORY_URL")
-        self.reference_account_list = self.retrieve_new_list("ACCOUNT_PURGATORY_URL")
+        self.reference_asset_list = set()
+        self.reference_account_list = set()
 
     def retrieve_new_list(self, env_var):
         response = requests.get(os.getenv(env_var))
@@ -35,24 +35,6 @@ class Purgatory:
             f"PURGATORY: Failed to retrieve purgatory list from {env_var} env var."
         )
         return set()
-
-    def init_existing_assets(self):
-        logger.info("PURGATORY: running init_existing_assets to set purgatory value.")
-        for asset in self._oceandb.list():
-            did = asset.get("id", None)
-            if not did or not did.startswith("did:op:"):
-                continue
-
-            purgatory_dids = [x[0] for x in self.reference_asset_list]
-            purgatory_accounts = [x[0] for x in self.reference_account_list]
-
-            purgatory_value = str(
-                did.lower() in purgatory_dids
-                or asset["event"]["from"] in purgatory_accounts
-            ).lower()
-
-            if purgatory_value != asset.get("isInPurgatory"):
-                self.update_asset_purgatory_status(asset, purgatory_value)
 
     def update_asset_purgatory_status(self, asset, purgatory="true"):
         did = asset["id"]
@@ -109,23 +91,24 @@ class Purgatory:
         )
         new_accounts_forgiven = self.reference_account_list.difference(new_account_list)
 
-        self.reference_asset_list = new_asset_list
-        self.reference_account_list = new_account_list
-
         for did, reason in new_ids_for_purgatory:
             asset = self._oceandb.read(did)
             self.update_asset_purgatory_status(asset)
+            self.reference_asset_list.add((did, reason))
 
         for did, reason in new_ids_forgiven:
             asset = self._oceandb.read(did)
             self.update_asset_purgatory_status(asset, "false")
+            self.reference_asset_list.remove((did, reason))
 
         for acc_id, reason in new_accounts_for_purgatory:
             assets = self.get_assets_authored_by(acc_id)
             for asset in assets:
                 self.update_asset_purgatory_status(asset)
+            self.reference_account_list.add((acc_id, reason))
 
         for acc_id, reason in new_accounts_forgiven:
             assets = self.get_assets_authored_by(acc_id)
             for asset in assets:
                 self.update_asset_purgatory_status(asset, "false")
+            self.reference_account_list.remove((acc_id, reason))

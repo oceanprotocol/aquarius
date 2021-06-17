@@ -150,9 +150,6 @@ class EventsMonitor(BlockProcessingClass):
         self._monitor_is_on = False
 
     def run_monitor(self):
-        if self.purgatory:
-            self.purgatory.init_existing_assets()
-
         while True:
             if not self._monitor_is_on:
                 return

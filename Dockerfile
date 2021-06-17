@@ -37,6 +37,7 @@ ENV EVENTS_ALLOW=''
 ENV RUN_EVENTS_MONITOR='1'
 ENV ASSET_PURGATORY_URL="https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json"
 ENV ACCOUNT_PURGATORY_URL="https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-accounts.json"
+ENV PURGATORY_UPDATE_INTERVAL='60'
 ENV RUN_AQUARIUS_SERVER='1'
 ENV EVENTS_RPC='http://127.0.0.1:8545'
 ENV EVENTS_ECIES_PRIVATE_KEY='0xc6914ea1e5ac6a1cd2107240be714735bf799ce9ea4125016aeb479266720ff4'

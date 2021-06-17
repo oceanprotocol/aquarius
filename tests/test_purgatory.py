@@ -53,7 +53,6 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     did = publish_ddo(client, base_ddo_url, events_object)
 
     purgatory = PurgatoryForTesting(events_object._oceandb)
-    purgatory.init_existing_assets()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
 
@@ -92,7 +91,6 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     did = publish_ddo(client, base_ddo_url, events_object)
 
     purgatory = PurgatoryForTesting(events_object._oceandb)
-    purgatory.init_existing_assets()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
 

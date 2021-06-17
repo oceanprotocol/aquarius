@@ -83,6 +83,8 @@ BLOCKS_CHUNK_SIZE
 # URLs of asset purgatory and account purgatory. If neither exists, the purgatory will not be processed
 ASSET_PURGATORY_URL
 ACCOUNT_PURGATORY_URL
+# Customise purgatory update time (in number of minutes)
+PURGATORY_UPDATE_INTERVAL
 ```
 
 ## For Aquarius Operators
