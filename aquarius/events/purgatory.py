@@ -27,9 +27,7 @@ class Purgatory:
                 f"PURGATORY: Successfully retrieved new purgatory list from {env_var} env var."
             )
             return {
-                (a["did"], a["reason"])
-                for a in response.json()
-                if a and "did" in a
+                (a["did"], a["reason"]) for a in response.json() if a and "did" in a
             }
 
         logger.info(
