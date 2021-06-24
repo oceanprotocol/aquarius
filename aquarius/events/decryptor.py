@@ -25,8 +25,6 @@ class Decryptor:
         return rawddo
 
     def decode_ddo(self, rawddo, flags):
-        logger.debug(f"flags: {flags}")
-        logger.debug(f"Before unpack rawddo: {rawddo}")
 
         if len(flags) < 1:
             logger.debug("Set check_flags to 0!")
@@ -44,12 +42,10 @@ class Decryptor:
             return None
 
         # always start with MSB -> LSB
-        logger.debug(f"checkflags: {check_flags}")
         # bit 2:  check if ddo is ecies encrypted
         if check_flags & 2:
             try:
                 rawddo = self.ecies_decrypt(rawddo)
-                logger.debug(f"Decrypted to {rawddo}")
             except (KeyError, Exception) as err:
                 logger.error(f"Failed to decrypt: {str(err)}")
 
@@ -57,14 +53,14 @@ class Decryptor:
         if check_flags & 1:
             try:
                 rawddo = Lzma.decompress(rawddo)
-                logger.debug(f"Decompressed to {rawddo}")
             except (KeyError, Exception) as err:
                 logger.error(f"Failed to decompress: {str(err)}")
 
-        logger.debug(f"After unpack rawddo:{rawddo}")
         try:
             ddo = json.loads(rawddo)
             return ddo
         except (KeyError, Exception) as err:
-            logger.error(f"encountered an error while decoding the ddo: {str(err)}")
+            logger.error(
+                f"encountered an error({str(err)}) while decoding the ddo: {rawddo}"
+            )
             return None

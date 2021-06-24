@@ -160,7 +160,7 @@ def check_required_attributes(required_attributes, data, method):
     assert isinstance(
         data, dict
     ), "invalid `body` type, should already formatted into a dict."
-    logger.info("got %s request: %s" % (method, data))
+    # logger.info("got %s request: %s" % (method, data))
     if not data:
         logger.error("%s request failed: data is empty." % method)
         return "payload seems empty.", 400
