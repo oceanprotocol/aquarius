@@ -91,8 +91,6 @@ class Dao(object):
         if sort is not None:
             self.oceandb._mapping_to_sort(sort.keys())
             sort = self.oceandb._sort_object(sort)
-        else:
-            sort = [{"_id": "asc"}]
 
         query = data.get("query")
         if not query:
@@ -111,11 +109,12 @@ class Dao(object):
         """
         query, sort, page, offset = self.refine_query_parameters(data)
         body = {
-            "sort": sort,
             "from": (page - 1) * offset,
             "size": offset,
             "query": query,
         }
+        if sort:
+            body["sort"] = sort
 
         logging.info(f"running query: {body}")
         page = self.oceandb.driver.es.search(
