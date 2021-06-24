@@ -130,22 +130,21 @@ class MetadataCreatedProcessor(EventProcessor):
             return
 
         _record = self.make_record(data)
-        if not _record:
-            return False
-        try:
-            record_str = json.dumps(_record)
-            self._oceandb.write(record_str, did)
-            _record = json.loads(record_str)
-            name = _record["service"][0]["attributes"]["main"]["name"]
-            logger.info(
-                f"DDO saved: did={did}, name={name}, publisher={sender_address}"
-            )
-            return True
-        except (KeyError, Exception) as err:
-            logger.error(
-                f"encountered an error while saving the asset data to OceanDB: {str(err)}"
-            )
-            return False
+        if _record:
+            try:
+                record_str = json.dumps(_record)
+                self._oceandb.write(record_str, did)
+                _record = json.loads(record_str)
+                name = _record["service"][0]["attributes"]["main"]["name"]
+                logger.info(
+                    f"DDO saved: did={did}, name={name}, publisher={sender_address}"
+                )
+                return True
+            except (KeyError, Exception) as err:
+                logger.error(
+                    f"encountered an error while saving the asset data to OceanDB: {str(err)}"
+                )
+        return False
 
 
 class MetadataUpdatedProcessor(EventProcessor):
@@ -244,15 +243,13 @@ class MetadataUpdatedProcessor(EventProcessor):
             return
 
         _record = self.make_record(data, asset)
-        if not _record:
-            return False
-
-        try:
-            self._oceandb.update(json.dumps(_record), did)
-            logger.info(f"updated DDO saved to db successfully (did={did}).")
-            return True
-        except (KeyError, Exception) as err:
-            logger.error(
-                f"encountered an error while updating the asset data to OceanDB: {str(err)}"
-            )
-            return
+        if _record:
+            try:
+                self._oceandb.update(json.dumps(_record), did)
+                logger.info(f"updated DDO saved to db successfully (did={did}).")
+                return True
+            except (KeyError, Exception) as err:
+                logger.error(
+                    f"encountered an error while updating the asset data to OceanDB: {str(err)}"
+                )
+        return
