@@ -136,8 +136,9 @@ class MetadataCreatedProcessor(EventProcessor):
                 self._oceandb.write(record_str, did)
                 _record = json.loads(record_str)
                 name = _record["service"][0]["attributes"]["main"]["name"]
+                created = _record["created"]
                 logger.info(
-                    f"DDO saved: did={did}, name={name}, publisher={sender_address}"
+                    f"DDO saved: did={did}, name={name}, publisher={sender_address}, created: {created}"
                 )
                 return True
             except (KeyError, Exception) as err:
@@ -246,7 +247,8 @@ class MetadataUpdatedProcessor(EventProcessor):
         if _record:
             try:
                 self._oceandb.update(json.dumps(_record), did)
-                logger.info(f"updated DDO saved to db successfully (did={did}).")
+                updated = _record["updated"]
+                logger.info(f"updated DDO did={did}, updated: {updated}")
                 return True
             except (KeyError, Exception) as err:
                 logger.error(
