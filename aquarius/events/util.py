@@ -9,7 +9,7 @@ from pathlib import Path
 import pkg_resources
 
 from jsonsempai import magic  # noqa: F401
-from artifacts import address as contract_addresses, Metadata
+from artifacts import address as contract_addresses, Metadata, DataTokenTemplate
 from aquarius.events.http_provider import get_web3_connection_provider
 from web3 import Web3
 
@@ -17,10 +17,6 @@ from aquarius.app.util import get_bool_env_value
 
 
 ENV_ADDRESS_FILE = "ADDRESS_FILE"
-ENV_ARTIFACTS_PATH = "ARTIFACTS_PATH"
-
-ADDRESS_FILE_NAME = "address.json"
-METADATA_ABI_FILE_NAME = "Metadata.json"
 
 
 def get_network_name():
@@ -69,10 +65,9 @@ def sign_tx(web3, tx, private_key):
 
 
 def deploy_datatoken(web3, private_key, name, symbol, minter_address):
-    dt_file_path = os.path.join(get_artifacts_path(), "DataTokenTemplate.json")
     return deploy_contract(
         web3,
-        json.load(open(dt_file_path)),
+        {"abi": DataTokenTemplate.abi, "bytecode": DataTokenTemplate.bytecode},
         private_key,
         name,
         symbol,
@@ -80,18 +75,6 @@ def deploy_datatoken(web3, private_key, name, symbol, minter_address):
         1000,
         "no blob",
         minter_address,
-    )
-
-
-def get_artifacts_path():
-    """Returns Path to the artifacts directory where ocean ABIs are stored.
-    Checks envvar first, fallback to artifacts included with ocean-contracts.
-    """
-    env_path = os.getenv(ENV_ARTIFACTS_PATH)
-    return (
-        Path(env_path).expanduser().resolve()
-        if env_path
-        else Path(contract_addresses.__file__).parent.expanduser().resolve()
     )
 
 
@@ -116,20 +99,7 @@ def get_metadata_contract(web3):
 
     network = get_network_name()
     address = address_json[network]["Metadata"]
-
-    env_path = os.getenv(ENV_ARTIFACTS_PATH)
-
-    if env_path:
-        abi_file = (
-            Path(env_path).joinpath(METADATA_ABI_FILE_NAME).expanduser().resolve()
-        )
-
-        with open(abi_file) as f:
-            abi_json = json.load(f)
-
-        abi = abi_json["abi"]
-    else:
-        abi = Metadata.abi
+    abi = Metadata.abi
 
     return web3.eth.contract(address=address, abi=abi)
 

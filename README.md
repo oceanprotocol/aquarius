@@ -61,8 +61,6 @@ And these are optional
 EVENTS_ECIES_PRIVATE_KEY
 # Aquarius should cache only encrypted ddo. This will make aquarius unable to cache all other datasets on the network !!!!
 ONLY_ENCRYPTED_DDO
-# Path to abi files of the ocean contracts
-ARTIFACTS_PATH
 # Path to the `address.json` file or any json file that has the deployed contracts addresses
 ADDRESS_FILE
 # Specify the network name to use for reading the contracts addresses from the `ADDRESS_FILE`.
