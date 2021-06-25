@@ -7,6 +7,8 @@ from datetime import datetime
 from eth_utils import add_0x_prefix, remove_0x_prefix
 import json
 import logging
+import os
+import requests
 
 from aquarius.ddo_checker.ddo_checker import (
     is_valid_dict_remote,
@@ -50,6 +52,30 @@ class EventProcessor(ABC):
         self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
         self.purgatory = purgatory
+
+    def check_permission(self):
+        if not os.getenv("RBAC_SERVER_URL"):
+            return True
+
+        event_type = (
+            "publish"
+            if self.__class__.__name__ == "MetadataCreatedProcessor"
+            else "update"
+        )
+        private_key = os.getenv("EVENTS_ECIES_PRIVATE_KEY")
+        address = (
+            self._web3.eth.account.from_key(private_key).address if private_key else ""
+        )
+        payload = {
+            "eventType": event_type,
+            "component": "metadatacache",
+            "credentials": {"address": address},
+        }
+
+        try:
+            return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+        except Exception:
+            return False
 
 
 class MetadataCreatedProcessor(EventProcessor):
@@ -108,6 +134,11 @@ class MetadataCreatedProcessor(EventProcessor):
         logger.info(
             f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}"
         )
+
+        permission = self.check_permission()
+        if not permission:
+            raise Exception("RBAC permission denied.")
+
         if not self.is_publisher_allowed(sender_address):
             logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
             return
@@ -192,6 +223,9 @@ class MetadataUpdatedProcessor(EventProcessor):
         logger.info(
             f"Process update DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}"
         )
+        permission = self.check_permission()
+        if not permission:
+            raise Exception("RBAC permission denied.")
 
         try:
             asset = self._oceandb.read(did)

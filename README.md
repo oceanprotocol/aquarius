@@ -85,6 +85,8 @@ ASSET_PURGATORY_URL
 ACCOUNT_PURGATORY_URL
 # Customise purgatory update time (in number of minutes)
 PURGATORY_UPDATE_INTERVAL
+# The URL of the RBAC Permissions Server. If set, Aquarius will check permissions with RBAC. Leave empty/unset to skip RBAC permission checks.
+RBAC_SERVER_URL
 ```
 
 ## For Aquarius Operators

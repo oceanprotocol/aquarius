@@ -104,3 +104,8 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo is None
+
+
+def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkeypatch):
+    monkeypatch.setenv("RBAC_SERVER_URL", "http://localhost:3000")
+    run_test(client, base_ddo_url, events_object)
