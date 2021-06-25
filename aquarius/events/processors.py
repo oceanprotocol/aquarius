@@ -53,7 +53,6 @@ class EventProcessor(ABC):
         self.allowed_publishers = allowed_publishers
         self.purgatory = purgatory
 
-
     def check_permission(self):
         if not os.getenv("RBAC_SERVER_URL"):
             return True
