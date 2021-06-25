@@ -53,8 +53,6 @@ class EventProcessor(ABC):
         self.allowed_publishers = allowed_publishers
         self.purgatory = purgatory
 
-        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
-        self.timestamp = blockInfo["timestamp"]
 
     def check_permission(self):
         if not os.getenv("RBAC_SERVER_URL"):
@@ -91,7 +89,8 @@ class MetadataCreatedProcessor(EventProcessor):
         return publisher_address in self.allowed_publishers
 
     def make_record(self, data):
-        _record = init_new_ddo(data, self.timestamp)
+        # to avoid unnecesary get_block calls, always init with timestamp 0 and get it from chain if the asset is valid
+        _record = init_new_ddo(data, 0)
 
         # the event record will be used when updating the ddo
         _record["event"] = {
@@ -101,11 +100,27 @@ class MetadataCreatedProcessor(EventProcessor):
             "contract": self.contract_address,
         }
 
+        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
+            errors = list_errors(
+                list_errors_dict_remote, get_metadata_from_services(_record["service"])
+            )
+            logger.error(
+                f"New ddo has validation errors: {errors} \nfor record:\n {_record}"
+            )
+            return False
+
+        # check purgatory only if is a valid asset
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
             _record["isInPurgatory"] = "true"
         else:
             _record["isInPurgatory"] = "false"
 
+        # add info related to blockchain
+        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
+        _record["created"] = format_timestamp(
+            datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
+        )
+        _record["updated"] = _record["created"]
         _record["chainId"] = self._web3.eth.chain_id
 
         dt_address = _record.get("dataToken")
@@ -113,19 +128,12 @@ class MetadataCreatedProcessor(EventProcessor):
         if dt_address:
             _record["dataTokenInfo"] = get_datatoken_info(self._web3, dt_address)
 
-        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
-            errors = list_errors(
-                list_errors_dict_remote, get_metadata_from_services(_record["service"])
-            )
-            logger.error(f"New ddo has validation errors: {errors}")
-            return False
-
         return _record
 
     def process(self):
         did, sender_address = self.did, self.sender_address
         logger.info(
-            f"Process new DDO, did from event log:{did}, sender:{sender_address}"
+            f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}"
         )
 
         permission = self.check_permission()
@@ -143,12 +151,6 @@ class MetadataCreatedProcessor(EventProcessor):
         except Exception:
             pass
 
-        logger.info(f"Start processing {EVENT_METADATA_CREATED} event: did={did}")
-        logger.debug(
-            f"block {self.block}, contract: {self.contract_address}, Sender: {sender_address} , txid: {self.txid}"
-        )
-
-        logger.debug(f"decoding with did {did} and flags {self.flags}")
         data = self.decryptor.decode_ddo(self.rawddo, self.flags)
         if data is None:
             logger.warning(f"Could not decode ddo using flags {self.flags}")
@@ -160,35 +162,30 @@ class MetadataCreatedProcessor(EventProcessor):
             return
 
         _record = self.make_record(data)
-
-        try:
-            record_str = json.dumps(_record)
-            self._oceandb.write(record_str, did)
-            _record = json.loads(record_str)
-            name = _record["service"][0]["attributes"]["main"]["name"]
-            logger.debug(
-                f"DDO saved: did={did}, name={name}, publisher={sender_address}"
-            )
-            logger.info(
-                f"Done processing {EVENT_METADATA_CREATED} event: did={did}. DDO SAVED TO DB"
-            )
-            return True
-        except (KeyError, Exception) as err:
-            logger.error(
-                f"encountered an error while saving the asset data to OceanDB: {str(err)}"
-            )
-            return False
+        if _record:
+            try:
+                record_str = json.dumps(_record)
+                self._oceandb.write(record_str, did)
+                _record = json.loads(record_str)
+                name = _record["service"][0]["attributes"]["main"]["name"]
+                created = _record["created"]
+                logger.info(
+                    f"DDO saved: did={did}, name={name}, publisher={sender_address}, created: {created}"
+                )
+                return True
+            except (KeyError, Exception) as err:
+                logger.error(
+                    f"encountered an error while saving the asset data to OceanDB: {str(err)}"
+                )
+        return False
 
 
 class MetadataUpdatedProcessor(EventProcessor):
     def make_record(self, data, asset):
-        _record = init_new_ddo(data, self.timestamp)
+        # to avoid unnecesary get_block calls, always init with timestamp 0 and get it from chain if the asset is valid
+        _record = init_new_ddo(data, 0)
         # make sure that we do not alter created flag
         _record["created"] = asset["created"]
-        # but we update 'updated'
-        _record["updated"] = format_timestamp(
-            datetime.fromtimestamp(self.timestamp).strftime(DATETIME_FORMAT)
-        )
 
         _record["event"] = {
             "txid": self.txid,
@@ -197,18 +194,23 @@ class MetadataUpdatedProcessor(EventProcessor):
             "contract": self.contract_address,
         }
 
-        if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["isInPurgatory"] = "true"
-        else:
-            _record["isInPurgatory"] = asset.get("isInPurgatory", "false")
-
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
                 list_errors_dict_remote, get_metadata_from_services(_record["service"])
             )
             logger.error(f"ddo update has validation errors: {errors}")
             return
+        # check purgatory only if asset is valid
+        if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
+            _record["isInPurgatory"] = "true"
+        else:
+            _record["isInPurgatory"] = asset.get("isInPurgatory", "false")
 
+        # add info related to blockchain
+        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
+        _record["updated"] = format_timestamp(
+            datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
+        )
         _record["price"] = asset.get("price", {})
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
@@ -219,8 +221,9 @@ class MetadataUpdatedProcessor(EventProcessor):
 
     def process(self):
         did, sender_address = self.did, self.sender_address
-        logger.debug(f"Process update DDO, did from event log:{did}")
-
+        logger.info(
+            f"Process update DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}"
+        )
         permission = self.check_permission()
         if not permission:
             raise Exception("RBAC permission denied.")
@@ -241,10 +244,6 @@ class MetadataUpdatedProcessor(EventProcessor):
             )
             event_processor.process()
             return
-
-        logger.debug(
-            f"block {self.block}, contract: {self.contract_address}, Sender: {sender_address} , txid: {self.txid}"
-        )
 
         # do not update if we have the same txid
         ddo_txid = asset["event"]["txid"]
@@ -269,7 +268,6 @@ class MetadataUpdatedProcessor(EventProcessor):
             logger.warning("Transaction sender must mach ddo owner")
             return
 
-        logger.debug(f"decoding with did {did} and flags {self.flags}")
         data = self.decryptor.decode_ddo(self.rawddo, self.flags)
         if data is None:
             logger.warning("Cound not decode ddo")
@@ -281,13 +279,14 @@ class MetadataUpdatedProcessor(EventProcessor):
             return
 
         _record = self.make_record(data, asset)
-
-        try:
-            self._oceandb.update(json.dumps(_record), did)
-            logger.info(f"updated DDO saved to db successfully (did={did}).")
-            return True
-        except (KeyError, Exception) as err:
-            logger.error(
-                f"encountered an error while updating the asset data to OceanDB: {str(err)}"
-            )
-            return
+        if _record:
+            try:
+                self._oceandb.update(json.dumps(_record), did)
+                updated = _record["updated"]
+                logger.info(f"updated DDO did={did}, updated: {updated}")
+                return True
+            except (KeyError, Exception) as err:
+                logger.error(
+                    f"encountered an error while updating the asset data to OceanDB: {str(err)}"
+                )
+        return
