@@ -23,7 +23,7 @@ from aquarius.events.processors import (
     MetadataUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
-from aquarius.events.util import get_metadata_contract
+from aquarius.events.util import get_metadata_contract, get_metadata_start_block
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +63,11 @@ class EventsMonitor(BlockProcessingClass):
 
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
-
+        self._chain_id = self._web3.eth.chain_id
+        self._index_name = "events_last_block_" + str(self._chain_id)
         self._contract = metadata_contract
         self._contract_address = self._contract.address
+        self._start_block = get_metadata_start_block()
 
         self._ecies_private_key = os.getenv("EVENTS_ECIES_PRIVATE_KEY", "")
         self._ecies_account = None
@@ -89,8 +91,8 @@ class EventsMonitor(BlockProcessingClass):
         self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
         logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
-        logger.debug(
-            f"EventsMonitor: using Metadata contract address {self._contract_address}."
+        logger.info(
+            f"EventsMonitor: using Metadata contract address {self._contract_address} from block {self._start_block} on chain {self._chain_id}"
         )
         self._monitor_is_on = False
         default_sleep_time = 10
@@ -207,6 +209,7 @@ class EventsMonitor(BlockProcessingClass):
             self._ecies_account,
             self._allowed_publishers,
             self.purgatory,
+            self._chain_id,
         ]
 
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, to_block):
@@ -233,15 +236,14 @@ class EventsMonitor(BlockProcessingClass):
         block = 0
         try:
             last_block_record = self._oceandb.driver.es.get(
-                index=self._other_db_index, id="events_last_block", doc_type="_doc"
+                index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
             block = last_block_record["last_block"]
         except Exception as e:
             logger.error(f"Cannot get last_block error={e}")
         # no need to start from 0 if we have a deployment block
-        metadata_contract_block = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
-        if block < metadata_contract_block:
-            block = metadata_contract_block
+        if block < self._start_block:
+            block = self._start_block
         return block
 
     def store_last_processed_block(self, block):
@@ -253,7 +255,7 @@ class EventsMonitor(BlockProcessingClass):
         try:
             self._oceandb.driver.es.index(
                 index=self._other_db_index,
-                id="events_last_block",
+                id=self._index_name,
                 body=record,
                 doc_type="_doc",
                 refresh="wait_for",

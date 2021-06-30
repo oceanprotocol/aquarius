@@ -57,6 +57,8 @@ RUN_EVENTS_MONITOR
 ```
 And these are optional
 ```bash
+# If Aquarius API is available. Default: 1
+RUN_AQUARIUS_SERVER
 # Use this to decrypt metadata when read from the blockchain event log
 EVENTS_ECIES_PRIVATE_KEY
 # Aquarius should cache only encrypted ddo. This will make aquarius unable to cache all other datasets on the network !!!!
@@ -68,8 +70,8 @@ ADDRESS_FILE
 NETWORK_NAME
 # Skip caching metadata of publishers that are not in this list
 ALLOWED_PUBLISHERS
-# The block number of `BFactory` deployment
-BFACTORY_BLOCK
+# Metadata contract address. Optional. Use it if you want to overwrite values from ocean-contracts
+METADATA_CONTRACT_ADDRESS
 # The block number of `Metadata` contract deployment
 METADATA_CONTRACT_BLOCK
 # Enable the use of poa_middleware if the network is a POA network such as Rinkeby
