@@ -68,7 +68,7 @@ def get_ddo(client, base_ddo_url, did):
 
 
 def get_chains_list(client, url):
-    rv = client.get(url + f"/list", content_type="application/json")
+    rv = client.get(url + f"/list/", content_type="application/json")
     try:
         fetched_list = json.loads(rv.data.decode("utf-8"))
         return fetched_list
@@ -78,7 +78,7 @@ def get_chains_list(client, url):
 
 
 def get_chain_status(client, url, chain_id):
-    rv = client.get(url + f"/status{str(chain_id)}", content_type="application/json")
+    rv = client.get(url + f"/status{str(chain_id)}/", content_type="application/json")
     try:
         fetched_list = json.loads(rv.data.decode("utf-8"))
         return fetched_list
