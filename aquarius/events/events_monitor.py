@@ -64,6 +64,7 @@ class EventsMonitor(BlockProcessingClass):
         if not metadata_contract:
             metadata_contract = get_metadata_contract(self._web3)
         self._chain_id = self._web3.eth.chain_id
+        self.add_chain_id_to_chains_list()
         self._index_name = "events_last_block_" + str(self._chain_id)
         self._contract = metadata_contract
         self._contract_address = self._contract.address
@@ -265,6 +266,27 @@ class EventsMonitor(BlockProcessingClass):
             logger.error(
                 f"store_last_processed_block: block={block} type={type(block)}, error={e}"
             )
+
+    def add_chain_id_to_chains_list(self):
+        try:
+            chains = self._oceandb.driver.es.get(
+                index=self._other_db_index, id="chains", doc_type="_doc"
+            )["_source"]
+        except Exception:
+            chains = dict()
+        chains[str(self._chain_id)] = True
+        logger.debug(f"New chains object: {chains}")
+        try:
+            self._oceandb.driver.es.index(
+                index=self._other_db_index,
+                id="chains",
+                body=json.dumps(chains),
+                doc_type="_doc",
+                refresh="wait_for",
+            )["_id"]
+            logger.info(f"Added {self._chain_id} to chains list")
+        except Exception as e:
+            logger.error(f"Cannot add chain_id to chains list: {str(e)}")
 
     def get_event_logs(self, event_name, from_block, to_block):
         def _get_logs(event, _from_block, _to_block):

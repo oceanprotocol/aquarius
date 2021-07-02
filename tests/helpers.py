@@ -67,6 +67,29 @@ def get_ddo(client, base_ddo_url, did):
         return None
 
 
+def get_chains_list(client, url):
+    rv = client.get(url + f"/list", content_type="application/json")
+    try:
+        fetched_list = json.loads(rv.data.decode("utf-8"))
+        return fetched_list
+    except (Exception, ValueError) as e:
+        print(f"Error fetching chains list: {e}." f"\nresponse data was: {rv.data}")
+        return None
+
+
+def get_chain_status(client, url, chain_id):
+    rv = client.get(url + f"/status{str(chain_id)}", content_type="application/json")
+    try:
+        fetched_list = json.loads(rv.data.decode("utf-8"))
+        return fetched_list
+    except (Exception, ValueError) as e:
+        print(
+            f"Error fetching chain({chain_id}) status: {e}."
+            f"\nresponse data was: {rv.data}"
+        )
+        return None
+
+
 def get_event(event_name, block, did, timeout=45):
     did = prepare_did(did)
     start = time.time()
