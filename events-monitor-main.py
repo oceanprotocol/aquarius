@@ -5,12 +5,23 @@
 import logging
 import os
 import time
+import http.server
+import socketserver
 
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.log import setup_logging
 
 logger = logging.getLogger(__name__)
+
+
+class Handler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        # Construct a server response.
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write("")
+        return
 
 
 def run_events_monitor():
@@ -29,8 +40,13 @@ def run_events_monitor():
     monitor.start_events_monitor()
 
     logger.info("EventsMonitor: started")
-    while True:
-        time.sleep(5)
+    if os.getenv("EVENTS_HTTP", None):
+        logger.info("Events HTTP probing started on port 5001..")
+        httpd = socketserver.TCPServer(("", 5001), Handler)
+        httpd.serve_forever()
+    else:
+        while True:
+            time.sleep(5)
 
 
 if __name__ == "__main__":

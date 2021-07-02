@@ -54,6 +54,11 @@ RUN_EVENTS_MONITOR
   accepted values:
     "0" to disable
     "1" to enable
+
+# Start a HTTP server inside the events monitor. This is usefull for K8 live probing. You must simply access the root endpoint. IE: http://172.0.0.1:8001 which will respond with 200 OK if the events thread is up.  Otherwise, there will be no response
+EVENTS_HTTP
+  accepted values:
+    "1" to enable
 ```
 And these are optional
 ```bash
