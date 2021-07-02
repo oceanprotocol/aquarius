@@ -93,6 +93,13 @@ PURGATORY_UPDATE_INTERVAL
 # The URL of the RBAC Permissions Server. If set, Aquarius will check permissions with RBAC. Leave empty/unset to skip RBAC permission checks.
 RBAC_SERVER_URL
 ```
+## Running Aquarius for multiple chains
+If you want to index multiple chains using a single Aquarius instance, you should do the following:
+ * Run one or more pods, with RUN_EVENTS_MONITOR = 0 AND EVENTS_ALLOW = 0.  This will only serve API requests
+ * For each chain, start a pod with the following envs:
+     * Set RUN_EVENTS_MONITOR = 1
+     * Set coresponding EVENTS_RPC, NETWORK_NAME, BLOCKS_CHUNK_SIZE, etc
+
 
 ## For Aquarius Operators
 
