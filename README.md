@@ -95,10 +95,10 @@ RBAC_SERVER_URL
 ```
 ## Running Aquarius for multiple chains
 If you want to index multiple chains using a single Aquarius instance, you should do the following:
- * Run one or more pods, with RUN_EVENTS_MONITOR = 0 AND EVENTS_ALLOW = 0.  This will only serve API requests
+ * Run one or more pods, with RUN_AQUARIUS_SERVER =1 , RUN_EVENTS_MONITOR = 0 AND EVENTS_ALLOW = 0.  This will only serve API requests
  * For each chain, start a pod with the following envs:
-     * Set RUN_EVENTS_MONITOR = 1
-     * Set coresponding EVENTS_RPC, NETWORK_NAME, BLOCKS_CHUNK_SIZE, etc
+     * Set RUN_EVENTS_MONITOR = 1 and RUN_AQUARIUS_SERVER = 0
+     * Set coresponding EVENTS_RPC, NETWORK_NAME, BLOCKS_CHUNK_SIZE, METADATA_CONTRACT_BLOCK, METADATA_CONTRACT_ADDRESS etc
 
 
 ## For Aquarius Operators
