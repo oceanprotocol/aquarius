@@ -198,7 +198,7 @@ class EventsMonitor(BlockProcessingClass):
     def process_block_range(self, from_block, to_block):
         """Process a range of blocks."""
         logger.debug(
-            f"Metadata monitor >>>> from_block:{from_block}, current_block:{to_block} <<<<"
+            f"Metadata monitor (chain: {self._chain_id})>>>> from_block:{from_block}, current_block:{to_block} <<<<"
         )
 
         if from_block > to_block:
