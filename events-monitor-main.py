@@ -20,7 +20,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         # Construct a server response.
         self.send_response(200)
         self.end_headers()
-        self.wfile.write("".encode(()))
         return
 
 
