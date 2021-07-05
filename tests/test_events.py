@@ -114,7 +114,7 @@ def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkey
 def test_get_chains_list(client, chains_url, events_object):
     web3_object = get_web3()
     chain_id = web3_object.eth.chain_id
-    rv = client.get(chains_url + f"/list/", content_type="application/json")
+    rv = client.get(chains_url + f"/list", content_type="application/json")
     chains_list = json.loads(rv.data.decode("utf-8"))
     assert chains_list
     assert chains_list[str(chain_id)]
