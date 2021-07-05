@@ -285,7 +285,7 @@ class EventsMonitor(BlockProcessingClass):
                 refresh="wait_for",
             )["_id"]
             logger.info(f"Added {self._chain_id} to chains list")
-        except Exception as e:
+        except elasticsearch.exceptions.RequestError as e:
             logger.error(f"Cannot add chain_id to chains list: {str(e)}")
 
     def get_event_logs(self, event_name, from_block, to_block):
