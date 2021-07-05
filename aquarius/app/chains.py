@@ -19,7 +19,7 @@ es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
 ###########################
 
 
-@chains.route("/list/", methods=["GET"])
+@chains.route("/list", methods=["GET"])
 def get_chains_list():
     """Get chains list
     ---
@@ -38,7 +38,7 @@ def get_chains_list():
         return Response(json.dumps(chains), 200, content_type="application/json")
     except Exception as e:
         logger.error(f"Cannot get chains list: {str(e)}")
-        return f"No chains found", 404
+        return Response("No chains found", 404)
 
 
 ###########################
@@ -75,4 +75,4 @@ def get_index_status(chain_id):
         )
     except Exception as e:
         logger.error(f"Cannot get index status for chain {chain_id}: {str(e)}")
-        return f"{chain_id} is not indexed", 404
+        return Response(f"{chain_id} is not indexed", 404)
