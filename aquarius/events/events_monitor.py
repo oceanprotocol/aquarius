@@ -275,7 +275,7 @@ class EventsMonitor(BlockProcessingClass):
         except Exception:
             chains = dict()
         chains[str(self._chain_id)] = True
-        logger.debug(f"New chains object: {chains}")
+
         try:
             self._oceandb.driver.es.index(
                 index=self._other_db_index,
