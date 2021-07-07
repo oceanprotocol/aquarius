@@ -23,8 +23,6 @@ logger = logging.getLogger("aquarius")
 def sanitize_record(data_record):
     if "_id" in data_record:
         data_record.pop("_id")
-    if "event" in data_record:
-        data_record.pop("event")
 
     return json.dumps(data_record, default=datetime_converter)
 
