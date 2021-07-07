@@ -339,3 +339,19 @@ def test_spec(client):
     assert "title" in result["info"]
     assert "description" in result["info"]
     assert "connected" in result["info"]
+
+
+def test_native_query(client, base_ddo_url):
+    result = run_request_get_data(
+        client.post,
+        base_ddo_url + "/es-query",
+        {
+            "aggs": {
+                "my-agg-name": {
+                    "terms": {"field": "service.attributes.additionalInformation.tags"}
+                }
+            }
+        },
+    )
+
+    assert "my-agg-name" in result["aggregations"]
