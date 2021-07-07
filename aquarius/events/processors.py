@@ -105,6 +105,7 @@ class MetadataCreatedProcessor(EventProcessor):
             "blockNo": self.block,
             "from": self.sender_address,
             "contract": self.contract_address,
+            "update": False,
         }
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
@@ -200,6 +201,7 @@ class MetadataUpdatedProcessor(EventProcessor):
             "blockNo": self.block,
             "from": self.sender_address,
             "contract": self.contract_address,
+            "update": True,
         }
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
@@ -219,7 +221,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         _record["updated"] = format_timestamp(
             datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
         )
-        _record["price"] = asset.get("price", {})
+        _record["chainId"] = self._chain_id
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
