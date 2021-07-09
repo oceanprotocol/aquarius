@@ -92,6 +92,8 @@ ACCOUNT_PURGATORY_URL
 PURGATORY_UPDATE_INTERVAL
 # The URL of the RBAC Permissions Server. If set, Aquarius will check permissions with RBAC. Leave empty/unset to skip RBAC permission checks.
 RBAC_SERVER_URL
+# Whether to start clean and reindex events on chain id
+EVENTS_CLEAN_START
 ```
 ## Running Aquarius for multiple chains
 If you want to index multiple chains using a single Aquarius instance, you should do the following:

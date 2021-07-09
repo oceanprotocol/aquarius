@@ -111,7 +111,7 @@ def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkey
     run_test(client, base_ddo_url, events_object)
 
 
-def test_get_chains_list(client, chains_url, events_object):
+def test_get_chains_list(client, chains_url):
     web3_object = get_web3()
     chain_id = web3_object.eth.chain_id
     rv = client.get(chains_url + f"/list", content_type="application/json")
@@ -120,7 +120,7 @@ def test_get_chains_list(client, chains_url, events_object):
     assert chains_list[str(chain_id)]
 
 
-def test_get_chain_status(client, chains_url, events_object):
+def test_get_chain_status(client, chains_url):
     web3_object = get_web3()
     chain_id = web3_object.eth.chain_id
     rv = client.get(
@@ -128,3 +128,10 @@ def test_get_chain_status(client, chains_url, events_object):
     )
     chain_status = json.loads(rv.data.decode("utf-8"))
     assert int(chain_status["last_block"]) > 0
+
+
+def test_get_assets_in_chain(client, events_object):
+    web3_object = get_web3()
+    chain_id = web3_object.eth.chain_id
+    res = events_object.get_assets_in_chain()
+    assert set([item["chainId"] for item in res]) == {chain_id}

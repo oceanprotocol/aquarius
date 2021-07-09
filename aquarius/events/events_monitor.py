@@ -70,6 +70,9 @@ class EventsMonitor(BlockProcessingClass):
         self._contract_address = self._contract.address
         self._start_block = get_metadata_start_block()
 
+        if get_bool_env_value("EVENTS_CLEAN_START", 0):
+            self.reset_chain()
+
         self._ecies_private_key = os.getenv("EVENTS_ECIES_PRIVATE_KEY", "")
         self._ecies_account = None
         if self._ecies_private_key:
@@ -287,6 +290,40 @@ class EventsMonitor(BlockProcessingClass):
             logger.info(f"Added {self._chain_id} to chains list")
         except elasticsearch.exceptions.RequestError as e:
             logger.error(f"Cannot add chain_id to chains list: {str(e)}")
+
+    def reset_chain(self):
+        assets = self.get_assets_in_chain()
+        for asset in assets:
+            try:
+                self._oceandb.delete(asset["id"])
+            except Exception as e:
+                logging.error(f"Delete asset failed: {str(e)}")
+
+        self.store_last_processed_block(self._start_block)
+
+    def get_assets_in_chain(self):
+        body = {
+            "query": {
+                "query_string": {
+                    "query": self._chain_id,
+                    "default_field": "chainId",
+                }
+            }
+        }
+        page = self._oceandb.driver.es.search(
+            index=self._oceandb.driver.db_index, body=body
+        )
+        total = page["hits"]["total"]
+        body["size"] = total
+        page = self._oceandb.driver.es.search(
+            index=self._oceandb.driver.db_index, body=body
+        )
+
+        object_list = []
+        for x in page["hits"]["hits"]:
+            object_list.append(x["_source"])
+
+        return object_list
 
     def get_event_logs(self, event_name, from_block, to_block):
         def _get_logs(event, _from_block, _to_block):
