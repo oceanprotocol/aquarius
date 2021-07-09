@@ -15,9 +15,6 @@ setup_logging()
 chains = Blueprint("chains", __name__)
 logger = logging.getLogger("aquarius")
 es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
-###########################
-# Get Chain List
-###########################
 
 
 @chains.route("/list", methods=["GET"])
@@ -37,17 +34,12 @@ def get_chains_list():
             index=f"{es_instance.driver.db_index}_plus", id="chains", doc_type="_doc"
         )["_source"]
         return Response(json.dumps(chains), 200, content_type="application/json")
-    except elasticsearch.exceptions.NotFoundError:
-        logger.error(f"Cannot get chains list")
+    except (elasticsearch.exceptions.NotFoundError, KeyError):
+        logger.error("Cannot get chains list")
         return Response("No chains found", 404)
     except Exception as e:
         logger.error(f"Cannot get chains list: {str(e)}")
         return Response("No chains found", 404)
-
-
-###########################
-# Get Index status for a specific chainId
-###########################
 
 
 @chains.route("/status/<chain_id>", methods=["GET"])
@@ -77,7 +69,7 @@ def get_index_status(chain_id):
         return Response(
             json.dumps(last_block_record), 200, content_type="application/json"
         )
-    except elasticsearch.exceptions.NotFoundError:
+    except (elasticsearch.exceptions.NotFoundError, KeyError):
         logger.error(f"Cannot get index status for chain {chain_id}")
         return Response(f"{chain_id} is not indexed", 404)
     except Exception as e:
