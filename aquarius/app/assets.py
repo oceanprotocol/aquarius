@@ -27,6 +27,7 @@ from aquarius.app.util import (
 )
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from oceandb_driver_interface import OceanDb
 from web3 import Web3
 
 setup_logging()
@@ -35,6 +36,7 @@ assets = Blueprint("assets", __name__)
 # Prepare OceanDB
 dao = Dao(config_file=app.config["CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
+es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
 
 
 @assets.route("", methods=["GET"])
@@ -249,6 +251,30 @@ def query_ddo():
     response = make_paginate_response(query_result, search_model, metadata)
     return Response(
         json.dumps(response, default=datetime_converter),
+        200,
+        content_type="application/json",
+    )
+
+
+@assets.route("/ddo/es-query", methods=["POST"])
+def es_query():
+    """Runs a native ES query.
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    responses:
+      200:
+        description: successful action
+    """
+    assert isinstance(request.json, dict), "invalid payload format."
+
+    data = request.json
+    return es_instance.driver.es.search(data)
+
+    return Response(
+        json.dumps(query_result, default=datetime_converter),
         200,
         content_type="application/json",
     )
