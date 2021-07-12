@@ -167,14 +167,17 @@ Then install Aquarius's OS-level requirements:
 
 ```bash
 sudo apt update
-sudo apt install python3-dev python3.7-dev
+sudo apt install python3-dev python3.8-dev
 ```
 
-(Note: At the time of writing, `python3-dev` was for Python 3.6. `python3.7-dev` is needed if you want to test against Python 3.7 locally.)
+It is recommended that you create and activate a virtual environment in order to install the dependencies.
 
-Before installing Aquarius's Python package requirements, it's recommended to create and activate a virtualenv (or equivalent).
+```bash
+virtualenv venv -p python3.8
+source venv/bin/activate
+```
 
-At this point, an Elasticsearch database must already be running, now you can start the Aquarius server:
+At this point, with the Elasticsearch database already running, now you can start the Aquarius server:
 
 ```bash
 pip install -r requirements.txt
