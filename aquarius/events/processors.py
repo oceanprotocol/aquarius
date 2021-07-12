@@ -32,7 +32,14 @@ logger = logging.getLogger(__name__)
 
 class EventProcessor(ABC):
     def __init__(
-        self, event, oceandb, web3, ecies_account, allowed_publishers, purgatory
+        self,
+        event,
+        oceandb,
+        web3,
+        ecies_account,
+        allowed_publishers,
+        purgatory,
+        chain_id,
     ):
         """Initialises common Event processing properties."""
         self.event = event
@@ -52,6 +59,7 @@ class EventProcessor(ABC):
         self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
         self.purgatory = purgatory
+        self._chain_id = chain_id
 
     def check_permission(self):
         if not os.getenv("RBAC_SERVER_URL"):
@@ -97,6 +105,7 @@ class MetadataCreatedProcessor(EventProcessor):
             "blockNo": self.block,
             "from": self.sender_address,
             "contract": self.contract_address,
+            "update": False,
         }
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
@@ -120,7 +129,7 @@ class MetadataCreatedProcessor(EventProcessor):
             datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
         )
         _record["updated"] = _record["created"]
-        _record["chainId"] = self._web3.eth.chain_id
+        _record["chainId"] = self._chain_id
 
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
@@ -132,7 +141,7 @@ class MetadataCreatedProcessor(EventProcessor):
     def process(self):
         did, sender_address = self.did, self.sender_address
         logger.info(
-            f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}"
+            f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
         permission = self.check_permission()
@@ -144,9 +153,10 @@ class MetadataCreatedProcessor(EventProcessor):
             return
 
         try:
-            self._oceandb.read(did)
-            logger.warning(f"{did} is already registered")
-            return
+            ddo = self._oceandb.read(did)
+            if ddo["chainId"] == self._chain_id:
+                logger.warning(f"{did} is already registered on this chainId")
+                return
         except Exception:
             pass
 
@@ -169,7 +179,7 @@ class MetadataCreatedProcessor(EventProcessor):
                 name = _record["service"][0]["attributes"]["main"]["name"]
                 created = _record["created"]
                 logger.info(
-                    f"DDO saved: did={did}, name={name}, publisher={sender_address}, created: {created}"
+                    f"DDO saved: did={did}, name={name}, publisher={sender_address}, created={created}, chainId={self._chain_id}"
                 )
                 return True
             except (KeyError, Exception) as err:
@@ -191,6 +201,7 @@ class MetadataUpdatedProcessor(EventProcessor):
             "blockNo": self.block,
             "from": self.sender_address,
             "contract": self.contract_address,
+            "update": True,
         }
 
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
@@ -210,7 +221,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         _record["updated"] = format_timestamp(
             datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
         )
-        _record["price"] = asset.get("price", {})
+        _record["chainId"] = self._chain_id
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
@@ -221,7 +232,7 @@ class MetadataUpdatedProcessor(EventProcessor):
     def process(self):
         did, sender_address = self.did, self.sender_address
         logger.info(
-            f"Process update DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}"
+            f"Process update DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
         permission = self.check_permission()
         if not permission:
@@ -240,6 +251,7 @@ class MetadataUpdatedProcessor(EventProcessor):
                 self._ecies_account,
                 self.allowed_publishers,
                 self.purgatory,
+                self._chain_id,
             )
             event_processor.process()
             return

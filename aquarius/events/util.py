@@ -5,6 +5,7 @@
 import json
 import os
 import time
+import logging
 from pathlib import Path
 import pkg_resources
 
@@ -15,7 +16,7 @@ from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
 
-
+logger = logging.getLogger(__name__)
 ENV_ADDRESS_FILE = "ADDRESS_FILE"
 
 
@@ -91,17 +92,31 @@ def get_address_file():
 
 
 def get_metadata_contract(web3):
-    """Returns a Contract built from the Metadata contract address and ABI"""
-    address_file = get_address_file()
-
-    with open(address_file) as f:
-        address_json = json.load(f)
-
-    network = get_network_name()
-    address = address_json[network]["Metadata"]
+    """Returns a Contract built from the Metadata contract address (or ENV) and ABI"""
+    address = os.getenv("METADATA_CONTRACT_ADDRESS", None)
+    if not address:
+        address_file = get_address_file()
+        with open(address_file) as f:
+            address_json = json.load(f)
+        network = get_network_name()
+        address = address_json[network]["Metadata"]
     abi = Metadata.abi
 
     return web3.eth.contract(address=address, abi=abi)
+
+
+def get_metadata_start_block():
+    """Returns the block number to use as start"""
+    block_number = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
+    if not block_number:
+        address_file = get_address_file()
+        with open(address_file) as f:
+            address_json = json.load(f)
+        network = get_network_name()
+        if "startBlock" in address_json[network]:
+            block_number = address_json[network]["startBlock"]
+
+    return block_number
 
 
 def get_datatoken_info(web3, token_address):

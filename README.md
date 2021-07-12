@@ -54,9 +54,16 @@ RUN_EVENTS_MONITOR
   accepted values:
     "0" to disable
     "1" to enable
+
+# Start a HTTP server inside the events monitor. This is usefull for K8 live probing. You must simply access the root endpoint on port 5001. IE: http://172.0.0.1:5001 which will respond with 200 OK if the events thread is up.  Otherwise, there will be no response
+EVENTS_HTTP
+  accepted values:
+    "1" to enable
 ```
 And these are optional
 ```bash
+# If Aquarius API is available. Default: 1
+RUN_AQUARIUS_SERVER
 # Use this to decrypt metadata when read from the blockchain event log
 EVENTS_ECIES_PRIVATE_KEY
 # Aquarius should cache only encrypted ddo. This will make aquarius unable to cache all other datasets on the network !!!!
@@ -68,8 +75,8 @@ ADDRESS_FILE
 NETWORK_NAME
 # Skip caching metadata of publishers that are not in this list
 ALLOWED_PUBLISHERS
-# The block number of `BFactory` deployment
-BFACTORY_BLOCK
+# Metadata contract address. Optional. Use it if you want to overwrite values from ocean-contracts
+METADATA_CONTRACT_ADDRESS
 # The block number of `Metadata` contract deployment
 METADATA_CONTRACT_BLOCK
 # Enable the use of poa_middleware if the network is a POA network such as Rinkeby
@@ -85,7 +92,16 @@ ACCOUNT_PURGATORY_URL
 PURGATORY_UPDATE_INTERVAL
 # The URL of the RBAC Permissions Server. If set, Aquarius will check permissions with RBAC. Leave empty/unset to skip RBAC permission checks.
 RBAC_SERVER_URL
+# Whether to start clean and reindex events on chain id
+EVENTS_CLEAN_START
 ```
+## Running Aquarius for multiple chains
+If you want to index multiple chains using a single Aquarius instance, you should do the following:
+ * Run one or more pods, with RUN_AQUARIUS_SERVER =1 , RUN_EVENTS_MONITOR = 0 AND EVENTS_ALLOW = 0.  This will only serve API requests
+ * For each chain, start a pod with the following envs:
+     * Set RUN_EVENTS_MONITOR = 1 and RUN_AQUARIUS_SERVER = 0
+     * Set coresponding EVENTS_RPC, NETWORK_NAME, BLOCKS_CHUNK_SIZE, METADATA_CONTRACT_BLOCK, METADATA_CONTRACT_ADDRESS etc
+
 
 ## For Aquarius Operators
 

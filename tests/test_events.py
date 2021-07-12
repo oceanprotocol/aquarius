@@ -109,3 +109,29 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
 def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkeypatch):
     monkeypatch.setenv("RBAC_SERVER_URL", "http://localhost:3000")
     run_test(client, base_ddo_url, events_object)
+
+
+def test_get_chains_list(client, chains_url):
+    web3_object = get_web3()
+    chain_id = web3_object.eth.chain_id
+    rv = client.get(chains_url + f"/list", content_type="application/json")
+    chains_list = json.loads(rv.data.decode("utf-8"))
+    assert chains_list
+    assert chains_list[str(chain_id)]
+
+
+def test_get_chain_status(client, chains_url):
+    web3_object = get_web3()
+    chain_id = web3_object.eth.chain_id
+    rv = client.get(
+        chains_url + f"/status/{str(chain_id)}", content_type="application/json"
+    )
+    chain_status = json.loads(rv.data.decode("utf-8"))
+    assert int(chain_status["last_block"]) > 0
+
+
+def test_get_assets_in_chain(client, events_object):
+    web3_object = get_web3()
+    chain_id = web3_object.eth.chain_id
+    res = events_object.get_assets_in_chain()
+    assert set([item["chainId"] for item in res]) == {chain_id}
