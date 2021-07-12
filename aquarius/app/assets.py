@@ -184,9 +184,6 @@ def get_assets_names():
         return jsonify(error=f" get_assets_names failed: {str(e)}"), 404
 
 
-###########################
-# SEARCH
-###########################
 @assets.route("/ddo/query", methods=["POST"])
 def query_ddo():
     """Get a list of DDOs that match with the executed query.
@@ -241,14 +238,12 @@ def query_ddo():
     data.setdefault("offset", 100)
 
     query_result = dao.run_es_query(data)
-    metadata = dao.run_metadata_query(data)
-
     search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
 
     for ddo in query_result[0]:
         sanitize_record(ddo)
 
-    response = make_paginate_response(query_result, search_model, metadata)
+    response = make_paginate_response(query_result, search_model)
     return Response(
         json.dumps(response, default=datetime_converter),
         200,
@@ -272,17 +267,6 @@ def es_query():
 
     data = request.json
     return es_instance.driver.es.search(data)
-
-    return Response(
-        json.dumps(query_result, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
-
-
-###########################
-# VALIDATE
-###########################
 
 
 @assets.route("/ddo/validate", methods=["POST"])
