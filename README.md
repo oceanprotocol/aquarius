@@ -114,46 +114,17 @@ More details about ontology of the metadata are at
 
 Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
 
-### Running as a Docker container
-
-First, clone this repository:
-
-```bash
-git clone git@github.com:oceanprotocol/aquarius.git
-cd aquarius/
-```
-
-Then build the Docker image
-
-```bash
-docker build -t "myaqua" .
-```
-
-Run Docker image
-
-```bash
-docker run myaqua
-```
-
-To test with other ocean components in `barge` set the `AQUARIUS_VERSION` environment variable to `myaqua`
-Then
-
-```bash
-./start_ocean.sh
-```
-
-The setup for `Aquarius` and Elasticsearch in `barge` is in `compose-files/aquarius_elasticsearch.yml`
-
 ### Running Locally, for Dev and Test
 
-First, clone this repository:
+Run a Barge instance without Aquarius.
 
 ```bash
-git clone git@github.com:oceanprotocol/aquarius.git
-cd aquarius/
+git clone https://github.com/oceanprotocol/barge
+cd barge
+./start_ocean.sh  --with-provider2
 ```
 
-Then run elasticsearch database that is a requirement for Aquarius.
+In a new terminal tab, run the elasticsearch database (required for Aquarius).
 
 ```bash
 export ES_VERSION=6.6.2
@@ -163,7 +134,15 @@ tar -xzf elasticsearch-${ES_VERSION}.tar.gz
 ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
 ```
 
-Then install Aquarius's OS-level requirements:
+
+Then clone this repository:
+
+```bash
+git clone git@github.com:oceanprotocol/aquarius.git
+cd aquarius/
+```
+
+Install Aquarius's OS-level requirements:
 
 ```bash
 sudo apt update
