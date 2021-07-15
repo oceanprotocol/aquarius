@@ -34,7 +34,7 @@ class EventProcessor(ABC):
     def __init__(
         self,
         event,
-        oceandb,
+        es_instance,
         web3,
         ecies_account,
         allowed_publishers,
@@ -53,7 +53,7 @@ class EventProcessor(ABC):
         self.flags = event.args.get("flags", None)
         self.rawddo = event.args.get("data", None)
 
-        self._oceandb = oceandb
+        self._es_instance = es_instance
         self._web3 = web3
         self._ecies_account = ecies_account
         self.decryptor = Decryptor(ecies_account)
@@ -153,7 +153,7 @@ class MetadataCreatedProcessor(EventProcessor):
             return
 
         try:
-            ddo = self._oceandb.read(did)
+            ddo = self._es_instance.read(did)
             if ddo["chainId"] == self._chain_id:
                 logger.warning(f"{did} is already registered on this chainId")
                 return
@@ -174,7 +174,7 @@ class MetadataCreatedProcessor(EventProcessor):
         if _record:
             try:
                 record_str = json.dumps(_record)
-                self._oceandb.write(record_str, did)
+                self._es_instance.write(record_str, did)
                 _record = json.loads(record_str)
                 name = _record["service"][0]["attributes"]["main"]["name"]
                 created = _record["created"]
@@ -239,14 +239,14 @@ class MetadataUpdatedProcessor(EventProcessor):
             raise Exception("RBAC permission denied.")
 
         try:
-            asset = self._oceandb.read(did)
+            asset = self._es_instance.read(did)
         except Exception:
             # TODO: check if this asset was deleted/hidden due to some violation issues
             # if so, don't add it again
             logger.warning(f"{did} is not registered, will add it as a new DDO.")
             event_processor = MetadataCreatedProcessor(
                 self.event,
-                self._oceandb,
+                self._es_instance,
                 self._web3,
                 self._ecies_account,
                 self.allowed_publishers,
@@ -292,7 +292,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         _record = self.make_record(data, asset)
         if _record:
             try:
-                self._oceandb.update(json.dumps(_record), did)
+                self._es_instance.update(json.dumps(_record), did)
                 updated = _record["updated"]
                 logger.info(f"updated DDO did={did}, updated: {updated}")
                 return True

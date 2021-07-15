@@ -16,6 +16,7 @@ from aquarius.ddo_checker.ddo_checker import (
 )
 
 from aquarius.app.dao import Dao
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
     make_paginate_response,
     datetime_converter,
@@ -27,16 +28,14 @@ from aquarius.app.util import (
 )
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from oceandb_driver_interface import OceanDb
 from web3 import Web3
 
 setup_logging()
 assets = Blueprint("assets", __name__)
 
-# Prepare OceanDB
 dao = Dao(config_file=app.config["CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
-es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
+es_instance = ElasticsearchInstance(app.config["CONFIG_FILE"])
 
 
 @assets.route("", methods=["GET"])
@@ -70,7 +69,7 @@ def get_ddo(did):
       200:
         description: successful operation
       404:
-        description: This asset DID is not in OceanDB
+        description: This asset DID is not in ES.
     """
     try:
         asset_record = dao.get(did)
@@ -78,10 +77,10 @@ def get_ddo(did):
             sanitize_record(asset_record), 200, content_type="application/json"
         )
     except elasticsearch.exceptions.NotFoundError:
-        return f"{did} asset DID is not in OceanDB", 404
+        return f"{did} asset DID is not in ES", 404
     except Exception as e:
         logger.error(f"get_ddo: {str(e)}")
-        return f"{did} asset DID is not in OceanDB", 404
+        return f"{did} asset DID is not in ES", 404
 
 
 @assets.route("/ddo", methods=["GET"])
@@ -266,7 +265,7 @@ def es_query():
     assert isinstance(request.json, dict), "invalid payload format."
 
     data = request.json
-    return es_instance.driver.es.search(data)
+    return es_instance.es.search(data)
 
 
 @assets.route("/ddo/validate", methods=["POST"])
