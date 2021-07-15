@@ -54,14 +54,10 @@ class Purgatory:
                 }
             }
         }
-        page = self._es_instance.es.search(
-            index=self._es_instance.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
         total = page["hits"]["total"]
         body["size"] = total
-        page = self._es_instance.es.search(
-            index=self._es_instance.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
 
         object_list = []
         for x in page["hits"]["hits"]:

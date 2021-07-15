@@ -12,7 +12,6 @@ from threading import Thread
 import elasticsearch
 from eth_account import Account
 from eth_utils import is_address
-from oceandb_driver_interface import OceanDb
 
 from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.util import get_bool_env_value
@@ -56,11 +55,9 @@ class EventsMonitor(BlockProcessingClass):
     _instance = None
 
     def __init__(self, web3, config_file, metadata_contract=None):
-        self._oceandb = OceanDb(config_file).plugin
         self._es_instance = ElasticsearchInstance(config_file)
 
-        self._other_db_index = f"{self._oceandb.driver.db_index}_plus"
-        self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
+        self._other_db_index = f"{self._es_instance.db_index}_plus"
         self._es_instance.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
@@ -212,7 +209,7 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         processor_args = [
-            self._oceandb,
+            self._es_instance,
             self._web3,
             self._ecies_account,
             self._allowed_publishers,
@@ -243,7 +240,7 @@ class EventsMonitor(BlockProcessingClass):
     def get_last_processed_block(self):
         block = 0
         try:
-            last_block_record = self._oceandb.driver.es.get(
+            last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
             block = last_block_record["last_block"]
@@ -261,7 +258,7 @@ class EventsMonitor(BlockProcessingClass):
             return
         record = {"last_block": block}
         try:
-            self._oceandb.driver.es.index(
+            self._es_instance.es.index(
                 index=self._other_db_index,
                 id=self._index_name,
                 body=record,
@@ -276,7 +273,7 @@ class EventsMonitor(BlockProcessingClass):
 
     def add_chain_id_to_chains_list(self):
         try:
-            chains = self._oceandb.driver.es.get(
+            chains = self._es_instance.es.get(
                 index=self._other_db_index, id="chains", doc_type="_doc"
             )["_source"]
         except Exception:
@@ -284,7 +281,7 @@ class EventsMonitor(BlockProcessingClass):
         chains[str(self._chain_id)] = True
 
         try:
-            self._oceandb.driver.es.index(
+            self._es_instance.es.index(
                 index=self._other_db_index,
                 id="chains",
                 body=json.dumps(chains),
@@ -299,7 +296,7 @@ class EventsMonitor(BlockProcessingClass):
         assets = self.get_assets_in_chain()
         for asset in assets:
             try:
-                self._oceandb.delete(asset["id"])
+                self._es_instance.delete(asset["id"])
             except Exception as e:
                 logging.error(f"Delete asset failed: {str(e)}")
 
@@ -314,14 +311,10 @@ class EventsMonitor(BlockProcessingClass):
                 }
             }
         }
-        page = self._oceandb.driver.es.search(
-            index=self._oceandb.driver.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
         total = page["hits"]["total"]
         body["size"] = total
-        page = self._oceandb.driver.es.search(
-            index=self._oceandb.driver.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
 
         object_list = []
         for x in page["hits"]["hits"]:
