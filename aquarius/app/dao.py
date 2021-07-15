@@ -4,28 +4,30 @@
 #
 
 import logging
-
 import elasticsearch
+
 from oceandb_driver_interface import OceanDb
 from oceandb_driver_interface.search_model import FullTextModel, QueryModel
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import rename_metadata_keys
 
 
 class Dao(object):
-    def __init__(self, oceandb=None, config_file=None):
-        self.oceandb = oceandb or OceanDb(config_file).plugin
+    def __init__(self, config_file=None):
+        self.oceandb = OceanDb(config_file).plugin
+        self.es_instance = ElasticsearchInstance(config_file)
 
     def get_all_listed_assets(self):
-        return list(self.oceandb.list())
+        return list(self.es_instance.list())
 
     def get_all_assets(self):
-        return [a for a in self.oceandb.list()]
+        return [a for a in self.es_instance.list()]
 
     def get(self, asset_id):
         try:
-            asset = self.oceandb.read(asset_id)
+            asset = self.es_instance.read(asset_id)
         except elasticsearch.exceptions.NotFoundError:
-            logging.info(f"Dao.get: asset with id {asset_id} was not found in OceanDB.")
+            logging.info(f"Dao.get: asset with id {asset_id} was not found in ES.")
             raise
 
         except Exception as e:
@@ -38,24 +40,16 @@ class Dao(object):
         return asset
 
     def register(self, record, asset_id):
-        return self.oceandb.write(record, asset_id)
+        return self.es_instance.write(record, asset_id)
 
     def update(self, record, asset_id):
-        return self.oceandb.update(record, asset_id)
+        return self.es_instance.update(record, asset_id)
 
     def delete(self, asset_id):
-        return self.oceandb.delete(asset_id)
+        return self.es_instance.delete(asset_id)
 
     def delete_all(self):
-        if hasattr(self.oceandb, "delete_all"):
-            self.oceandb.delete_all()
-        else:
-            assets = self.oceandb.list()
-            for asset in assets:
-                try:
-                    self.delete(asset["id"])
-                except Exception as e:
-                    logging.error(f"Dao.delete_all: {str(e)}")
+        self.es_instance.delete_all()
 
     def query(self, query):
         query_list = []
@@ -117,8 +111,8 @@ class Dao(object):
             body["sort"] = sort
 
         logging.info(f"running query: {body}")
-        page = self.oceandb.driver.es.search(
-            index=self.oceandb.driver.db_index, body=body
+        page = self.es_instance.es.search(
+            index=self.es_instance.db_index, body=body
         )
 
         object_list = []
@@ -146,8 +140,8 @@ class Dao(object):
         }
 
         logging.info(f"running metadata query: {body}")
-        metadata = self.oceandb.driver.es.search(
-            index=self.oceandb.driver.db_index, body=body
+        metadata = self.es_instance.es.search(
+            index=self.es_instance.db_index, body=body
         )
         metadata = {
             key: rename_metadata_keys(value["buckets"])

@@ -230,7 +230,7 @@ You can pass the configuration using the CONFIG_FILE environment variable (recom
 
 In the configuration there are now two sections:
 
-- oceandb: Contains different values to connect with oceandb. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
+- oceandb: Contains different values to connect with elasticsearch. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
 - resources: In this section we are showing the url in which the aquarius is going to be deployed.
 
 ```yaml

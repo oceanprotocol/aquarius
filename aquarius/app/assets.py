@@ -119,7 +119,7 @@ def get_metadata(did):
       200:
         description: successful operation.
       404:
-        description: This asset DID is not in OceanDB.
+        description: This asset DID is not in ES.
     """
     try:
         asset_record = dao.get(did)
@@ -127,7 +127,7 @@ def get_metadata(did):
         return Response(sanitize_record(metadata), 200, content_type="application/json")
     except Exception as e:
         logger.error(f"get_metadata: {str(e)}")
-        return f"{did} asset DID is not in OceanDB", 404
+        return f"{did} asset DID is not in ES", 404
 
 
 @assets.route("/names", methods=["POST"])

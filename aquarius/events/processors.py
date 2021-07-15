@@ -184,7 +184,7 @@ class MetadataCreatedProcessor(EventProcessor):
                 return True
             except (KeyError, Exception) as err:
                 logger.error(
-                    f"encountered an error while saving the asset data to OceanDB: {str(err)}"
+                    f"encountered an error while saving the asset data to ES: {str(err)}"
                 )
         return False
 
@@ -298,6 +298,6 @@ class MetadataUpdatedProcessor(EventProcessor):
                 return True
             except (KeyError, Exception) as err:
                 logger.error(
-                    f"encountered an error while updating the asset data to OceanDB: {str(err)}"
+                    f"encountered an error while updating the asset data to ES: {str(err)}"
                 )
         return
