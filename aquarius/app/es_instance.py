@@ -134,12 +134,12 @@ class ElasticsearchInstance(object):
         )["_id"]
 
     def delete_all(self):
-        q = '''{
+        q = """{
             "query" : {
                 "match_all" : {}
             }
-        }'''
-        self.es.delete_by_query('_all', q)
+        }"""
+        self.es.delete_by_query("_all", q)
 
     def delete(self, resource_id):
         """Delete an object from elasticsearch.
@@ -154,54 +154,51 @@ class ElasticsearchInstance(object):
 
     def count(self):
         count_result = self.es.count(index=self.db_index)
-        if count_result is not None and count_result['count'] > 0:
-            return count_result['count']
+        if count_result is not None and count_result["count"] > 0:
+            return count_result["count"]
 
         return 0
 
     def list(self, search_from=None, search_to=None, limit=None, chunk_size=100):
         """List all the objects saved in elasticsearch
-         :param search_from: start offset of objects to return.
-         :param search_to: last offset of objects to return.
-         :param limit: max number of values to be returned.
-         :param chunk_size: int size of each batch of objects
-         :return: generator with all matching documents
-         """
-        logger.debug('elasticsearch::list')
+        :param search_from: start offset of objects to return.
+        :param search_to: last offset of objects to return.
+        :param limit: max number of values to be returned.
+        :param chunk_size: int size of each batch of objects
+        :return: generator with all matching documents
+        """
+        logger.debug("elasticsearch::list")
         _body = {
-            'sort': [
+            "sort": [
                 {"_id": "asc"},
             ],
-            'query': {
-                'match_all': {}
-            }
+            "query": {"match_all": {}},
         }
 
         count = 0
         count_result = self.es.count(index=self.db_index)
-        if count_result is not None and count_result['count'] > 0:
-            count = count_result['count']
+        if count_result is not None and count_result["count"] > 0:
+            count = count_result["count"]
 
         if not count:
             return []
 
         search_from = search_from if search_from is not None and search_from >= 0 else 0
-        search_from = min(search_from, count-1)
-        search_to = search_to if search_to is not None and search_to >= 0 else (count-1)
+        search_from = min(search_from, count - 1)
+        search_to = (
+            search_to if search_to is not None and search_to >= 0 else (count - 1)
+        )
         limit = search_to - search_from + 1
         chunk_size = min(chunk_size, limit)
 
-        _body['size'] = chunk_size
+        _body["size"] = chunk_size
         processed = 0
         while processed < limit:
             body = _body.copy()
-            body['from'] = search_from
-            result = self.es.search(
-                index=self.db_index,
-                body=body
-            )
-            hits = result['hits']['hits']
+            body["from"] = search_from
+            result = self.es.search(index=self.db_index, body=body)
+            hits = result["hits"]["hits"]
             search_from += len(hits)
             processed += len(hits)
             for x in hits:
-                yield x['_source']
+                yield x["_source"]

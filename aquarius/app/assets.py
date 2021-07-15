@@ -7,7 +7,6 @@ import json
 import logging
 
 from flask import Blueprint, jsonify, request, Response
-from oceandb_driver_interface.search_model import FullTextModel
 from aquarius.ddo_checker.ddo_checker import (
     is_valid_dict_local,
     list_errors_dict_local,
@@ -242,12 +241,12 @@ def query_ddo():
     query_result = dao.run_es_query(data)
     metadata = dao.run_metadata_query(data)
 
-    search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
-
     for ddo in query_result[0]:
         sanitize_record(ddo)
 
-    response = make_paginate_response(query_result, search_model, metadata)
+    response = make_paginate_response(
+        query_result, data.get("offset"), data["page"], metadata
+    )
     return Response(
         json.dumps(response, default=datetime_converter),
         200,

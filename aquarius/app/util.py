@@ -27,13 +27,12 @@ def sanitize_record(data_record):
     return json.dumps(data_record, default=datetime_converter)
 
 
-def make_paginate_response(query_list_result, search_model, metadata=None):
+def make_paginate_response(query_list_result, offset, page, metadata=None):
     total = query_list_result[1]
-    offset = search_model.offset
 
     result = dict()
     result["results"] = query_list_result[0]
-    result["page"] = search_model.page
+    result["page"] = page
 
     if metadata:
         result["resultsMetadata"] = metadata
