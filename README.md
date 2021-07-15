@@ -121,21 +121,20 @@ Run a Barge instance without Aquarius.
 ```bash
 git clone https://github.com/oceanprotocol/barge
 cd barge
-./start_ocean.sh  --with-provider2
+./start_ocean.sh  --no-aquarius
 ```
 
-In a new terminal tab, run the elasticsearch database (required for Aquarius).
+In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
 
 ```bash
 export ES_VERSION=6.6.2
 export ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
 wget ${ES_DOWNLOAD_URL}
 tar -xzf elasticsearch-${ES_VERSION}.tar.gz
-./elasticsearch-${ES_VERSION}/bin/elasticsearch &
+./elasticsearch-${ES_VERSION}/bin/elasticsearch
 ```
 
-
-Then clone this repository:
+In yet another tab, clone this repository:
 
 ```bash
 git clone git@github.com:oceanprotocol/aquarius.git
@@ -146,13 +145,13 @@ Install Aquarius's OS-level requirements:
 
 ```bash
 sudo apt update
-sudo apt install python3-dev python3.8-dev
+sudo apt install python3
 ```
 
 It is recommended that you create and activate a virtual environment in order to install the dependencies.
 
 ```bash
-virtualenv venv -p python3.8
+python3 -m venv venv
 source venv/bin/activate
 ```
 
