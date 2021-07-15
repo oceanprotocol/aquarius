@@ -165,12 +165,12 @@ class ElasticsearchInstance(object):
 
     def list(self, search_from=None, search_to=None, limit=None, chunk_size=100):
         """List all the objects saved in elasticsearch
-         :param search_from: start offset of objects to return.
-         :param search_to: last offset of objects to return.
-         :param limit: max number of values to be returned.
-         :param chunk_size: int size of each batch of objects
-         :return: generator with all matching documents
-         """
+        :param search_from: start offset of objects to return.
+        :param search_to: last offset of objects to return.
+        :param limit: max number of values to be returned.
+        :param chunk_size: int size of each batch of objects
+        :return: generator with all matching documents
+        """
         logger.debug("elasticsearch::list")
         _body = {"sort": [{"_id": "asc"}], "query": {"match_all": {}}}
 

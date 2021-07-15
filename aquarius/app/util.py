@@ -27,13 +27,12 @@ def sanitize_record(data_record):
     return json.dumps(data_record, default=datetime_converter)
 
 
-def make_paginate_response(query_list_result, search_model):
+def make_paginate_response(query_list_result, offset, page):
     total = query_list_result[1]
-    offset = search_model.offset
 
     result = dict()
     result["results"] = query_list_result[0]
-    result["page"] = search_model.page
+    result["page"] = page
 
     result["total_pages"] = int(total / offset) + int(total % offset > 0)
     result["total_results"] = total
@@ -208,14 +207,6 @@ def validate_data(data, method):
         return msg, status
 
     return None, None
-
-
-def rename_metadata_keys(bucket):
-    for d in bucket:
-        d["name"] = d.pop("key")
-        d["count"] = d.pop("doc_count")
-
-    return bucket
 
 
 def encrypt_data(data):

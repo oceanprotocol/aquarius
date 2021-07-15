@@ -7,9 +7,7 @@ import logging
 import elasticsearch
 
 from oceandb_driver_interface import OceanDb
-from oceandb_driver_interface.search_model import FullTextModel, QueryModel
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import rename_metadata_keys
 
 
 class Dao(object):
@@ -50,22 +48,6 @@ class Dao(object):
 
     def delete_all(self):
         self.es_instance.delete_all()
-
-    def query(self, query):
-        query_list = []
-        if isinstance(query, QueryModel):
-            query_result, count = self.oceandb.query(query)
-        elif isinstance(query, FullTextModel):
-            query_result, count = self.oceandb.text_query(query)
-        else:
-            raise TypeError("Unrecognized `query` type %s" % type(query))
-
-        for f in query_result:
-            if "service" in f:
-                if self.is_listed(f["service"]):
-                    query_list.append(f)
-
-        return query_list, count
 
     @staticmethod
     def is_listed(services):
