@@ -18,10 +18,10 @@ from freezegun import freeze_time
 
 
 class PurgatoryForTesting(Purgatory):
-    def __init__(self, oceandb):
+    def __init__(self, es_instance):
         self.current_test_asset_list = set()
         self.current_test_account_list = set()
-        super(PurgatoryForTesting, self).__init__(oceandb)
+        super(PurgatoryForTesting, self).__init__(es_instance)
 
     def retrieve_new_list(self, env_var):
         return (
@@ -48,7 +48,7 @@ def test_purgatory_before_init(client, base_ddo_url, events_object, monkeypatch)
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = PurgatoryForTesting(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._es_instance)
     purgatory.current_test_asset_list = {("did:op:notexistyet", "test_reason")}
     purgatory.update_lists()
     # assert no change, since this did doesn't exist
@@ -66,7 +66,7 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = PurgatoryForTesting(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._es_instance)
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
 
@@ -104,7 +104,7 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = PurgatoryForTesting(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._es_instance)
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
 

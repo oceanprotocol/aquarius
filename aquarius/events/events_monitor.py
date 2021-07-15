@@ -24,6 +24,8 @@ from aquarius.events.processors import (
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_contract, get_metadata_start_block
+from aquarius.app.es_instance import ElasticsearchInstance
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,9 +57,11 @@ class EventsMonitor(BlockProcessingClass):
 
     def __init__(self, web3, config_file, metadata_contract=None):
         self._oceandb = OceanDb(config_file).plugin
+        self._es_instance = ElasticsearchInstance(config_file)
 
         self._other_db_index = f"{self._oceandb.driver.db_index}_plus"
         self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
+        self._es_instance.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
 
@@ -115,7 +119,7 @@ class EventsMonitor(BlockProcessingClass):
             self._contract = None
 
         self.purgatory = (
-            Purgatory(self._oceandb)
+            Purgatory(self._es_instance)
             if (os.getenv("ASSET_PURGATORY_URL") or os.getenv("ACCOUNT_PURGATORY_URL"))
             else None
         )
