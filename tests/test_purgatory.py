@@ -108,7 +108,7 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
 
-    acc_id = events_object._oceandb.read(did)["event"]["from"]
+    acc_id = events_object._es_instance.read(did)["event"]["from"]
     purgatory.current_test_account_list = {(acc_id, "test_reason")}
     purgatory.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)

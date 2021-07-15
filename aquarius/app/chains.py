@@ -7,14 +7,14 @@ import json
 import logging
 
 from flask import Blueprint, Response
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from oceandb_driver_interface import OceanDb
 
 setup_logging()
 chains = Blueprint("chains", __name__)
 logger = logging.getLogger("aquarius")
-es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
+es_instance = ElasticsearchInstance(app.config["CONFIG_FILE"])
 
 
 @chains.route("/list", methods=["GET"])
@@ -30,8 +30,8 @@ def get_chains_list():
         description: No chains are present
     """
     try:
-        chains = es_instance.driver.es.get(
-            index=f"{es_instance.driver.db_index}_plus", id="chains", doc_type="_doc"
+        chains = es_instance.es.get(
+            index=f"{es_instance.db_index}_plus", id="chains", doc_type="_doc"
         )["_source"]
         return Response(json.dumps(chains), 200, content_type="application/json")
     except (elasticsearch.exceptions.NotFoundError, KeyError):
@@ -61,8 +61,8 @@ def get_index_status(chain_id):
         description: This chainId is not indexed.
     """
     try:
-        last_block_record = es_instance.driver.es.get(
-            index=f"{es_instance.driver.db_index}_plus",
+        last_block_record = es_instance.es.get(
+            index=f"{es_instance.db_index}_plus",
             id="events_last_block_" + str(chain_id),
             doc_type="_doc",
         )["_source"]
