@@ -6,14 +6,12 @@
 import logging
 import elasticsearch
 
-from oceandb_driver_interface import OceanDb
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import rename_metadata_keys
 
 
 class Dao(object):
     def __init__(self, config_file=None):
-        self.oceandb = OceanDb(config_file).plugin
         self.es_instance = ElasticsearchInstance(config_file)
 
     def get_all_listed_assets(self):
@@ -66,8 +64,8 @@ class Dao(object):
 
         sort = data.get("sort")
         if sort is not None:
-            self.oceandb._mapping_to_sort(sort.keys())
-            sort = self.oceandb._sort_object(sort)
+            self.es_instance._mapping_to_sort(sort.keys())
+            sort = self.es_instance._sort_object(sort)
 
         query = data.get("query")
         if not query:
