@@ -7,7 +7,7 @@ import logging
 import time
 from elasticsearch import Elasticsearch
 
-from oceandb_elasticsearch_driver.mapping import mapping
+from aquarius.app.es_mapping import es_mapping
 
 _DB_INSTANCE = None
 
@@ -63,7 +63,7 @@ class ElasticsearchInstance(object):
                 logging.info("Trying to connect...")
                 time.sleep(5)
 
-            self._es.indices.create(index=index, ignore=400, body=mapping)
+            self._es.indices.create(index=index, ignore=400, body=es_mapping)
 
         except Exception as e:
             logging.info(f"Exception trying to connect... {e}")
@@ -201,3 +201,47 @@ class ElasticsearchInstance(object):
             processed += len(hits)
             for x in hits:
                 yield x["_source"]
+
+    def _mapping_to_sort(self, keys):
+        for i in keys:
+            mapping = (
+                """{
+                              "properties": {
+                                "%s" : {
+                                  "type": "text",
+                                  "fields": {
+                                    "keyword": {
+                                      "type": "keyword"
+                                    }
+                                  }
+                                }
+                              }
+                        }
+            """
+                % i
+            )
+            if self.es.indices.get_field_mapping(i)[self.db_index]["mappings"] == {}:
+                self.es.indices.put_mapping(
+                    index=self.db_index, body=mapping, doc_type="_doc"
+                )
+
+    def _sort_object(self, sort):
+        try:
+            o = []
+            for key in sort.keys():
+                last_k = key.split(".")[-1]
+                field_mapping = self.es.indices.get_field_mapping(key)
+                value = field_mapping[self.db_index]["mappings"]["_doc"][key][
+                    "mapping"
+                ][last_k]["type"]
+                if value == "text":
+                    o.append(
+                        {key + ".keyword": ("asc" if sort.get(key) == 1 else "desc")},
+                    )
+                else:
+                    o.append(
+                        {key: ("asc" if sort.get(key) == 1 else "desc")},
+                    )
+            return o
+        except Exception:
+            raise Exception('Sort "{}" does not have a valid format.'.format(sort))
