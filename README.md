@@ -130,67 +130,48 @@ More details about ontology of the metadata are at
 
 Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
 
-### Running as a Docker container
-
-First, clone this repository:
-
-```bash
-git clone git@github.com:oceanprotocol/aquarius.git
-cd aquarius/
-```
-
-Then build the Docker image
-
-```bash
-docker build -t "myaqua" .
-```
-
-Run Docker image
-
-```bash
-docker run myaqua
-```
-
-To test with other ocean components in `barge` set the `AQUARIUS_VERSION` environment variable to `myaqua`
-Then
-
-```bash
-./start_ocean.sh
-```
-
-The setup for `Aquarius` and Elasticsearch in `barge` is in `compose-files/aquarius_elasticsearch.yml`
-
 ### Running Locally, for Dev and Test
 
-First, clone this repository:
+Run a Barge instance without Aquarius.
 
 ```bash
-git clone git@github.com:oceanprotocol/aquarius.git
-cd aquarius/
+git clone https://github.com/oceanprotocol/barge
+cd barge
+./start_ocean.sh  --no-aquarius
 ```
 
-Then run elasticsearch database that is a requirement for Aquarius.
+In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
 
 ```bash
 export ES_VERSION=6.6.2
 export ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
 wget ${ES_DOWNLOAD_URL}
 tar -xzf elasticsearch-${ES_VERSION}.tar.gz
-./elasticsearch-${ES_VERSION}/bin/elasticsearch &
+./elasticsearch-${ES_VERSION}/bin/elasticsearch
 ```
 
-Then install Aquarius's OS-level requirements:
+In yet another tab, clone this repository:
+
+```bash
+git clone git@github.com:oceanprotocol/aquarius.git
+cd aquarius/
+```
+
+Install Aquarius's OS-level requirements:
 
 ```bash
 sudo apt update
-sudo apt install python3-dev python3.7-dev
+sudo apt install python3
 ```
 
-(Note: At the time of writing, `python3-dev` was for Python 3.6. `python3.7-dev` is needed if you want to test against Python 3.7 locally.)
+It is recommended that you create and activate a virtual environment in order to install the dependencies.
 
-Before installing Aquarius's Python package requirements, it's recommended to create and activate a virtualenv (or equivalent).
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-At this point, an Elasticsearch database must already be running, now you can start the Aquarius server:
+At this point, with the Elasticsearch database already running, now you can start the Aquarius server:
 
 ```bash
 pip install -r requirements.txt

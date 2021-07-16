@@ -126,32 +126,3 @@ class Dao(object):
             object_list.append(x["_source"])
 
         return object_list, page["hits"]["total"]
-
-    def run_metadata_query(self, data):
-        query, _, _, _ = self.refine_query_parameters(data)
-
-        body = {
-            "size": 0,
-            "query": query,
-            "aggs": {
-                "licenses": {
-                    "terms": {"field": "service.attributes.main.license.keyword"}
-                },
-                "tags": {
-                    "terms": {
-                        "field": "service.attributes.additionalInformation.tags.keyword"
-                    }
-                },
-            },
-        }
-
-        logging.info(f"running metadata query: {body}")
-        metadata = self.oceandb.driver.es.search(
-            index=self.oceandb.driver.db_index, body=body
-        )
-        metadata = {
-            key: rename_metadata_keys(value["buckets"])
-            for key, value in metadata["aggregations"].items()
-        }
-
-        return metadata
