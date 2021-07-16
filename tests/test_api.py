@@ -205,8 +205,6 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
         },
     )
     assert len(result["results"]) > 0
-    assert "licenses" in result["resultsMetadata"]
-    assert "tags" in result["resultsMetadata"]
 
 
 def test_get_assets_names(client, events_object):
