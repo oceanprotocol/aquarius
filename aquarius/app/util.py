@@ -219,6 +219,10 @@ def rename_metadata_keys(bucket):
 
 
 def encrypt_data(data):
+    """
+    Encrypts the input `data` with the private key
+    :return: encrypted data - bytes
+    """
     ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
     if ecies_private_key is None:
         return False, "No private key configured."
