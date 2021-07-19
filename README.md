@@ -161,7 +161,7 @@ Install Aquarius's OS-level requirements:
 
 ```bash
 sudo apt update
-sudo apt install python3
+sudo apt install python3-dev
 ```
 
 It is recommended that you create and activate a virtual environment in order to install the dependencies.
@@ -174,6 +174,7 @@ source venv/bin/activate
 At this point, with the Elasticsearch database already running, now you can start the Aquarius server:
 
 ```bash
+pip install wheel
 pip install -r requirements.txt
 export FLASK_APP=aquarius/run.py
 export CONFIG_FILE=config.ini
