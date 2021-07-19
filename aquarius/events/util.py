@@ -21,6 +21,9 @@ ENV_ADDRESS_FILE = "ADDRESS_FILE"
 
 
 def get_network_name():
+    """
+    :return str: network name
+    """
     network_name = os.getenv("NETWORK_NAME", None)
 
     if not network_name:
@@ -39,6 +42,13 @@ def get_network_name():
 
 
 def deploy_contract(w3, _json, private_key, *args):
+    """
+    :param w3: Web3 object instance
+    :param private_key: Private key of the account
+    :param _json: Json content of artifact file
+    :param *args: arguments to be passed to be constructor of the contract
+    :return: address of deployed contract
+    """
     account = w3.eth.account.from_key(private_key)
     _contract = w3.eth.contract(abi=_json["abi"], bytecode=_json["bytecode"])
     built_tx = _contract.constructor(*args).buildTransaction({"from": account.address})
@@ -56,6 +66,12 @@ def deploy_contract(w3, _json, private_key, *args):
 
 
 def sign_tx(web3, tx, private_key):
+    """
+    :param web3: Web3 object instance
+    :param tx: transaction
+    :param private_key: Private key of the account
+    :return: rawTransaction (str)
+    """
     account = web3.eth.account.from_key(private_key)
     nonce = web3.eth.get_transaction_count(account.address)
     gas_price = int(web3.eth.gas_price / 100)
@@ -66,6 +82,14 @@ def sign_tx(web3, tx, private_key):
 
 
 def deploy_datatoken(web3, private_key, name, symbol, minter_address):
+    """
+    :param web3: Web3 object instance
+    :param private_key: Private key of the account
+    :param name: Name of the datatoken to be deployed
+    :param symbol: Symbol of the datatoken to be deployed
+    :param minter_address: Account address
+    :return: Address of the deployed contract
+    """
     return deploy_contract(
         web3,
         {"abi": DataTokenTemplate.abi, "bytecode": DataTokenTemplate.bytecode},
@@ -120,6 +144,22 @@ def get_metadata_start_block():
 
 
 def get_datatoken_info(web3, token_address):
+    """
+    :param token_address: Datatoken address
+    :return: Json object as below
+        ```
+        {
+        "address": <token_address>,
+        "name": <contract_name>,
+        "symbol": <symbol>,
+        "decimals":  <decimals>,
+        "totalSupply": <totalSupply>,
+        "cap": <cap>,
+        "minter": <minter>,
+        "minterBalance": <balance of minter>,
+        }
+        ```
+    """
     token_address = Web3.toChecksumAddress(token_address)
     dt_abi_path = Path(
         pkg_resources.resource_filename("aquarius", "events/datatoken_abi.json")
@@ -141,6 +181,11 @@ def get_datatoken_info(web3, token_address):
 
 
 def setup_web3(config_file, _logger=None):
+    """
+    :param config_file: Web3 object instance
+    :param _logger: Logger instance
+    :return: web3 instance
+    """
     network_rpc = os.environ.get("EVENTS_RPC", "http:127.0.0.1:8545")
     if _logger:
         _logger.info(
