@@ -1,0 +1,64 @@
+{
+  "main": {
+    "name": "Madrid Weather forecast",
+    "dateCreated": "2012-02-01T10:55:11Z",
+    "author": "Norwegian Meteorological Institute",
+    "type": "dataset",
+    "license": "CC0: Public Domain",
+    "files": [
+      {
+        "index": 0,
+        "contentType": "application/zip",
+        "encoding": "UTF-8",
+        "compression": "zip",
+        "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
+        "checksumType": "MD5",
+        "contentLength": "12057507",
+        "url": "https://s3.amazonaws.com/assets/training.zip"
+      },
+      {
+        "index": 1,
+        "contentLength": "0",
+        "contentType": "text/xml",
+        "compression": "none",
+        "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
+      }
+    ]
+  },
+  "additionalInformation": {
+    "description": "EXAMPLE ONLY ",
+    "copyrightHolder": "Unknown",
+    "categories": [
+      "image"
+    ],
+    "tags": [
+      "image data",
+      "classification",
+      "animals"
+    ],
+    "links": [
+      {
+        "name": "example model",
+        "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
+      },
+      {
+        "name": "example code",
+        "type": "example code",
+        "url": "https://github.com/slothkong/CNN_classification_10_monkey_species",
+        "reviewed": true
+      },
+      {
+        "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
+        "name": "n5151.jpg",
+        "type": "discovery"
+      },
+      {
+        "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
+        "name": "sample.zip",
+        "type": "sample"
+      }
+    ],
+    "workExample": "image path, id, label",
+    "inLanguage": "en"
+  }
+}

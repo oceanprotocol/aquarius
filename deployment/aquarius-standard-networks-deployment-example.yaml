@@ -1,3 +1,7 @@
+##
+## Copyright 2021 Ocean Protocol Foundation
+## SPDX-License-Identifier: Apache-2.0
+##
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,22 +33,14 @@ spec:
           value: http://0.0.0.0:5000
         - name: AQUARIUS_WORKERS
           value: "1"
-        - name: DB_COLLECTION
-          value: ddo
         - name: DB_HOSTNAME
           value: < elasticsearch service >
         - name: DB_INDEX
           value: aquarius
         - name: DB_MODULE
           value: elasticsearch
-        - name: DB_NAME
-          value: aquarius
-        - name: DB_NAMESPACE
-          value: namespace
         - name: DB_PORT
           value: "9200"
-        - name: DB_SCHEME
-          value: http
         - name: DB_USERNAME
           value: elastic
         - name: DB_PASSWORD
@@ -62,9 +58,7 @@ spec:
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         - name: BFACTORY_BLOCK
-          value: "< The blockNumber of `Metadata` contract deployment >"
-        - name: INFURA_PROJECT_ID
-          value: < INFURA_PROJECT_ID >
+          value: "< The block number of `Metadata` contract deployment >"
         - name: METADATA_CONTRACT_BLOCK
           value: "< metadata contract block >"
         - name: NETWORK_NAME

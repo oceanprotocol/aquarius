@@ -5,23 +5,16 @@
 import elasticsearch
 import json
 import logging
-import os
 
 from flask import Blueprint, jsonify, request, Response
 from oceandb_driver_interface.search_model import FullTextModel
-from ocean_lib.config_provider import ConfigProvider
-from ocean_lib.web3_internal.contract_handler import ContractHandler
-from ocean_lib.web3_internal.web3_provider import Web3Provider
-from ocean_lib.ocean.util import get_web3_connection_provider
-from ocean_lib.config import Config as OceanConfig
-from plecos.plecos import (
+from aquarius.ddo_checker.ddo_checker import (
     is_valid_dict_local,
     list_errors_dict_local,
     is_valid_dict_remote,
     list_errors_dict_remote,
 )
 
-from aquarius.app.auth_util import has_update_request_permission, get_signer_address
 from aquarius.app.dao import Dao
 from aquarius.app.util import (
     make_paginate_response,
@@ -32,21 +25,10 @@ from aquarius.app.util import (
     get_request_data,
     encrypt_data,
 )
-from aquarius.events.metadata_updater import MetadataUpdater
-from aquarius.events.util import get_artifacts_path, get_network_name
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from oceandb_driver_interface import OceanDb
 from web3 import Web3
-
-ConfigProvider.set_config(OceanConfig(app.config["CONFIG_FILE"]))
-Web3Provider.init_web3(
-    provider=get_web3_connection_provider(os.environ.get("EVENTS_RPC", ""))
-)
-ContractHandler.set_artifacts_path(get_artifacts_path())
-if get_network_name().lower() == "rinkeby":
-    from web3.middleware import geth_poa_middleware
-
-    Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
 
 setup_logging()
 assets = Blueprint("assets", __name__)
@@ -54,6 +36,7 @@ assets = Blueprint("assets", __name__)
 # Prepare OceanDB
 dao = Dao(config_file=app.config["CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
+es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
 
 
 @assets.route("", methods=["GET"])
@@ -201,9 +184,6 @@ def get_assets_names():
         return jsonify(error=f" get_assets_names failed: {str(e)}"), 404
 
 
-###########################
-# SEARCH
-###########################
 @assets.route("/ddo/query", methods=["POST"])
 def query_ddo():
     """Get a list of DDOs that match with the executed query.
@@ -258,14 +238,12 @@ def query_ddo():
     data.setdefault("offset", 100)
 
     query_result = dao.run_es_query(data)
-    metadata = dao.run_metadata_query(data)
-
     search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
 
     for ddo in query_result[0]:
         sanitize_record(ddo)
 
-    response = make_paginate_response(query_result, search_model, metadata)
+    response = make_paginate_response(query_result, search_model)
     return Response(
         json.dumps(response, default=datetime_converter),
         200,
@@ -273,9 +251,22 @@ def query_ddo():
     )
 
 
-###########################
-# VALIDATE
-###########################
+@assets.route("/ddo/es-query", methods=["POST"])
+def es_query():
+    """Runs a native ES query.
+    ---
+    tags:
+      - ddo
+    consumes:
+      - application/json
+    responses:
+      200:
+        description: successful action
+    """
+    assert isinstance(request.json, dict), "invalid payload format."
+
+    data = request.json
+    return es_instance.driver.es.search(data)
 
 
 @assets.route("/ddo/validate", methods=["POST"])
@@ -357,8 +348,6 @@ def validate_remote():
 # Since this methods are public, this is just an example of how to do. You should either add some auth methods here, or protect this endpoint from your nginx
 # Using it like this, means that anyone call encrypt their ddo, so they will be able to publish to your market.
 ###########################
-
-
 @assets.route("/ddo/encrypt", methods=["POST"])
 def encrypt_ddo():
     """Encrypt a DDO.
@@ -385,12 +374,10 @@ def encrypt_ddo():
     if request.content_type != "application/octet-stream":
         return "invalid content-type", 400
     data = request.get_data()
-    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-    if ecies_private_key is None:
-        return "no privatekey configured", 400
-    encrypted_data = encrypt_data(data)
-    if encrypted_data is None:
-        return "Encrypt error", 500
+    result, encrypted_data = encrypt_data(data)
+    if not result:
+        return encrypted_data, 400
+
     response = Response(encrypted_data)
     response.headers.set("Content-Type", "application/octet-stream")
     return response
@@ -420,85 +407,10 @@ def encrypt_ddo_as_hex():
         description: Error
     """
     data = request.get_data()
-    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-    if ecies_private_key is None:
-        return "no privatekey configured", 400
-    encrypted_data = encrypt_data(data)
-    if encrypted_data is None:
-        return "Encrypt error", 500
+    result, encrypted_data = encrypt_data(data)
+    if not result:
+        return encrypted_data, 400
+
     response = Response(Web3.toHex(encrypted_data))
     response.headers.set("Content-Type", "text/plain")
     return response
-
-
-@assets.route("/ddo/update/<did>", methods=["PUT"])
-def update_ddo_info(did):
-    assert request.json and isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-
-    if request.remote_addr != "127.0.0.1":
-        address = data.get("adminAddress", None)
-        if not address or not has_update_request_permission(address):
-            return jsonify(error="Unauthorized."), 401
-
-        _address = None
-        signature = data.get("signature", None)
-        if signature:
-            _address = get_signer_address(address, signature, logger)
-
-        if not _address or _address.lower() != address.lower():
-            return jsonify(error="Unauthorized."), 401
-
-    try:
-        asset_record = dao.get(did)
-        if not asset_record:
-            return jsonify(error=f"Asset {did} not found."), 404
-        _other_db_index = f"{dao.oceandb.driver.db_index}_plus"
-        updater = MetadataUpdater(
-            oceandb=dao.oceandb,
-            other_db_index=_other_db_index,
-            web3=Web3Provider.get_web3(),
-            config=ConfigProvider.get_config(),
-        )
-        updater.do_single_update(asset_record)
-
-        return jsonify("acknowledged."), 200
-    except Exception as e:
-        logger.error(f"get_metadata: {str(e)}")
-        return f"{did} asset DID is not in OceanDB", 404
-
-
-@assets.route("/ddo/<did>", methods=["DELETE"])
-def delist_ddo(did):
-    assert request.json and isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-    address = data.get("adminAddress", None)
-    if not address or not has_update_request_permission(address):
-        return jsonify(error="Unauthorized."), 401
-
-    _address = None
-    signature = data.get("signature", None)
-    if signature:
-        _address = get_signer_address(address, signature, logger)
-
-    if not _address or _address.lower() != address.lower():
-        return jsonify(error="Unauthorized."), 401
-
-    try:
-        asset_record = dao.get(did)
-        if not asset_record:
-            return jsonify(error=f"Asset {did} not found."), 404
-
-        _other_db_index = f"{dao.oceandb.driver.db_index}_plus"
-        updater = MetadataUpdater(
-            oceandb=dao.oceandb,
-            other_db_index=_other_db_index,
-            web3=Web3Provider.get_web3(),
-            config=ConfigProvider.get_config(),
-        )
-        updater.do_single_update(asset_record)
-
-        return jsonify("acknowledged."), 200
-    except Exception as e:
-        logger.error(f"get_metadata: {str(e)}")
-        return f"{did} asset DID is not in OceanDB", 404

@@ -1,0 +1,518 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "main"
+  ],
+  "properties": {
+    "main": {
+      "$id": "#/properties/main",
+      "type": "object",
+      "title": "The Main Schema",
+      "default": null,
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "dateCreated",
+        "datePublished",
+        "author",
+        "license",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "$id": "#/properties/main/properties/name",
+          "type": "string",
+          "title": "The Name Schema",
+          "default": "",
+          "examples": [
+            "10 Monkey Species Small"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "dateCreated": {
+          "$id": "#/properties/main/properties/dateCreated",
+          "title": "The Datecreated Schema",
+          "default": "",
+          "examples": [
+            "2012-02-01T10:55:11Z"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "datePublished": {
+          "$id": "#/properties/main/properties/datePublished",
+          "title": "The Datepublished Schema",
+          "default": "",
+          "examples": [
+            "2012-02-01T10:55:11Z"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "author": {
+          "$id": "#/properties/main/properties/author",
+          "type": "string",
+          "title": "The Author Schema",
+          "default": "",
+          "examples": [
+            "Mario"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "license": {
+          "$id": "#/properties/main/properties/license",
+          "type": "string",
+          "title": "The License Schema",
+          "default": "",
+          "examples": [
+            "CC0: Public Domain"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "type": {
+          "$id": "#/properties/main/properties/type",
+          "type": "string",
+          "title": "The Type Schema",
+          "default": "",
+          "examples": [
+            "dataset"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "files": {
+          "$id": "#/properties/main/properties/files",
+          "type": "array",
+          "title": "The Files Schema",
+          "default": null,
+          "additionalItems": false,
+          "items": {
+            "$id": "#/properties/main/properties/files/items",
+            "type": "object",
+            "title": "The Items Schema",
+            "default": null,
+            "additionalProperties": false,
+            "required": [
+              "index",
+              "contentType"
+            ],
+            "properties": {
+              "name": {
+                "$id": "#/properties/main/properties/files/items/properties/name",
+                "type": "string",
+                "title": "The file Name Schema",
+                "default": "",
+                "examples": [
+                  "monkey_species.csv"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "contentType": {
+                "$id": "#/properties/main/properties/files/items/properties/contentType",
+                "type": "string",
+                "title": "The Contenttype Schema",
+                "default": "",
+                "examples": [
+                  "application/zip"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "encoding": {
+                "$id": "#/properties/main/properties/files/items/properties/encoding",
+                "type": "string",
+                "title": "The Encoding Schema",
+                "default": "",
+                "examples": [
+                  "UTF-8"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "compression": {
+                "$id": "#/properties/main/properties/files/items/properties/compression",
+                "type": "string",
+                "title": "The Compression Schema",
+                "default": "",
+                "examples": [
+                  "zip"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "checksum": {
+                "$id": "#/properties/main/properties/files/items/properties/checksum",
+                "type": "string",
+                "title": "The Checksum Schema",
+                "default": "",
+                "examples": [
+                  "2bf9d229d110d1976cdf85e9f3256c7f"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "checksumType": {
+                "$id": "#/properties/main/properties/files/items/properties/checksumType",
+                "type": "string",
+                "title": "The Checksumtype Schema",
+                "default": "",
+                "examples": [
+                  "MD5"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "contentLength": {
+                "$id": "#/properties/main/properties/files/items/properties/contentLength",
+                "type": "string",
+                "title": "The Contentlength Schema",
+                "default": 0,
+                "examples": [
+                  "12057507"
+                ]
+              },
+              "index": {
+                "$id": "#/properties/main/properties/files/items/properties/index",
+                "type": "integer",
+                "title": "The Index Schema",
+                "default": 0,
+                "examples": [
+                  0
+                ]
+              },
+              "resourceId": {
+                "$id": "#/properties/main/properties/files/items/properties/resourceId",
+                "type": "string",
+                "title": "The resourceId Schema",
+                "default": 0,
+                "examples": [
+                  "bucket:47550"
+                ]
+              },
+              "attributes": {
+                "$id": "#/properties/main/properties/files/items/properties/attributes",
+                "type": "array",
+                "title": "The attributes Schema",
+                "default": []
+              },
+              "encrypted": {
+                "$id": "#/properties/main/properties/files/items/properties/encrypted",
+                "type": "boolean",
+                "title": "The encrypted Schema",
+                "default": false,
+                "examples": [
+                  true
+                ]
+              },
+              "encryptionMode": {
+                "$id": "#/properties/main/properties/files/items/properties/encryptionMode",
+                "type": "string",
+                "title": "The encryptionMode Schema",
+                "default": "",
+                "examples": [
+                  "CBC"
+                ]
+              }
+            }
+          }
+        },
+        "algorithm": {
+          "$id": "#/properties/main/properties/algorithm",
+          "type": "object",
+          "title": "The algorithm Schema",
+          "required": [
+            "container"
+          ],
+          "properties": {
+            "language": {
+              "$id": "#/properties/main/properties/algorithm/properties/language",
+              "type": "string",
+              "title": "The algorithm language Schema"
+            },
+            "format": {
+              "$id": "#/properties/main/properties/algorithm/properties/format",
+              "type": "string",
+              "title": "The algorithm format Schema"
+            },
+            "version": {
+              "$id": "#/properties/main/properties/algorithm/properties/version",
+              "type": "string",
+              "title": "The algorithm version Schema"
+            },
+            "container": {
+              "$id": "#/properties/main/properties/algorithm/properties/container",
+              "type": "object",
+              "title": "Object describing the Docker container image",
+              "required": [
+                "entrypoint",
+                "image",
+                "tag"
+              ],
+              "properties": {
+                "entrypoint": {
+                 "$id": "#/properties/main/properties/algorithm/properties/container/properties/entrypoint",
+                 "type": "string",
+                 "title": "The command to execute, or script to run inside the Docker image"
+                },
+                "image": {
+                 "$id": "#/properties/main/properties/algorithm/properties/container/properties/image",
+                 "type": "string",
+                 "title": "Name of the Docker image"
+                },
+                "tag": {
+                 "$id": "#/properties/main/properties/algorithm/properties/container/properties/tag",
+                 "type": "string",
+                 "title": "Tag of the Docker image"
+                }
+              }
+            }
+          }
+        },
+        "service": {
+          "$id": "#/properties/main/properties/service",
+          "type": "object",
+          "title": "The service Schema",
+          "properties": {
+            "spec": {
+              "$id": "#/properties/main/properties/service/properties/spec",
+              "type": "string",
+              "title": "The service spec Schema"
+            },
+            "specChecksum": {
+              "$id": "#/properties/main/properties/service/properties/specChecksum",
+              "type": "string",
+              "title": "The service specChecksum Schema"
+            },
+            "definition": {
+              "$id": "#/properties/main/properties/service/properties/definition",
+              "type": "object",
+              "title": "The service definition Schema"
+            },
+            "endpoints": {
+              "$id": "#/properties/main/properties/service/properties/endpoints",
+              "type": "array",
+              "title": "The service endpoints Schema",
+              "items": {
+                "$id": "#/properties/main/properties/service/properties/endpoints/items",
+                "properties": {
+                  "index": {
+                    "$id": "#/properties/main/properties/service/properties/endpoints/items/properties/index",
+                    "type": "integer"
+                  },
+                  "url": {
+                    "$id": "#/properties/main/properties/service/properties/endpoints/items/properties/url",
+                    "type": "string"
+                  },
+                  "method": {
+                    "$id": "#/properties/main/properties/service/properties/endpoints/items/properties/method",
+                    "type": "string"
+                  },
+                  "contentTypes": {
+                    "$id": "#/properties/main/properties/service/properties/endpoints/items/properties/contentTypes",
+                    "type": "array"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "additionalInformation": {
+      "$id": "#/properties/additionalInformation",
+      "type": "object",
+      "title": "The AdditionalInformation Schema",
+      "default": null,
+      "properties": {
+        "description": {
+          "$id": "#/properties/additionalInformation/properties/description",
+          "type": "string",
+          "title": "The Description Schema",
+          "default": "",
+          "examples": [
+            "EXAMPLE ONLY "
+          ],
+          "pattern": "^(.|\\s)*$"
+        },
+        "categories": {
+          "$id": "#/properties/additionalInformation/properties/categories",
+          "type": "array",
+          "title": "The Categories Schema",
+          "default": null,
+          "items": {
+            "$id": "#/properties/additionalInformation/properties/categories/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "image"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "tags": {
+          "$id": "#/properties/additionalInformation/properties/tags",
+          "type": "array",
+          "title": "The Tags Schema",
+          "default": null,
+          "items": {
+            "$id": "#/properties/additionalInformation/properties/tags/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "image data",
+              "classification",
+              "animals"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "copyrightHolder": {
+          "$id": "#/properties/additionalInformation/properties/copyrightHolder",
+          "type": "string",
+          "title": "The Copyrightholder Schema",
+          "default": "",
+          "examples": [
+            "Unknown"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "workExample": {
+          "$id": "#/properties/additionalInformation/properties/workExample",
+          "type": "string",
+          "title": "The Workexample Schema",
+          "default": "",
+          "examples": [
+            "image path, id, label"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "links": {
+          "$id": "#/properties/additionalInformation/properties/links",
+          "type": "array",
+          "title": "The Links Schema",
+          "default": null,
+          "items": {
+            "$id": "#/properties/additionalInformation/properties/links/items",
+            "type": "object",
+            "title": "The Items Schema",
+            "default": null,
+            "additionalProperties": true,
+            "required": [
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "$id": "#/properties/additionalInformation/properties/links/items/properties/name",
+                "type": "string",
+                "title": "The Name Schema",
+                "default": "",
+                "examples": [
+                  "example model"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "type": {
+                "$id": "#/properties/additionalInformation/properties/links/items/properties/type",
+                "type": "string",
+                "title": "sample link",
+                "default": "",
+                "examples": [
+                  "https://sample.com"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "url": {
+                "$id": "#/properties/additionalInformation/properties/links/items/properties/url",
+                "type": "string",
+                "title": "The Url Schema",
+                "default": "",
+                "examples": [
+                  "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "inLanguage": {
+          "$id": "#/properties/additionalInformation/properties/inLanguage",
+          "type": "string",
+          "title": "The Inlanguage Schema",
+          "default": "",
+          "examples": [
+            "en"
+          ],
+          "pattern": "^(.*)$"
+        }
+      }
+    },
+    "encryptedFiles": {
+      "$id": "#/properties/encryptedFiles",
+      "type": "string",
+      "title": "The EncryptedFiles Schema",
+      "default": "",
+      "examples": [
+        "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "encryptedServices": {
+      "$id": "#/properties/encryptedServices",
+      "type": "string",
+      "title": "The EncryptedServices Schema",
+      "default": "",
+      "examples": [
+        "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "curation": {
+          "$id": "#/properties/curation",
+          "type": "object",
+          "title": "The Curation Schema",
+          "default": null,
+          "additionalProperties": true,
+          "required": [
+            "rating",
+            "numVotes"
+          ],
+          "properties": {
+            "rating": {
+              "$id": "#/properties/curation/properties/rating",
+              "type": "number",
+              "title": "The Rating Schema",
+              "default": 0.0,
+              "examples": [
+                0.93
+              ]
+            },
+            "numVotes": {
+              "$id": "#/properties/curation/properties/numVotes",
+              "type": "integer",
+              "title": "The Numvotes Schema",
+              "default": 0,
+              "examples": [
+                123
+              ]
+            },
+            "schema": {
+              "$id": "#/properties/curation/properties/schema",
+              "type": "string",
+              "title": "The Schema Schema",
+              "default": "",
+              "examples": [
+                "Binary Voting"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "isListed": {
+              "$id": "#/properties/curation/properties/isListed",
+              "type": "boolean",
+              "title": "The Islisted Schema",
+              "default": false,
+              "examples": [
+                true
+              ]
+            }
+          }
+        }
+  }
+}

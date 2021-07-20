@@ -60,7 +60,7 @@ def run_request(client_method, url, data=None):
 
 
 def add_assets(_events_object, name, total=5):
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     assets = []
     txs = []
     for i in range(total):
@@ -100,7 +100,7 @@ def test_health(client):
 
 
 def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", json_dict_no_valid_metadata)
     ddo_string = json.dumps(dict(ddo.items()))
     _ = send_create_update_tx(
@@ -141,10 +141,27 @@ def test_validate_remote(client_with_no_data, base_ddo_url):
     )
     assert post.status_code == 400
     assert post.data == b'{"message":"Invalid DDO format."}\n'
+
+    # main key missing from metadata service - should fail from Aqua
+    val = json_before["service"][2]["attributes"].pop("main")
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
     )
+    assert post.status_code == 400
 
+    # main key empty in metadata service - should fail from DDO Checker
+    json_before["service"][2]["attributes"]["main"] = {}
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
+    )
+    assert post.status_code == 200
+    assert json.loads(post.data)[0]["message"] == "'name' is a required property"
+
+    # putting back the correct value in metadata main service - should pass
+    json_before["service"][2]["attributes"]["main"] = val
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
+    )
     assert post.data == b"true\n"
 
 
@@ -163,7 +180,7 @@ def test_invalid_date():
 
 def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     client = client_with_no_data
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     _ddo = json_before.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
     send_create_update_tx(
@@ -188,12 +205,19 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
         },
     )
     assert len(result["results"]) > 0
-    assert "licenses" in result["resultsMetadata"]
-    assert "tags" in result["resultsMetadata"]
 
 
 def test_get_assets_names(client, events_object):
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
+
+    response = run_request(client.post, base_url + "/names", {"notTheDidList": ["a"]})
+
+    assert response.status == "400 BAD REQUEST"
+
+    response = run_request(client.post, base_url + "/names", {"didList": []})
+
+    assert response.status == "400 BAD REQUEST"
+
     assets = add_assets(events_object, "dt_name", 3)
     dids = [ddo["id"] for ddo in assets]
     did_to_name = run_request_get_data(
@@ -205,7 +229,7 @@ def test_get_assets_names(client, events_object):
 
 
 def test_encrypt_ddo(client, base_ddo_url, events_object):
-    block = get_web3().eth.blockNumber
+    block = get_web3().eth.block_number
     ddo = new_ddo(test_account1, get_web3(), "encrypt_test")
     ddo_string = json.dumps(dict(ddo.items()))
     compressed_ddo = lzma.compress(Web3.toBytes(text=ddo_string))
@@ -216,7 +240,7 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     )
     assert _response.status_code == 200
     encrypted_ddo = _response.data
-    key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+    key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
     decrypted_ddo = ecies.decrypt(key.to_hex(), Web3.toBytes(encrypted_ddo))
     assert decrypted_ddo == compressed_ddo
     # test encrypt as hex
@@ -254,3 +278,78 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
         )
         > 0
     )
+
+    result = run_request_get_data(
+        client.get, "api/v1/aquarius/assets/metadata/" + ddo["id"]
+    )
+    assert "main" in result
+    assert "name" in result["main"]
+    assert result["main"]["name"] == "Event DDO sample"
+
+
+def test_get_asset_ids(client, base_ddo_url):
+    result = run_request_get_data(client.get, "/api/v1/aquarius/assets")
+
+    assert len(result)
+    assert result[0].startswith("did:op:")
+
+
+def test_get_asset_ddos(client, base_ddo_url):
+    result = run_request_get_data(client.get, base_ddo_url)
+
+    assert len(result)
+    assert "id" in result[0]
+
+
+def test_asset_metadata_not_found(client):
+    result = run_request(client.get, "api/v1/aquarius/assets/metadata/missing")
+    assert result.status == "404 NOT FOUND"
+
+
+def test_encrypt_ddo_content_failures(client, base_ddo_url, events_object, monkeypatch):
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="application/not-octet-stream",
+    )
+    assert _response.status_code == 400
+
+    monkeypatch.delenv("EVENTS_ECIES_PRIVATE_KEY")
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="application/octet-stream",
+    )
+    assert _response.status_code == 400
+
+    monkeypatch.setenv("EVENTS_ECIES_PRIVATE_KEY", "thisIsNotValid")
+    _response = client.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="application/octet-stream",
+    )
+    assert _response.status_code == 400
+
+
+def test_spec(client):
+    result = run_request_get_data(client.get, "/spec")
+    assert "version" in result["info"]
+    assert "title" in result["info"]
+    assert "description" in result["info"]
+    assert "connected" in result["info"]
+
+
+def test_native_query(client, base_ddo_url):
+    result = run_request_get_data(
+        client.post,
+        base_ddo_url + "/es-query",
+        {
+            "aggs": {
+                "my-agg-name": {
+                    "terms": {"field": "service.attributes.additionalInformation.tags"}
+                }
+            }
+        },
+    )
+
+    assert "my-agg-name" in result["aggregations"]

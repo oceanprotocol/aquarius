@@ -18,8 +18,8 @@ with open("CHANGELOG.md") as history_file:
     history = history_file.read()
 
 install_requirements = [
-    "coloredlogs==15.0",
-    "Flask==1.1.2",
+    "coloredlogs==15.0.1",
+    "Flask==2.0.1",
     "Flask-Cors==3.0.10",
     "flask-swagger==0.2.14",
     "flask-swagger-ui==3.36.0",
@@ -27,41 +27,43 @@ install_requirements = [
     "requests>=2.21.0",
     "gunicorn==20.1.0",
     "oceandb-driver-interface==0.2.0",
-    "oceandb-mongodb-driver==0.2.2",
     "oceandb-elasticsearch-driver==0.4.4",
     "PyYAML==5.4.1",
     "pytz==2021.1",
-    "plecos==1.1.0",
-    "ocean-lib==0.5.12",
+    "ocean-contracts==0.6.4",
+    "web3==5.19.0",
+    "jsonschema==3.2.0",
     "eciespy",
     "gevent",
+    "json-sempai==0.4.0",
+    "python-dateutil==2.8.1",
 ]
 
-setup_requirements = ["pytest-runner==5.3.0"]
+setup_requirements = ["pytest-runner==5.3.1"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
-    "pkginfo==1.7.0",
+    "pkginfo==1.7.1",
     "twine==3.4.1",
     "flake8",
     "isort",
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==2.1.1",
+    "watchdog==2.1.3",
     "licenseheaders",
 ]
 
 test_requirements = [
-    "plecos==1.1.0",
-    "Flask==1.1.2",
+    "Flask==2.0.1",
     "codacy-coverage==1.3.11",
     "coverage==5.5",
     "mccabe==0.6.1",
-    "pylint==2.8.2",
+    "pylint==2.9.3",
     "pytest",
     "tox",
     "pytest-env",
+    "freezegun==1.1.0",
 ]
 
 setup(
@@ -94,7 +96,7 @@ setup(
     url="https://github.com/oceanprotocol/aquarius",
     # fmt: off
     # bumpversion needs single quotes
-    version='2.2.12',
+    version='3.0.0',
     # fmt: on
     zip_safe=False,
 )

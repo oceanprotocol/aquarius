@@ -25,7 +25,7 @@ from tests.helpers import (
 
 def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=None):
     web3 = get_web3()
-    block = web3.eth.blockNumber
+    block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))
@@ -80,7 +80,7 @@ def test_publish_and_update_ddo_with_lzma(client, base_ddo_url, events_object):
 def test_publish_and_update_ddo_with_lzma_and_ecies(
     client, base_ddo_url, events_object
 ):
-    run_test(client, base_ddo_url, events_object, 0, ecies_account.privateKey)
+    run_test(client, base_ddo_url, events_object, 0, ecies_account.key)
 
 
 def test_publish(client, base_ddo_url, events_object):
@@ -92,6 +92,7 @@ def test_publish(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
+    assert published_ddo["chainId"] == get_web3().eth.chain_id
 
 
 def test_publish_unallowed_address(client, base_ddo_url, events_object):
@@ -103,3 +104,34 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo is None
+
+
+def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkeypatch):
+    monkeypatch.setenv("RBAC_SERVER_URL", "http://localhost:3000")
+    run_test(client, base_ddo_url, events_object)
+
+
+def test_get_chains_list(client, chains_url):
+    web3_object = get_web3()
+    chain_id = web3_object.eth.chain_id
+    rv = client.get(chains_url + f"/list", content_type="application/json")
+    chains_list = json.loads(rv.data.decode("utf-8"))
+    assert chains_list
+    assert chains_list[str(chain_id)]
+
+
+def test_get_chain_status(client, chains_url):
+    web3_object = get_web3()
+    chain_id = web3_object.eth.chain_id
+    rv = client.get(
+        chains_url + f"/status/{str(chain_id)}", content_type="application/json"
+    )
+    chain_status = json.loads(rv.data.decode("utf-8"))
+    assert int(chain_status["last_block"]) > 0
+
+
+def test_get_assets_in_chain(client, events_object):
+    web3_object = get_web3()
+    chain_id = web3_object.eth.chain_id
+    res = events_object.get_assets_in_chain()
+    assert set([item["chainId"] for item in res]) == {chain_id}

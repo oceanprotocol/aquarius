@@ -9,10 +9,9 @@ from elasticsearch import Elasticsearch
 from flask import jsonify
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
-from pymongo import MongoClient
 
 from aquarius.app.assets import assets
-from aquarius.app.pools import pools
+from aquarius.app.chains import chains
 from aquarius.app.util import get_bool_env_value
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
@@ -65,24 +64,12 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 # Register blueprint at URL
 app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
-app.register_blueprint(pools, url_prefix=BaseURLs.POOLS_URL)
+app.register_blueprint(chains, url_prefix=BaseURLs.CHAINS_URL)
 
 
 def get_status():
-    if config.get("oceandb", "module") == "elasticsearch":
-        if Elasticsearch(config.db_url).ping():
-            return "Elasticsearch connected", 200
-        else:
-            return "Not connected to any database", 400
-    elif config.get("oceandb", "module") == "mongodb":
-        if (
-            MongoClient(config.db_url)
-            .get_database(config.get("oceandb", "db.name"))
-            .command("ping")
-        ):
-            return "Mongodb connected", 200
-        else:
-            return "Not connected to any database", 400
+    if Elasticsearch(config.db_url).ping():
+        return "Elasticsearch connected", 200
     else:
         return "Not connected to any database", 400
 

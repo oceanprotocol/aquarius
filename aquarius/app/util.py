@@ -11,8 +11,8 @@ import os
 
 from collections import OrderedDict
 from datetime import datetime
+import dateutil.parser as parser
 from eth_account import Account
-
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
@@ -23,22 +23,17 @@ logger = logging.getLogger("aquarius")
 def sanitize_record(data_record):
     if "_id" in data_record:
         data_record.pop("_id")
-    if "event" in data_record:
-        data_record.pop("event")
 
     return json.dumps(data_record, default=datetime_converter)
 
 
-def make_paginate_response(query_list_result, search_model, metadata=None):
+def make_paginate_response(query_list_result, search_model):
     total = query_list_result[1]
     offset = search_model.offset
 
     result = dict()
     result["results"] = query_list_result[0]
     result["page"] = search_model.page
-
-    if metadata:
-        result["resultsMetadata"] = metadata
 
     result["total_pages"] = int(total / offset) + int(total % offset > 0)
     result["total_results"] = total
@@ -74,10 +69,6 @@ def format_timestamp(timestamp):
 def get_timestamp():
     """Return the current system timestamp."""
     return f"{datetime.utcnow().replace(microsecond=0).isoformat()}Z"
-
-
-def get_curation_metadata(services):
-    return get_metadata_from_services(services).get("curation", {})
 
 
 def get_main_metadata(services):
@@ -121,7 +112,16 @@ def init_new_ddo(data, timestamp):
     for service in _record["service"]:
         if service["type"] == "metadata":
             samain = service["attributes"]["main"]
-            samain["dateCreated"] = format_timestamp(samain["dateCreated"])
+            date_created = (
+                parser.parse(samain["dateCreated"].rstrip("Z"))
+                if "dateCreated" in samain
+                else None
+            )
+            samain["dateCreated"] = (
+                date_created.strftime(DATETIME_FORMAT)
+                if date_created
+                else get_timestamp()
+            )
             samain["datePublished"] = get_timestamp()
 
             curation = dict()
@@ -144,8 +144,8 @@ def validate_date_format(date):
 
 def check_no_urls_in_files(main, method):
     if "files" in main:
-        for file in main["files"]:
-            if "url" in file:
+        for file_var in main["files"]:
+            if "url" in file_var:
                 logger.error("%s request failed: url is not allowed in files " % method)
                 return "%s request failed: url is not allowed in files " % method, 400
     return None, None
@@ -155,9 +155,8 @@ def check_required_attributes(required_attributes, data, method):
     assert isinstance(
         data, dict
     ), "invalid `body` type, should already formatted into a dict."
-    logger.info("got %s request: %s" % (method, data))
+    # logger.info("got %s request: %s" % (method, data))
     if not data:
-        logger.error("%s request failed: data is empty." % method)
         logger.error("%s request failed: data is empty." % method)
         return "payload seems empty.", 400
 
@@ -211,13 +210,6 @@ def validate_data(data, method):
     return None, None
 
 
-def get_sender_from_txid(web3, txid):
-    transaction = web3.eth.getTransaction(txid)
-    if transaction is not None:
-        return transaction["from"]
-    return None
-
-
 def rename_metadata_keys(bucket):
     for d in bucket:
         d["name"] = d.pop("key")
@@ -229,12 +221,22 @@ def rename_metadata_keys(bucket):
 def encrypt_data(data):
     ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
     if ecies_private_key is None:
-        return None
+        return False, "No private key configured."
+
     try:
-        ecies_account = Account.privateKeyToAccount(ecies_private_key)
-        key = eth_keys.KeyAPI.PrivateKey(ecies_account.privateKey)
+        ecies_account = Account.from_key(ecies_private_key)
+        key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
+    except Exception:
+        msg = "ECIES Key malformed."
+        logger.error(msg)
+        return False, msg
+
+    logger.debug(f"Encrypting:{data} with {key.public_key.to_hex()}")
+    try:
         encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
-        return encrypted_data
     except Exception as e:
-        logger.error(f"encrypt error:{str(e)}")
-        return None
+        msg = f"Encryption error: {str(e)}"
+        logger.error(msg)
+        return False, msg
+
+    return True, encrypted_data

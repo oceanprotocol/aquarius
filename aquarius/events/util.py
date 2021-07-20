@@ -5,28 +5,25 @@
 import json
 import os
 import time
+import logging
 from pathlib import Path
+import pkg_resources
 
-from ocean_lib.config import Config
-from ocean_lib.config_provider import ConfigProvider
-from ocean_lib.web3_internal.contract_handler import ContractHandler
-from ocean_lib.web3_internal.web3_provider import Web3Provider
-from ocean_lib.models.data_token import DataToken
-from ocean_lib.models.fixed_rate_exchange import FixedRateExchange
-from ocean_lib.models.metadata import MetadataContract
-from ocean_lib.ocean.util import get_contracts_addresses, from_base_18
-from ocean_lib.web3_internal.web3helper import Web3Helper
+from jsonsempai import magic  # noqa: F401
+from artifacts import address as contract_addresses, Metadata, DataTokenTemplate
+from aquarius.events.http_provider import get_web3_connection_provider
 from web3 import Web3
 
 from aquarius.app.util import get_bool_env_value
 
+logger = logging.getLogger(__name__)
+ENV_ADDRESS_FILE = "ADDRESS_FILE"
+
 
 def get_network_name():
-    try:
-        network_name = os.getenv("NETWORK_NAME")
-        if not network_name:
-            network_name = Web3Helper.get_network_name().lower()
-    except Exception:
+    network_name = os.getenv("NETWORK_NAME", None)
+
+    if not network_name:
         network = os.getenv("EVENTS_RPC")
         if network.startswith("wss://"):
             network_name = network[len("wss://") :].split(".")[0]
@@ -41,28 +38,17 @@ def get_network_name():
     return network_name
 
 
-def prepare_contracts(web3, config):
-    addresses = get_contracts_addresses(get_network_name(), config)
-    if not addresses:
-        raise AssertionError(
-            f"Cannot find contracts addresses for network {get_network_name()}"
-        )
-
-    addresses = {name: web3.toChecksumAddress(a) for name, a in addresses.items()}
-    return addresses
-
-
 def deploy_contract(w3, _json, private_key, *args):
-    account = w3.eth.account.privateKeyToAccount(private_key)
+    account = w3.eth.account.from_key(private_key)
     _contract = w3.eth.contract(abi=_json["abi"], bytecode=_json["bytecode"])
     built_tx = _contract.constructor(*args).buildTransaction({"from": account.address})
     if "gas" not in built_tx:
-        built_tx["gas"] = w3.eth.estimateGas(built_tx)
+        built_tx["gas"] = w3.eth.estimate_gas(built_tx)
     raw_tx = sign_tx(w3, built_tx, private_key)
-    tx_hash = w3.eth.sendRawTransaction(raw_tx)
+    tx_hash = w3.eth.send_raw_transaction(raw_tx)
     time.sleep(3)
     try:
-        address = w3.eth.getTransactionReceipt(tx_hash)["contractAddress"]
+        address = w3.eth.get_transaction_receipt(tx_hash)["contractAddress"]
         return address
     except Exception:
         print(f"tx not found: {tx_hash.hex()}")
@@ -70,20 +56,19 @@ def deploy_contract(w3, _json, private_key, *args):
 
 
 def sign_tx(web3, tx, private_key):
-    account = web3.eth.account.privateKeyToAccount(private_key)
-    nonce = web3.eth.getTransactionCount(account.address)
-    gas_price = int(web3.eth.gasPrice / 100)
+    account = web3.eth.account.from_key(private_key)
+    nonce = web3.eth.get_transaction_count(account.address)
+    gas_price = int(web3.eth.gas_price / 100)
     tx["gasPrice"] = gas_price
     tx["nonce"] = nonce
-    signed_tx = web3.eth.account.signTransaction(tx, private_key)
+    signed_tx = web3.eth.account.sign_transaction(tx, private_key)
     return signed_tx.rawTransaction
 
 
 def deploy_datatoken(web3, private_key, name, symbol, minter_address):
-    dt_file_path = os.path.join(get_artifacts_path(), "DataTokenTemplate.json")
     return deploy_contract(
         web3,
-        json.load(open(dt_file_path)),
+        {"abi": DataTokenTemplate.abi, "bytecode": DataTokenTemplate.bytecode},
         private_key,
         name,
         symbol,
@@ -94,89 +79,83 @@ def deploy_datatoken(web3, private_key, name, symbol, minter_address):
     )
 
 
-def get_artifacts_path():
-    path = ConfigProvider.get_config().artifacts_path
-    return Path(path).expanduser().resolve()
-
-
-def get_address_file(artifacts_path):
-    address_file = os.environ.get(
-        "ADDRESS_FILE", os.path.join(artifacts_path, "address.json")
+def get_address_file():
+    """Returns Path to the address.json file
+    Checks envvar first, fallback to address.json included with ocean-contracts.
+    """
+    env_file = os.getenv(ENV_ADDRESS_FILE)
+    return (
+        Path(env_file).expanduser().resolve()
+        if env_file
+        else Path(contract_addresses.__file__).expanduser().resolve()
     )
-    return Path(address_file).expanduser().resolve()
-
-
-def get_contract_address_and_abi_file(name):
-    file_name = name + ".json"
-    artifacts_path = get_artifacts_path()
-    contract_abi_file = (
-        Path(os.path.join(artifacts_path, file_name)).expanduser().resolve()
-    )
-    address_file = get_address_file(artifacts_path)
-    contract_address = read_ddo_contract_address(
-        address_file, name, network=os.environ.get("NETWORK_NAME", "ganache")
-    )
-    return contract_address, contract_abi_file
-
-
-def read_ddo_contract_address(file_path, name, network="ganache"):
-    with open(file_path) as f:
-        network_to_address = json.load(f)
-        return network_to_address[network][name]
 
 
 def get_metadata_contract(web3):
-    contract_address, abi_file = get_contract_address_and_abi_file(
-        MetadataContract.CONTRACT_NAME
-    )
-    abi_json = json.load(open(abi_file))
-    return web3.eth.contract(address=contract_address, abi=abi_json["abi"])
+    """Returns a Contract built from the Metadata contract address (or ENV) and ABI"""
+    address = os.getenv("METADATA_CONTRACT_ADDRESS", None)
+    if not address:
+        address_file = get_address_file()
+        with open(address_file) as f:
+            address_json = json.load(f)
+        network = get_network_name()
+        address = address_json[network]["Metadata"]
+    abi = Metadata.abi
+
+    return web3.eth.contract(address=address, abi=abi)
 
 
-def get_exchange_contract(web3):
-    contract_address, abi_file = get_contract_address_and_abi_file(
-        FixedRateExchange.CONTRACT_NAME
-    )
-    abi_json = json.load(open(abi_file))
-    return web3.eth.contract(address=contract_address, abi=abi_json["abi"])
+def get_metadata_start_block():
+    """Returns the block number to use as start"""
+    block_number = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
+    if not block_number:
+        address_file = get_address_file()
+        with open(address_file) as f:
+            address_json = json.load(f)
+        network = get_network_name()
+        if "startBlock" in address_json[network]:
+            block_number = address_json[network]["startBlock"]
+
+    return block_number
 
 
-def get_datatoken_info(token_address):
+def get_datatoken_info(web3, token_address):
     token_address = Web3.toChecksumAddress(token_address)
-    dt = DataToken(token_address)
-    contract = dt.contract_concise
-    minter = contract.minter()
+    dt_abi_path = Path(
+        pkg_resources.resource_filename("aquarius", "events/datatoken_abi.json")
+    ).resolve()
+    with open(dt_abi_path) as f:
+        datatoken_abi = json.load(f)
+
+    dt = web3.eth.contract(address=token_address, abi=datatoken_abi)
+    decimals = dt.functions.decimals().call()
+    cap_orig = dt.functions.cap().call()
+
     return {
         "address": token_address,
-        "name": contract.name(),
-        "symbol": contract.symbol(),
-        "decimals": contract.decimals(),
-        "totalSupply": from_base_18(contract.totalSupply()),
-        "cap": from_base_18(contract.cap()),
-        "minter": minter,
-        "minterBalance": dt.token_balance(minter),
+        "name": dt.functions.name().call(),
+        "symbol": dt.functions.symbol().call(),
+        "decimals": decimals,
+        "cap": float(cap_orig / (10 ** decimals)),
     }
 
 
 def setup_web3(config_file, _logger=None):
-    _config = Config(config_file)
-    ConfigProvider.set_config(_config)
-    from ocean_lib.ocean.util import get_web3_connection_provider
-
     network_rpc = os.environ.get("EVENTS_RPC", "http:127.0.0.1:8545")
     if _logger:
         _logger.info(
             f"EventsMonitor: starting with the following values: rpc={network_rpc}"
         )
 
-    Web3Provider.init_web3(provider=get_web3_connection_provider(network_rpc))
-    ContractHandler.set_artifacts_path(get_artifacts_path())
+    provider = get_web3_connection_provider(network_rpc)
+    web3 = Web3(provider)
+
     if (
         get_bool_env_value("USE_POA_MIDDLEWARE", 0)
         or get_network_name().lower() == "rinkeby"
     ):
         from web3.middleware import geth_poa_middleware
 
-        Web3Provider.get_web3().middleware_stack.inject(geth_poa_middleware, layer=0)
+        web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    return Web3Provider.get_web3()
+    return web3

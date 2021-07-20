@@ -30,11 +30,6 @@ It's part of the [Ocean Protocol](https://oceanprotocol.com) toolset.
   * `MetadataCreated` event from the `Metadata` smartcontract
     * Reads the events `data` argument, decompresses the metadata json object
       then runs schema validation before saving it to the database
-  * `LOG_JOIN`, `LOG_EXIT` and `LOG_SWAP` events from the `BPool` smartcontracts
-    * Any of these events is an indication that liquidity and price have changed
-    * The watcher reads the liquidity of each token in the pool and updates the
-    corresponding metadata in the cache. This information is added to the metadata
-    to allow sorting and searching by price and/or liquidity volume
 
 ## Setup
 The following environment variables are required for running Aquarius:
@@ -59,15 +54,20 @@ RUN_EVENTS_MONITOR
   accepted values:
     "0" to disable
     "1" to enable
+
+# Start a HTTP server inside the events monitor. This is usefull for K8 live probing. You must simply access the root endpoint on port 5001. IE: http://172.0.0.1:5001 which will respond with 200 OK if the events thread is up.  Otherwise, there will be no response
+EVENTS_HTTP
+  accepted values:
+    "1" to enable
 ```
 And these are optional
 ```bash
+# If Aquarius API is available. Default: 1
+RUN_AQUARIUS_SERVER
 # Use this to decrypt metadata when read from the blockchain event log
 EVENTS_ECIES_PRIVATE_KEY
 # Aquarius should cache only encrypted ddo. This will make aquarius unable to cache all other datasets on the network !!!!
 ONLY_ENCRYPTED_DDO
-# Path to abi files of the ocean contracts
-ARTIFACTS_PATH
 # Path to the `address.json` file or any json file that has the deployed contracts addresses
 ADDRESS_FILE
 # Specify the network name to use for reading the contracts addresses from the `ADDRESS_FILE`.
@@ -75,9 +75,9 @@ ADDRESS_FILE
 NETWORK_NAME
 # Skip caching metadata of publishers that are not in this list
 ALLOWED_PUBLISHERS
-# The blockNumber of `BFactory` deployment
-BFACTORY_BLOCK
-# The blockNumber of `Metadata` contract deployment
+# Metadata contract address. Optional. Use it if you want to overwrite values from ocean-contracts
+METADATA_CONTRACT_ADDRESS
+# The block number of `Metadata` contract deployment
 METADATA_CONTRACT_BLOCK
 # Enable the use of poa_middleware if the network is a POA network such as Rinkeby
 USE_POA_MIDDLEWARE
@@ -85,7 +85,23 @@ USE_POA_MIDDLEWARE
 IGNORE_LAST_BLOCK
 # When scanning for events, limit the chunk size. Infura accepts 10k blocks, but others will take only 1000 (default value)
 BLOCKS_CHUNK_SIZE
+# URLs of asset purgatory and account purgatory. If neither exists, the purgatory will not be processed
+ASSET_PURGATORY_URL
+ACCOUNT_PURGATORY_URL
+# Customise purgatory update time (in number of minutes)
+PURGATORY_UPDATE_INTERVAL
+# The URL of the RBAC Permissions Server. If set, Aquarius will check permissions with RBAC. Leave empty/unset to skip RBAC permission checks.
+RBAC_SERVER_URL
+# Whether to start clean and reindex events on chain id
+EVENTS_CLEAN_START
 ```
+## Running Aquarius for multiple chains
+If you want to index multiple chains using a single Aquarius instance, you should do the following:
+ * Run one or more pods, with RUN_AQUARIUS_SERVER =1 , RUN_EVENTS_MONITOR = 0 AND EVENTS_ALLOW = 0.  This will only serve API requests
+ * For each chain, start a pod with the following envs:
+     * Set RUN_EVENTS_MONITOR = 1 and RUN_AQUARIUS_SERVER = 0
+     * Set coresponding EVENTS_RPC, NETWORK_NAME, BLOCKS_CHUNK_SIZE, METADATA_CONTRACT_BLOCK, METADATA_CONTRACT_ADDRESS etc
+
 
 ## For Aquarius Operators
 
@@ -114,69 +130,51 @@ More details about ontology of the metadata are at
 
 Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
 
-### Running as a Docker container
-
-First, clone this repository:
-
-```bash
-git clone git@github.com:oceanprotocol/aquarius.git
-cd aquarius/
-```
-
-Then build the Docker image
-
-```bash
-docker build -t "myaqua" .
-```
-
-Run Docker image
-
-```bash
-docker run myaqua
-```
-
-To test with other ocean components in `barge` set the `AQUARIUS_VERSION` environment variable to `myaqua`
-Then
-
-```bash
-./start_ocean.sh
-```
-
-The setup for `Aquarius` and Elasticsearch in `barge` is in `compose-files/aquarius_elasticsearch.yml`
-
 ### Running Locally, for Dev and Test
 
-First, clone this repository:
+Run a Barge instance without Aquarius.
 
 ```bash
-git clone git@github.com:oceanprotocol/aquarius.git
-cd aquarius/
+git clone https://github.com/oceanprotocol/barge
+cd barge
+./start_ocean.sh  --no-aquarius
 ```
 
-Then run elasticsearch database that is a requirement for Aquarius.
+In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
 
 ```bash
 export ES_VERSION=6.6.2
 export ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
 wget ${ES_DOWNLOAD_URL}
 tar -xzf elasticsearch-${ES_VERSION}.tar.gz
-./elasticsearch-${ES_VERSION}/bin/elasticsearch &
+./elasticsearch-${ES_VERSION}/bin/elasticsearch
 ```
 
-Then install Aquarius's OS-level requirements:
+In yet another tab, clone this repository:
+
+```bash
+git clone git@github.com:oceanprotocol/aquarius.git
+cd aquarius/
+```
+
+Install Aquarius's OS-level requirements:
 
 ```bash
 sudo apt update
-sudo apt install python3-dev python3.7-dev
+sudo apt install python3-dev
 ```
 
-(Note: At the time of writing, `python3-dev` was for Python 3.6. `python3.7-dev` is needed if you want to test against Python 3.7 locally.)
-
-Before installing Aquarius's Python package requirements, it's recommended to create and activate a virtualenv (or equivalent).
-
-At this point, an Elasticsearch database must already be running, now you can start the Aquarius server:
+It is recommended that you create and activate a virtual environment in order to install the dependencies.
 
 ```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+At this point, with the Elasticsearch database already running, now you can start the Aquarius server:
+
+```bash
+pip install wheel
 pip install -r requirements.txt
 export FLASK_APP=aquarius/run.py
 export CONFIG_FILE=config.ini
