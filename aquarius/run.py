@@ -2,7 +2,9 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""
+This module is the entrypoint for statring the Aquarius component.
+"""
 import configparser
 
 from elasticsearch import Elasticsearch
@@ -31,6 +33,17 @@ def get_version():
 
 @app.route("/")
 def version():
+    """
+    Returns:
+        json object as follows:
+        ```JSON
+            {
+                "plugin":"elasticsearch",
+                "software":"Aquarius",
+                "version":"2.2.12"
+            }
+        ```
+    """
     info = dict()
     info["software"] = Metadata.TITLE
     info["version"] = get_version()
@@ -40,11 +53,17 @@ def version():
 
 @app.route("/health")
 def health():
+    """
+    Returns conntection db status with mongodb or elasticsearch.
+    """
     return get_status()
 
 
 @app.route("/spec")
 def spec():
+    """
+    Returns the information about supported endpoints generated through swagger. Also returns version info, database connection status.
+    """
     swag = swagger(app)
     swag["info"]["version"] = get_version()
     swag["info"]["title"] = Metadata.TITLE
