@@ -36,7 +36,7 @@ install_requirements = [
     "eciespy",
     "gevent",
     "json-sempai==0.4.0",
-    "python-dateutil==2.8.1",
+    "python-dateutil==2.8.2",
 ]
 
 setup_requirements = ["pytest-runner==5.3.1"]
