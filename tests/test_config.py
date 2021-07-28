@@ -17,4 +17,4 @@ def test_config_from_text():
 
 def test_help():
     res = Config.get_environ_help()
-    assert res.startswith("AQUARIUS_URL")
+    assert res.startswith("AQUARIUS_BIND_URL")
