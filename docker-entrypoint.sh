@@ -4,7 +4,7 @@
 ## SPDX-License-Identifier: Apache-2.0
 ##
 
-export CONFIG_FILE=/aquarius/config.ini
+export AQUARIUS_CONFIG_FILE=/aquarius/config.ini
 envsubst < /aquarius/config.ini.template > /aquarius/config.ini
 
 if [ "${DEPLOY_CONTRACTS}" = "true" ]; then
