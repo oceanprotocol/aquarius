@@ -39,21 +39,6 @@ logger = logging.getLogger("aquarius")
 es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
 
 
-@assets.route("", methods=["GET"])
-def get_assets_ids():
-    """Get all asset IDs.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: successful action
-    """
-    asset_with_id = dao.get_all_listed_assets()
-    asset_ids = [a["id"] for a in asset_with_id if "id" in a]
-    return Response(json.dumps(asset_ids), 200, content_type="application/json")
-
-
 @assets.route("/ddo/<did>", methods=["GET"])
 def get_ddo(did):
     """Get DDO of a particular asset.
@@ -82,26 +67,6 @@ def get_ddo(did):
     except Exception as e:
         logger.error(f"get_ddo: {str(e)}")
         return f"{did} asset DID is not in OceanDB", 404
-
-
-@assets.route("/ddo", methods=["GET"])
-def get_asset_ddos():
-    """Get DDO of all assets.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: successful action
-    """
-    _assets = dao.get_all_listed_assets()
-    for _record in _assets:
-        sanitize_record(_record)
-    return Response(
-        json.dumps(_assets, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
 
 
 @assets.route("/metadata/<did>", methods=["GET"])
