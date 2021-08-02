@@ -443,6 +443,31 @@
           "pattern": "^(.*)$"
         }
       }
+    },
+    "credentials": {
+      "default": null,
+       "properties": {
+          "allow": {
+            "$id": "#/properties/credentials/properties/allow",
+            "type": "array",
+            "title": "The Credentials Schema",
+            "default": null,
+            "items": {
+              "$id": "#/properties/credentials/properties/allow/items",
+              "additionalProperties": false,
+              "properties": {
+                 "type": {
+                    "$id": "#/properties/credentials/properties/items/type",
+                    "type": "string"
+                  },
+                 "values": {
+                    "$id": "#/properties/credentials/properties/items/values",
+                    "type": "array"
+                  }
+              }
+            }
+          }
+        }
     }
-  }
+    }
 }
