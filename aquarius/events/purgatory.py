@@ -20,6 +20,10 @@ class Purgatory:
         self.reference_account_list = set()
 
     def retrieve_new_list(self, env_var):
+        """
+        :param env_var: Url of the file containing purgatory list.
+        :return: Object as follows: {...('<did>', '<reason>'),...}
+        """
         response = requests.get(os.getenv(env_var))
 
         if response.status_code == requests.codes.ok:
@@ -36,6 +40,9 @@ class Purgatory:
         return set()
 
     def update_asset_purgatory_status(self, asset, purgatory="true"):
+        """
+        Updates the field `isInPurgatory` of `asset` object.
+        """
         did = asset["id"]
         asset["isInPurgatory"] = purgatory
         logger.info(f"PURGATORY: updating asset {did} with value {purgatory}.")
@@ -45,6 +52,9 @@ class Purgatory:
             logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
 
     def get_assets_authored_by(self, account_address):
+        """
+        :return: List of assets authored by `account_address`
+        """
         logger.info(f"PURGATORY: getting assets authored by {account_address}.")
         body = {
             "query": {
@@ -66,6 +76,9 @@ class Purgatory:
         return object_list
 
     def update_lists(self):
+        """
+        :return: None
+        """
         now = int(datetime.now().timestamp())
         req_diff = int(os.getenv("PURGATORY_UPDATE_INTERVAL", "60")) * 60
         if self.update_time and (now - self.update_time) < req_diff:
@@ -123,6 +136,9 @@ class Purgatory:
         )
 
     def is_account_banned(self, ref_account_id):
+        """
+        :return: True if `ref_account_id` is in the Purgatory list.
+        """
         for acc_id, reason in self.reference_account_list:
             if acc_id.lower() == ref_account_id.lower():
                 return True

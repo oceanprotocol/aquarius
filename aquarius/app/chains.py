@@ -14,7 +14,7 @@ from aquarius.myapp import app
 setup_logging()
 chains = Blueprint("chains", __name__)
 logger = logging.getLogger("aquarius")
-es_instance = ElasticsearchInstance(app.config["CONFIG_FILE"])
+es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 
 
 @chains.route("/list", methods=["GET"])

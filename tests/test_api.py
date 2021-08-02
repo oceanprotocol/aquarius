@@ -287,20 +287,6 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     assert result["main"]["name"] == "Event DDO sample"
 
 
-def test_get_asset_ids(client, base_ddo_url):
-    result = run_request_get_data(client.get, "/api/v1/aquarius/assets")
-
-    assert len(result)
-    assert result[0].startswith("did:op:")
-
-
-def test_get_asset_ddos(client, base_ddo_url):
-    result = run_request_get_data(client.get, base_ddo_url)
-
-    assert len(result)
-    assert "id" in result[0]
-
-
 def test_asset_metadata_not_found(client):
     result = run_request(client.get, "api/v1/aquarius/assets/metadata/missing")
     assert result.status == "404 NOT FOUND"

@@ -2,7 +2,9 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""
+This module is the entrypoint for statring the Aquarius component.
+"""
 import configparser
 
 from elasticsearch import Elasticsearch
@@ -19,7 +21,7 @@ from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
 
-config = Config(filename=app.config["CONFIG_FILE"])
+config = Config(filename=app.config["AQUARIUS_CONFIG_FILE"])
 aquarius_url = config.aquarius_url
 
 
@@ -31,6 +33,17 @@ def get_version():
 
 @app.route("/")
 def version():
+    """
+    Returns:
+        json object as follows:
+        ```JSON
+            {
+                "plugin":"elasticsearch",
+                "software":"Aquarius",
+                "version":"2.2.12"
+            }
+        ```
+    """
     info = dict()
     info["software"] = Metadata.TITLE
     info["version"] = get_version()
@@ -40,11 +53,17 @@ def version():
 
 @app.route("/health")
 def health():
+    """
+    Returns conntection db status with mongodb or elasticsearch.
+    """
     return get_status()
 
 
 @app.route("/spec")
 def spec():
+    """
+    Returns the information about supported endpoints generated through swagger. Also returns version info, database connection status.
+    """
     swag = swagger(app)
     swag["info"]["version"] = get_version()
     swag["info"]["title"] = Metadata.TITLE
@@ -76,7 +95,7 @@ def get_status():
 
 # Start events monitoring if required
 if get_bool_env_value("EVENTS_ALLOW", 0):
-    config_file = app.config["CONFIG_FILE"]
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
     monitor = EventsMonitor(setup_web3(config_file), config_file)
     monitor.start_events_monitor()
 

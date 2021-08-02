@@ -177,7 +177,7 @@ At this point, with the Elasticsearch database already running, now you can star
 pip install wheel
 pip install -r requirements.txt
 export FLASK_APP=aquarius/run.py
-export CONFIG_FILE=config.ini
+export AQUARIUS_CONFIG_FILE=config.ini
 flask run
 ```
 
@@ -208,7 +208,7 @@ gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 aquarius.run
 
 ### Configuration
 
-You can pass the configuration using the CONFIG_FILE environment variable (recommended) or locating your configuration in config.ini file.
+You can pass the configuration using the AQUARIUS_CONFIG_FILE environment variable (recommended) or locating your configuration in config.ini file.
 
 In the configuration there are now two sections:
 

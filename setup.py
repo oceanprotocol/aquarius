@@ -29,13 +29,13 @@ install_requirements = [
     "elasticsearch==7.10.1",
     "PyYAML==5.4.1",
     "pytz==2021.1",
-    "ocean-contracts==0.6.4",
-    "web3==5.19.0",
+    "ocean-contracts==0.6.5",
+    "web3==5.21.0",
     "jsonschema==3.2.0",
     "eciespy",
     "gevent",
     "json-sempai==0.4.0",
-    "python-dateutil==2.8.1",
+    "python-dateutil==2.8.2",
 ]
 
 setup_requirements = ["pytest-runner==5.3.1"]
@@ -43,7 +43,7 @@ setup_requirements = ["pytest-runner==5.3.1"]
 dev_requirements = [
     "bumpversion==0.6.0",
     "pkginfo==1.7.1",
-    "twine==3.4.1",
+    "twine==3.4.2",
     "flake8",
     "isort",
     "black",
@@ -58,7 +58,7 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==5.5",
     "mccabe==0.6.1",
-    "pylint==2.9.3",
+    "pylint==2.9.6",
     "pytest",
     "tox",
     "pytest-env",

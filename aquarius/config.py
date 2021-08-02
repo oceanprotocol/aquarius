@@ -7,6 +7,9 @@ import configparser
 import logging
 import os
 
+"""
+This module defines values for database connection and other defaults.
+"""
 from aquarius.constants import ConfigSections
 
 DEFAULT_NAME_AQUARIUS_URL = "http://localhost:5000"
@@ -17,7 +20,7 @@ MODULE = "module"
 DB_HOSTNAME = "db.hostname"
 DB_PORT = "db.port"
 
-environ_names = {NAME_AQUARIUS_URL: ["AQUARIUS_URL", "Aquarius URL"]}
+environ_names = {NAME_AQUARIUS_URL: ["AQUARIUS_BIND_URL", "Aquarius URL"]}
 
 config_defaults = {
     ConfigSections.RESOURCES: {NAME_AQUARIUS_URL: DEFAULT_NAME_AQUARIUS_URL}
@@ -26,6 +29,9 @@ config_defaults = {
 
 class Config(configparser.ConfigParser):
     def __init__(self, filename=None, **kwargs):
+        """
+        Reads the content of `filename` and sets the config values.
+        """
         configparser.ConfigParser.__init__(self)
 
         self.read_dict(config_defaults)
@@ -69,6 +75,9 @@ class Config(configparser.ConfigParser):
 
     @property
     def db_url(self):
+        """
+        :return: Database url (hostname:port)
+        """
         return (
             self.get(self._es_name, DB_HOSTNAME)
             + ":"

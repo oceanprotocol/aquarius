@@ -32,24 +32,9 @@ from web3 import Web3
 setup_logging()
 assets = Blueprint("assets", __name__)
 
-dao = Dao(config_file=app.config["CONFIG_FILE"])
+dao = Dao(config_file=app.config["AQUARIUS_CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
-es_instance = ElasticsearchInstance(app.config["CONFIG_FILE"])
-
-
-@assets.route("", methods=["GET"])
-def get_assets_ids():
-    """Get all asset IDs.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: successful action
-    """
-    asset_with_id = dao.get_all_listed_assets()
-    asset_ids = [a["id"] for a in asset_with_id if "id" in a]
-    return Response(json.dumps(asset_ids), 200, content_type="application/json")
+es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 
 
 @assets.route("/ddo/<did>", methods=["GET"])
@@ -80,26 +65,6 @@ def get_ddo(did):
     except Exception as e:
         logger.error(f"get_ddo: {str(e)}")
         return f"{did} asset DID is not in ES", 404
-
-
-@assets.route("/ddo", methods=["GET"])
-def get_asset_ddos():
-    """Get DDO of all assets.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: successful action
-    """
-    _assets = dao.get_all_listed_assets()
-    for _record in _assets:
-        sanitize_record(_record)
-    return Response(
-        json.dumps(_assets, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
 
 
 @assets.route("/metadata/<did>", methods=["GET"])
