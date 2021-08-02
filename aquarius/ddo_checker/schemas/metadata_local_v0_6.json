@@ -452,22 +452,46 @@
             "type": "array",
             "title": "The Credentials Schema",
             "default": null,
+            "additionalProperties": false,
             "items": {
               "$id": "#/properties/credentials/properties/allow/items",
               "additionalProperties": false,
+              "required": ["type", "values"],
               "properties": {
                  "type": {
-                    "$id": "#/properties/credentials/properties/items/type",
+                    "$id": "#/properties/credentials/properties/allow/items/type",
                     "type": "string"
                   },
                  "values": {
-                    "$id": "#/properties/credentials/properties/items/values",
+                    "$id": "#/properties/credentials/properties/allow/items/values",
+                    "type": "array"
+                  }
+              }
+            }
+          },
+          "deny": {
+            "$id": "#/properties/credentials/properties/deny",
+            "type": "array",
+            "title": "The Credentials Schema",
+            "default": null,
+            "additionalProperties": false,
+            "items": {
+              "$id": "#/properties/credentials/properties/deny/items",
+              "additionalProperties": false,
+              "required": ["type", "values"],
+              "properties": {
+                 "type": {
+                    "$id": "#/properties/credentials/properties/deny/items/type",
+                    "type": "string"
+                  },
+                 "values": {
+                    "$id": "#/properties/credentials/properties/deny/items/values",
                     "type": "array"
                   }
               }
             }
           }
         }
-    }
+      }
     }
 }
