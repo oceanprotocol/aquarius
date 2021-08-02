@@ -135,6 +135,19 @@ def test_validate(client_with_no_data, base_ddo_url):
     assert post.data == b"true\n"
 
 
+def test_validate_credentials(client_with_no_data, base_ddo_url):
+    json_valid_copy = json_valid.copy()
+    json_valid_copy["credentials"] = {
+        "allow": [{"type": "address", "values": ["0x123", "0x456A"]}],
+        "deny": [{"type": "address", "values": ["0x2222", "0x333"]}]
+    }
+
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate", data=json_valid
+    )
+    assert post.data == b"true\n"
+
+
 def test_validate_remote(client_with_no_data, base_ddo_url):
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data={}
