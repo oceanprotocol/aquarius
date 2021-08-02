@@ -14,7 +14,7 @@ from oceandb_driver_interface import OceanDb
 setup_logging()
 chains = Blueprint("chains", __name__)
 logger = logging.getLogger("aquarius")
-es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
+es_instance = OceanDb(app.config["AQUARIUS_CONFIG_FILE"]).plugin
 
 
 @chains.route("/list", methods=["GET"])

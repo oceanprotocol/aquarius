@@ -28,7 +28,7 @@ ENV DB_HOSTNAME='localhost'
 ENV DB_PORT='27017'
 #ELASTIC
 ENV DB_INDEX='aquarius'
-ENV AQUARIUS_URL='http://0.0.0.0:5000'
+ENV AQUARIUS_BIND_URL='http://0.0.0.0:5000'
 ENV ALLOW_FREE_ASSETS_ONLY='false'
 # docker-entrypoint.sh configuration file variables
 ENV AQUARIUS_WORKERS='8'

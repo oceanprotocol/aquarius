@@ -52,7 +52,7 @@ def events_object():
         provider = get_web3_connection_provider(network_rpc)
         web3 = Web3(provider)
 
-        EVENTS_INSTANCE = EventsMonitor(web3, app.config["CONFIG_FILE"])
+        EVENTS_INSTANCE = EventsMonitor(web3, app.config["AQUARIUS_CONFIG_FILE"])
         EVENTS_INSTANCE.store_last_processed_block(0)
     return EVENTS_INSTANCE
 

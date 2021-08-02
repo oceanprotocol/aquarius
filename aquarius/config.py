@@ -20,7 +20,7 @@ MODULE = "module"
 DB_HOSTNAME = "db.hostname"
 DB_PORT = "db.port"
 
-environ_names = {NAME_AQUARIUS_URL: ["AQUARIUS_URL", "Aquarius URL"]}
+environ_names = {NAME_AQUARIUS_URL: ["AQUARIUS_BIND_URL", "Aquarius URL"]}
 
 config_defaults = {
     ConfigSections.RESOURCES: {NAME_AQUARIUS_URL: DEFAULT_NAME_AQUARIUS_URL}

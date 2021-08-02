@@ -26,7 +26,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 def run_events_monitor():
     setup_logging()
     logger.info("EventsMonitor: preparing")
-    required_env_vars = ["EVENTS_RPC", "CONFIG_FILE"]
+    required_env_vars = ["EVENTS_RPC", "AQUARIUS_CONFIG_FILE"]
     for envvar in required_env_vars:
         if not os.getenv(envvar):
             raise AssertionError(
@@ -34,7 +34,7 @@ def run_events_monitor():
                 f"environment variables before starting the events monitor: {required_env_vars}"
             )
 
-    config_file = os.getenv("CONFIG_FILE", "config.ini")
+    config_file = os.getenv("AQUARIUS_CONFIG_FILE", "config.ini")
     monitor = EventsMonitor(setup_web3(config_file, logger), config_file)
     monitor.start_events_monitor()
 

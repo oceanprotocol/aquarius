@@ -34,9 +34,9 @@ setup_logging()
 assets = Blueprint("assets", __name__)
 
 # Prepare OceanDB
-dao = Dao(config_file=app.config["CONFIG_FILE"])
+dao = Dao(config_file=app.config["AQUARIUS_CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
-es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
+es_instance = OceanDb(app.config["AQUARIUS_CONFIG_FILE"]).plugin
 
 
 @assets.route("/ddo/<did>", methods=["GET"])
