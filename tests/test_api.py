@@ -147,11 +147,21 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
     )
     assert post.data == b"true\n"
 
+    # still valid if only one of "allow" and "deny are present
+    json_valid_copy["credentials"] = {
+        "deny": [{"type": "address", "values": ["0x2222", "0x333"]}],
+    }
+
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate", data=json_valid_copy
+    )
+    assert post.data == b"true\n"
+
     invalid_credentials = [
         {"allow": [{"type": "address", "value": ["0x123", "0x456A"]}]},
         {"deny": [{"type": "address", "value": ["0x123", "0x456A"]}]},
         {"allow": [{"type": "address", "values": "not_an_array"}]},
-        {"allow": [{"type": "address"}]},  # missing value
+        {"allow": [{"type": "address"}]},  # missing values
         {"allow": [{"values": "not_an_array"}]},  # missing type
     ]
 

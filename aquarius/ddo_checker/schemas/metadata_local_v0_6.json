@@ -450,7 +450,7 @@
           "allow": {
             "$id": "#/properties/credentials/properties/allow",
             "type": "array",
-            "title": "The Credentials Schema",
+            "title": "The Credentials allow Schema",
             "default": null,
             "additionalProperties": false,
             "items": {
@@ -472,7 +472,7 @@
           "deny": {
             "$id": "#/properties/credentials/properties/deny",
             "type": "array",
-            "title": "The Credentials Schema",
+            "title": "The Credentials deny Schema",
             "default": null,
             "additionalProperties": false,
             "items": {
