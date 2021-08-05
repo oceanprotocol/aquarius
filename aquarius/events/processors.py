@@ -61,8 +61,8 @@ class EventProcessor(ABC):
         self.purgatory = purgatory
         self._chain_id = chain_id
 
-    def check_permission(self):
-        if not os.getenv("RBAC_SERVER_URL"):
+    def check_permission(self, publisher_address):
+        if not os.getenv("RBAC_SERVER_URL") or not publisher_address:
             return True
 
         event_type = (
@@ -70,10 +70,7 @@ class EventProcessor(ABC):
             if self.__class__.__name__ == "MetadataCreatedProcessor"
             else "update"
         )
-        private_key = os.getenv("EVENTS_ECIES_PRIVATE_KEY")
-        address = (
-            self._web3.eth.account.from_key(private_key).address if private_key else ""
-        )
+        address = publisher_address
         payload = {
             "eventType": event_type,
             "component": "metadatacache",
@@ -144,7 +141,7 @@ class MetadataCreatedProcessor(EventProcessor):
             f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
-        permission = self.check_permission()
+        permission = self.check_permission(sender_address)
         if not permission:
             raise Exception("RBAC permission denied.")
 
@@ -234,7 +231,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         logger.info(
             f"Process update DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
-        permission = self.check_permission()
+        permission = self.check_permission(sender_address)
         if not permission:
             raise Exception("RBAC permission denied.")
 
