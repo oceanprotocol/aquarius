@@ -61,8 +61,8 @@ class EventProcessor(ABC):
         self.purgatory = purgatory
         self._chain_id = chain_id
 
-    def check_permission(self, publisher):
-        if not os.getenv("RBAC_SERVER_URL") or not publisher:
+    def check_permission(self, publisher_address):
+        if not os.getenv("RBAC_SERVER_URL") or not publisher_address:
             return True
 
         event_type = (
@@ -70,7 +70,7 @@ class EventProcessor(ABC):
             if self.__class__.__name__ == "MetadataCreatedProcessor"
             else "update"
         )
-        address = publisher
+        address = publisher_address
         payload = {
             "eventType": event_type,
             "component": "metadatacache",
