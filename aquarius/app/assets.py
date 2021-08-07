@@ -41,13 +41,23 @@ es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
 
 @assets.route("", methods=["GET"])
 def get_assets_ids():
-    """Get all asset IDs.
+    """Get all asset IDs. Each id is a string with format as follows: `did:op:<id>` `id` is a hex string.
     ---
     tags:
       - ddo
     responses:
       200:
-        description: successful action
+        description: On successful operation returns a list DDO ids2.
+        example:
+            application/json: [
+              "did:op:00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
+              "did:op:011bacf889bcbDeF2a123B4365526FAA3a360B1A",
+              "did:op:01738AA29Ce1D4028C0719F7A0fd497a1BFBe918"
+              ]
+        content:
+          application/json:
+            schema:
+              type: array
     """
     asset_with_id = dao.get_all_listed_assets()
     asset_ids = [a["id"] for a in asset_with_id if "id" in a]
@@ -68,7 +78,102 @@ def get_ddo(did):
         type: string
     responses:
       200:
-        description: successful operation
+        description: On successful operation returns DDO information.
+        example:
+          application/json: {
+              "@context": "https://w3id.org/did/v1",
+              "id": "did:op:00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
+              "publicKey": [
+                  {
+                      "id": "did:op:00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
+                      "type": "EthereumECDSAKey",
+                      "owner": "0x8aa92201E19E4930d4D25c0f7a245c1dCdD5A242"
+                  }
+              ],
+              "authentication": [
+                  {
+                      "type": "RsaSignatureAuthentication2018",
+                      "publicKey": "did:op:00018b5b84eA05930f9D0dB8FFbb3B93EF86983b"
+                  }
+              ],
+              "service": [
+                  {
+                      "type": "metadata",
+                      "attributes": {
+                          "curation": {
+                              "rating": 0.0,
+                              "numVotes": 0,
+                              "isListed": true
+                          },
+                          "main": {
+                              "type": "dataset",
+                              "name": "Nu nl",
+                              "dateCreated": "2021-04-02T17:59:32Z",
+                              "author": "ab",
+                              "license": "MIT",
+                              "files": [
+                                  {
+                                      "index": 0,
+                                      "contentType": "application/json"
+                                  }
+                              ],
+                              "datePublished": "2021-04-20T22:56:01Z"
+                          },
+                          "encryptedFiles": "0x047c992274f3fa2bf9c5cc57d0e0852f7b3ec22d7ab4e798e3e73e77e7f971ff04896129c9f58deac7c6bebbacf7784ea693a235dad7edc26772915adcccef96720c12e59cc763fe77fb7437260e2dacff73235fcecd05b7c84420e571a104f88c1b4d53d1da49dcaa4c3d72ab9dbc34e0d6e76ef421137c78e37fdc782b81603d70cb511f148b986ec24a1bb0cfbef81f919d7a2da437f868e1e45a9e2a72e13ebab7ca72e7ec360555d9df471f844f69132a899cc70efffcbf8893ee8bc4a9e86af8a8522acd560c2800e1bc792fe44c6b23f55eea2042fb526566aa67c76f20ea87de764b9f3f56549705be2697cf49ba2332ff836bfb0f3a8ede0bca2a102886"
+                      },
+                      "index": 0
+                  },
+                  {
+                      "type": "access",
+                      "index": 1,
+                      "serviceEndpoint": "https://provider.datatunnel.allianceblock.io",
+                      "attributes": {
+                          "main": {
+                              "creator": "0x8aa92201E19E4930d4D25c0f7a245c1dCdD5A242",
+                              "datePublished": "2021-04-02T17:57:57Z",
+                              "cost": "1",
+                              "timeout": 2592000000,
+                              "name": "dataAssetAccess"
+                          }
+                      }
+                  }
+              ],
+              "dataToken": "0x00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
+              "created": "2021-04-02T18:00:01Z",
+              "proof": {
+                  "created": "2021-04-02T17:59:33Z",
+                  "creator": "0x8aa92201E19E4930d4D25c0f7a245c1dCdD5A242",
+                  "type": "AddressHash",
+                  "signatureValue": "0xd23d2f28fcf152347e5b5f1064422ba0288dd608f0ea6cf433a3717fb735a92d"
+              },
+              "dataTokenInfo": {
+                  "address": "0x00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
+                  "name": "Parsimonious Plankton Token",
+                  "symbol": "PARPLA-59",
+                  "decimals": 18,
+                  "totalSupply": 100.0,
+                  "cap": 1000.0,
+                  "minter": "0x8aa92201E19E4930d4D25c0f7a245c1dCdD5A242",
+                  "minterBalance": 99.999
+              },
+              "updated": "2021-04-02T18:00:01Z",
+              "accessWhiteList": [],
+              "price": {
+                  "datatoken": 0.0,
+                  "ocean": 0.0,
+                  "value": 0.0,
+                  "type": "",
+                  "exchange_id": "",
+                  "address": "",
+                  "pools": [],
+                  "isConsumable": ""
+              },
+              "isInPurgatory": "false"
+            }
+        content:
+          application/json:
+            schema:
+              type: object
       404:
         description: This asset DID is not in OceanDB
     """
