@@ -34,34 +34,9 @@ setup_logging()
 assets = Blueprint("assets", __name__)
 
 # Prepare OceanDB
-dao = Dao(config_file=app.config["CONFIG_FILE"])
+dao = Dao(config_file=app.config["AQUARIUS_CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
-es_instance = OceanDb(app.config["CONFIG_FILE"]).plugin
-
-
-@assets.route("", methods=["GET"])
-def get_assets_ids():
-    """Get all asset IDs. Each id is a string with format as follows: `did:op:<id>` `id` is a hex string.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: On successful operation returns a list DDO ids2.
-        example:
-            application/json: [
-              "did:op:00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
-              "did:op:011bacf889bcbDeF2a123B4365526FAA3a360B1A",
-              "did:op:01738AA29Ce1D4028C0719F7A0fd497a1BFBe918"
-              ]
-        content:
-          application/json:
-            schema:
-              type: array
-    """
-    asset_with_id = dao.get_all_listed_assets()
-    asset_ids = [a["id"] for a in asset_with_id if "id" in a]
-    return Response(json.dumps(asset_ids), 200, content_type="application/json")
+es_instance = OceanDb(app.config["AQUARIUS_CONFIG_FILE"]).plugin
 
 
 @assets.route("/ddo/<did>", methods=["GET"])
@@ -187,26 +162,6 @@ def get_ddo(did):
     except Exception as e:
         logger.error(f"get_ddo: {str(e)}")
         return f"{did} asset DID is not in OceanDB", 404
-
-
-@assets.route("/ddo", methods=["GET"])
-def get_asset_ddos():
-    """Get DDO of all assets.
-    ---
-    tags:
-      - ddo
-    responses:
-      200:
-        description: successful action
-    """
-    _assets = dao.get_all_listed_assets()
-    for _record in _assets:
-        sanitize_record(_record)
-    return Response(
-        json.dumps(_assets, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
 
 
 @assets.route("/metadata/<did>", methods=["GET"])

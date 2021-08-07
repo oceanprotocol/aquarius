@@ -29,7 +29,7 @@ spec:
       - env:
         - name: LOG_LEVEL
           value: < DEBUG or INFO >
-        - name: AQUARIUS_URL
+        - name: AQUARIUS_BIND_URL
           value: http://0.0.0.0:5000
         - name: AQUARIUS_WORKERS
           value: "1"

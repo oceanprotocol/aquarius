@@ -59,7 +59,7 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==5.5",
     "mccabe==0.6.1",
-    "pylint==2.9.5",
+    "pylint==2.9.6",
     "pytest",
     "tox",
     "pytest-env",
@@ -96,7 +96,7 @@ setup(
     url="https://github.com/oceanprotocol/aquarius",
     # fmt: off
     # bumpversion needs single quotes
-    version='3.0.0',
+    version='3.0.1',
     # fmt: on
     zip_safe=False,
 )

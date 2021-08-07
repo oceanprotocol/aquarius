@@ -135,6 +135,45 @@ def test_validate(client_with_no_data, base_ddo_url):
     assert post.data == b"true\n"
 
 
+def test_validate_credentials(client_with_no_data, base_ddo_url):
+    json_valid_copy = json_valid.copy()
+    json_valid_copy["credentials"] = {
+        "allow": [{"type": "address", "values": ["0x123", "0x456A"]}],
+        "deny": [{"type": "address", "values": ["0x2222", "0x333"]}],
+    }
+
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate", data=json_valid_copy
+    )
+    assert post.data == b"true\n"
+
+    # still valid if only one of "allow" and "deny are present
+    json_valid_copy["credentials"] = {
+        "deny": [{"type": "address", "values": ["0x2222", "0x333"]}],
+    }
+
+    post = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate", data=json_valid_copy
+    )
+    assert post.data == b"true\n"
+
+    invalid_credentials = [
+        {"allow": [{"type": "address", "value": ["0x123", "0x456A"]}]},
+        {"deny": [{"type": "address", "value": ["0x123", "0x456A"]}]},
+        {"allow": [{"type": "address", "values": "not_an_array"}]},
+        {"allow": [{"type": "address"}]},  # missing values
+        {"allow": [{"values": "not_an_array"}]},  # missing type
+    ]
+
+    for invalid_credential in invalid_credentials:
+        json_valid_copy["credentials"] = invalid_credential
+
+        post = run_request(
+            client_with_no_data.post, base_ddo_url + "/validate", data=json_valid_copy
+        )
+        assert post.data != b"true\n"
+
+
 def test_validate_remote(client_with_no_data, base_ddo_url):
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data={}
@@ -285,20 +324,6 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     assert "main" in result
     assert "name" in result["main"]
     assert result["main"]["name"] == "Event DDO sample"
-
-
-def test_get_asset_ids(client, base_ddo_url):
-    result = run_request_get_data(client.get, "/api/v1/aquarius/assets")
-
-    assert len(result)
-    assert result[0].startswith("did:op:")
-
-
-def test_get_asset_ddos(client, base_ddo_url):
-    result = run_request_get_data(client.get, base_ddo_url)
-
-    assert len(result)
-    assert "id" in result[0]
 
 
 def test_asset_metadata_not_found(client):

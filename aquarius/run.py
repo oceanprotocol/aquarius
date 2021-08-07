@@ -21,7 +21,7 @@ from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
 
-config = Config(filename=app.config["CONFIG_FILE"])
+config = Config(filename=app.config["AQUARIUS_CONFIG_FILE"])
 aquarius_url = config.aquarius_url
 
 
@@ -95,7 +95,7 @@ def get_status():
 
 # Start events monitoring if required
 if get_bool_env_value("EVENTS_ALLOW", 0):
-    config_file = app.config["CONFIG_FILE"]
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
     monitor = EventsMonitor(setup_web3(config_file), config_file)
     monitor.start_events_monitor()
 
