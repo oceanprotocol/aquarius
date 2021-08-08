@@ -94,7 +94,7 @@ def get_ddo(did):
                               ],
                               "datePublished": "2021-04-20T22:56:01Z"
                           },
-                          "encryptedFiles": "0x047c992274f3fa2bf9c5cc57d0e0852f7b3ec22d7ab4e798e3e73e77e7f971ff04896129c9f58deac7c6bebbacf7784ea693a235dad7edc26772915adcccef96720c12e59cc763fe77fb7437260e2dacff73235fcecd05b7c84420e571a104f88c1b4d53d1da49dcaa4c3d72ab9dbc34e0d6e76ef421137c78e37fdc782b81603d70cb511f148b986ec24a1bb0cfbef81f919d7a2da437f868e1e45a9e2a72e13ebab7ca72e7ec360555d9df471f844f69132a899cc70efffcbf8893ee8bc4a9e86af8a8522acd560c2800e1bc792fe44c6b23f55eea2042fb526566aa67c76f20ea87de764b9f3f56549705be2697cf49ba2332ff836bfb0f3a8ede0bca2a102886"
+                          "encryptedFiles": "0x047c992274f3fa2bf9c5cc57d0e0852f7b3ec22d7ab4e798e3e73e77e7f97"
                       },
                       "index": 0
                   },
@@ -179,6 +179,29 @@ def get_metadata(did):
     responses:
       200:
         description: successful operation.
+        example:
+          application/json: {
+            "curation": {
+                "rating": 0.0,
+                "numVotes": 0,
+                "isListed": true
+            },
+            "main": {
+                "type": "dataset",
+                "name": "Nu nl",
+                "dateCreated": "2021-04-02T17:59:32Z",
+                "author": "ab",
+                "license": "MIT",
+                "files": [
+                    {
+                        "index": 0,
+                        "contentType": "application/json"
+                    }
+                ],
+                "datePublished": "2021-04-20T22:56:01Z"
+            },
+            "encryptedFiles": "0x047c992274f3fa2bf9c5cc57d0e0852f7b3ec22d7ab4e798e3e73e77e7f971ff04896129c9f58deac"
+          }
       404:
         description: This asset DID is not in OceanDB.
     """
@@ -214,6 +237,11 @@ def get_assets_names():
     responses:
       200:
         description: successful operation.
+        example:
+          application/json: {
+            "did:op:03115a5Dc5fC8Ff8DA0270E61F87EEB3ed2b3798": "SVM Classifier v2.0",
+            "did:op:01738AA29Ce1D4028C0719F7A0fd497a1BFBe918": "Wine dataset 1.0"
+          }
       404:
         description: assets not found
     """
@@ -279,7 +307,120 @@ def query_ddo():
     responses:
       200:
         description: successful action
-
+        example:
+          application/json: {
+            "results": [
+                {
+                    "@context": "https://w3id.org/did/v1",
+                    "id": "did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
+                    "created": "2021-08-08T14:16:02Z",
+                    "publicKey": [
+                        {
+                            "id": "did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
+                            "type": "EthereumECDSAKey",
+                            "owner": "0x66aB6D9362d4F35596279692F0251Db635165871"
+                        }
+                    ],
+                    "authentication": [
+                        {
+                            "type": "RsaSignatureAuthentication2018",
+                            "publicKey": "did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4"
+                        }
+                    ],
+                    "service": [
+                        {
+                            "type": "metadata",
+                            "attributes": {
+                                "main": {
+                                    "type": "dataset",
+                                    "name": "branin",
+                                    "author": "Trent",
+                                    "license": "CC0: Public Domain",
+                                    "dateCreated": "2019-12-28T10:55:11Z",
+                                    "files": [
+                                        {
+                                            "index": 0,
+                                            "contentType": "text/text"
+                                        }
+                                    ],
+                                    "datePublished": "2021-08-08T14:16:08Z"
+                                },
+                                "encryptedFiles": "0x045544adc346c93c07dd713597ebf639c67a15f37ba052f267add76124edf33f67bdee3c47902f3c0ab280b61464c1a193e86db06d5f2ceabe43f9e57e444de420b8d6e04b7b9e38fb2c57afdac5c7f62f04cd8ac16531f621686bd3a1c9e55ed2e640c28d9c49ea8bd17916f6613852eb81a278e32bf70b7409b3f",
+                                "curation": {
+                                    "rating": 0.0,
+                                    "numVotes": 0,
+                                    "isListed": true
+                                }
+                            },
+                            "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
+                            "index": 0
+                        },
+                        {
+                            "type": "access",
+                            "attributes": {
+                                "main": {
+                                    "name": "dataAssetAccessServiceAgreement",
+                                    "creator": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                                    "timeout": 86400,
+                                    "datePublished": "2019-12-28T10:55:11Z",
+                                    "cost": 1.0
+                                }
+                            },
+                            "serviceEndpoint": "http://localhost:8030",
+                            "index": 3
+                        }
+                    ],
+                    "proof": {
+                        "type": "DDOIntegritySignature",
+                        "created": "2021-08-08T14:16:01Z",
+                        "creator": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "signatureValue": "0xb0e9678aac2792977d59311b5536836d04d12f17ab669932c47b9d6f77fdb7464af5ac6d280fd90d5631c07bb8d4b1db531e7a7717c372cfb035be0c82f2a2931b",
+                        "checksum": {
+                            "0": "35acddb05beca093f3eb991099f55de7482726b8b38e96225f04d6347c368fb8",
+                            "3": "a7b08afd86967bd5cd6f09d338a5804e11003ccc35041025fafae8ef50b6e7ab"
+                        }
+                    },
+                    "dataToken": "0xB78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
+                    "updated": "2021-08-08T14:16:02Z",
+                    "accessWhiteList": [],
+                    "price": {
+                        "datatoken": 100.0,
+                        "ocean": 10.0,
+                        "value": 0.9611175814077335,
+                        "type": "pool",
+                        "exchange_id": "",
+                        "address": "0x4bb26110628785630A6BD3e64c0907e58AfA1C92",
+                        "pools": [
+                            "0x4bb26110628785630A6BD3e64c0907e58AfA1C92"
+                        ],
+                        "isConsumable": "true"
+                    },
+                    "dataTokenInfo": {
+                        "address": "0xB78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
+                        "name": "DataToken1",
+                        "symbol": "DT1",
+                        "decimals": 18,
+                        "totalSupply": 100.0,
+                        "cap": 1000.0,
+                        "minter": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "minterBalance": 0.0
+                    },
+                    "isInPurgatory": "false"
+                }
+            ],
+            "page": 1,
+            "resultsMetadata": {
+                "licenses": [
+                    {
+                        "name": "CC0: Public Domain",
+                        "count": 1
+                    }
+                ],
+                "tags": []
+            },
+            "total_pages": 1,
+            "total_results": 1
+          }
     example:
         {"query": {"query_string": {"query": "(covid) -isInPurgatory:true"}}, "offset":1, "page": 1}
 
@@ -347,6 +488,8 @@ def validate():
     responses:
       200:
         description: successfully request.
+        example:
+          application/json: true
       500:
         description: Error
     """
@@ -379,6 +522,8 @@ def validate_remote():
     responses:
       200:
         description: successfully request.
+        example:
+          application/json: true
       400:
         description: Invalid DDO format
       500:
@@ -425,7 +570,7 @@ def encrypt_ddo():
           type: object
     responses:
       200:
-        description: successfully request. data is converted to hex
+        description: successfully request.
       400:
         description: Invalid format
       500:
@@ -461,6 +606,9 @@ def encrypt_ddo_as_hex():
     responses:
       200:
         description: successfully request. data is converted to hex
+        example:
+          text/plain:
+            "0x041a1953f19ca7410bcbef240a65246399d477765b966aef3553b3c89cc5837943706359e44f3b991"
       400:
         description: Invalid format
       500:
