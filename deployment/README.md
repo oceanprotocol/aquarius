@@ -34,7 +34,7 @@ Additional things to consider on a production deployment - number of replicas, m
 
 [elasticsearch-master-sts.yaml](./elasticsearch-master-sts.yaml)
 
-After the above files iscustomized, the following example shows how it can be deployed:
+After the above file is customized, the following example shows how it can be deployed:
 
 ```
 $ kubectl create ns ocean
