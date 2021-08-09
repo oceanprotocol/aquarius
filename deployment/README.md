@@ -84,21 +84,23 @@ Handling connection for 9200
 }
 ```
 
-
-
 ##### Aquarius
 
-For Aquarius deployment we can use the following templates for guidance.
+
+
+Aquarius supports indexing multiple chains using a single instance to serve API requests and one instance for each chain that must be indexed.
+
+The following deployment templates could be used for guidance.
 Some parameters are [optional](https://github.com/oceanprotocol/aquarius) and the template could be adjusted based on these considerations.
-One common case is the deployment for one of the following Ethereum networks:
+Common cases are the deployments for one/multiple multiple Ethereum networks:
 
 - mainnet
 - rinkeby
 - ropsten
 
-and the following template (annotated) could be edited and used for deployment.
+and the following templates (annotated) could be edited and used for deployment.
 
-*aquarius-standard-networks-deployment-example.yaml* (annotated)
+*aquarius-deployment.yaml* (annotated) => this deployment is responsible for serving API requests
 
 ```yaml
 apiVersion: apps/v1
@@ -121,57 +123,46 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      creationTimestamp: null
       labels:
         app: aquarius
     spec:
       containers:
       - env:
         - name: LOG_LEVEL
-          value: < DEBUG or INFO >
+          value: DEBUG
         - name: AQUARIUS_BIND_URL
           value: http://0.0.0.0:5000
         - name: AQUARIUS_WORKERS
-          value: "1"
+          value: "8"
         - name: DB_HOSTNAME
-          value: < Elasticsearch service >
-        - name: DB_INDEX
-          value: aquarius
+          value: < ES service hostname >
         - name: DB_MODULE
           value: elasticsearch
+        - name: DB_NAME
+          value: aquarius
         - name: DB_PORT
           value: "9200"
+        - name: DB_SCHEME
+          value: http
         - name: DB_USERNAME
           value: elastic
         - name: DB_PASSWORD
           value: changeme
         - name: DB_SSL
           value: "false"
-        - name: DB_VERIFY_CERTS
-          value: "false"
+        - name: RUN_AQUARIUS_SERVER
+          value: "1"
+        - name: RUN_EVENTS_MONITOR
+          value: "0"
         - name: EVENTS_ALLOW
           value: "0"
-        - name: EVENTS_RPC
-          value: wss://rinkeby.infura.io/ws/v3/<YOUR-PROJECT-ID>
-        - name: RUN_EVENTS_MONITOR
-          value: "1"
+        - name: CONFIG_FILE
+          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
-        - name: BFACTORY_BLOCK
-          value: "< The block number of `Metadata` contract deployment >"
-        - name: METADATA_CONTRACT_BLOCK
-          value: "< metadata contract block >"
-        - name: NETWORK_NAME
-          value: < mainnet, rinkeby or ropsten >
-        - name: NETWORK_URL
-          value: < option selected as NETWORK_NAME above >
-        - name: METADATA_UPDATE_ALL
-          value: "0"
-        - name: UPDATE_ALL_PURGATORY
-          value: "0"
-        - name: OCEAN_ADDRESS
-          value: 0x8967BCF84170c91B0d24D4302C2376283b0B3a07
-        image: oceanprotocol/aquarius:<tag from hub.docker.com>
-        imagePullPolicy: Always
+        image: oceanprotocol/aquarius:v3.0.0
+        imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -213,40 +204,157 @@ spec:
 
 
 
+Example deployment for *Rinkeby* (Ethereum testenet):
+
+aquarius-events-rinkeby-deployment.yaml (annotated) => this deployment will be responsabile for indexing the blocks:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: aquarius-events-rinkeby
+  name: aquarius-events-rinkeby
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: aquarius-events-rinkeby
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: aquarius-events-rinkeby
+    spec:
+      containers:
+      - env:
+        - name: LOG_LEVEL
+          value: DEBUG
+        - name: AQUARIUS_BIND_URL
+          value: http://0.0.0.0:5000
+        - name: AQUARIUS_WORKERS
+          value: "1"
+        - name: DB_HOSTNAME
+          value: < ES service hostname >
+        - name: DB_MODULE
+          value: elasticsearch
+        - name: DB_NAME
+          value: aquarius
+        - name: DB_PORT
+          value: "9200"
+        - name: DB_SCHEME
+          value: http
+        - name: DB_USERNAME
+          value: elastic
+        - name: DB_PASSWORD
+          value: changeme
+        - name: DB_SSL
+          value: "false"
+        - name: RUN_AQUARIUS_SERVER
+          value: "0"
+        - name: RUN_EVENTS_MONITOR
+          value: "1"
+        - name: CONFIG_FILE
+          value: config.ini
+        - name: ALLOWED_PUBLISHERS
+          value: '[""]'
+        - name: BFACTORY_BLOCK
+          value: "7298806"
+        - name: METADATA_CONTRACT_BLOCK
+          value: "7298808"
+        - name: NETWORK_NAME
+          value: rinkeby
+        - name: EVENTS_RPC
+          value: < RPC service for Rinkeby >
+        - name: METADATA_UPDATE_ALL
+          value: "0"
+        - name: OCEAN_ADDRESS
+          value: 0x8967BCF84170c91B0d24D4302C2376283b0B3a07
+        - name: BLOCKS_CHUNK_SIZE
+          value: "5000"
+        - name: EVENTS_HTTP
+          value: "1"
+        image: oceanprotocol/aquarius:v3.0.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5001
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: aquarius-events-rinkeby
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5001
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+```
+
+
+
+
+
 Tip: before deployment you can [validate](https://github.com/instrumenta/kubeval) the yaml file.
 
-```
-$ kubectl apply -f aquarius-standard-networks-deployment.yaml
-deployment.apps/aquarius created
+```shell
+$ kubectl apply -f aquarius-deployment.yaml
+$ kubectl apply -f aquarius-events-rinkeby-deployment.yaml
+
 
 $ kubectl get pods -l app=aquarius
 NAME                        READY   STATUS    RESTARTS   AGE
-aquarius-57b459946d-nxzwq   1/1     Running   0          55s
+aquarius-5b59cd887b-87z5c   1/1     Running   0          2d10h
+
+$ kubectl get pods -l app=aquarius-events-rinkeby
+NAME                                       READY   STATUS    RESTARTS   AGE
+aquarius-events-rinkeby-55747d89f7-9f69q   1/1     Running   0          2d7h
 ```
 
 
 
 check the logs for newly deployed Aquarius:
 
-```
-$ kubectl logs aquarius-57b459946d-nxzwq [--follow]
-[2021-02-15 19:29:23 +0000] [8] [INFO] Starting gunicorn 20.0.4
-[2021-02-15 19:29:23 +0000] [8] [INFO] Listening at: http://0.0.0.0:5000 (8)
-[2021-02-15 19:29:23 +0000] [8] [INFO] Using worker: gevent
-[2021-02-15 19:29:23 +0000] [12] [INFO] Booting worker with pid: 12
-2021-02-15 19:29:25 aquarius-57b459946d-nxzwq __main__[9] INFO EventsMonitor: preparing
-2021-02-15 19:29:25 aquarius-57b459946d-nxzwq __main__[9] INFO EventsMonitor: starting with the following values: rpc=rinkeby
-default log level: 20, env var LOG_LEVEL INFO
-.............................................................
-2021-02-15 19:29:26 aquarius-57b459946d-nxzwq __main__[9] INFO EventsMonitor: started
-................................................................
-2021-02-15 19:29:48,049 - aquarius.events.events_monitor - INFO - Start processing MetadataCreated event: did=did:op:e3156E12a379Eccfa8ceA824dc3085220E0c65aB
-2021-02-15 19:29:48,050 - aquarius - INFO - got event MetadataCreated request: {'@context': 'https://w3id.org/did/v1', 'id': 'did:op:e3156E12a379Eccfa8ceA824dc3085220E0c65aB', 'publicKey': [{'id': 'did:op:e3156E12a379Eccfa8ceA824dc3085220E0c65aB', 'type': 'EthereumECDSAKey', 'owner': '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687'}], 'authentication': [{'type': 'RsaSignatureAuthentication2018', 'publicKey': 'did:op:e3156E12a379Eccfa8ceA824dc3085220E0c65aB'}], 'service': [{'type': 'metadata', 'attributes': {'curation': {'rating': 0, 'numVotes': 0}, 'main': {'type': 'dataset', 'name': 'Pool fee test - default - 10%', 'dateCreated': '2020-10-05T19:08:28Z', 'author': 'Alex', 'license': 'Public Domain', 'files': [{'contentLength': '2989228', 'contentType': 'application/pdf', 'index': 0}], 'datePublished': '2020-10-05T19:08:28Z'}, 'additionalInformation': {'description': 'Pool setup with 1% swap fee', 'copyrightHolder': 'Ocean Protocol', 'tags': [''], 'links': False, 'termsAndConditions': True, 'priceType': 'dynamic'}, 'encryptedFiles': '0x04f78f25a27009245cd7f471731c1a9faac812240379b925ed4d01f6a365924c85930c7a5698edade296f4bd7df3d60a9fc1a3915e38cbf55a5009e3788ae53843ebb86063489e2a2a3047324e7509f2cc60e3a22def41b81700023b48753e028c20d807d2ff4305e3885470a730f3519f9158ba134f4b34cffd6d41618b73be8f76c2ea76a3ef7c8506406278baeec8527ca76ae567845d60b6f968d4116db3ec77dfabd016c285eb5bf0b66059c053c2c951364fa468d1b972f4640e70c6dd8df5f524838a8ab1dfa5fa4128a9349e17b44083'}, 'index': 0}, {'type': 'access', 'index': 1, 'serviceEndpoint': 'https://provider.rinkeby.v3.dev-ocean.com', 'attributes': {'main': {'creator': '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687', 'datePublished': '2020-10-05T19:08:28Z', 'cost': '1', 'timeout': 0, 'name': 'dataAssetAccess'}}}], 'dataToken': '0xe3156E12a379Eccfa8ceA824dc3085220E0c65aB', 'created': '2020-10-05T19:08:50Z', 'proof': {'created': '2020-10-05T19:08:53Z', 'creator': '0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687', 'type': 'DDOIntegritySignature', 'signatureValue': '0x8feb4ea129dcda520867e3dce0e0cb309da9c6fd56a1f49dafa069492ac7e4f328b21b5cb8a61d9e979c48bbcdcac8b25e2f536e7da4712c867461d5a90590c61c'}}
-```
+```shell
+$ kubectl logs aquarius-5b59cd887b-87z5c [--follow]
 
+$ kubectl logs aquarius-events-rinkeby-55747d89f7-9f69q [--follow]
+```
 
 
 next step is to create a [service](https://kubernetes.io/docs/concepts/services-networking/service/) (eg. ClusterIP,  NodePort,  Loadbalancer, ExternalName) for this deployment depending on environment specs.
+
 
 
 
