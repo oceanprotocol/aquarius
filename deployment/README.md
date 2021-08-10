@@ -278,8 +278,6 @@ spec:
           value: rinkeby
         - name: EVENTS_RPC
           value: < RPC service for Rinkeby >
-        - name: METADATA_UPDATE_ALL
-          value: "0"
         - name: OCEAN_ADDRESS
           value: 0x8967BCF84170c91B0d24D4302C2376283b0B3a07
         - name: BLOCKS_CHUNK_SIZE
