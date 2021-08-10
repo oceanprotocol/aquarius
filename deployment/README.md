@@ -507,24 +507,8 @@ check status:
 
 ```shell
 $ sudo systemctl status docker-compose@aquarius.service
-● docker-compose@aquarius.service - aquarius service with docker compose
-   Loaded: loaded (/etc/systemd/system/docker-compose@aquarius.service; disabled; vendor preset: disabled)
-   Active: active (exited) since Tue 2021-03-30 10:31:52 UTC; 1s ago
-  Process: 9625 ExecStart=/usr/bin/env docker-compose -p $PROJECT up -d --remove-orphans (code=exited, status=0/SUCCESS)
-  Process: 9611 ExecStartPre=/usr/bin/env docker-compose -p $PROJECT pull (code=exited, status=0/SUCCESS)
- Main PID: 9625 (code=exited, status=0/SUCCESS)
-......................................................................................................................
-Mar 30 10:31:50 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating network "ocean_backend" with driver "bridge"
-Mar 30 10:31:51 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating volume "ocean_data" with local driver
-Mar 30 10:31:51 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating elasticsearch ...
-Mar 30 10:31:51 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating elasticsearch ... done
-Mar 30 10:31:51 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating aquarius      ...
-Mar 30 10:31:52 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating aquarius      ... done
-Mar 30 10:31:52 ip-172-31-32-61.eu-central-1.compute.internal systemd[1]: Started aquarius service with docker compose.
+
 ```
-
-
-
 
 
 ```shell
@@ -735,24 +719,7 @@ check status:
 
 ```shell
 $ sudo systemctl status docker-compose@elasticsearch.service
-● docker-compose@elasticsearch.service - elasticsearch service with docker compose
-   Loaded: loaded (/etc/systemd/system/docker-compose@elasticsearch.service; enabled; vendor preset: disabled)
-   Active: active (exited) since Tue 2021-03-30 07:24:41 UTC; 6s ago
-  Process: 10918 ExecStop=/usr/bin/env docker-compose -p $PROJECT stop (code=exited, status=0/SUCCESS)
-  Process: 11063 ExecStart=/usr/bin/env docker-compose -p $PROJECT up -d --remove-orphans (code=exited, status=0/SUCCESS)
-  Process: 11050 ExecStartPre=/usr/bin/env docker-compose -p $PROJECT pull (code=exited, status=0/SUCCESS)
- Main PID: 11063 (code=exited, status=0/SUCCESS)
 
-Mar 30 07:24:39 ip-172-31-32-61.eu-central-1.compute.internal env[11050]: Pulling elasticsearch ... pulling from library/elasticsearch
-Mar 30 07:24:39 ip-172-31-32-61.eu-central-1.compute.internal env[11050]: Pulling elasticsearch ... digest: sha256:8d4e29332dc159e7c2...
-Mar 30 07:24:39 ip-172-31-32-61.eu-central-1.compute.internal env[11050]: Pulling elasticsearch ... status: image is up to date for e...
-Mar 30 07:24:39 ip-172-31-32-61.eu-central-1.compute.internal env[11050]: Pulling elasticsearch ... done
-Mar 30 07:24:40 ip-172-31-32-61.eu-central-1.compute.internal env[11063]: Building with native build. Learn about native build in Compose here: https://docs.docker.com/go/compose-native-build/
-Mar 30 07:24:40 ip-172-31-32-61.eu-central-1.compute.internal env[11063]: Creating network "ocean_backend" with driver "bridge"
-Mar 30 07:24:40 ip-172-31-32-61.eu-central-1.compute.internal env[11063]: Creating volume "ocean_data" with local driver
-Mar 30 07:24:40 ip-172-31-32-61.eu-central-1.compute.internal env[11063]: Creating elasticsearch ...
-Mar 30 07:24:41 ip-172-31-32-61.eu-central-1.compute.internal env[11063]: Creating elasticsearch ... done
-Mar 30 07:24:41 ip-172-31-32-61.eu-central-1.compute.internal systemd[1]: Started elasticsearch service with docker compose.
 ```
 
 
@@ -794,25 +761,7 @@ check the status:
 
 ```shell
 $ sudo systemctl status docker-compose@aquarius.service
-● docker-compose@aquarius.service - aquarius service with docker compose
-   Loaded: loaded (/etc/systemd/system/docker-compose@aquarius.service; enabled; vendor preset: disabled)
-   Active: active (exited) since Tue 2021-03-30 07:28:36 UTC; 5s ago
-  Process: 10778 ExecStopPost=/usr/bin/env docker-compose down (code=exited, status=0/SUCCESS)
-  Process: 10736 ExecStop=/usr/bin/env docker-compose stop (code=exited, status=0/SUCCESS)
-  Process: 11361 ExecStart=/usr/bin/env docker-compose up -d --remove-orphans (code=exited, status=0/SUCCESS)
-  Process: 11349 ExecStartPre=/usr/bin/env docker-compose pull (code=exited, status=0/SUCCESS)
- Main PID: 11361 (code=exited, status=0/SUCCESS)
 
-Mar 30 07:28:33 ip-172-31-32-61.eu-central-1.compute.internal systemd[1]: Starting aquarius service with docker compose...
-Mar 30 07:28:34 ip-172-31-32-61.eu-central-1.compute.internal env[11349]: Pulling aquarius ...
-Mar 30 07:28:35 ip-172-31-32-61.eu-central-1.compute.internal env[11349]: Pulling aquarius ... pulling from oceanprotocol/aquarius
-Mar 30 07:28:35 ip-172-31-32-61.eu-central-1.compute.internal env[11349]: Pulling aquarius ... digest: sha256:072140335817e56d61...
-Mar 30 07:28:35 ip-172-31-32-61.eu-central-1.compute.internal env[11349]: Pulling aquarius ... status: image is up to date for o...
-Mar 30 07:28:35 ip-172-31-32-61.eu-central-1.compute.internal env[11349]: Pulling aquarius ... done
-Mar 30 07:28:36 ip-172-31-32-61.eu-central-1.compute.internal env[11361]: Building with native build. Learn about native build in Compose here: https://docs.docker.com/go/compose-native-build/
-Mar 30 07:28:36 ip-172-31-32-61.eu-central-1.compute.internal env[11361]: Creating aquarius ...
-Mar 30 07:28:36 ip-172-31-32-61.eu-central-1.compute.internal env[11361]: Creating aquarius ... done
-Mar 30 07:28:36 ip-172-31-32-61.eu-central-1.compute.internal systemd[1]: Started aquarius service with docker compose.
 ```
 
 
