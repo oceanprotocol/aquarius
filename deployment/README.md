@@ -581,7 +581,7 @@ a) create */etc/docker/compose/elasticsearch/docker-compose.yml* file
 version: '3'
 services:
   elasticsearch:
-    image: elasticsearch:6.8.13
+    image: elasticsearch:6.8.17
     container_name: elasticsearch
     restart: on-failure
     environment:
@@ -728,23 +728,7 @@ confirm Elasticsearch service is accessible on localhost port 9200/tcp
 
 ```shell
 $ curl localhost:9200
-{
-  "name" : "iHs_ltW",
-  "cluster_name" : "docker-cluster",
-  "cluster_uuid" : "dHDN3-LIQAi4JzI8yOqsjw",
-  "version" : {
-    "number" : "6.8.13",
-    "build_flavor" : "default",
-    "build_type" : "docker",
-    "build_hash" : "be13c69",
-    "build_date" : "2020-10-16T09:09:46.555371Z",
-    "build_snapshot" : false,
-    "lucene_version" : "7.7.3",
-    "minimum_wire_compatibility_version" : "5.6.0",
-    "minimum_index_compatibility_version" : "5.0.0"
-  },
-  "tagline" : "You Know, for Search"
-}
+
 ```
 
 
