@@ -243,7 +243,7 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
             }
         },
     )
-    assert len(result["results"]) > 0
+    assert len(result["hits"]["hits"]) > 0
 
 
 def test_get_assets_names(client, events_object):
@@ -313,7 +313,7 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
                         }
                     }
                 },
-            )["results"]
+            )["hits"]["hits"]
         )
         > 0
     )
@@ -363,18 +363,3 @@ def test_spec(client):
     assert "description" in result["info"]
     assert "connected" in result["info"]
 
-
-def test_native_query(client, base_ddo_url):
-    result = run_request_get_data(
-        client.post,
-        base_ddo_url + "/es-query",
-        {
-            "aggs": {
-                "my-agg-name": {
-                    "terms": {"field": "service.attributes.additionalInformation.tags"}
-                }
-            }
-        },
-    )
-
-    assert "my-agg-name" in result["aggregations"]

@@ -27,18 +27,6 @@ def sanitize_record(data_record):
     return json.dumps(data_record, default=datetime_converter)
 
 
-def make_paginate_response(query_list_result, offset, page):
-    total = query_list_result[1]
-
-    result = dict()
-    result["results"] = query_list_result[0]
-    result["page"] = page
-
-    result["total_pages"] = int(total / offset) + int(total % offset > 0)
-    result["total_results"] = total
-    return result
-
-
 def get_bool_env_value(envvar_name, default_value=0):
     assert default_value in (0, 1), "bad default value, must be either 0 or 1"
     try:
