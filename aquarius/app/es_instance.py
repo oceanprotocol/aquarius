@@ -183,9 +183,9 @@ class ElasticsearchInstance(object):
     @staticmethod
     def is_listed(services):
         for service in services:
-            if service["type"] == "metadata":
-                if (
-                    "curation" in service["attributes"]
-                    and "isListed" in service["attributes"]["curation"]
-                ):
-                    return service["attributes"]["curation"]["isListed"]
+            if (
+                service["type"] == "metadata"
+                and "curation" in service["attributes"]
+                and "isListed" in service["attributes"]["curation"]
+            ):
+                return service["attributes"]["curation"]["isListed"]
