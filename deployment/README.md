@@ -437,7 +437,6 @@ services:
       AQUARIUS_WORKERS : "1"
       RUN_AQUARIUS_SERVER : "0"
       AQUARIUS_CONFIG_FILE: "config.ini"
-      ALLOWED_PUBLISHERS: '[""]'
       NETWORK_NAME: "rinkeby"
       EVENTS_RPC: "https://rinkeby.infura.io/v3/<your Infura id project>"
       BFACTORY_BLOCK: 7298806
