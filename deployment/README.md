@@ -389,7 +389,7 @@ services:
     networks:
       - ocean_backend
   aquarius:
-    image: oceanprotocol/aquarius:v3.0.1
+    image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
     container_name: aquarius
     restart: on-failure
     ports:
@@ -416,7 +416,7 @@ services:
       RUN_EVENTS_MONITOR: 0
       ALLOWED_PUBLISHERS: '[""]'
   aquarius-events-rinkeby:     
-    image: oceanprotocol/aquarius:v3.0.1
+    image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
     container_name: aquarius-events-rinkeby
     restart: on-failure
     networks:
