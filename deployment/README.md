@@ -611,11 +611,11 @@ Check [Ocean Contracts](https://github.com/oceanprotocol/contracts#-network-depl
 
 */etc/docker/compose/aquarius/docker-compose.yml*  (annotated)
 
-```yaml
-version: '3'
+```yaml    
+    version: '3'
 services:
   aquarius:
-    image: oceanprotocol/aquarius:v2.2.6 ==> specificy version (check on https://hub.docker.com/r/oceanprotocol/aquarius )
+    image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
     container_name: aquarius
     restart: on-failure
     ports:
@@ -628,19 +628,51 @@ services:
       DB_PORT: 9200
       DB_USERNAME: elastic
       DB_PASSWORD: changeme
+      DB_NAME: aquarius
+      DB_SCHEME: http
+      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
-      NETWORK_NAME: "ropsten"
-      NETWORK_URL: "ropsten"
-      EVENTS_RPC: "ropsten"
-      BFACTORY_BLOCK: 9227563
-      METADATA_CONTRACT_BLOCK: 9227563
+      AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
+      AQUARIUS_WORKERS : "8"
+      RUN_AQUARIUS_SERVER: "1"
+      AQUARIUS_CONFIG_FILE: "config.ini"
+      EVENTS_ALLOW: 0
+      RUN_EVENTS_MONITOR: 0
+      ALLOWED_PUBLISHERS: '[""]'
+  aquarius-events-rinkeby:     
+    image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
+    container_name: aquarius-events-rinkeby
+    restart: on-failure
+    networks:
+      - ocean_backend
+    environment:
+      DB_MODULE: elasticsearch
+      DB_HOSTNAME: elasticsearch
+      DB_PORT: 9200
+      DB_USERNAME: elastic
+      DB_PASSWORD: changeme
+      DB_NAME: aquarius
+      DB_SCHEME: http
+      DB_SSL : "false"
+      LOG_LEVEL: "DEBUG"
+      AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
+      AQUARIUS_WORKERS : "1"
+      RUN_AQUARIUS_SERVER : "0"
+      AQUARIUS_CONFIG_FILE: "config.ini"
+      ALLOWED_PUBLISHERS: '[""]'
+      NETWORK_NAME: "rinkeby"
+      EVENTS_RPC: "https://rinkeby.infura.io/v3/< your Infura project id >"
+      BFACTORY_BLOCK: 7298806
+      METADATA_CONTRACT_BLOCK: 7298808
+      METADATA_UPDATE_ALL : "0"
+      OCEAN_ADDRESS :  0x8967BCF84170c91B0d24D4302C2376283b0B3a07 
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 1
+      BLOCKS_CHUNK_SIZE: "50000"
 networks:
   ocean_backend:
     external: true
 ```
-
 
 
 c) create /etc/systemd/system/docker-compose@elasticsearch.service file
@@ -756,18 +788,20 @@ use docker cli to check aquarius service logs:
 
 ```shell
 $ docker ps
-CONTAINER ID   IMAGE                           COMMAND                  CREATED          STATUS          PORTS                              NAMES
-f44327bd3c33   oceanprotocol/aquarius:v2.2.6   "/aquarius/docker-en…"   18 seconds ago   Up 18 seconds   0.0.0.0:5000->5000/tcp             aquarius
-9b4c260619ca   elasticsearch:6.8.13            "/usr/local/bin/dock…"   4 minutes ago    Up 4 minutes    0.0.0.0:9200->9200/tcp, 9300/tcp   elasticsearch
+CONTAINER ID   IMAGE                           COMMAND                  CREATED          STATUS         PORTS                              NAMES
+30173843c1fc   elasticsearch:6.8.17            "/usr/local/bin/dock…"   3 minutes ago    Up 3 minutes   0.0.0.0:9200->9200/tcp, 9300/tcp   elasticsearch
+f51c7e621c31   oceanprotocol/aquarius:v3.0.1   "/aquarius/docker-en…"   2 minutes ago    Up 2 minutes   0.0.0.0:5000->5000/tcp             aquarius
+a83a031254ea   oceanprotocol/aquarius:v3.0.1   "/aquarius/docker-en…"   2 minutes ago    Up 2 minutes   5000/tcp                           aquarius-events-rinkeby
 
 ```
 
 
 
-== check logs from aquarius docker container
+== check logs from aquarius docker containers
 
 ```shell
-$ docker logs f44327bd3c33 [--follow]
+$ docker logs f51c7e621c31 [--follow]
+$ docker logs a83a031254ea [--follow]
 ```
 
 
@@ -775,6 +809,6 @@ confirm Aquarius service is accessible on localhost port 5000/tcp
 
 ```shell
 $ curl localhost:5000
-{"plugin":"elasticsearch","software":"Aquarius","version":"2.2.6"}
+{"plugin":"elasticsearch","software":"Aquarius","version":"3.0.1"}
 ```
 
