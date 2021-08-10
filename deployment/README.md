@@ -90,6 +90,11 @@ Handling connection for 9200
 
 Aquarius supports indexing multiple chains using a single instance to serve API requests and one instance for each chain that must be indexed.
 
+
+![image](https://user-images.githubusercontent.com/54084524/128821016-f2f2b98d-a62d-469a-9bca-dfd2164df3ae.png)
+
+
+
 The following deployment templates could be used for guidance.
 Some parameters are [optional](https://github.com/oceanprotocol/aquarius) and the template could be adjusted based on these considerations.
 Common cases are the deployments for one/multiple multiple Ethereum networks:
