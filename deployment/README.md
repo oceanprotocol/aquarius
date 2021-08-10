@@ -514,10 +514,7 @@ $ sudo systemctl status docker-compose@aquarius.service
   Process: 9625 ExecStart=/usr/bin/env docker-compose -p $PROJECT up -d --remove-orphans (code=exited, status=0/SUCCESS)
   Process: 9611 ExecStartPre=/usr/bin/env docker-compose -p $PROJECT pull (code=exited, status=0/SUCCESS)
  Main PID: 9625 (code=exited, status=0/SUCCESS)
-
-Mar 30 10:31:50 ip-172-31-32-61.eu-central-1.compute.internal env[9611]: Pulling aquarius      ... status: image is up to date for o...
-Mar 30 10:31:50 ip-172-31-32-61.eu-central-1.compute.internal env[9611]: Pulling aquarius      ... done
-Mar 30 10:31:50 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Building with native build. Learn about native build in Compose here: https://docs.docker.com/go/compose-native-build/
+......................................................................................................................
 Mar 30 10:31:50 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating network "ocean_backend" with driver "bridge"
 Mar 30 10:31:51 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating volume "ocean_data" with local driver
 Mar 30 10:31:51 ip-172-31-32-61.eu-central-1.compute.internal env[9625]: Creating elasticsearch ...
