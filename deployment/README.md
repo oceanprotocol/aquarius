@@ -530,15 +530,15 @@ Mar 30 10:31:52 ip-172-31-32-61.eu-central-1.compute.internal systemd[1]: Starte
 ```shell
 $ curl localhost:9200
 {
-  "name" : "Xgds4l1",
+  "name" : "bMXlD3J",
   "cluster_name" : "docker-cluster",
-  "cluster_uuid" : "KmazJdkmQSG8MMAetuTKlQ",
+  "cluster_uuid" : "1EkfoURDTai19VywHSJBgw",
   "version" : {
-    "number" : "6.8.13",
+    "number" : "6.8.17",
     "build_flavor" : "default",
     "build_type" : "docker",
-    "build_hash" : "be13c69",
-    "build_date" : "2020-10-16T09:09:46.555371Z",
+    "build_hash" : "206f6a2",
+    "build_date" : "2021-07-01T18:51:20.391869Z",
     "build_snapshot" : false,
     "lucene_version" : "7.7.3",
     "minimum_wire_compatibility_version" : "5.6.0",
@@ -553,7 +553,7 @@ $ curl localhost:9200
 
 ```shell
 $ curl localhost:5000
-{"plugin":"elasticsearch","software":"Aquarius","version":"2.2.6"}
+{"plugin":"elasticsearch","software":"Aquarius","version":"3.0.1"}
 ```
 
 
@@ -564,9 +564,10 @@ use docker cli to check aquarius service logs:
 
 ```shell
 $ docker ps
-CONTAINER ID   IMAGE                           COMMAND                  CREATED         STATUS         PORTS                              NAMES
-c169936afc46   oceanprotocol/aquarius:v2.2.6   "/aquarius/docker-en…"   2 minutes ago   Up 2 minutes   0.0.0.0:5000->5000/tcp             aquarius
-fe4df7fbc3e6   elasticsearch:6.8.13            "/usr/local/bin/dock…"   2 minutes ago   Up 2 minutes   0.0.0.0:9200->9200/tcp, 9300/tcp   elasticsearch
+CONTAINER ID   IMAGE                           COMMAND                  CREATED          STATUS          PORTS                              NAMES
+cb43417b4fcc   oceanprotocol/aquarius:v3.0.1   "/aquarius/docker-en…"   32 seconds ago   Up 31 seconds   0.0.0.0:5000->5000/tcp             aquarius
+734a3b2db62a   oceanprotocol/aquarius:v3.0.1   "/aquarius/docker-en…"   32 seconds ago   Up 31 seconds   5000/tcp                           aquarius-events-rinkeby
+b33f8f3f144b   elasticsearch:6.8.17            "/usr/local/bin/dock…"   34 seconds ago   Up 32 seconds   0.0.0.0:9200->9200/tcp, 9300/tcp   elasticsearch
 
 ```
 
@@ -575,79 +576,9 @@ fe4df7fbc3e6   elasticsearch:6.8.13            "/usr/local/bin/dock…"   2 minu
 == check logs from aquarius docker container
 
 ```shell
-$ docker logs c169936afc46 [--follow]
-[2021-03-30 10:31:52 +0000] [9] [INFO] Starting gunicorn 20.0.4
-[2021-03-30 10:31:52 +0000] [9] [INFO] Listening at: http://0.0.0.0:5000 (9)
-[2021-03-30 10:31:52 +0000] [9] [INFO] Using worker: gevent
-[2021-03-30 10:31:52 +0000] [35] [INFO] Booting worker with pid: 35
-[2021-03-30 10:31:53 +0000] [40] [INFO] Booting worker with pid: 40
-[2021-03-30 10:31:53 +0000] [44] [INFO] Booting worker with pid: 44
-[2021-03-30 10:31:53 +0000] [47] [INFO] Booting worker with pid: 47
-[2021-03-30 10:31:53 +0000] [51] [INFO] Booting worker with pid: 51
-[2021-03-30 10:31:53 +0000] [53] [INFO] Booting worker with pid: 53
-[2021-03-30 10:31:53 +0000] [55] [INFO] Booting worker with pid: 55
-[2021-03-30 10:31:53 +0000] [58] [INFO] Booting worker with pid: 58
-2021-03-30 10:32:01 c169936afc46 __main__[10] INFO EventsMonitor: preparing
-2021-03-30 10:32:01 c169936afc46 __main__[10] INFO EventsMonitor: starting with the following values: rpc=ropsten
-2021-03-30 10:32:01 c169936afc46 root[10] INFO Trying to connect...
-2021-03-30 10:32:06 c169936afc46 root[10] INFO Trying to connect...
-2021-03-30 10:32:07 c169936afc46 root[44] INFO Trying to connect...
-2021-03-30 10:32:07 c169936afc46 root[40] INFO Trying to connect...
-2021-03-30 10:32:07 c169936afc46 root[35] INFO Trying to connect...
-2021-03-30 10:32:07 c169936afc46 root[47] INFO Trying to connect...
-2021-03-30 10:32:07 c169936afc46 root[55] INFO Trying to connect...
-2021-03-30 10:32:07 c169936afc46 root[58] INFO Trying to connect...
-2021-03-30 10:32:07 c169936afc46 root[53] INFO Trying to connect...
-2021-03-30 10:32:08 c169936afc46 root[51] INFO Trying to connect...
-2021-03-30 10:32:11 c169936afc46 root[10] INFO Trying to connect...
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:12,793 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:12,793 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:13,392 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:13,393 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:13,438 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:13,439 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:13,468 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:13,468 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:13,478 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:13,479 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:13,486 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:13,487 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:13,533 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:13,533 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:13,541 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 10:32:13,547 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 10:32:16,655 - aquarius.events.metadata_updater - DEBUG - Ocean token address: 0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9,
-all deployed addresses: dict_items([('DTFactory', '0x6ebcCa6df2CAba986FCF44E64Ee82251c1455Dcc'), ('BFactory', '0x75be6e18c80A487C8b49663bf14f80A6495045B2'), ('FixedRateExchange', '0xA7a711A09396DF82D9be46A26B48BafdB9BB4fA6'), ('Metadata', '0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726'), ('Ocean', '0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9')])
-2021-03-30 10:32:18,386 - aquarius.events.events_monitor - DEBUG - allowed publishers: set()
-2021-03-30 10:32:18,386 - aquarius.events.events_monitor - DEBUG - EventsMonitor: using Metadata contract address 0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726.
-2021-03-30 10:32:18,386 - aquarius.events.events_monitor - INFO - Starting the events monitor on contract 0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726.
-/usr/local/lib/python3.8/dist-packages/elasticsearch/connection/base.py:200: ElasticsearchWarning: [types removal] The parameter include_type_name should be explicitly specified in create index requests to prepare for 7.0. In 7.0 include_type_name will default to 'false', and requests are expected to omit the type name in mapping definitions.
-  warnings.warn(message, category=ElasticsearchWarning)
-/usr/local/lib/python3.8/dist-packages/elasticsearch/connection/base.py:200: ElasticsearchWarning: the default number of shards will change from [5] to [1] in 7.0.0; if you wish to continue using the default of [5] shards, you must manage this on the create index request or with an index template
-  warnings.warn(message, category=ElasticsearchWarning)
-2021-03-30 10:32:18 c169936afc46 __main__[10] INFO EventsMonitor: started
-2021-03-30 10:32:18,844 - aquarius.events.events_monitor - DEBUG - Metadata monitor >>>> from_block:9227563, current_block:9942343 <<<<
-2021-03-30 10:32:18,844 - aquarius.events.events_monitor - DEBUG - get_event_logs (MetadataCreated, 9227563, 9942343)..
-2021-03-30 10:32:19,639 - aquarius.events.events_monitor - INFO - Process new DDO, did from event log:did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af, sender:0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7
-2021-03-30 10:32:19,639 - aquarius.events.events_monitor - DEBUG - checking allowed publishers: 0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7
-2021-03-30 10:32:19,643 - aquarius.events.events_monitor - INFO - Start processing MetadataCreated event: did=did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af
-2021-03-30 10:32:19,643 - aquarius.events.events_monitor - DEBUG - block 9232523, contract: 0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726, Sender: 0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7 , txid: 0xe86b1d17f1b92c8717483c3d48721edab8e48350df3e6180b7864558e3a9e6ec
-2021-03-30 10:32:19,643 - aquarius.events.events_monitor - DEBUG - decoding with did did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af and flags b'\x01'
-2021-03-30 10:32:19,643 - aquarius.events.events_monitor - DEBUG - flags: b'\x01'
-2021-03-30 10:32:19,643 - aquarius.events.events_monitor - DEBUG - checkflags: 1
-2021-03-30 10:32:19,644 - aquarius.events.events_monitor - DEBUG - Decompressed to b'{\n  "@context": "https://w3id.org/did/v1",\n  "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "publicKey": [\n    {\n      "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n      "type": "EthereumECDSAKey",\n      "owner": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7"\n    }\n  ],\n  "authentication": [\n    {\n      "type": "RsaSignatureAuthentication2018",\n      "publicKey": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af"\n    }\n  ],\n  "service": [\n    {\n      "type": "metadata",\n      "attributes": {\n        "curation": {\n          "rating": 0,\n          "numVotes": 0\n        },\n        "main": {\n          "type": "dataset",\n          "name": "Maritime Word List",\n          "dateCreated": "2020-12-10T09:41:01Z",\n          "author": "Ocean Team",\n          "license": "https://market.oceanprotocol.com/terms",\n          "files": [\n            {\n              "contentLength": "3215",\n              "contentType": "text/plain",\n              "index": 0\n            }\n          ],\n          "datePublished": "2020-12-10T09:41:01Z"\n        },\n        "additionalInformation": {\n          "description": "The wordlist used by ocean.js to generate datatoken names within the Ocean Protocol ecosystem.\\n\\n### Data Structure\\n\\nThe json object holds 2 arrays of strings, nouns and adjectives.\\n\\n```json\\n{\\n  \\"nouns\\": [ \\"Crab\\", \\"Fish\\", \\"Shark\\"],\\n  \\"adjectives\\": [ \\"adamant\\", \\"adroit\\" ]\\n}\\n```",\n          "tags": [\n            "wordlist",\n            "animals"\n          ],\n          "links": [\n            {\n              "contentLength": "74",\n              "contentType": "text/plain",\n              "url": "https://ipfs.oceanprotocol.com/ipfs/QmWTpf5JXyAEfNyuBHc9Gey6pw4WKx6GfJs5efMSyMGwza"\n            }\n          ],\n          "termsAndConditions": true\n        },\n        "encryptedFiles": "0x04e164b38786f9c2049ca54950e2693b2a6116a09066068c803310635baaf703e757075960fe534db0c4426f3ad736a60576218721ad68e6b98dec9a0cdaa4324a23fd1ab404fdd2b7e2395fa72bd5885c02b78e0b99bbf404e3b2f129010cc1ab97e0a3b11e26b51961aa595a7c90c40a713d8eb856b356f06f7eef087caf2ee2fad3c0fc0283a47a770f3bd2ac3f707f3144af62cca13f9343e00f8971192c47f09a57d55b6811489b8109f0ab0d0d37ee6516547014cd0fc5b403e246afebeaaddabb56d0e392e6bac81d75e723c65bbda7b2fff91f538cfb9d97a2478ab3a9ff371db716c389c9fd0bdfe7164053"\n      },\n      "index": 0\n    },\n    {\n      "type": "access",\n      "index": 1,\n      "serviceEndpoint": "https://provider.ropsten.oceanprotocol.com",\n      "attributes": {\n        "main": {\n          "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n          "datePublished": "2020-12-10T09:41:01Z",\n          "cost": "1",\n          "timeout": 0,\n          "name": "dataAssetAccess"\n        }\n      }\n    }\n  ],\n  "dataToken": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "created": "2020-12-10T09:42:06Z",\n  "proof": {\n    "created": "2020-12-10T09:42:06Z",\n    "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n    "type": "AddressHash",\n    "signatureValue": "0x6184e0f6a704c90afbd37682a28963da55325c66c390a609e313934596f63b43"\n  },\n  "dataTokenInfo": {\n    "name": "Wheedling Penguin Token",\n    "symbol": "WHEPEN-58",\n    "address": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n    "cap": 1000\n  }\n}'
-2021-03-30 10:32:19,644 - aquarius.events.events_monitor - DEBUG - After unpack rawddo:b'{\n  "@context": "https://w3id.org/did/v1",\n  "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "publicKey": [\n    {\n      "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n      "type": "EthereumECDSAKey",\n      "owner": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7"\n    }\n  ],\n  "authentication": [\n    {\n      "type": "RsaSignatureAuthentication2018",\n      "publicKey": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af"\n    }\n  ],\n  "service": [\n    {\n      "type": "metadata",\n      "attributes": {\n        "curation": {\n          "rating": 0,\n          "numVotes": 0\n        },\n        "main": {\n          "type": "dataset",\n          "name": "Maritime Word List",\n          "dateCreated": "2020-12-10T09:41:01Z",\n          "author": "Ocean Team",\n          "license": "https://market.oceanprotocol.com/terms",\n          "files": [\n            {\n              "contentLength": "3215",\n              "contentType": "text/plain",\n              "index": 0\n            }\n          ],\n          "datePublished": "2020-12-10T09:41:01Z"\n        },\n        "additionalInformation": {\n          "description": "The wordlist used by ocean.js to generate datatoken names within the Ocean Protocol ecosystem.\\n\\n### Data Structure\\n\\nThe json object holds 2 arrays of strings, nouns and adjectives.\\n\\n```json\\n{\\n  \\"nouns\\": [ \\"Crab\\", \\"Fish\\", \\"Shark\\"],\\n  \\"adjectives\\": [ \\"adamant\\", \\"adroit\\" ]\\n}\\n```",\n          "tags": [\n            "wordlist",\n            "animals"\n          ],\n          "links": [\n            {\n              "contentLength": "74",\n              "contentType": "text/plain",\n              "url": "https://ipfs.oceanprotocol.com/ipfs/QmWTpf5JXyAEfNyuBHc9Gey6pw4WKx6GfJs5efMSyMGwza"\n            }\n          ],\n          "termsAndConditions": true\n        },\n        "encryptedFiles": "0x04e164b38786f9c2049ca54950e2693b2a6116a09066068c803310635baaf703e757075960fe534db0c4426f3ad736a60576218721ad68e6b98dec9a0cdaa4324a23fd1ab404fdd2b7e2395fa72bd5885c02b78e0b99bbf404e3b2f129010cc1ab97e0a3b11e26b51961aa595a7c90c40a713d8eb856b356f06f7eef087caf2ee2fad3c0fc0283a47a770f3bd2ac3f707f3144af62cca13f9343e00f8971192c47f09a57d55b6811489b8109f0ab0d0d37ee6516547014cd0fc5b403e246afebeaaddabb56d0e392e6bac81d75e723c65bbda7b2fff91f538cfb9d97a2478ab3a9ff371db716c389c9fd0bdfe7164053"\n      },\n      "index": 0\n    },\n    {\n      "type": "access",\n      "index": 1,\n      "serviceEndpoint": "https://provider.ropsten.oceanprotocol.com",\n      "attributes": {\n        "main": {\n          "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n          "datePublished": "2020-12-10T09:41:01Z",\n          "cost": "1",\n          "timeout": 0,\n          "name": "dataAssetAccess"\n        }\n      }\n    }\n  ],\n  "dataToken": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "created": "2020-12-10T09:42:06Z",\n  "proof": {\n    "created": "2020-12-10T09:42:06Z",\n    "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n    "type": "AddressHash",\n    "signatureValue": "0x6184e0f6a704c90afbd37682a28963da55325c66c390a609e313934596f63b43"\n  },\n  "dataTokenInfo": {\n    "name": "Wheedling Penguin Token",\n    "symbol": "WHEPEN-58",\n    "address": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n    "cap": 1000\n  }\n}'
-2021-03-30 10:32:19,644 - aquarius - INFO - got event MetadataCreated request: {'@context': 'https://w3id.org/did/v1', 'id': 'did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'publicKey': [{'id': 'did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'type': 'EthereumECDSAKey', 'owner': '0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7'}], 'authentication': [{'type': 'RsaSignatureAuthentication2018', 'publicKey': 'did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af'}], 'service': [{'type': 'metadata', 'attributes': {'curation': {'rating': 0, 'numVotes': 0}, 'main': {'type': 'dataset', 'name': 'Maritime Word List', 'dateCreated': '2020-12-10T09:41:01Z', 'author': 'Ocean Team', 'license': 'https://market.oceanprotocol.com/terms', 'files': [{'contentLength': '3215', 'contentType': 'text/plain', 'index': 0}], 'datePublished': '2020-12-10T09:41:01Z'}, 'additionalInformation': {'description': 'The wordlist used by ocean.js to generate datatoken names within the Ocean Protocol ecosystem.\n\n### Data Structure\n\nThe json object holds 2 arrays of strings, nouns and adjectives.\n\n```json\n{\n  "nouns": [ "Crab", "Fish", "Shark"],\n  "adjectives": [ "adamant", "adroit" ]\n}\n```', 'tags': ['wordlist', 'animals'], 'links': [{'contentLength': '74', 'contentType': 'text/plain', 'url': 'https://ipfs.oceanprotocol.com/ipfs/QmWTpf5JXyAEfNyuBHc9Gey6pw4WKx6GfJs5efMSyMGwza'}], 'termsAndConditions': True}, 'encryptedFiles': '0x04e164b38786f9c2049ca54950e2693b2a6116a09066068c803310635baaf703e757075960fe534db0c4426f3ad736a60576218721ad68e6b98dec9a0cdaa4324a23fd1ab404fdd2b7e2395fa72bd5885c02b78e0b99bbf404e3b2f129010cc1ab97e0a3b11e26b51961aa595a7c90c40a713d8eb856b356f06f7eef087caf2ee2fad3c0fc0283a47a770f3bd2ac3f707f3144af62cca13f9343e00f8971192c47f09a57d55b6811489b8109f0ab0d0d37ee6516547014cd0fc5b403e246afebeaaddabb56d0e392e6bac81d75e723c65bbda7b2fff91f538cfb9d97a2478ab3a9ff371db716c389c9fd0bdfe7164053'}, 'index': 0}, {'type': 'access', 'index': 1, 'serviceEndpoint': 'https://provider.ropsten.oceanprotocol.com', 'attributes': {'main': {'creator': '0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7', 'datePublished': '2020-12-10T09:41:01Z', 'cost': '1', 'timeout': 0, 'name': 'dataAssetAccess'}}}], 'dataToken': '0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'created': '2020-12-10T09:42:06Z', 'proof': {'created': '2020-12-10T09:42:06Z', 'creator': '0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7', 'type': 'AddressHash', 'signatureValue': '0x6184e0f6a704c90afbd37682a28963da55325c66c390a609e313934596f63b43'}, 'dataTokenInfo': {'name': 'Wheedling Penguin Token', 'symbol': 'WHEPEN-58', 'address': '0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'cap': 1000}}
-.....................................................................................
+$ docker logs cb43417b4fcc [--follow]
+$ docker logs 734a3b2db62a [--follow]
+
 ```
 
 
