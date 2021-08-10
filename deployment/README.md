@@ -369,13 +369,13 @@ next step is to create a [service](https://kubernetes.io/docs/concepts/services-
 
 a) create */etc/docker/compose/aquarius/docker-compose.yml* file
 
- */etc/docker/compose/aquarius/docker-compose.yml* (annotated - this example use ropsten network)
+ */etc/docker/compose/aquarius/docker-compose.yml* (annotated - this example use rinkeby network)
 
 ```yaml
 version: '3'
 services:
   elasticsearch:
-    image: elasticsearch:6.8.13
+    image: elasticsearch:6.8.17
     container_name: elasticsearch
     restart: on-failure
     environment:
@@ -387,16 +387,15 @@ services:
     ports:
       - 9200:9200
     networks:
-      - backend
-
+      - ocean_backend
   aquarius:
-    image: oceanprotocol/aquarius:v2.2.6
+    image: oceanprotocol/aquarius:v3.0.1
     container_name: aquarius
     restart: on-failure
     ports:
       - 5000:5000
     networks:
-      - backend
+      - ocean_backend
     depends_on:
       - elasticsearch
     environment:
@@ -405,19 +404,54 @@ services:
       DB_PORT: 9200
       DB_USERNAME: elastic
       DB_PASSWORD: changeme
+      DB_NAME: aquarius
+      DB_SCHEME: http
+      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
-      NETWORK_NAME: "ropsten"
-      NETWORK_URL: "ropsten"
-      EVENTS_RPC: "ropsten"
-      BFACTORY_BLOCK: 9227563
-      METADATA_CONTRACT_BLOCK: 9227563
+      AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
+      AQUARIUS_WORKERS : "8"
+      RUN_AQUARIUS_SERVER: "1"
+      AQUARIUS_CONFIG_FILE: "config.ini"
+      EVENTS_ALLOW: 0
+      RUN_EVENTS_MONITOR: 0
+      ALLOWED_PUBLISHERS: '[""]'
+  aquarius-events-rinkeby:     
+    image: oceanprotocol/aquarius:v3.0.1
+    container_name: aquarius-events-rinkeby
+    restart: on-failure
+    networks:
+      - ocean_backend
+    depends_on:
+      - elasticsearch
+    environment:
+      DB_MODULE: elasticsearch
+      DB_HOSTNAME: elasticsearch
+      DB_PORT: 9200
+      DB_USERNAME: elastic
+      DB_PASSWORD: changeme
+      DB_NAME: aquarius
+      DB_SCHEME: http
+      DB_SSL : "false"
+      LOG_LEVEL: "DEBUG"
+      AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
+      AQUARIUS_WORKERS : "1"
+      RUN_AQUARIUS_SERVER : "0"
+      AQUARIUS_CONFIG_FILE: "config.ini"
+      ALLOWED_PUBLISHERS: '[""]'
+      NETWORK_NAME: "rinkeby"
+      EVENTS_RPC: "https://rinkeby.infura.io/v3/<your Infura id project>"
+      BFACTORY_BLOCK: 7298806
+      METADATA_CONTRACT_BLOCK: 7298808
+      METADATA_UPDATE_ALL : "0"
+      OCEAN_ADDRESS :  0x8967BCF84170c91B0d24D4302C2376283b0B3a07 
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 1
+      BLOCKS_CHUNK_SIZE: "5000"
 volumes:
   data:
     driver: local
 networks:
-  backend:
+  ocean_backend:
     driver: bridge
 ```
 
