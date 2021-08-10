@@ -166,7 +166,7 @@ spec:
           value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
-        image: oceanprotocol/aquarius:v3.0.0
+        image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -284,7 +284,7 @@ spec:
           value: "5000"
         - name: EVENTS_HTTP
           value: "1"
-        image: oceanprotocol/aquarius:v3.0.0
+        image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -835,69 +835,7 @@ f44327bd3c33   oceanprotocol/aquarius:v2.2.6   "/aquarius/docker-en…"   18 sec
 
 ```shell
 $ docker logs f44327bd3c33 [--follow]
-[2021-03-30 07:28:36 +0000] [10] [INFO] Starting gunicorn 20.0.4
-[2021-03-30 07:28:36 +0000] [10] [INFO] Listening at: http://0.0.0.0:5000 (10)
-[2021-03-30 07:28:36 +0000] [10] [INFO] Using worker: gevent
-[2021-03-30 07:28:36 +0000] [13] [INFO] Booting worker with pid: 13
-[2021-03-30 07:28:36 +0000] [16] [INFO] Booting worker with pid: 16
-[2021-03-30 07:28:37 +0000] [24] [INFO] Booting worker with pid: 24
-[2021-03-30 07:28:37 +0000] [26] [INFO] Booting worker with pid: 26
-[2021-03-30 07:28:37 +0000] [29] [INFO] Booting worker with pid: 29
-[2021-03-30 07:28:37 +0000] [32] [INFO] Booting worker with pid: 32
-[2021-03-30 07:28:37 +0000] [36] [INFO] Booting worker with pid: 36
-[2021-03-30 07:28:37 +0000] [39] [INFO] Booting worker with pid: 39
-2021-03-30 07:28:42 f44327bd3c33 __main__[11] INFO EventsMonitor: preparing
-2021-03-30 07:28:42 f44327bd3c33 __main__[11] INFO EventsMonitor: starting with the following values: rpc=ropsten
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:44,689 - aquarius.events.metadata_updater - DEBUG - Ocean token address: 0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9,
-all deployed addresses: dict_items([('DTFactory', '0x6ebcCa6df2CAba986FCF44E64Ee82251c1455Dcc'), ('BFactory', '0x75be6e18c80A487C8b49663bf14f80A6495045B2'), ('FixedRateExchange', '0xA7a711A09396DF82D9be46A26B48BafdB9BB4fA6'), ('Metadata', '0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726'), ('Ocean', '0x5e8DCB2AfA23844bcc311B00Ad1A0C30025aADE9')])
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:45,735 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:45,736 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:46,076 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:46,077 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:46,116 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:46,116 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:46,581 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:46,581 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:46,616 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:46,617 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:46,712 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:46,712 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:46,742 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:46,742 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-default log level: 10, env var LOG_LEVEL DEBUG
-2021-03-30 07:28:46,812 - aquarius.config - DEBUG - Config: loading config file /aquarius/config.ini
-2021-03-30 07:28:46,812 - aquarius.config - DEBUG - Config: setting environ aquarius.url = http://0.0.0.0:5000
-2021-03-30 07:28:46,832 - aquarius.events.events_monitor - DEBUG - allowed publishers: set()
-2021-03-30 07:28:46,832 - aquarius.events.events_monitor - DEBUG - EventsMonitor: using Metadata contract address 0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726.
-2021-03-30 07:28:46,833 - aquarius.events.events_monitor - INFO - Starting the events monitor on contract 0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726.
-/usr/local/lib/python3.8/dist-packages/elasticsearch/connection/base.py:200: ElasticsearchWarning: the default number of shards will change from [5] to [1] in 7.0.0; if you wish to continue using the default of [5] shards, you must manage this on the create index request or with an index template
-  warnings.warn(message, category=ElasticsearchWarning)
-/usr/local/lib/python3.8/dist-packages/elasticsearch/connection/base.py:200: ElasticsearchWarning: [types removal] The parameter include_type_name should be explicitly specified in create index requests to prepare for 7.0. In 7.0 include_type_name will default to 'false', and requests are expected to omit the type name in mapping definitions.
-  warnings.warn(message, category=ElasticsearchWarning)
-2021-03-30 07:28:46 f44327bd3c33 __main__[11] INFO EventsMonitor: started
-2021-03-30 07:28:47,290 - aquarius.events.events_monitor - DEBUG - Metadata monitor >>>> from_block:9227563, current_block:9941287 <<<<
-2021-03-30 07:28:47,290 - aquarius.events.events_monitor - DEBUG - get_event_logs (MetadataCreated, 9227563, 9941287)..
-2021-03-30 07:28:48,098 - aquarius.events.events_monitor - INFO - Process new DDO, did from event log:did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af, sender:0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7
-2021-03-30 07:28:48,098 - aquarius.events.events_monitor - DEBUG - checking allowed publishers: 0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7
-2021-03-30 07:28:48,102 - aquarius.events.events_monitor - INFO - Start processing MetadataCreated event: did=did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af
-2021-03-30 07:28:48,102 - aquarius.events.events_monitor - DEBUG - block 9232523, contract: 0x3cd7Ef1F207E1a46AAd7D5d7F5f0A5cF081Fc726, Sender: 0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7 , txid: 0xe86b1d17f1b92c8717483c3d48721edab8e48350df3e6180b7864558e3a9e6ec
-2021-03-30 07:28:48,102 - aquarius.events.events_monitor - DEBUG - decoding with did did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af and flags b'\x01'
-2021-03-30 07:28:48,102 - aquarius.events.events_monitor - DEBUG - flags: b'\x01'
-2021-03-30 07:28:48,102 - aquarius.events.events_monitor - DEBUG - checkflags: 1
-2021-03-30 07:28:48,104 - aquarius.events.events_monitor - DEBUG - Decompressed to b'{\n  "@context": "https://w3id.org/did/v1",\n  "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "publicKey": [\n    {\n      "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n      "type": "EthereumECDSAKey",\n      "owner": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7"\n    }\n  ],\n  "authentication": [\n    {\n      "type": "RsaSignatureAuthentication2018",\n      "publicKey": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af"\n    }\n  ],\n  "service": [\n    {\n      "type": "metadata",\n      "attributes": {\n        "curation": {\n          "rating": 0,\n          "numVotes": 0\n        },\n        "main": {\n          "type": "dataset",\n          "name": "Maritime Word List",\n          "dateCreated": "2020-12-10T09:41:01Z",\n          "author": "Ocean Team",\n          "license": "https://market.oceanprotocol.com/terms",\n          "files": [\n            {\n              "contentLength": "3215",\n              "contentType": "text/plain",\n              "index": 0\n            }\n          ],\n          "datePublished": "2020-12-10T09:41:01Z"\n        },\n        "additionalInformation": {\n          "description": "The wordlist used by ocean.js to generate datatoken names within the Ocean Protocol ecosystem.\\n\\n### Data Structure\\n\\nThe json object holds 2 arrays of strings, nouns and adjectives.\\n\\n```json\\n{\\n  \\"nouns\\": [ \\"Crab\\", \\"Fish\\", \\"Shark\\"],\\n  \\"adjectives\\": [ \\"adamant\\", \\"adroit\\" ]\\n}\\n```",\n          "tags": [\n            "wordlist",\n            "animals"\n          ],\n          "links": [\n            {\n              "contentLength": "74",\n              "contentType": "text/plain",\n              "url": "https://ipfs.oceanprotocol.com/ipfs/QmWTpf5JXyAEfNyuBHc9Gey6pw4WKx6GfJs5efMSyMGwza"\n            }\n          ],\n          "termsAndConditions": true\n        },\n        "encryptedFiles": "0x04e164b38786f9c2049ca54950e2693b2a6116a09066068c803310635baaf703e757075960fe534db0c4426f3ad736a60576218721ad68e6b98dec9a0cdaa4324a23fd1ab404fdd2b7e2395fa72bd5885c02b78e0b99bbf404e3b2f129010cc1ab97e0a3b11e26b51961aa595a7c90c40a713d8eb856b356f06f7eef087caf2ee2fad3c0fc0283a47a770f3bd2ac3f707f3144af62cca13f9343e00f8971192c47f09a57d55b6811489b8109f0ab0d0d37ee6516547014cd0fc5b403e246afebeaaddabb56d0e392e6bac81d75e723c65bbda7b2fff91f538cfb9d97a2478ab3a9ff371db716c389c9fd0bdfe7164053"\n      },\n      "index": 0\n    },\n    {\n      "type": "access",\n      "index": 1,\n      "serviceEndpoint": "https://provider.ropsten.oceanprotocol.com",\n      "attributes": {\n        "main": {\n          "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n          "datePublished": "2020-12-10T09:41:01Z",\n          "cost": "1",\n          "timeout": 0,\n          "name": "dataAssetAccess"\n        }\n      }\n    }\n  ],\n  "dataToken": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "created": "2020-12-10T09:42:06Z",\n  "proof": {\n    "created": "2020-12-10T09:42:06Z",\n    "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n    "type": "AddressHash",\n    "signatureValue": "0x6184e0f6a704c90afbd37682a28963da55325c66c390a609e313934596f63b43"\n  },\n  "dataTokenInfo": {\n    "name": "Wheedling Penguin Token",\n    "symbol": "WHEPEN-58",\n    "address": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n    "cap": 1000\n  }\n}'
-2021-03-30 07:28:48,104 - aquarius.events.events_monitor - DEBUG - After unpack rawddo:b'{\n  "@context": "https://w3id.org/did/v1",\n  "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "publicKey": [\n    {\n      "id": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n      "type": "EthereumECDSAKey",\n      "owner": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7"\n    }\n  ],\n  "authentication": [\n    {\n      "type": "RsaSignatureAuthentication2018",\n      "publicKey": "did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af"\n    }\n  ],\n  "service": [\n    {\n      "type": "metadata",\n      "attributes": {\n        "curation": {\n          "rating": 0,\n          "numVotes": 0\n        },\n        "main": {\n          "type": "dataset",\n          "name": "Maritime Word List",\n          "dateCreated": "2020-12-10T09:41:01Z",\n          "author": "Ocean Team",\n          "license": "https://market.oceanprotocol.com/terms",\n          "files": [\n            {\n              "contentLength": "3215",\n              "contentType": "text/plain",\n              "index": 0\n            }\n          ],\n          "datePublished": "2020-12-10T09:41:01Z"\n        },\n        "additionalInformation": {\n          "description": "The wordlist used by ocean.js to generate datatoken names within the Ocean Protocol ecosystem.\\n\\n### Data Structure\\n\\nThe json object holds 2 arrays of strings, nouns and adjectives.\\n\\n```json\\n{\\n  \\"nouns\\": [ \\"Crab\\", \\"Fish\\", \\"Shark\\"],\\n  \\"adjectives\\": [ \\"adamant\\", \\"adroit\\" ]\\n}\\n```",\n          "tags": [\n            "wordlist",\n            "animals"\n          ],\n          "links": [\n            {\n              "contentLength": "74",\n              "contentType": "text/plain",\n              "url": "https://ipfs.oceanprotocol.com/ipfs/QmWTpf5JXyAEfNyuBHc9Gey6pw4WKx6GfJs5efMSyMGwza"\n            }\n          ],\n          "termsAndConditions": true\n        },\n        "encryptedFiles": "0x04e164b38786f9c2049ca54950e2693b2a6116a09066068c803310635baaf703e757075960fe534db0c4426f3ad736a60576218721ad68e6b98dec9a0cdaa4324a23fd1ab404fdd2b7e2395fa72bd5885c02b78e0b99bbf404e3b2f129010cc1ab97e0a3b11e26b51961aa595a7c90c40a713d8eb856b356f06f7eef087caf2ee2fad3c0fc0283a47a770f3bd2ac3f707f3144af62cca13f9343e00f8971192c47f09a57d55b6811489b8109f0ab0d0d37ee6516547014cd0fc5b403e246afebeaaddabb56d0e392e6bac81d75e723c65bbda7b2fff91f538cfb9d97a2478ab3a9ff371db716c389c9fd0bdfe7164053"\n      },\n      "index": 0\n    },\n    {\n      "type": "access",\n      "index": 1,\n      "serviceEndpoint": "https://provider.ropsten.oceanprotocol.com",\n      "attributes": {\n        "main": {\n          "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n          "datePublished": "2020-12-10T09:41:01Z",\n          "cost": "1",\n          "timeout": 0,\n          "name": "dataAssetAccess"\n        }\n      }\n    }\n  ],\n  "dataToken": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n  "created": "2020-12-10T09:42:06Z",\n  "proof": {\n    "created": "2020-12-10T09:42:06Z",\n    "creator": "0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7",\n    "type": "AddressHash",\n    "signatureValue": "0x6184e0f6a704c90afbd37682a28963da55325c66c390a609e313934596f63b43"\n  },\n  "dataTokenInfo": {\n    "name": "Wheedling Penguin Token",\n    "symbol": "WHEPEN-58",\n    "address": "0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af",\n    "cap": 1000\n  }\n}'
-2021-03-30 07:28:48,104 - aquarius - INFO - got event MetadataCreated request: {'@context': 'https://w3id.org/did/v1', 'id': 'did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'publicKey': [{'id': 'did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'type': 'EthereumECDSAKey', 'owner': '0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7'}], 'authentication': [{'type': 'RsaSignatureAuthentication2018', 'publicKey': 'did:op:2b6DA6D5f354D893AF9d170E67e74B2F11b843af'}], 'service': [{'type': 'metadata', 'attributes': {'curation': {'rating': 0, 'numVotes': 0}, 'main': {'type': 'dataset', 'name': 'Maritime Word List', 'dateCreated': '2020-12-10T09:41:01Z', 'author': 'Ocean Team', 'license': 'https://market.oceanprotocol.com/terms', 'files': [{'contentLength': '3215', 'contentType': 'text/plain', 'index': 0}], 'datePublished': '2020-12-10T09:41:01Z'}, 'additionalInformation': {'description': 'The wordlist used by ocean.js to generate datatoken names within the Ocean Protocol ecosystem.\n\n### Data Structure\n\nThe json object holds 2 arrays of strings, nouns and adjectives.\n\n```json\n{\n  "nouns": [ "Crab", "Fish", "Shark"],\n  "adjectives": [ "adamant", "adroit" ]\n}\n```', 'tags': ['wordlist', 'animals'], 'links': [{'contentLength': '74', 'contentType': 'text/plain', 'url': 'https://ipfs.oceanprotocol.com/ipfs/QmWTpf5JXyAEfNyuBHc9Gey6pw4WKx6GfJs5efMSyMGwza'}], 'termsAndConditions': True}, 'encryptedFiles': '0x04e164b38786f9c2049ca54950e2693b2a6116a09066068c803310635baaf703e757075960fe534db0c4426f3ad736a60576218721ad68e6b98dec9a0cdaa4324a23fd1ab404fdd2b7e2395fa72bd5885c02b78e0b99bbf404e3b2f129010cc1ab97e0a3b11e26b51961aa595a7c90c40a713d8eb856b356f06f7eef087caf2ee2fad3c0fc0283a47a770f3bd2ac3f707f3144af62cca13f9343e00f8971192c47f09a57d55b6811489b8109f0ab0d0d37ee6516547014cd0fc5b403e246afebeaaddabb56d0e392e6bac81d75e723c65bbda7b2fff91f538cfb9d97a2478ab3a9ff371db716c389c9fd0bdfe7164053'}, 'index': 0}, {'type': 'access', 'index': 1, 'serviceEndpoint': 'https://provider.ropsten.oceanprotocol.com', 'attributes': {'main': {'creator': '0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7', 'datePublished': '2020-12-10T09:41:01Z', 'cost': '1', 'timeout': 0, 'name': 'dataAssetAccess'}}}], 'dataToken': '0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'created': '2020-12-10T09:42:06Z', 'proof': {'created': '2020-12-10T09:42:06Z', 'creator': '0x903322C7E45A60d7c8C3EA236c5beA9Af86310c7', 'type': 'AddressHash', 'signatureValue': '0x6184e0f6a704c90afbd37682a28963da55325c66c390a609e313934596f63b43'}, 'dataTokenInfo': {'name': 'Wheedling Penguin Token', 'symbol': 'WHEPEN-58', 'address': '0x2b6DA6D5f354D893AF9d170E67e74B2F11b843af', 'cap': 1000}}
-...........................................................................................................................
 ```
-
 
 
 confirm Aquarius service is accessible on localhost port 5000/tcp
