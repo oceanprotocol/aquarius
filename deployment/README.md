@@ -66,15 +66,15 @@ Forwarding from [::1]:9200 -> 9200
 $ curl localhost:9200
 Handling connection for 9200
 {
-  "name" : "elasticsearch-master-0",
+  "name" : "elasticsearch-master-1",
   "cluster_name" : "elasticsearch",
-  "cluster_uuid" : "nrv6IrPCRzu1KQ17GFuVdQ",
+  "cluster_uuid" : "izZH8nHGReq-TxrD-NrSOA",
   "version" : {
-    "number" : "6.8.13",
+    "number" : "6.8.15",
     "build_flavor" : "default",
     "build_type" : "docker",
-    "build_hash" : "be13c69",
-    "build_date" : "2020-10-16T09:09:46.555371Z",
+    "build_hash" : "c9a8c60",
+    "build_date" : "2021-03-18T06:33:32.588487Z",
     "build_snapshot" : false,
     "lucene_version" : "7.7.3",
     "minimum_wire_compatibility_version" : "5.6.0",
