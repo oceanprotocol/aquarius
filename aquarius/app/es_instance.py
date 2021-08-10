@@ -6,6 +6,7 @@ import os
 import logging
 import time
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError
 
 from aquarius.app.es_mapping import es_mapping
 
@@ -163,41 +164,28 @@ class ElasticsearchInstance(object):
 
         return 0
 
-    def list(self, search_from=None, search_to=None, limit=None, chunk_size=100):
-        """List all the objects saved in elasticsearch
-        :param search_from: start offset of objects to return.
-        :param search_to: last offset of objects to return.
-        :param limit: max number of values to be returned.
-        :param chunk_size: int size of each batch of objects
-        :return: generator with all matching documents
-        """
-        logger.debug("elasticsearch::list")
-        _body = {"sort": [{"_id": "asc"}], "query": {"match_all": {}}}
+    def get(self, asset_id):
+        try:
+            asset = self.read(asset_id)
+        except NotFoundError:
+            logger.info(f"Asset with id {asset_id} was not found in ES.")
+            raise
 
-        count = 0
-        count_result = self.es.count(index=self.db_index)
-        if count_result is not None and count_result["count"] > 0:
-            count = count_result["count"]
+        except Exception as e:
+            logger.error(f"get: {str(e)}")
+            raise
 
-        if not count:
-            return []
+        if asset is None or not self.is_listed(asset["service"]):
+            return None
 
-        search_from = search_from if search_from is not None and search_from >= 0 else 0
-        search_from = min(search_from, count - 1)
-        search_to = (
-            search_to if search_to is not None and search_to >= 0 else (count - 1)
-        )
-        limit = search_to - search_from + 1
-        chunk_size = min(chunk_size, limit)
+        return asset
 
-        _body["size"] = chunk_size
-        processed = 0
-        while processed < limit:
-            body = _body.copy()
-            body["from"] = search_from
-            result = self.es.search(index=self.db_index, body=body)
-            hits = result["hits"]["hits"]
-            search_from += len(hits)
-            processed += len(hits)
-            for x in hits:
-                yield x["_source"]
+    @staticmethod
+    def is_listed(services):
+        for service in services:
+            if service["type"] == "metadata":
+                if (
+                    "curation" in service["attributes"]
+                    and "isListed" in service["attributes"]["curation"]
+                ):
+                    return service["attributes"]["curation"]["isListed"]

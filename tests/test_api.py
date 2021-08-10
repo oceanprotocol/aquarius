@@ -362,4 +362,3 @@ def test_spec(client):
     assert "title" in result["info"]
     assert "description" in result["info"]
     assert "connected" in result["info"]
-

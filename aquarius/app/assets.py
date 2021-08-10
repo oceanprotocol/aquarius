@@ -14,7 +14,6 @@ from aquarius.ddo_checker.ddo_checker import (
     list_errors_dict_remote,
 )
 
-from aquarius.app.dao import Dao
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
     datetime_converter,
@@ -31,7 +30,6 @@ from web3 import Web3
 setup_logging()
 assets = Blueprint("assets", __name__)
 
-dao = Dao(config_file=app.config["AQUARIUS_CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
 es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 
@@ -150,7 +148,7 @@ def get_ddo(did):
         description: This asset DID is not in ES.
     """
     try:
-        asset_record = dao.get(did)
+        asset_record = es_instance.get(did)
         return Response(
             sanitize_record(asset_record), 200, content_type="application/json"
         )
@@ -203,7 +201,7 @@ def get_metadata(did):
         description: This asset DID is not in ES.
     """
     try:
-        asset_record = dao.get(did)
+        asset_record = es_instance.get(did)
         metadata = get_metadata_from_services(asset_record["service"])
         return Response(sanitize_record(metadata), 200, content_type="application/json")
     except Exception as e:
@@ -257,7 +255,7 @@ def get_assets_names():
         names = dict()
         for did in did_list:
             try:
-                asset_record = dao.get(did)
+                asset_record = es_instance.get(did)
                 metadata = get_metadata_from_services(asset_record["service"])
                 names[did] = metadata["main"]["name"]
             except Exception:
