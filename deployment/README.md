@@ -105,7 +105,7 @@ Common cases are the deployments for one/multiple multiple Ethereum networks:
 
 and the following templates (annotated) could be edited and used for deployment.
 
-*aquarius-deployment.yaml* (annotated) => this deployment is responsible for serving API requests
+*[aquarius-deployment.yaml](./aquarius-deployment.yaml)* (annotated) => this deployment is responsible for serving API requests
 
 ```yaml
 apiVersion: apps/v1
