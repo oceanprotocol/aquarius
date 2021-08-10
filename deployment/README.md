@@ -573,7 +573,7 @@ b33f8f3f144b   elasticsearch:6.8.17            "/usr/local/bin/dock…"   34 sec
 
 
 
-== check logs from aquarius docker container
+== check logs from aquarius docker containers
 
 ```shell
 $ docker logs cb43417b4fcc [--follow]
