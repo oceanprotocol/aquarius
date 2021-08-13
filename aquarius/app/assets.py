@@ -282,7 +282,12 @@ def query_ddo():
     assert isinstance(request.json, dict), "invalid payload format."
 
     data = request.json
-    return es_instance.es.search(data)
+
+    try:
+        return es_instance.es.search(data)
+    except elasticsearch.exceptions.TransportError as e:
+        logger.error(f"Received elasticsearch TransportError: {str(e)}")
+        return jsonify(error="Received elasticsearch TransportError. Please refine the search."), 507
 
 
 @assets.route("/ddo/validate", methods=["POST"])
