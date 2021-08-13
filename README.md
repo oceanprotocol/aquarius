@@ -183,7 +183,10 @@ flask run
 
 That will use HTTP (i.e. not SSL/TLS).
 
-⚠️ ATTENTION: if you are using an Aquarius search endpoint and it returns more than 10k results, Elasticsearch will error out and your query will fail. The solution is to be more specific in your search. This can happpen on test networks with many assets, like rinkeby.
+⚠️ ATTENTION: if you are using an Aquarius search endpoint and it returns more than 10k results,
+    Elasticsearch will throw a TransportError and your query will fail.
+    You will receive a 507 code from the Aquarius query endpoint.
+    The solution is to be more specific in your search. This can happpen on test networks with many assets, like rinkeby.
 
 If you are a contributor, make sure you install the pre-commit hooks using the command `pre-commit install`. This will make sure your imports are sorted and your code is properly formatted before committing.
 

@@ -278,6 +278,8 @@ def query_ddo():
     responses:
       200:
         description: successful action
+      507:
+        description: TransportError from Elasticsearch (usually means >10k results)
     """
     assert isinstance(request.json, dict), "invalid payload format."
 
