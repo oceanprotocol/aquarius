@@ -149,14 +149,17 @@ def get_ddo(did):
     """
     try:
         asset_record = es_instance.get(did)
-        return Response(
-            sanitize_record(asset_record), 200, content_type="application/json"
-        )
+        return sanitize_record(asset_record), 200
     except elasticsearch.exceptions.NotFoundError:
-        return f"{did} asset DID is not in ES", 404
+        return jsonify(error=f"Asset DID {did} not found in Elasticsearch."), 404
     except Exception as e:
         logger.error(f"get_ddo: {str(e)}")
-        return f"{did} asset DID is not in ES", 404
+        return (
+            jsonify(
+                error=f"Error encountered while searching the asset DID {did}: {str(e)}."
+            ),
+            404,
+        )
 
 
 @assets.route("/metadata/<did>", methods=["GET"])
@@ -203,10 +206,13 @@ def get_metadata(did):
     try:
         asset_record = es_instance.get(did)
         metadata = get_metadata_from_services(asset_record["service"])
-        return Response(sanitize_record(metadata), 200, content_type="application/json")
+        return sanitize_record(metadata)
     except Exception as e:
         logger.error(f"get_metadata: {str(e)}")
-        return f"{did} asset DID is not in ES", 404
+        return (
+            jsonify(error=f"Error encountered while retrieving metadata: {str(e)}."),
+            404,
+        )
 
 
 @assets.route("/names", methods=["POST"])
@@ -289,7 +295,12 @@ def query_ddo():
         return es_instance.es.search(data)
     except elasticsearch.exceptions.TransportError as e:
         logger.error(f"Received elasticsearch TransportError: {str(e)}")
-        return jsonify(error="Received elasticsearch TransportError. Please refine the search."), 507
+        return (
+            jsonify(
+                error="Received elasticsearch TransportError. Please refine the search."
+            ),
+            507,
+        )
 
 
 @assets.route("/ddo/validate", methods=["POST"])

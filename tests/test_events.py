@@ -103,7 +103,7 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
     send_create_update_tx("create", did, bytes([0]), data, test_account3)
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo is None
+    assert published_ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
 
 
 def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkeypatch):
