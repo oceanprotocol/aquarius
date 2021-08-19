@@ -245,7 +245,7 @@ def test_invalid_requests(client_with_no_data, base_ddo_url):
     response = client_with_no_data.post(
         base_ddo_url + "/encryptashex",
         data="irrelevant",
-        content_type="not_application/text",
+        content_type="not_application/octet-stream",
     )
     assert response.status == "400 BAD REQUEST"
 
@@ -323,7 +323,7 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
     _response_hex = client.post(
         base_ddo_url + "/encryptashex",
         data=compressed_ddo,
-        content_type="application/text",
+        content_type="application/octet-stream",
     )
     assert _response_hex.status_code == 200
     encrypted_ddo_hex = _response_hex.data.decode("utf-8")

@@ -470,7 +470,7 @@ def encrypt_ddo_as_hex():
     tags:
       - ddo
     consumes:
-      - application/text
+      - application/octet-stream
     parameters:
       - in: body
         name: body
@@ -489,9 +489,11 @@ def encrypt_ddo_as_hex():
       500:
         description: Error
     """
-    if request.content_type != "application/text":
+    if request.content_type != "application/octet-stream":
         return (
-            jsonify(error="Invalid request content type: should be application/text"),
+            jsonify(
+                error="Invalid request content type: should be application/octet-stream"
+            ),
             400,
         )
 
