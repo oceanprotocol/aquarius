@@ -178,15 +178,15 @@ def test_validate_remote(client_with_no_data, base_ddo_url):
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data={}
     )
-    assert post.status_code == 400
-    assert post.data == b'{"message":"Invalid DDO format."}\n'
+    assert post.status_code == 200
+    assert post.json[0]["message"] == "missing `service` key in data."
 
     # main key missing from metadata service - should fail from Aqua
     val = json_before["service"][2]["attributes"].pop("main")
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
     )
-    assert post.status_code == 400
+    assert post.status_code == 200
 
     # main key empty in metadata service - should fail from DDO Checker
     json_before["service"][2]["attributes"]["main"] = {}
