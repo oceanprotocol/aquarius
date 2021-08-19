@@ -217,6 +217,39 @@ def test_invalid_date():
     )
 
 
+def test_invalid_requests(client_with_no_data, base_ddo_url):
+    response = run_request(
+        client_with_no_data.post, base_ddo_url + "/query", "not a dict request"
+    )
+    assert response.status == "400 BAD REQUEST"
+
+    response = run_request(
+        client_with_no_data.post, base_ddo_url + "/validate", "not a dict request"
+    )
+    assert response.status == "400 BAD REQUEST"
+
+    response = run_request(
+        client_with_no_data.post,
+        base_ddo_url + "/validate-remote",
+        "not a dict request",
+    )
+    assert response.status == "400 BAD REQUEST"
+
+    response = client_with_no_data.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="not_application/octet-stream",
+    )
+    assert response.status == "400 BAD REQUEST"
+
+    response = client_with_no_data.post(
+        base_ddo_url + "/encryptashex",
+        data="irrelevant",
+        content_type="not_application/text",
+    )
+    assert response.status == "400 BAD REQUEST"
+
+
 def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     client = client_with_no_data
     block = get_web3().eth.block_number
@@ -254,6 +287,10 @@ def test_get_assets_names(client, events_object):
     assert response.status == "400 BAD REQUEST"
 
     response = run_request(client.post, base_url + "/names", {"didList": []})
+
+    assert response.status == "400 BAD REQUEST"
+
+    response = run_request(client.post, base_url + "/names", "not a dictequest")
 
     assert response.status == "400 BAD REQUEST"
 
