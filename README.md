@@ -130,6 +130,8 @@ More details about ontology of the metadata are at
 
 Changes to this repo have ripple effects to this repo's docker image, and barge. 
 
+When you make changes, you have to make sure that you're not breaking downstream components that use this.
+
 Therefore when you make changes here, you may need to update more:
 - update this repo
 - update this repo's docker container (if needed)
