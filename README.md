@@ -138,7 +138,7 @@ Therefore when you make changes here, you may need to update more:
 - update barge with this repo's changes (if needed)
 
 Also, changes should double-check that Ocean Market works.
-- test Ocean Market locally. [Ocean.py marketplace flow](https://github.com/oceanprotocol/ocean.py/blob/main/READMEs/marketplace-flow.md) shows how to spin it up locally in a Python context
+- test Ocean Market locally, focusing on where the change was made. This will hit the API endpoint. [Ocean.py marketplace flow](https://github.com/oceanprotocol/ocean.py/blob/main/READMEs/marketplace-flow.md) shows how to spin it up locally in a Python context
 - test Ocean Market on rinkeby or ropsten
 
 ### Running Locally, for Dev and Test
