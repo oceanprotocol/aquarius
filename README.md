@@ -126,9 +126,18 @@ More details about ontology of the metadata are at
 
 ## For Aquarius Developers
 
-### General Ocean Dev Docs
+### Testing, Ensuring Changes are Well Propagated
 
-Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
+Changes to this repo have ripple effects to this repo's docker image, and barge. 
+
+Therefore when you make changes here, you may need to update more:
+- update this repo
+- update this repo's docker container (if needed)
+- update barge with this repo's changes (if needed)
+
+Also, changes should double-check that Ocean Market works.
+- test Ocean Market locally. [Ocean.py marketplace flow](https://github.com/oceanprotocol/ocean.py/blob/main/READMEs/marketplace-flow.md) shows how to spin it up locally in a Python context
+- test Ocean Market on rinkeby or ropsten
 
 ### Running Locally, for Dev and Test
 
