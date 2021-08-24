@@ -16,10 +16,9 @@ from aquarius.ddo_checker.ddo_checker import (
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
-    datetime_converter,
+    list_errors,
     get_metadata_from_services,
     sanitize_record,
-    list_errors,
     get_request_data,
     encrypt_data,
 )

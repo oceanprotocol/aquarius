@@ -6,6 +6,7 @@ import json
 
 from tests.ddos.ddo_sample_updates import json_before, json_valid
 from tests.helpers import run_request
+from unittest.mock import patch
 
 
 def test_validate(client_with_no_data, base_ddo_url):
@@ -87,3 +88,21 @@ def test_validate_remote(client_with_no_data, base_ddo_url):
         client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
     )
     assert post.data == b"true\n"
+
+
+def test_validate_error(client, base_ddo_url, monkeypatch):
+    with patch('aquarius.app.assets.list_errors') as mock:
+        mock.side_effect = Exception("Boom!")
+        rv = run_request(
+            client.post, base_ddo_url + "/validate", data={"test": "test"}
+        )
+        assert rv.status_code == 500
+        assert rv.json["error"] == "Encountered error when validating metadata: Boom!."
+
+
+def test_validate_error_remote(client, base_ddo_url, monkeypatch):
+    rv = run_request(
+        client.post, base_ddo_url + "/validate-remote", data={"service": "bla"}
+    )
+    assert rv.status_code == 500
+    assert rv.json["error"] == "Encountered error when validating asset: string indices must be integers."

@@ -8,6 +8,7 @@ import lzma
 import ecies
 from web3 import Web3
 import eth_keys
+from unittest.mock import patch
 
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from tests.helpers import (
@@ -110,8 +111,35 @@ def test_encrypt_wrong(client, base_ddo_url, monkeypatch):
     monkeypatch.delenv("EVENTS_ECIES_PRIVATE_KEY")
 
     _response = client.post(
+        base_ddo_url + "/encrypt",
+        data="irrelevant",
+        content_type="application/octet-stream",
+    )
+    assert _response.status_code == 400
+
+    _response = client.post(
         base_ddo_url + "/encryptashex",
         data="irrelevant",
         content_type="application/octet-stream",
     )
     assert _response.status_code == 400
+
+
+def test_encrypt_exceptions(client, base_ddo_url):
+    with patch('aquarius.app.assets.encrypt_data') as mock:
+        mock.side_effect = Exception('Boom!')
+        _response = client.post(
+            base_ddo_url + "/encrypt",
+            data="irrelevant",
+            content_type="application/octet-stream",
+        )
+        assert _response.status_code == 500
+
+    with patch('aquarius.app.assets.encrypt_data') as mock:
+        mock.side_effect = Exception('Boom!')
+        _response = client.post(
+            base_ddo_url + "/encryptashex",
+            data="irrelevant",
+            content_type="application/octet-stream",
+        )
+        assert _response.status_code == 500
