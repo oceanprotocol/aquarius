@@ -22,7 +22,7 @@ from tests.helpers import (
 from unittest.mock import patch
 
 
-def test_get_ddo_exception(client, base_ddo_url, monkeypatch):
+def test_get_ddo_exception(client, base_ddo_url):
     with patch('aquarius.app.es_instance.ElasticsearchInstance.get') as mock:
         mock.side_effect = Exception('Boom!')
         rv = client.get(base_ddo_url + "/1", content_type="application/json")
@@ -30,7 +30,7 @@ def test_get_ddo_exception(client, base_ddo_url, monkeypatch):
         assert rv.json['error'] == "Error encountered while searching the asset DID 1: Boom!."
 
 
-def test_get_metadata_exception(client, monkeypatch):
+def test_get_metadata_exception(client):
     with patch('aquarius.app.es_instance.ElasticsearchInstance.get') as mock:
         mock.side_effect = Exception('Boom!')
         rv = client.get("api/v1/aquarius/assets/metadata/1", content_type="application/json")
@@ -38,7 +38,7 @@ def test_get_metadata_exception(client, monkeypatch):
         assert rv.json['error'] == "Error encountered while retrieving metadata: Boom!."
 
 
-def test_get_assets_names_exception(client, monkeypatch):
+def test_get_assets_names_exception(client):
     with patch('aquarius.app.es_instance.ElasticsearchInstance.get') as mock:
         mock.side_effect = Exception('Boom!')
         base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
@@ -47,10 +47,38 @@ def test_get_assets_names_exception(client, monkeypatch):
         assert rv.status_code == 200
 
 
-def test_transport_error(client, base_ddo_url, monkeypatch):
+def test_transport_error(client, base_ddo_url):
     with patch('elasticsearch.Elasticsearch.search') as mock:
         mock.side_effect = elasticsearch.exceptions.TransportError("Boom!")
         base_url = base_ddo_url + '/query'
         rv = run_request(client.post, base_url, {"didList": [1]})
         assert rv.status_code == 507
         assert rv.json["error"] == "Received elasticsearch TransportError. Please refine the search."
+
+
+def test_chains_list_exceptions(client, chains_url):
+    with patch('elasticsearch.Elasticsearch.get') as mock:
+        mock.side_effect = elasticsearch.exceptions.NotFoundError("Boom!")
+        rv = client.get(chains_url + "/list", content_type="application/json")
+        assert rv.status_code == 404
+        assert rv.json["error"] == "No chains found."
+
+    with patch('elasticsearch.Elasticsearch.get') as mock:
+        mock.side_effect = Exception("Boom!")
+        rv = client.get(chains_url + "/list", content_type="application/json")
+        assert rv.status_code == 404
+        assert rv.json["error"] == "Error retrieving chains: Boom!."
+
+
+def test_chains_status_exceptions(client, chains_url):
+    with patch('elasticsearch.Elasticsearch.get') as mock:
+        mock.side_effect = elasticsearch.exceptions.NotFoundError("Boom!")
+        rv = client.get(chains_url + "/status/1", content_type="application/json")
+        assert rv.status_code == 404
+        assert rv.json["error"] == "Chain 1 is not indexed."
+
+    with patch('elasticsearch.Elasticsearch.get') as mock:
+        mock.side_effect = Exception("Boom!")
+        rv = client.get(chains_url + "/status/1", content_type="application/json")
+        assert rv.status_code == 404
+        assert rv.json["error"] == "Error retrieving chain 1: Boom!."

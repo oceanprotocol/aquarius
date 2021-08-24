@@ -39,7 +39,7 @@ def get_chains_list():
         return jsonify(error="No chains found."), 404
     except Exception as e:
         logger.error(f"Error in get_chains_list: {str(e)}")
-        return jsonify(error="Error retrieving chains: {str(e)}."), 404
+        return jsonify(error=f"Error retrieving chains: {str(e)}."), 404
 
 
 @chains.route("/status/<chain_id>", methods=["GET"])
@@ -69,7 +69,7 @@ def get_index_status(chain_id):
         return json.dumps(last_block_record)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
         logger.error(f"Cannot get index status for chain {chain_id}. Chain not found.")
-        return jsonify(error=f"Chain {chain_id} is not indexed"), 404
+        return jsonify(error=f"Chain {chain_id} is not indexed."), 404
     except Exception as e:
         logger.error(
             f"Cannot get index status for chain {chain_id}. Error encountered is: {str(e)}"
