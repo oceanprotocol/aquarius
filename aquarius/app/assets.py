@@ -153,7 +153,6 @@ def get_ddo(did):
     except elasticsearch.exceptions.NotFoundError:
         return jsonify(error=f"Asset DID {did} not found in Elasticsearch."), 404
     except Exception as e:
-        logger.error(f"get_ddo: {str(e)}")
         return (
             jsonify(
                 error=f"Error encountered while searching the asset DID {did}: {str(e)}."
@@ -246,39 +245,34 @@ def get_assets_names():
       404:
         description: assets not found
     """
-    try:
-        data = get_request_data(request)
-        if not isinstance(data, dict):
-            return (
-                jsonify(
-                    error="Invalid payload. The request could not be converted into a dict."
-                ),
-                400,
-            )
-
-        if "didList" not in data:
-            return jsonify(error="`didList` is required in the request payload."), 400
-
-        did_list = data.get("didList", [])
-        if not did_list:
-            return jsonify(error="The requested didList can not be empty."), 400
-
-        names = dict()
-        for did in did_list:
-            try:
-                asset_record = es_instance.get(did)
-                metadata = get_metadata_from_services(asset_record["service"])
-                names[did] = metadata["main"]["name"]
-            except Exception:
-                names[did] = ""
-
-        return json.dumps(names), 200
-    except Exception as e:
-        logger.error(f"get_assets_names failed: {str(e)}")
+    data = get_request_data(request)
+    if not isinstance(data, dict):
         return (
-            jsonify(error=f"Encountered error when retrieving asset names: {str(e)}."),
-            404,
+            jsonify(
+                error="Invalid payload. The request could not be converted into a dict."
+            ),
+            400,
         )
+
+    if "didList" not in data:
+        return jsonify(error="`didList` is required in the request payload."), 400
+
+    did_list = data.get("didList", [])
+    if not did_list:
+        return jsonify(error="The requested didList can not be empty."), 400
+    if not isinstance(did_list, list):
+        return jsonify(error="The didList must be a list."), 400
+
+    names = dict()
+    for did in did_list:
+        try:
+            asset_record = es_instance.get(did)
+            metadata = get_metadata_from_services(asset_record["service"])
+            names[did] = metadata["main"]["name"]
+        except Exception:
+            names[did] = ""
+
+    return json.dumps(names), 200
 
 
 @assets.route("/ddo/query", methods=["POST"])
@@ -307,7 +301,7 @@ def query_ddo():
     try:
         return es_instance.es.search(data)
     except elasticsearch.exceptions.TransportError as e:
-        logger.error(f"Received elasticsearch TransportError: {str(e)}")
+        logger.error(f"Received elasticsearch TransportError.")
         # intentionally not transcribing the exception message in the response.
         # this exception is expected when running queries with >10k results.
         return (

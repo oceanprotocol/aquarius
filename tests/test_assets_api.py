@@ -120,6 +120,14 @@ def test_get_assets_names(client, events_object):
 
     assert response.status == "400 BAD REQUEST"
 
+    response = run_request(client.post, base_url + "/names", {"didList": "notadict"})
+
+    assert response.status == "400 BAD REQUEST"
+
+    response = run_request(client.post, base_url + "/names", "notadict")
+
+    assert response.status == "400 BAD REQUEST"
+
     assets = add_assets(events_object, "dt_name", 3)
     dids = [ddo["id"] for ddo in assets]
     did_to_name = run_request_get_data(
