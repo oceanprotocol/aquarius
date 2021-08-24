@@ -18,7 +18,7 @@ from tests.helpers import (
     send_create_update_tx,
     test_account1,
     ecies_account,
-    run_request_get_data
+    run_request_get_data,
 )
 
 
@@ -126,8 +126,8 @@ def test_encrypt_wrong(client, base_ddo_url, monkeypatch):
 
 
 def test_encrypt_exceptions(client, base_ddo_url):
-    with patch('aquarius.app.assets.encrypt_data') as mock:
-        mock.side_effect = Exception('Boom!')
+    with patch("aquarius.app.assets.encrypt_data") as mock:
+        mock.side_effect = Exception("Boom!")
         _response = client.post(
             base_ddo_url + "/encrypt",
             data="irrelevant",
@@ -135,8 +135,8 @@ def test_encrypt_exceptions(client, base_ddo_url):
         )
         assert _response.status_code == 500
 
-    with patch('aquarius.app.assets.encrypt_data') as mock:
-        mock.side_effect = Exception('Boom!')
+    with patch("aquarius.app.assets.encrypt_data") as mock:
+        mock.side_effect = Exception("Boom!")
         _response = client.post(
             base_ddo_url + "/encryptashex",
             data="irrelevant",

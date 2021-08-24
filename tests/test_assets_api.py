@@ -19,7 +19,7 @@ from tests.helpers import (
     send_create_update_tx,
     test_account1,
     run_request,
-    run_request_get_data
+    run_request_get_data,
 )
 
 

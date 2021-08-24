@@ -11,7 +11,7 @@ from aquarius.app.util import (
     get_bool_env_value,
     datetime_converter,
     check_no_urls_in_files,
-    validate_date_format
+    validate_date_format,
 )
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.block_utils import BlockProcessingClass
@@ -101,5 +101,3 @@ def test_invalid_date():
         "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'",
         400,
     )
-
-
