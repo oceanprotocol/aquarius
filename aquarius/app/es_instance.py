@@ -15,14 +15,6 @@ _DB_INSTANCE = None
 logger = logging.getLogger(__name__)
 
 
-def get_database_instance(config_file=None):
-    global _DB_INSTANCE
-    if _DB_INSTANCE is None:
-        _DB_INSTANCE = ElasticsearchInstance(config_file)
-
-    return _DB_INSTANCE
-
-
 def get_value(value, env_var, default, config=None):
     if os.getenv(env_var) is not None:
         return os.getenv(env_var)
@@ -76,10 +68,6 @@ class ElasticsearchInstance(object):
     @property
     def db_index(self):
         return self._index
-
-    @property
-    def instance(self):
-        return self
 
     @staticmethod
     def str_to_bool(s):
@@ -159,7 +147,7 @@ class ElasticsearchInstance(object):
 
     def count(self):
         count_result = self.es.count(index=self.db_index)
-        if count_result is not None and count_result["count"] > 0:
+        if count_result is not None and count_result.get("count", 0) > 0:
             return count_result["count"]
 
         return 0
