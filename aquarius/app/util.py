@@ -35,12 +35,6 @@ def get_bool_env_value(envvar_name, default_value=0):
         return bool(default_value)
 
 
-def get_request_data(request, url_params_only=False):
-    if url_params_only:
-        return request.args
-    return request.args if request.args else request.json
-
-
 def datetime_converter(o):
     if isinstance(o, datetime):
         return o.strftime(DATETIME_FORMAT)

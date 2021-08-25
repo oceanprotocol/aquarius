@@ -3,18 +3,23 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import os
+import json
 import logging
 import pytest
 from datetime import datetime
 
 from aquarius.app.util import (
+    sanitize_record,
     get_bool_env_value,
     datetime_converter,
     check_no_urls_in_files,
+    check_required_attributes,
     validate_date_format,
+    encrypt_data,
 )
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.block_utils import BlockProcessingClass
+from unittest.mock import patch
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +68,13 @@ def test_get_set_last_block_with_ignore(monkeypatch):
     assert mu.get_or_set_last_block() == 20
 
 
+def test_bad_chunk_size(monkeypatch):
+    monkeypatch.setenv("BLOCKS_CHUNK_SIZE", "not an int")
+    mu = MetadataUpdaterTestClass()
+    mu.get_or_set_last_block()
+    assert mu.blockchain_chunk_size == 1000
+
+
 def test_get_set_last_block_without_ignore(monkeypatch):
     monkeypatch.setenv("IGNORE_LAST_BLOCK", "0")
     monkeypatch.setenv("METADATA_CONTRACT_BLOCK", "20")
@@ -101,3 +113,44 @@ def test_invalid_date():
         "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'",
         400,
     )
+
+
+def test_sanitize_record():
+    record = {"_id": "something", "other_value": "something else"}
+    result = json.loads(sanitize_record(record))
+    assert "_id" not in result
+    assert result["other_value"] == "something else"
+
+
+def test_check_required_attributes_errors():
+    result, result_code = check_required_attributes("", {}, "method")
+    assert result == "payload seems empty."
+    assert result_code == 400
+
+    result, result_code = check_required_attributes(
+        ["key2", "key2"], {"key": "val"}, "method"
+    )
+    assert result == "\"{'key2'}\" are required in the call to method"
+    assert result_code == 400
+
+
+def test_encrypt_data(monkeypatch):
+    with patch("ecies.encrypt") as mock:
+        mock.side_effect = Exception("Boom!")
+        result, message = encrypt_data("test")
+        assert result is False
+        assert message == "Encryption error: Boom!"
+
+
+class BlockProcessingClassChild(BlockProcessingClass):
+    def get_last_processed_block(self):
+        raise Exception("BAD!")
+
+    def store_last_processed_block(self, block):
+        pass
+
+
+def test_block_processing_class_no_envvar():
+    bpc = BlockProcessingClassChild()
+    assert bpc.block_envvar == ""
+    assert bpc.get_or_set_last_block() == 0
