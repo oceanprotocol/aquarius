@@ -121,3 +121,23 @@ def send_create_update_tx(name, did, flags, data, account):
     )
     # print(f'got {event_name} logs: {events}')
     return r
+
+
+def run_request_get_data(client_method, url, data=None):
+    _response = run_request(client_method, url, data)
+    print(f"response: {_response}")
+    if _response and _response.data:
+        return json.loads(_response.data.decode("utf-8"))
+
+    return None
+
+
+def run_request(client_method, url, data=None):
+    if data is None:
+        _response = client_method(url, content_type="application/json")
+    else:
+        _response = client_method(
+            url, data=json.dumps(data), content_type="application/json"
+        )
+
+    return _response
