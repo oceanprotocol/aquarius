@@ -16,10 +16,9 @@ from aquarius.ddo_checker.ddo_checker import (
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
-    datetime_converter,
+    list_errors,
     get_metadata_from_services,
     sanitize_record,
-    list_errors,
     get_request_data,
     encrypt_data,
 )
@@ -149,14 +148,16 @@ def get_ddo(did):
     """
     try:
         asset_record = es_instance.get(did)
-        return Response(
-            sanitize_record(asset_record), 200, content_type="application/json"
-        )
+        return sanitize_record(asset_record), 200
     except elasticsearch.exceptions.NotFoundError:
-        return f"{did} asset DID is not in ES", 404
+        return jsonify(error=f"Asset DID {did} not found in Elasticsearch."), 404
     except Exception as e:
-        logger.error(f"get_ddo: {str(e)}")
-        return f"{did} asset DID is not in ES", 404
+        return (
+            jsonify(
+                error=f"Error encountered while searching the asset DID {did}: {str(e)}."
+            ),
+            404,
+        )
 
 
 @assets.route("/metadata/<did>", methods=["GET"])
@@ -203,10 +204,13 @@ def get_metadata(did):
     try:
         asset_record = es_instance.get(did)
         metadata = get_metadata_from_services(asset_record["service"])
-        return Response(sanitize_record(metadata), 200, content_type="application/json")
+        return sanitize_record(metadata)
     except Exception as e:
         logger.error(f"get_metadata: {str(e)}")
-        return f"{did} asset DID is not in ES", 404
+        return (
+            jsonify(error=f"Error encountered while retrieving metadata: {str(e)}."),
+            404,
+        )
 
 
 @assets.route("/names", methods=["POST"])
@@ -240,31 +244,34 @@ def get_assets_names():
       404:
         description: assets not found
     """
-    try:
-        data = get_request_data(request)
-        assert isinstance(
-            data, dict
-        ), "invalid `args` type, should already be formatted into a dict."
-        if "didList" not in data:
-            return jsonify(error="`didList` is required in the request payload."), 400
+    data = get_request_data(request)
+    if not isinstance(data, dict):
+        return (
+            jsonify(
+                error="Invalid payload. The request could not be converted into a dict."
+            ),
+            400,
+        )
 
-        did_list = data.get("didList", [])
-        if not did_list:
-            return jsonify(message="the requested didList is empty"), 400
+    if "didList" not in data:
+        return jsonify(error="`didList` is required in the request payload."), 400
 
-        names = dict()
-        for did in did_list:
-            try:
-                asset_record = es_instance.get(did)
-                metadata = get_metadata_from_services(asset_record["service"])
-                names[did] = metadata["main"]["name"]
-            except Exception:
-                names[did] = ""
+    did_list = data.get("didList", [])
+    if not did_list:
+        return jsonify(error="The requested didList can not be empty."), 400
+    if not isinstance(did_list, list):
+        return jsonify(error="The didList must be a list."), 400
 
-        return Response(json.dumps(names), 200, content_type="application/json")
-    except Exception as e:
-        logger.error(f"get_assets_names failed: {str(e)}")
-        return jsonify(error=f" get_assets_names failed: {str(e)}"), 404
+    names = dict()
+    for did in did_list:
+        try:
+            asset_record = es_instance.get(did)
+            metadata = get_metadata_from_services(asset_record["service"])
+            names[did] = metadata["main"]["name"]
+        except Exception:
+            names[did] = ""
+
+    return json.dumps(names), 200
 
 
 @assets.route("/ddo/query", methods=["POST"])
@@ -281,15 +288,27 @@ def query_ddo():
       507:
         description: TransportError from Elasticsearch (usually means >10k results)
     """
-    assert isinstance(request.json, dict), "invalid payload format."
-
     data = request.json
+    if not isinstance(request.json, dict):
+        return (
+            jsonify(
+                error="Invalid payload. The request could not be converted into a dict."
+            ),
+            400,
+        )
 
     try:
         return es_instance.es.search(data)
     except elasticsearch.exceptions.TransportError as e:
-        logger.error(f"Received elasticsearch TransportError: {str(e)}")
-        return jsonify(error="Received elasticsearch TransportError. Please refine the search."), 507
+        logger.error(f"Received elasticsearch TransportError.")
+        # intentionally not transcribing the exception message in the response.
+        # this exception is expected when running queries with >10k results.
+        return (
+            jsonify(
+                error="Received elasticsearch TransportError. Please refine the search."
+            ),
+            507,
+        )
 
 
 @assets.route("/ddo/validate", methods=["POST"])
@@ -315,15 +334,26 @@ def validate():
       500:
         description: Error
     """
-    assert isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-    assert isinstance(data, dict), "invalid `body` type, should be formatted as a dict."
+    try:
+        data = request.json
+        if not isinstance(data, dict):
+            return (
+                jsonify(
+                    error="Invalid payload. The request could not be converted into a dict."
+                ),
+                400,
+            )
 
-    if is_valid_dict_local(data):
-        return jsonify(True)
-    else:
-        res = jsonify(list_errors(list_errors_dict_local, data))
-        return res
+        if is_valid_dict_local(data):
+            return jsonify(True)
+
+        return jsonify(list_errors(list_errors_dict_local, data))
+    except Exception as e:
+        logger.error(f"validate endpoint failed: {str(e)}.")
+        return (
+            jsonify(error=f"Encountered error when validating metadata: {str(e)}."),
+            500,
+        )
 
 
 @assets.route("/ddo/validate-remote", methods=["POST"])
@@ -351,23 +381,29 @@ def validate_remote():
       500:
         description: Error
     """
-    assert isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-    assert isinstance(data, dict), "invalid `body` type, should be formatted as a dict."
+    try:
+        data = request.json
+        if not isinstance(data, dict):
+            return (
+                jsonify(
+                    error="Invalid payload. The request could not be converted into a dict."
+                ),
+                400,
+            )
 
-    if "service" not in data:
-        return jsonify(message="Invalid DDO format."), 400
+        if "service" not in data:
+            # made to resemble list_errors
+            return jsonify([{"message": "missing `service` key in data."}])
 
-    data = get_metadata_from_services(data["service"])
+        data = get_metadata_from_services(data["service"])
 
-    if "main" not in data:
-        return jsonify(message="Invalid DDO format."), 400
+        if is_valid_dict_remote(data):
+            return jsonify(True)
 
-    if is_valid_dict_remote(data):
-        return jsonify(True)
-    else:
-        res = jsonify(list_errors(list_errors_dict_remote, data))
-        return res
+        return jsonify(list_errors(list_errors_dict_remote, data))
+    except Exception as e:
+        logger.error(f"validate_remote failed: {str(e)}.")
+        return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500
 
 
 ###########################
@@ -399,15 +435,25 @@ def encrypt_ddo():
         description: Error
     """
     if request.content_type != "application/octet-stream":
-        return "invalid content-type", 400
-    data = request.get_data()
-    result, encrypted_data = encrypt_data(data)
-    if not result:
-        return encrypted_data, 400
+        return (
+            jsonify(
+                error="Invalid request content type: should be application/octet-stream"
+            ),
+            400,
+        )
 
-    response = Response(encrypted_data)
-    response.headers.set("Content-Type", "application/octet-stream")
-    return response
+    try:
+        data = request.get_data()
+        result, encrypted_data = encrypt_data(data)
+        if not result:
+            return encrypted_data, 400
+
+        response = Response(encrypted_data)
+        response.headers.set("Content-Type", "application/octet-stream")
+        return response
+    except Exception as e:
+        logger.error(f"encrypt_ddo failed: {str(e)}.")
+        return jsonify(error=f"Encountered error when encrypting asset: {str(e)}."), 500
 
 
 @assets.route("/ddo/encryptashex", methods=["POST"])
@@ -436,11 +482,26 @@ def encrypt_ddo_as_hex():
       500:
         description: Error
     """
-    data = request.get_data()
-    result, encrypted_data = encrypt_data(data)
-    if not result:
-        return encrypted_data, 400
+    if request.content_type != "application/octet-stream":
+        return (
+            jsonify(
+                error="Invalid request content type: should be application/octet-stream"
+            ),
+            400,
+        )
 
-    response = Response(Web3.toHex(encrypted_data))
-    response.headers.set("Content-Type", "text/plain")
-    return response
+    try:
+        data = request.get_data()
+        result, encrypted_data = encrypt_data(data)
+        if not result:
+            return encrypted_data, 400
+
+        response = Response(Web3.toHex(encrypted_data))
+        response.headers.set("Content-Type", "text/plain")
+        return response
+    except Exception as e:
+        logger.error(f"encrypt_ddo_as_hex failed: {str(e)}.")
+        return (
+            jsonify(error=f"Encountered error when encrypting asset as hex: {str(e)}."),
+            500,
+        )
