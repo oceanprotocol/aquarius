@@ -22,6 +22,7 @@ from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import get_network_name, setup_web3
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.myapp import app
+from aquarius.log import setup_logging
 from unittest.mock import patch
 
 logger = logging.getLogger(__name__)
@@ -202,3 +203,14 @@ def test_setup_web3(monkeypatch):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     monkeypatch.setenv("NETWORK_NAME", "rinkeby")
     assert setup_web3(config_file, logger)
+
+
+def test_setup_logging(monkeypatch):
+    with patch("logging.config.dictConfig") as mock:
+        mock.side_effect = Exception("Boom!")
+        setup_logging()
+
+    monkeypatch.setenv("LOG_LEVEL", "DEBUG")
+    setup_logging()
+
+    setup_logging("some_madeup_path")
