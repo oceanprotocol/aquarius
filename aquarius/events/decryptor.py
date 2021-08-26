@@ -43,6 +43,7 @@ class Decryptor:
 
         # always start with MSB -> LSB
         # bit 2:  check if ddo is ecies encrypted
+
         if check_flags & 2:
             try:
                 rawddo = self.ecies_decrypt(rawddo)
