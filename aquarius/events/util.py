@@ -33,7 +33,7 @@ def get_network_name():
         elif not network.startswith("http"):
             network_name = network
         else:
-            network_name = os.getenv("NETWORK_NAME")
+            network_name = network[len("http://") :].split(".")[0]
 
         if not network_name:
             raise AssertionError("Cannot figure out the network name.")

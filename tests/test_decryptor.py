@@ -14,10 +14,10 @@ def test_decode_ddo(events_object, monkeypatch):
     ecies_account = Account.from_key(ecies_private_key)
     decryptor = Decryptor(ecies_account)
 
-    monkeypatch.setenv("ONLY_ENCRYPTED_DDO", 1)
+    monkeypatch.setenv("ONLY_ENCRYPTED_DDO", "1")
     # flags set to 0 by default, can not decrypt if only encrypted DDOs work
     assert decryptor.decode_ddo("some_encrypted_ddo", "") is None
-    monkeypatch.setenv("ONLY_ENCRYPTED_DDO", 0)
+    monkeypatch.setenv("ONLY_ENCRYPTED_DDO", "0")
 
     # empty ddo
     assert decryptor.decode_ddo(None, "") is None
