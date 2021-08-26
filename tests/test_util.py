@@ -18,6 +18,7 @@ from aquarius.app.util import (
     encrypt_data,
 )
 from aquarius.app.auth_util import compare_eth_addresses
+from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.block_utils import BlockProcessingClass
 from unittest.mock import patch
 
@@ -154,3 +155,26 @@ def test_block_processing_class_no_envvar():
     bpc = BlockProcessingClassChild()
     assert bpc.block_envvar == ""
     assert bpc.get_or_set_last_block() == 0
+
+
+def test_get_web3_connection_provider(monkeypatch):
+    assert (
+        get_web3_connection_provider("http://something").endpoint_uri
+        == "http://something"
+    )
+    assert (
+        get_web3_connection_provider("wss://something").endpoint_uri
+        == "wss://something"
+    )
+    assert (
+        get_web3_connection_provider("ganache").endpoint_uri == "http://127.0.0.1:8545"
+    )
+    assert (
+        get_web3_connection_provider("polygon").endpoint_uri
+        == "https://rpc.polygon.oceanprotocol.com"
+    )
+    with pytest.raises(AssertionError):
+        get_web3_connection_provider("not_a_network")
+    assert get_web3_connection_provider("kovan").endpoint_uri == "http://127.0.0.1:8545"
+    monkeypatch.setenv("NETWORK_URL", "wss://kovan")
+    assert get_web3_connection_provider("kovan").endpoint_uri == "wss://kovan"
