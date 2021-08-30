@@ -286,7 +286,9 @@ class EventsMonitor(BlockProcessingClass):
             )["_id"]
             logger.info(f"Added {self._chain_id} to chains list")
         except elasticsearch.exceptions.RequestError:
-            logger.error(f"Cannot add chain_id {self._chain_id} to chains list: ES RequestError")
+            logger.error(
+                f"Cannot add chain_id {self._chain_id} to chains list: ES RequestError"
+            )
 
     def reset_chain(self):
         assets = self.get_assets_in_chain()
@@ -318,28 +320,22 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block):
-        def _get_logs(event, _from_block, _to_block):
+    def get_event_logs(self, event_name, from_block, to_block, _get_logs_callback=None):
+        def _get_logs_orig(event, _from_block, _to_block):
             logger.debug(f"get_event_logs ({event_name}, {from_block}, {to_block})..")
             _filter = event().createFilter(fromBlock=_from_block, toBlock=_to_block)
             return _filter.get_all_entries()
 
-        try:
-            logs = _get_logs(
-                getattr(self._contract.events, event_name), from_block, to_block
-            )
-            return logs
-        except ValueError as e:
-            logger.error(
-                f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.\n Retrying once more."
-            )
+        _get_logs = _get_logs_callback if _get_logs_callback else _get_logs_orig
 
-        try:
-            logs = _get_logs(
-                getattr(self._contract.events, event_name), from_block, to_block
-            )
-            return logs
-        except ValueError as e:
-            logger.error(
-                f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}."
-            )
+        for x in [0, 1]:
+            try:
+                return _get_logs(
+                    getattr(self._contract.events, event_name), from_block, to_block
+                )
+            except ValueError as e:
+                suffix = "" if x == 1 else "\n Retrying once more."
+                logger.error(
+                    f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}."
+                    + suffix
+                )

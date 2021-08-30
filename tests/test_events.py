@@ -157,6 +157,11 @@ def test_events_monitor_object(monkeypatch):
         monitor = EventsMonitor(setup_web3(config_file), config_file)
         assert monitor._contract is None
 
+    monkeypatch.setenv("EVENTS_CLEAN_START", "1")
+    with patch("aquarius.events.events_monitor.EventsMonitor.reset_chain") as mock:
+        monitor = EventsMonitor(setup_web3(config_file), config_file)
+        mock.assert_called_once()
+
 
 def test_start_stop_events_monitor():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
@@ -190,13 +195,34 @@ def test_run_monitor(monkeypatch):
     assert monitor.do_run_monitor() is None
 
     monitor._monitor_is_on = True
-    with patch("aquarius.events.events_monitor.EventsMonitor.process_current_blocks") as mock:
+    with patch(
+        "aquarius.events.events_monitor.EventsMonitor.process_current_blocks"
+    ) as mock:
         mock.side_effect = Exception("Boom!")
         assert monitor.do_run_monitor() is None
 
-    with patch("aquarius.events.events_monitor.EventsMonitor.process_current_blocks") as mock:
+    with patch(
+        "aquarius.events.events_monitor.EventsMonitor.process_current_blocks"
+    ) as mock:
         monitor.do_run_monitor()
         mock.assert_called_once()
+
+
+def test_run_monitor_purgatory(monkeypatch):
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    monkeypatch.setenv(
+        "ASSET_PURGATORY_URL",
+        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json",
+    )
+    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor._monitor_is_on = True
+    with patch("aquarius.events.purgatory.Purgatory.update_lists") as mock:
+        monitor.do_run_monitor()
+        mock.assert_called_once()
+
+    with patch("aquarius.events.purgatory.Purgatory.update_lists") as mock:
+        mock.side_effect = Exception("Boom!")
+        monitor.do_run_monitor()
 
 
 def test_process_block_range(client, base_ddo_url, events_object):
@@ -210,12 +236,16 @@ def test_process_block_range(client, base_ddo_url, events_object):
     data = Web3.toBytes(text=ddo_string)
     send_create_update_tx("create", did, bytes([0]), data, test_account1)
 
-    with patch("aquarius.events.events_monitor.MetadataCreatedProcessor.process") as mock:
+    with patch(
+        "aquarius.events.events_monitor.MetadataCreatedProcessor.process"
+    ) as mock:
         mock.side_effect = Exception("Boom!")
         assert events_object.process_current_blocks() is None
 
     send_create_update_tx("update", did, bytes([0]), data, test_account1)
-    with patch("aquarius.events.events_monitor.MetadataUpdatedProcessor.process") as mock:
+    with patch(
+        "aquarius.events.events_monitor.MetadataUpdatedProcessor.process"
+    ) as mock:
         mock.side_effect = Exception("Boom!")
         assert events_object.process_current_blocks() is None
 
@@ -248,3 +278,19 @@ def test_add_chain_id_to_chains_list(events_object):
         mock.side_effect = elasticsearch.exceptions.RequestError("Boom!")
         events_object.add_chain_id_to_chains_list()
         assert events_object.add_chain_id_to_chains_list() is None
+
+
+def test_get_event_logs(events_object):
+    def get_logs_exception(event, from_block, to_block):
+        raise ValueError("Boom!")
+
+    def get_logs_mock(event, from_block, to_block):
+        return {"Hello There": "General Kenobi!"}
+
+    assert (
+        events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10, get_logs_exception)
+        is None
+    )
+    result = events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10, get_logs_mock)
+
+    assert result["Hello There"] == "General Kenobi!"
