@@ -5,6 +5,7 @@
 import json
 from web3 import Web3
 from datetime import datetime, timedelta
+from requests.models import Response
 
 from tests.helpers import (
     get_web3,
@@ -15,6 +16,7 @@ from tests.helpers import (
 )
 from aquarius.events.purgatory import Purgatory
 from freezegun import freeze_time
+from unittest.mock import patch, Mock
 
 
 class PurgatoryForTesting(Purgatory):
@@ -46,7 +48,6 @@ def test_purgatory_before_init(client, base_ddo_url, events_object, monkeypatch)
         "ASSET_PURGATORY_URL",
         "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json",
     )
-    did = publish_ddo(client, base_ddo_url, events_object)
 
     purgatory = PurgatoryForTesting(events_object._es_instance)
     purgatory.current_test_asset_list = {("did:op:notexistyet", "test_reason")}
@@ -130,3 +131,33 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     freezer.stop()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
+
+
+def test_purgatory_retrieve_new_list(events_object):
+    purgatory = Purgatory(events_object._es_instance)
+    with patch("requests.get") as mock:
+        the_response = Mock(spec=Response)
+        the_response.status_code = 200
+        the_response.json.return_value = [{"did": "some_did", "reason": "some_reason"}]
+        mock.return_value = the_response
+        assert purgatory.retrieve_new_list("env") == {("some_did", "some_reason")}
+
+    with patch("requests.get") as mock:
+        the_response = Mock(spec=Response)
+        the_response.status_code = 400
+        mock.return_value = the_response
+        assert purgatory.retrieve_new_list("env") == set()
+
+
+def test_failures(events_object):
+    purgatory = Purgatory(events_object._es_instance)
+    with patch("aquarius.app.es_instance.ElasticsearchInstance.update") as mock:
+        mock.side_effect = Exception("Boom!")
+        purgatory.update_asset_purgatory_status({"id": "id"})
+
+
+def test_is_account_banned(events_object):
+    purgatory = Purgatory(events_object._es_instance)
+    purgatory.reference_account_list = {("0x123AbC", "bad juju")}
+    assert purgatory.is_account_banned("0x123abc")  # capitalization doesn't matter
+    assert not purgatory.is_account_banned("some_other_value")
