@@ -59,6 +59,9 @@ def get_main_metadata(services):
 
 
 def get_metadata_from_services(services):
+    if not services:
+        return None
+
     for service in services:
         if service["type"] == "metadata":
             assert (
@@ -90,7 +93,7 @@ def init_new_ddo(data, timestamp):
         else:
             _record["accessWhiteList"] = data["accessWhiteList"]
 
-    for service in _record["service"]:
+    for service in _record.get("service", []):
         if service["type"] == "metadata":
             samain = service["attributes"]["main"]
             date_created = (
@@ -110,7 +113,9 @@ def init_new_ddo(data, timestamp):
             curation["numVotes"] = 0
             curation["isListed"] = True
             service["attributes"]["curation"] = curation
-    _record["service"] = reorder_services_list(_record["service"])
+    _record["service"] = (
+        reorder_services_list(_record["service"]) if _record.get("service") else None
+    )
     return _record
 
 
