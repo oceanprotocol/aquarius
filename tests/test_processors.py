@@ -1,8 +1,9 @@
 import pytest
 from hexbytes import HexBytes
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from web3.datastructures import AttributeDict
 
+from aquarius.events.decryptor import Decryptor
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
@@ -70,6 +71,9 @@ def test_check_permission(monkeypatch):
         assert processor.check_permission("some_address") is False
 
     # will affect the process() function too
+    decryptor = Mock(spec=Decryptor)
+    decryptor.decode_ddo.return_value = "not none"
+    processor.decryptor = decryptor
     with pytest.raises(Exception):
         with patch("requests.post") as mock:
             mock.side_effect = Exception("Boom!")
@@ -78,6 +82,7 @@ def test_check_permission(monkeypatch):
     processor = MetadataUpdatedProcessor(
         event_updated_sample, None, None, None, None, None, None
     )
+    processor.decryptor = decryptor
     # will affect the process() function too
     with pytest.raises(Exception):
         with patch("requests.post") as mock:

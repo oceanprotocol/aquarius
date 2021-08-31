@@ -141,10 +141,6 @@ class MetadataCreatedProcessor(EventProcessor):
             f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
-        permission = self.check_permission(sender_address)
-        if not permission:
-            raise Exception("RBAC permission denied.")
-
         if not self.is_publisher_allowed(sender_address):
             logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
             return
@@ -161,6 +157,10 @@ class MetadataCreatedProcessor(EventProcessor):
         if data is None:
             logger.warning(f"Could not decode ddo using flags {self.flags}")
             return
+
+        permission = self.check_permission(sender_address)
+        if not permission:
+            raise Exception("RBAC permission denied.")
 
         msg, _ = validate_data(data, f"event {EVENT_METADATA_CREATED}")
         if msg:
