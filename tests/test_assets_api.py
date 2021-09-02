@@ -80,7 +80,7 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
         pass
 
 
-def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
+def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     client = client_with_no_data
     block = get_web3().eth.block_number
     _ddo = json_before.copy()
@@ -96,7 +96,7 @@ def test_resolveByDtAddress(client_with_no_data, base_ddo_url, events_object):
     events_object.process_current_blocks()
     result = run_request_get_data(
         client.post,
-        base_ddo_url + "/query",
+        query_url,
         {
             "query": {
                 "query_string": {

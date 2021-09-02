@@ -22,7 +22,7 @@ from tests.helpers import (
 )
 
 
-def test_encrypt_ddo(client, base_ddo_url, events_object):
+def test_encrypt_ddo(client, base_ddo_url, query_url, events_object):
     block = get_web3().eth.block_number
     ddo = new_ddo(test_account1, get_web3(), "encrypt_test")
     ddo_string = json.dumps(dict(ddo.items()))
@@ -59,7 +59,7 @@ def test_encrypt_ddo(client, base_ddo_url, events_object):
         len(
             run_request_get_data(
                 client.post,
-                base_ddo_url + "/query",
+                query_url,
                 {
                     "query": {
                         "query_string": {

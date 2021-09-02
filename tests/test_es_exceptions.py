@@ -53,11 +53,10 @@ def test_get_assets_names_exception(client):
         assert rv.status_code == 200
 
 
-def test_transport_error(client, base_ddo_url):
+def test_transport_error(client, query_url):
     with patch("elasticsearch.Elasticsearch.search") as mock:
         mock.side_effect = elasticsearch.exceptions.TransportError("Boom!")
-        base_url = base_ddo_url + "/query"
-        rv = run_request(client.post, base_url, {"didList": [1]})
+        rv = run_request(client.post, query_url, {"didList": [1]})
         assert rv.status_code == 507
         assert (
             rv.json["error"]

@@ -273,7 +273,7 @@ def get_assets_names():
     return json.dumps(names), 200
 
 
-@assets.route("/ddo/query", methods=["POST"])
+@assets.route("/query", methods=["POST"])
 def query_ddo():
     """Runs a native ES query.
     ---

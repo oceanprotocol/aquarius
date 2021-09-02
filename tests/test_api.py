@@ -29,9 +29,9 @@ def test_spec(client):
     assert "connected" in result["info"]
 
 
-def test_invalid_requests(client_with_no_data, base_ddo_url):
+def test_invalid_requests(client_with_no_data, base_ddo_url, query_url):
     response = run_request(
-        client_with_no_data.post, base_ddo_url + "/query", "not a dict request"
+        client_with_no_data.post, query_url, "not a dict request"
     )
     assert response.status == "400 BAD REQUEST"
 
