@@ -30,9 +30,7 @@ def test_spec(client):
 
 
 def test_invalid_requests(client_with_no_data, base_ddo_url, query_url):
-    response = run_request(
-        client_with_no_data.post, query_url, "not a dict request"
-    )
+    response = run_request(client_with_no_data.post, query_url, "not a dict request")
     assert response.status == "400 BAD REQUEST"
 
     response = run_request(
