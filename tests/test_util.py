@@ -191,6 +191,9 @@ def test_get_network_name(monkeypatch):
     monkeypatch.setenv("EVENTS_RPC", "http://something-else.com")
     assert get_network_name() == "something-else"
 
+    monkeypatch.setenv("EVENTS_RPC", "https://something-else-entirely.com")
+    assert get_network_name() == "something-else-entirely"
+
     monkeypatch.setenv("EVENTS_RPC", "other")
     assert get_network_name() == "other"
 
