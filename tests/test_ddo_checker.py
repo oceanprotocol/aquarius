@@ -183,16 +183,9 @@ def test_assert_remote_without_file_url(
         assert e_info
 
 
-def test_validate_file(path_sample_metadata_local):
-    ddo_checker.validate_file_local(path_sample_metadata_local)
-
-
-def test_validate_dict(sample_metadata_dict_local):
+def test_validate_dict(sample_metadata_dict_local, sample_metadata_dict_remote):
     ddo_checker.validate_dict_local(sample_metadata_dict_local)
-
-
-def test_is_valid_file(path_sample_metadata_local):
-    assert ddo_checker.is_valid_file_local(path_sample_metadata_local)
+    ddo_checker.validate_dict_remote(sample_metadata_dict_remote)
 
 
 def test_is_valid_dict(sample_metadata_dict_local):

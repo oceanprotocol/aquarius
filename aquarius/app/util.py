@@ -35,12 +35,6 @@ def get_bool_env_value(envvar_name, default_value=0):
         return bool(default_value)
 
 
-def get_request_data(request, url_params_only=False):
-    if url_params_only:
-        return request.args
-    return request.args if request.args else request.json
-
-
 def datetime_converter(o):
     if isinstance(o, datetime):
         return o.strftime(DATETIME_FORMAT)
@@ -65,6 +59,9 @@ def get_main_metadata(services):
 
 
 def get_metadata_from_services(services):
+    if not services:
+        return None
+
     for service in services:
         if service["type"] == "metadata":
             assert (
@@ -96,7 +93,7 @@ def init_new_ddo(data, timestamp):
         else:
             _record["accessWhiteList"] = data["accessWhiteList"]
 
-    for service in _record["service"]:
+    for service in _record.get("service", []):
         if service["type"] == "metadata":
             samain = service["attributes"]["main"]
             date_created = (
@@ -116,7 +113,9 @@ def init_new_ddo(data, timestamp):
             curation["numVotes"] = 0
             curation["isListed"] = True
             service["attributes"]["curation"] = curation
-    _record["service"] = reorder_services_list(_record["service"])
+    _record["service"] = (
+        reorder_services_list(_record["service"]) if _record.get("service") else None
+    )
     return _record
 
 

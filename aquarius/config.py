@@ -58,20 +58,15 @@ class Config(configparser.ConfigParser):
                 )
                 self.set(self._section_name, option_name, value)
 
-    def set_arguments(self, items):
-        for name, value in items.items():
-            if value is not None:
-                self._logger.debug("Config: setting argument %s = %s", name, value)
-
-                self.set(self._section_name, name, value)
-
     @property
     def aquarius_url(self):
         return self.get(self._section_name, NAME_AQUARIUS_URL)
 
     @property
     def allow_free_assets_only(self):
-        return self.get(self._section_name, ALLOW_FREE_ASSETS_ONLY)
+        return self._section_name in self and self[self._section_name].get(
+            ALLOW_FREE_ASSETS_ONLY, False
+        )
 
     @property
     def db_url(self):

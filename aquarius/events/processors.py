@@ -141,10 +141,6 @@ class MetadataCreatedProcessor(EventProcessor):
             f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
-        permission = self.check_permission(sender_address)
-        if not permission:
-            raise Exception("RBAC permission denied.")
-
         if not self.is_publisher_allowed(sender_address):
             logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
             return
@@ -161,6 +157,10 @@ class MetadataCreatedProcessor(EventProcessor):
         if data is None:
             logger.warning(f"Could not decode ddo using flags {self.flags}")
             return
+
+        permission = self.check_permission(sender_address)
+        if not permission:
+            raise Exception("RBAC permission denied.")
 
         msg, _ = validate_data(data, f"event {EVENT_METADATA_CREATED}")
         if msg:
@@ -206,7 +206,7 @@ class MetadataUpdatedProcessor(EventProcessor):
                 list_errors_dict_remote, get_metadata_from_services(_record["service"])
             )
             logger.error(f"ddo update has validation errors: {errors}")
-            return
+            return False
         # check purgatory only if asset is valid
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
             _record["isInPurgatory"] = "true"
@@ -251,42 +251,13 @@ class MetadataUpdatedProcessor(EventProcessor):
                 self._chain_id,
             )
             event_processor.process()
-            return
+            return False
 
-        # do not update if we have the same txid
-        ddo_txid = asset["event"]["txid"]
-        if self.txid == ddo_txid:
-            logger.warning(
-                f'asset has the same txid, no need to update: event-txid={self.txid} <> asset-event-txid={asset["event"]["txid"]}'
-            )
-            return
+        decoded = self.do_decode_update(asset, sender_address)
+        if not decoded:
+            return False
 
-        # check block
-        ddo_block = asset["event"]["blockNo"]
-        if int(self.block) <= int(ddo_block):
-            logger.warning(
-                f"asset was updated later (block: {ddo_block}) vs transaction block: {self.block}"
-            )
-            return
-
-        # check owner
-        if not compare_eth_addresses(
-            asset["publicKey"][0]["owner"], sender_address, logger
-        ):
-            logger.warning("Transaction sender must mach ddo owner")
-            return
-
-        data = self.decryptor.decode_ddo(self.rawddo, self.flags)
-        if data is None:
-            logger.warning("Cound not decode ddo")
-            return
-
-        msg, _ = validate_data(data, "event update")
-        if msg:
-            logger.error(msg)
-            return
-
-        _record = self.make_record(data, asset)
+        _record = self.make_record(decoded, asset)
         if _record:
             try:
                 self._es_instance.update(json.dumps(_record), did)
@@ -297,4 +268,41 @@ class MetadataUpdatedProcessor(EventProcessor):
                 logger.error(
                     f"encountered an error while updating the asset data to ES: {str(err)}"
                 )
-        return
+
+        return False
+
+    def do_decode_update(self, asset, sender_address):
+        # do not update if we have the same txid
+        ddo_txid = asset["event"]["txid"]
+        if self.txid == ddo_txid:
+            logger.warning(
+                f'asset has the same txid, no need to update: event-txid={self.txid} <> asset-event-txid={asset["event"]["txid"]}'
+            )
+            return False
+
+        # check block
+        ddo_block = asset["event"]["blockNo"]
+        if int(self.block) <= int(ddo_block):
+            logger.warning(
+                f"asset was updated later (block: {ddo_block}) vs transaction block: {self.block}"
+            )
+            return False
+
+        # check owner
+        if not compare_eth_addresses(
+            asset["publicKey"][0]["owner"], sender_address, logger
+        ):
+            logger.warning("Transaction sender must mach ddo owner")
+            return False
+
+        data = self.decryptor.decode_ddo(self.rawddo, self.flags)
+        if data is None:
+            logger.warning("Cound not decode ddo")
+            return False
+
+        msg, _ = validate_data(data, "event update")
+        if msg:
+            logger.error(msg)
+            return False
+
+        return data

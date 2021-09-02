@@ -19,7 +19,6 @@ from aquarius.app.util import (
     list_errors,
     get_metadata_from_services,
     sanitize_record,
-    get_request_data,
     encrypt_data,
 )
 from aquarius.log import setup_logging
@@ -244,7 +243,7 @@ def get_assets_names():
       404:
         description: assets not found
     """
-    data = get_request_data(request)
+    data = request.args if request.args else request.json
     if not isinstance(data, dict):
         return (
             jsonify(

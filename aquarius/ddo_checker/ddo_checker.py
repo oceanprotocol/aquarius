@@ -62,31 +62,12 @@ def validator_file(schema_file):
     return jschema.validators.Draft7Validator(this_json_schema_dict)
 
 
-def validator_dict(schema_dict):
-    return jschema.validators.Draft7Validator(schema_dict)
-
-
 # %% Wrapper over jschema.Draft7Validator.validate()
 
 
 def validate_dict(this_json_dict, schema_file):
     validator = validator_file(schema_file)
     return validator.validate(this_json_dict)
-
-
-# Convenience function, load into dictionary first
-def validate_file(json_file_abs_path, schema_file):
-    this_json_dict = load_serial_data_file_path(json_file_abs_path)
-    return validate_dict(this_json_dict, schema_file)
-
-
-# Convenience functions
-def validate_file_local(json_file_abs_path):
-    return validate_file(json_file_abs_path, LOCAL_SCHEMA_FILE)
-
-
-def validate_file_remote(json_file_abs_path):
-    return validate_file(json_file_abs_path, REMOTE_SCHEMA_FILE)
 
 
 def validate_dict_local(this_json_dict):
@@ -101,26 +82,12 @@ def validate_dict_remote(this_json_dict):
 # Wrapper over jschema.Draft7Validator.is_valid()
 
 
-def is_valid_file(json_file_abs_path, schema_file):
-    validator = validator_file(schema_file)
-    this_json_dict = load_serial_data_file_path(json_file_abs_path)
-    return validator.is_valid(this_json_dict)
-
-
 def is_valid_dict(this_json_dict, schema_file=LOCAL_SCHEMA_FILE):
     validator = validator_file(schema_file)
     return validator.is_valid(this_json_dict)
 
 
 # Convenience functions
-def is_valid_file_local(json_file_abs_path):
-    return is_valid_file(json_file_abs_path, LOCAL_SCHEMA_FILE)
-
-
-def is_valid_file_remote(json_file_abs_path):
-    return is_valid_file(json_file_abs_path, REMOTE_SCHEMA_FILE)
-
-
 def is_valid_dict_local(this_json_dict):
     return is_valid_dict(this_json_dict, schema_file=LOCAL_SCHEMA_FILE)
 
@@ -155,16 +122,6 @@ def list_errors(json_dict, schema_file):
 
 
 # Convenience functions
-def list_errors_file_local(json_file_abs_path):
-    this_json_dict = load_serial_data_file_path(json_file_abs_path)
-    return list_errors(this_json_dict, LOCAL_SCHEMA_FILE)
-
-
-def list_errors_file_remote(json_file_abs_path):
-    this_json_dict = load_serial_data_file_path(json_file_abs_path)
-    return list_errors(this_json_dict, REMOTE_SCHEMA_FILE)
-
-
 def list_errors_dict_local(this_json_dict):
     return list_errors(this_json_dict, LOCAL_SCHEMA_FILE)
 

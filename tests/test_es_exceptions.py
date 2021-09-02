@@ -7,6 +7,7 @@ from web3 import Web3
 
 from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
+from aquarius.run import get_status
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample_updates import json_before
@@ -90,3 +91,11 @@ def test_chains_status_exceptions(client, chains_url):
         rv = client.get(chains_url + "/status/1", content_type="application/json")
         assert rv.status_code == 404
         assert rv.json["error"] == "Error retrieving chain 1: Boom!."
+
+
+def test_get_status():
+    with patch("elasticsearch.Elasticsearch.ping") as mock:
+        mock.return_value = False
+        message, result = get_status()
+        assert message == "Not connected to any database"
+        assert result == 400
