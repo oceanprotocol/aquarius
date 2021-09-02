@@ -131,16 +131,16 @@ def get_metadata_contract(web3):
 
 def get_metadata_start_block():
     """Returns the block number to use as start"""
-    block_number = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
-    if not block_number:
+    block_number_var = os.getenv("METADATA_CONTRACT_BLOCK", None)
+    if block_number_var is None:
         address_file = get_address_file()
         with open(address_file) as f:
             address_json = json.load(f)
         network = get_network_name()
         if "startBlock" in address_json[network]:
-            block_number = address_json[network]["startBlock"]
+            block_number_var = address_json[network]["startBlock"]
 
-    return block_number
+    return int(block_number_var)
 
 
 def get_datatoken_info(web3, token_address):
