@@ -279,7 +279,7 @@ The `bumpversion.sh` script helps bump the project version. You can execute the 
 
 Copyright 2021 Ocean Protocol Foundation Ltd.
 
-Licensed unsder the Apache License, Version 2.0 (the "License");
+Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
