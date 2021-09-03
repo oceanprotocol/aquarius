@@ -52,7 +52,7 @@ Aquarius is a simple, lightweight scanner and API. It is built using Python, usi
 - `GET api/v1/aquarius/assets/ddo/<did>`: retrieve asset contents for the given DID
 - `GET api/v1/aquarius/assets/metadata/<did>`: retrieve metadata associated to the given DID
 - `POST api/v1/aquarius/assets/names/`: takes in a list of DIDs of the format `["did:op:123455644356", "did:op:533443322223344"]` and returns a dictionary of correspondence between the given DIDs and the asset name
-- `POST api/v1/aquarius/assets/query`: takes in a native Elasticsearch query, passes it over to Elasticsearch and returns the unformatted results, as given by the Elasticsearch instance. Please note that Elasticsearch imposes a limitation of 10K results. If you get a 507 response code, try to refine your search.
+- `POST api/v1/aquarius/assets/query`: takes in a native Elasticsearch query, passes it over to Elasticsearch and returns the unformatted results, as given by the Elasticsearch instance. Please note that Elasticsearch imposes a limitation of 10K results. If you get a Transport Error indicating such a problem, try to refine your search.
 - `POST api/v1/aquarius/assets/ddo/validate` and `POST api/v1/aquarius/assets/ddo/validate-remote`: accepts a DDO sample and validates them in the local and remote format, respectively. Please use these endpoints to validate your OCEAN DDOs before and after publishing them on-chain.
 - `POST api/v1/aquarius/assets/ddo/encrypt` and `POST api/v1/aquarius/assets/ddo/encryptashex`: encrypts the asset using the `EVENTS_ECIES_PRIVATE_KEY` env var. Unencrypted assets can be read by any Aquarius instance, but if you are running a private Aquarius, this makes your assets private.
 - `GET api/v1/aquarius/chains/list`: lists all chains indexed by the Aquarius version
@@ -242,8 +242,7 @@ flask run --port=5000
 That will use HTTP (i.e. not SSL/TLS). You can now use the API on `http://localhost:5000`
 
 ⚠️ ATTENTION: if you are using an Aquarius search endpoint and it returns more than 10k results,
-    Elasticsearch will throw a TransportError and your query will fail.
-    You will receive a 507 code from the Aquarius query endpoint. Do NOT panic!
+    Elasticsearch will throw a TransportError and your query will fail. If your error message seems related to the results limitation, please try to refine your search.
     The solution is to be more specific in your search. This can happpen on test networks with many assets, like rinkeby.
 
 If you want to contribute to Aquarius, you are welcome to do so. We are always excited to see Aquarius improve and grow, and to get the community involved in its development. We ask you just one tiny thing: Make sure you install the pre-commit hooks using the command `pre-commit install`. This will make sure your imports are sorted and your code is properly formatted before committing.
