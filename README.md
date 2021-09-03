@@ -10,7 +10,24 @@ SPDX-License-Identifier: Apache-2.0
 [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/)
 [![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/aquarius.svg)](https://github.com/oceanprotocol/aquarius/graphs/contributors)
 
-[TOC]
+# Aquarius
+
+* [What is Aquarius?](#what-is-aquarius)
+   * [How is metadata treated?](#how-is-metadata-treated)
+   * [Components and architecture](#components-and-architecture)
+      * [The Aquarius API](#the-aquarius-api)
+      * [The EventsMonitor](#the-eventsmonitor)
+* [Aquarius Setup](#aquarius-setup)
+   * [Running Aquarius for multiple chains](#running-aquarius-for-multiple-chains)
+* [What can Aquarius do for me?](#what-can-aquarius-do-for-me)
+   * [I just want to run Aquarius](#i-just-want-to-run-aquarius)
+   * [I want to learn more about the Aquarius API](#i-want-to-learn-more-about-the-aquarius-api)
+   * [I want to improve or customise Aquarius](#i-want-to-improve-or-customise-aquarius)
+      * [General Ocean Dev Docs](#general-ocean-dev-docs)
+      * [Running Aquarius locally, for development and testing](#running-aquarius-locally-for-development-and-testing)
+      * [Configuration](#configuration)
+      * [Extras: Testing &amp; Versioning](#extras-testing--versioning)
+* [License](#license)
 
 # What is Aquarius?
 
@@ -18,7 +35,7 @@ Aquarius is an off-chain, multi-chain cache for metadata that is published on ch
 
 Aquarius is part of the [Ocean Protocol](https://oceanprotocol.com) toolset. 🌊
 
-### How is metadata treated?
+## How is metadata treated?
 
 The metadata is published on-chain via the Metadata smartcontract:
 
@@ -275,7 +292,7 @@ In this case, if some environment variables are not set, pytest will default to 
 
 The `bumpversion.sh` script helps bump the project version. You can execute the script using `{major|minor|patch}` as first argument, to bump the version accordingly.
 
-## License
+# License
 
 Copyright 2021 Ocean Protocol Foundation Ltd.
 
