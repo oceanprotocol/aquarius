@@ -29,8 +29,8 @@ class ElasticsearchInstance(object):
     def __init__(self, config=None):
         host = get_value("db.hostname", "DB_HOSTNAME", "localhost", config)
         port = int(get_value("db.port", "DB_PORT", 9200, config))
-        username = get_value("db.username", "DB_USERNAME", None, config)
-        password = get_value("db.password", "DB_PASSWORD", None, config)
+        username = get_value("db.username", "DB_USERNAME", "elastic", config)
+        password = get_value("db.password", "DB_PASSWORD", "changeme", config)
         index = get_value("db.index", "DB_INDEX", "oceandb", config)
         ssl = self.str_to_bool(get_value("db.ssl", "DB_SSL", "false", config))
         verify_certs = self.str_to_bool(

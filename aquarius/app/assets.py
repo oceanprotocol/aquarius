@@ -284,8 +284,8 @@ def query_ddo():
     responses:
       200:
         description: successful action
-      507:
-        description: TransportError from Elasticsearch (usually means >10k results)
+      500:
+        description: elasticsearch exception
     """
     data = request.json
     if not isinstance(request.json, dict):
@@ -299,15 +299,16 @@ def query_ddo():
     try:
         return es_instance.es.search(data)
     except elasticsearch.exceptions.TransportError as e:
-        logger.error(f"Received elasticsearch TransportError.")
-        # intentionally not transcribing the exception message in the response.
-        # this exception is expected when running queries with >10k results.
-        return (
-            jsonify(
-                error="Received elasticsearch TransportError. Please refine the search."
-            ),
-            507,
+        logger.info(
+            f"Received elasticsearch TransportError: {e.error}, more info: {e.info}."
         )
+        return (
+            jsonify(error=e.error, info=e.info),
+            e.status_code,
+        )
+    except Exception as e:
+        logger.error(f"Received elasticsearch Error: {str(e)}.")
+        return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
 
 
 @assets.route("/ddo/validate", methods=["POST"])

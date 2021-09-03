@@ -55,13 +55,19 @@ def test_get_assets_names_exception(client):
 
 def test_transport_error(client, query_url):
     with patch("elasticsearch.Elasticsearch.search") as mock:
-        mock.side_effect = elasticsearch.exceptions.TransportError("Boom!")
+        ex = elasticsearch.exceptions.TransportError()
+        ex.args = [400, "test_error", {"more_info": "about it"}]
+        mock.side_effect = ex
         rv = run_request(client.post, query_url, {"didList": [1]})
-        assert rv.status_code == 507
-        assert (
-            rv.json["error"]
-            == "Received elasticsearch TransportError. Please refine the search."
-        )
+        assert rv.status_code == 400
+        assert rv.json["error"] == "test_error"
+        assert rv.json["info"] == {"more_info": "about it"}
+
+    with patch("elasticsearch.Elasticsearch.search") as mock:
+        mock.side_effect = Exception("Boom!")
+        rv = run_request(client.post, query_url, {"didList": [1]})
+        assert rv.status_code == 500
+        assert rv.json["error"] == "Encountered Elasticsearch Exception: Boom!"
 
 
 def test_chains_list_exceptions(client, chains_url):
