@@ -299,7 +299,7 @@ def query_ddo():
     try:
         return es_instance.es.search(data)
     except elasticsearch.exceptions.TransportError as e:
-        logger.error(
+        logger.info(
             f"Received elasticsearch TransportError: {e.error}, more info: {e.info}."
         )
         return (
