@@ -6,15 +6,15 @@ import elasticsearch
 import json
 import logging
 
-from flask import Blueprint, Response
+from flask import Blueprint, jsonify
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from oceandb_driver_interface import OceanDb
 
 setup_logging()
 chains = Blueprint("chains", __name__)
 logger = logging.getLogger("aquarius")
-es_instance = OceanDb(app.config["AQUARIUS_CONFIG_FILE"]).plugin
+es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 
 
 @chains.route("/list", methods=["GET"])
@@ -30,16 +30,16 @@ def get_chains_list():
         description: No chains are present
     """
     try:
-        chains = es_instance.driver.es.get(
-            index=f"{es_instance.driver.db_index}_plus", id="chains", doc_type="_doc"
+        chains = es_instance.es.get(
+            index=f"{es_instance.db_index}_plus", id="chains", doc_type="_doc"
         )["_source"]
-        return Response(json.dumps(chains), 200, content_type="application/json")
+        return json.dumps(chains)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
-        logger.error("Cannot get chains list")
-        return Response("No chains found", 404)
+        logger.error("Cannot get chains list.")
+        return jsonify(error="No chains found."), 404
     except Exception as e:
-        logger.error(f"Cannot get chains list: {str(e)}")
-        return Response("No chains found", 404)
+        logger.error(f"Error in get_chains_list: {str(e)}")
+        return jsonify(error=f"Error retrieving chains: {str(e)}."), 404
 
 
 @chains.route("/status/<chain_id>", methods=["GET"])
@@ -61,17 +61,17 @@ def get_index_status(chain_id):
         description: This chainId is not indexed.
     """
     try:
-        last_block_record = es_instance.driver.es.get(
-            index=f"{es_instance.driver.db_index}_plus",
+        last_block_record = es_instance.es.get(
+            index=f"{es_instance.db_index}_plus",
             id="events_last_block_" + str(chain_id),
             doc_type="_doc",
         )["_source"]
-        return Response(
-            json.dumps(last_block_record), 200, content_type="application/json"
-        )
+        return json.dumps(last_block_record)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
-        logger.error(f"Cannot get index status for chain {chain_id}")
-        return Response(f"{chain_id} is not indexed", 404)
+        logger.error(f"Cannot get index status for chain {chain_id}. Chain not found.")
+        return jsonify(error=f"Chain {chain_id} is not indexed."), 404
     except Exception as e:
-        logger.error(f"Cannot get index status for chain {chain_id}: {str(e)}")
-        return Response(f"{chain_id} is not indexed", 404)
+        logger.error(
+            f"Cannot get index status for chain {chain_id}. Error encountered is: {str(e)}"
+        )
+        return jsonify(error=f"Error retrieving chain {chain_id}: {str(e)}."), 404

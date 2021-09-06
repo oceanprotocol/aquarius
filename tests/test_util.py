@@ -3,17 +3,27 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import os
+import json
 import logging
 import pytest
 from datetime import datetime
 
 from aquarius.app.util import (
+    sanitize_record,
     get_bool_env_value,
     datetime_converter,
     check_no_urls_in_files,
+    check_required_attributes,
+    validate_date_format,
+    encrypt_data,
 )
 from aquarius.app.auth_util import compare_eth_addresses
+from aquarius.events.http_provider import get_web3_connection_provider
+from aquarius.events.util import get_network_name, setup_web3
 from aquarius.block_utils import BlockProcessingClass
+from aquarius.myapp import app
+from aquarius.log import setup_logging
+from unittest.mock import patch
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +72,13 @@ def test_get_set_last_block_with_ignore(monkeypatch):
     assert mu.get_or_set_last_block() == 20
 
 
+def test_bad_chunk_size(monkeypatch):
+    monkeypatch.setenv("BLOCKS_CHUNK_SIZE", "not an int")
+    mu = MetadataUpdaterTestClass()
+    mu.get_or_set_last_block()
+    assert mu.blockchain_chunk_size == 1000
+
+
 def test_get_set_last_block_without_ignore(monkeypatch):
     monkeypatch.setenv("IGNORE_LAST_BLOCK", "0")
     monkeypatch.setenv("METADATA_CONTRACT_BLOCK", "20")
@@ -87,3 +104,116 @@ def test_check_no_urls_in_files_fails():
     message, code = check_no_urls_in_files(main, "GET")
     assert message == "GET request failed: url is not allowed in files "
     assert code == 400
+
+
+def test_date_format_validator():
+    date = "2016-02-08T16:02:20Z"
+    assert validate_date_format(date) == (None, None)
+
+
+def test_invalid_date():
+    date = "XXXX"
+    assert validate_date_format(date) == (
+        "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'",
+        400,
+    )
+
+
+def test_sanitize_record():
+    record = {"_id": "something", "other_value": "something else"}
+    result = json.loads(sanitize_record(record))
+    assert "_id" not in result
+    assert result["other_value"] == "something else"
+
+
+def test_check_required_attributes_errors():
+    result, result_code = check_required_attributes("", {}, "method")
+    assert result == "payload seems empty."
+    assert result_code == 400
+
+    result, result_code = check_required_attributes(
+        ["key2", "key2"], {"key": "val"}, "method"
+    )
+    assert result == "\"{'key2'}\" are required in the call to method"
+    assert result_code == 400
+
+
+def test_encrypt_data(monkeypatch):
+    with patch("ecies.encrypt") as mock:
+        mock.side_effect = Exception("Boom!")
+        result, message = encrypt_data("test")
+        assert result is False
+        assert message == "Encryption error: Boom!"
+
+
+class BlockProcessingClassChild(BlockProcessingClass):
+    def get_last_processed_block(self):
+        raise Exception("BAD!")
+
+    def store_last_processed_block(self, block):
+        pass
+
+
+def test_block_processing_class_no_envvar():
+    bpc = BlockProcessingClassChild()
+    assert bpc.block_envvar == ""
+    assert bpc.get_or_set_last_block() == 0
+
+
+def test_get_web3_connection_provider(monkeypatch):
+    assert (
+        get_web3_connection_provider("http://something").endpoint_uri
+        == "http://something"
+    )
+    assert (
+        get_web3_connection_provider("wss://something").endpoint_uri
+        == "wss://something"
+    )
+    assert (
+        get_web3_connection_provider("ganache").endpoint_uri == "http://127.0.0.1:8545"
+    )
+    assert (
+        get_web3_connection_provider("polygon").endpoint_uri
+        == "https://rpc.polygon.oceanprotocol.com"
+    )
+    with pytest.raises(AssertionError):
+        get_web3_connection_provider("not_a_network")
+    assert get_web3_connection_provider("kovan").endpoint_uri == "http://127.0.0.1:8545"
+    monkeypatch.setenv("NETWORK_URL", "wss://kovan")
+    assert get_web3_connection_provider("kovan").endpoint_uri == "wss://kovan"
+
+
+def test_get_network_name(monkeypatch):
+    monkeypatch.delenv("NETWORK_NAME")
+    monkeypatch.setenv("EVENTS_RPC", "wss://something.com")
+    assert get_network_name() == "something"
+
+    monkeypatch.setenv("EVENTS_RPC", "http://something-else.com")
+    assert get_network_name() == "something-else"
+
+    monkeypatch.setenv("EVENTS_RPC", "https://something-else-entirely.com")
+    assert get_network_name() == "something-else-entirely"
+
+    monkeypatch.setenv("EVENTS_RPC", "other")
+    assert get_network_name() == "other"
+
+    monkeypatch.setenv("EVENTS_RPC", "")
+    with pytest.raises(AssertionError):
+        get_network_name()
+
+
+def test_setup_web3(monkeypatch):
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    monkeypatch.setenv("NETWORK_NAME", "rinkeby")
+    assert setup_web3(config_file, logger)
+
+
+def test_setup_logging(monkeypatch):
+    with patch("logging.config.dictConfig") as mock:
+        mock.side_effect = Exception("Boom!")
+        setup_logging()
+
+    monkeypatch.setenv("LOG_LEVEL", "DEBUG")
+    setup_logging()
+
+    setup_logging("some_madeup_path")

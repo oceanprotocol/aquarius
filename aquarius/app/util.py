@@ -27,31 +27,12 @@ def sanitize_record(data_record):
     return json.dumps(data_record, default=datetime_converter)
 
 
-def make_paginate_response(query_list_result, search_model):
-    total = query_list_result[1]
-    offset = search_model.offset
-
-    result = dict()
-    result["results"] = query_list_result[0]
-    result["page"] = search_model.page
-
-    result["total_pages"] = int(total / offset) + int(total % offset > 0)
-    result["total_results"] = total
-    return result
-
-
 def get_bool_env_value(envvar_name, default_value=0):
     assert default_value in (0, 1), "bad default value, must be either 0 or 1"
     try:
         return bool(int(os.getenv(envvar_name, default_value)))
     except Exception:
         return bool(default_value)
-
-
-def get_request_data(request, url_params_only=False):
-    if url_params_only:
-        return request.args
-    return request.args if request.args else request.json
 
 
 def datetime_converter(o):
@@ -78,6 +59,9 @@ def get_main_metadata(services):
 
 
 def get_metadata_from_services(services):
+    if not services:
+        return None
+
     for service in services:
         if service["type"] == "metadata":
             assert (
@@ -109,7 +93,7 @@ def init_new_ddo(data, timestamp):
         else:
             _record["accessWhiteList"] = data["accessWhiteList"]
 
-    for service in _record["service"]:
+    for service in _record.get("service", []):
         if service["type"] == "metadata":
             samain = service["attributes"]["main"]
             date_created = (
@@ -129,7 +113,9 @@ def init_new_ddo(data, timestamp):
             curation["numVotes"] = 0
             curation["isListed"] = True
             service["attributes"]["curation"] = curation
-    _record["service"] = reorder_services_list(_record["service"])
+    _record["service"] = (
+        reorder_services_list(_record["service"]) if _record.get("service") else None
+    )
     return _record
 
 
@@ -208,14 +194,6 @@ def validate_data(data, method):
         return msg, status
 
     return None, None
-
-
-def rename_metadata_keys(bucket):
-    for d in bucket:
-        d["name"] = d.pop("key")
-        d["count"] = d.pop("doc_count")
-
-    return bucket
 
 
 def encrypt_data(data):

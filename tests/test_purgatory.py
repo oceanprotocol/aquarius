@@ -5,6 +5,7 @@
 import json
 from web3 import Web3
 from datetime import datetime, timedelta
+from requests.models import Response
 
 from tests.helpers import (
     get_web3,
@@ -15,13 +16,14 @@ from tests.helpers import (
 )
 from aquarius.events.purgatory import Purgatory
 from freezegun import freeze_time
+from unittest.mock import patch, Mock
 
 
 class PurgatoryForTesting(Purgatory):
-    def __init__(self, oceandb):
+    def __init__(self, es_instance):
         self.current_test_asset_list = set()
         self.current_test_account_list = set()
-        super(PurgatoryForTesting, self).__init__(oceandb)
+        super(PurgatoryForTesting, self).__init__(es_instance)
 
     def retrieve_new_list(self, env_var):
         return (
@@ -46,9 +48,8 @@ def test_purgatory_before_init(client, base_ddo_url, events_object, monkeypatch)
         "ASSET_PURGATORY_URL",
         "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json",
     )
-    did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = PurgatoryForTesting(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._es_instance)
     purgatory.current_test_asset_list = {("did:op:notexistyet", "test_reason")}
     purgatory.update_lists()
     # assert no change, since this did doesn't exist
@@ -66,7 +67,7 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = PurgatoryForTesting(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._es_instance)
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
 
@@ -104,11 +105,11 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = PurgatoryForTesting(events_object._oceandb)
+    purgatory = PurgatoryForTesting(events_object._es_instance)
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
 
-    acc_id = events_object._oceandb.read(did)["event"]["from"]
+    acc_id = events_object._es_instance.read(did)["event"]["from"]
     purgatory.current_test_account_list = {(acc_id, "test_reason")}
     purgatory.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)
@@ -130,3 +131,33 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     freezer.stop()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["isInPurgatory"] == "false"
+
+
+def test_purgatory_retrieve_new_list(events_object):
+    purgatory = Purgatory(events_object._es_instance)
+    with patch("requests.get") as mock:
+        the_response = Mock(spec=Response)
+        the_response.status_code = 200
+        the_response.json.return_value = [{"did": "some_did", "reason": "some_reason"}]
+        mock.return_value = the_response
+        assert purgatory.retrieve_new_list("env") == {("some_did", "some_reason")}
+
+    with patch("requests.get") as mock:
+        the_response = Mock(spec=Response)
+        the_response.status_code = 400
+        mock.return_value = the_response
+        assert purgatory.retrieve_new_list("env") == set()
+
+
+def test_failures(events_object):
+    purgatory = Purgatory(events_object._es_instance)
+    with patch("aquarius.app.es_instance.ElasticsearchInstance.update") as mock:
+        mock.side_effect = Exception("Boom!")
+        purgatory.update_asset_purgatory_status({"id": "id"})
+
+
+def test_is_account_banned(events_object):
+    purgatory = Purgatory(events_object._es_instance)
+    purgatory.reference_account_list = {("0x123AbC", "bad juju")}
+    assert purgatory.is_account_banned("0x123abc")  # capitalization doesn't matter
+    assert not purgatory.is_account_banned("some_other_value")

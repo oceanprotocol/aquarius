@@ -26,6 +26,11 @@ def base_ddo_url():
 
 
 @pytest.fixture
+def query_url():
+    return BaseURLs.BASE_AQUARIUS_URL + "/assets/query"
+
+
+@pytest.fixture
 def chains_url():
     return BaseURLs.BASE_AQUARIUS_URL + "/chains"
 

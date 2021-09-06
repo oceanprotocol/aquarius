@@ -7,7 +7,6 @@ import json
 import logging
 
 from flask import Blueprint, jsonify, request, Response
-from oceandb_driver_interface.search_model import FullTextModel
 from aquarius.ddo_checker.ddo_checker import (
     is_valid_dict_local,
     list_errors_dict_local,
@@ -15,28 +14,22 @@ from aquarius.ddo_checker.ddo_checker import (
     list_errors_dict_remote,
 )
 
-from aquarius.app.dao import Dao
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
-    make_paginate_response,
-    datetime_converter,
+    list_errors,
     get_metadata_from_services,
     sanitize_record,
-    list_errors,
-    get_request_data,
     encrypt_data,
 )
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from oceandb_driver_interface import OceanDb
 from web3 import Web3
 
 setup_logging()
 assets = Blueprint("assets", __name__)
 
-# Prepare OceanDB
-dao = Dao(config_file=app.config["AQUARIUS_CONFIG_FILE"])
 logger = logging.getLogger("aquarius")
-es_instance = OceanDb(app.config["AQUARIUS_CONFIG_FILE"]).plugin
+es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 
 
 @assets.route("/ddo/<did>", methods=["GET"])
@@ -150,18 +143,20 @@ def get_ddo(did):
             schema:
               type: object
       404:
-        description: This asset DID is not in OceanDB
+        description: This asset DID is not in ES.
     """
     try:
-        asset_record = dao.get(did)
-        return Response(
-            sanitize_record(asset_record), 200, content_type="application/json"
-        )
+        asset_record = es_instance.get(did)
+        return sanitize_record(asset_record), 200
     except elasticsearch.exceptions.NotFoundError:
-        return f"{did} asset DID is not in OceanDB", 404
+        return jsonify(error=f"Asset DID {did} not found in Elasticsearch."), 404
     except Exception as e:
-        logger.error(f"get_ddo: {str(e)}")
-        return f"{did} asset DID is not in OceanDB", 404
+        return (
+            jsonify(
+                error=f"Error encountered while searching the asset DID {did}: {str(e)}."
+            ),
+            404,
+        )
 
 
 @assets.route("/metadata/<did>", methods=["GET"])
@@ -203,15 +198,18 @@ def get_metadata(did):
             "encryptedFiles": "0x047c992274f3fa2bf9c5cc57d0e0852f7b3ec22d7ab4e798e3e73e77e7f971ff04896129c9f58deac"
           }
       404:
-        description: This asset DID is not in OceanDB.
+        description: This asset DID is not in ES.
     """
     try:
-        asset_record = dao.get(did)
+        asset_record = es_instance.get(did)
         metadata = get_metadata_from_services(asset_record["service"])
-        return Response(sanitize_record(metadata), 200, content_type="application/json")
+        return sanitize_record(metadata)
     except Exception as e:
         logger.error(f"get_metadata: {str(e)}")
-        return f"{did} asset DID is not in OceanDB", 404
+        return (
+            jsonify(error=f"Error encountered while retrieving metadata: {str(e)}."),
+            404,
+        )
 
 
 @assets.route("/names", methods=["POST"])
@@ -245,215 +243,38 @@ def get_assets_names():
       404:
         description: assets not found
     """
-    try:
-        data = get_request_data(request)
-        assert isinstance(
-            data, dict
-        ), "invalid `args` type, should already be formatted into a dict."
-        if "didList" not in data:
-            return jsonify(error="`didList` is required in the request payload."), 400
+    data = request.args if request.args else request.json
+    if not isinstance(data, dict):
+        return (
+            jsonify(
+                error="Invalid payload. The request could not be converted into a dict."
+            ),
+            400,
+        )
 
-        did_list = data.get("didList", [])
-        if not did_list:
-            return jsonify(message="the requested didList is empty"), 400
+    if "didList" not in data:
+        return jsonify(error="`didList` is required in the request payload."), 400
 
-        names = dict()
-        for did in did_list:
-            try:
-                asset_record = dao.get(did)
-                metadata = get_metadata_from_services(asset_record["service"])
-                names[did] = metadata["main"]["name"]
-            except Exception:
-                names[did] = ""
+    did_list = data.get("didList", [])
+    if not did_list:
+        return jsonify(error="The requested didList can not be empty."), 400
+    if not isinstance(did_list, list):
+        return jsonify(error="The didList must be a list."), 400
 
-        return Response(json.dumps(names), 200, content_type="application/json")
-    except Exception as e:
-        logger.error(f"get_assets_names failed: {str(e)}")
-        return jsonify(error=f" get_assets_names failed: {str(e)}"), 404
+    names = dict()
+    for did in did_list:
+        try:
+            asset_record = es_instance.get(did)
+            metadata = get_metadata_from_services(asset_record["service"])
+            names[did] = metadata["main"]["name"]
+        except Exception:
+            names[did] = ""
+
+    return json.dumps(names), 200
 
 
-@assets.route("/ddo/query", methods=["POST"])
+@assets.route("/query", methods=["POST"])
 def query_ddo():
-    """Get a list of DDOs that match with the executed query.
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/json
-    parameters:
-      - in: body
-        name: body
-        required: true
-        description: Asset metadata.
-        schema:
-          type: object
-          properties:
-            query:
-              type: string
-              description: Query to realize
-              example: {"value":1}
-            sort:
-              type: object
-              description: Key or list of keys to sort the result
-              example: {"value":1}
-            offset:
-              type: int
-              description: Number of records per page
-              example: 100
-            page:
-              type: int
-              description: Page showed
-              example: 1
-    responses:
-      200:
-        description: successful action
-        example:
-          application/json: {
-            "results": [
-                {
-                    "@context": "https://w3id.org/did/v1",
-                    "id": "did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
-                    "created": "2021-08-08T14:16:02Z",
-                    "publicKey": [
-                        {
-                            "id": "did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
-                            "type": "EthereumECDSAKey",
-                            "owner": "0x66aB6D9362d4F35596279692F0251Db635165871"
-                        }
-                    ],
-                    "authentication": [
-                        {
-                            "type": "RsaSignatureAuthentication2018",
-                            "publicKey": "did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4"
-                        }
-                    ],
-                    "service": [
-                        {
-                            "type": "metadata",
-                            "attributes": {
-                                "main": {
-                                    "type": "dataset",
-                                    "name": "branin",
-                                    "author": "Trent",
-                                    "license": "CC0: Public Domain",
-                                    "dateCreated": "2019-12-28T10:55:11Z",
-                                    "files": [
-                                        {
-                                            "index": 0,
-                                            "contentType": "text/text"
-                                        }
-                                    ],
-                                    "datePublished": "2021-08-08T14:16:08Z"
-                                },
-                                "encryptedFiles": "0x045544adc346c93c07dd713597ebf639c67a15f37ba052f267add76124edf33f67bdee3c47902f3c0ab280b61464c1a193e86db06d5f2ceabe43f9e57e444de420b8d6e04b7b9e38fb2c57afdac5c7f62f04cd8ac16531f621686bd3a1c9e55ed2e640c28d9c49ea8bd17916f6613852eb81a278e32bf70b7409b3f",
-                                "curation": {
-                                    "rating": 0.0,
-                                    "numVotes": 0,
-                                    "isListed": true
-                                }
-                            },
-                            "serviceEndpoint": "http://localhost:5000/api/v1/aquarius/assets/ddo/did:op:B78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
-                            "index": 0
-                        },
-                        {
-                            "type": "access",
-                            "attributes": {
-                                "main": {
-                                    "name": "dataAssetAccessServiceAgreement",
-                                    "creator": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                                    "timeout": 86400,
-                                    "datePublished": "2019-12-28T10:55:11Z",
-                                    "cost": 1.0
-                                }
-                            },
-                            "serviceEndpoint": "http://localhost:8030",
-                            "index": 3
-                        }
-                    ],
-                    "proof": {
-                        "type": "DDOIntegritySignature",
-                        "created": "2021-08-08T14:16:01Z",
-                        "creator": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "signatureValue": "0xb0e9678aac2792977d59311b5536836d04d12f17ab669932c47b9d6f77fdb7464af5ac6d280fd90d5631c07bb8d4b1db531e7a7717c372cfb035be0c82f2a2931b",
-                        "checksum": {
-                            "0": "35acddb05beca093f3eb991099f55de7482726b8b38e96225f04d6347c368fb8",
-                            "3": "a7b08afd86967bd5cd6f09d338a5804e11003ccc35041025fafae8ef50b6e7ab"
-                        }
-                    },
-                    "dataToken": "0xB78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
-                    "updated": "2021-08-08T14:16:02Z",
-                    "accessWhiteList": [],
-                    "price": {
-                        "datatoken": 100.0,
-                        "ocean": 10.0,
-                        "value": 0.9611175814077335,
-                        "type": "pool",
-                        "exchange_id": "",
-                        "address": "0x4bb26110628785630A6BD3e64c0907e58AfA1C92",
-                        "pools": [
-                            "0x4bb26110628785630A6BD3e64c0907e58AfA1C92"
-                        ],
-                        "isConsumable": "true"
-                    },
-                    "dataTokenInfo": {
-                        "address": "0xB78DFcdc7C80dc6aB0dE0723E74FEfdb040721a4",
-                        "name": "DataToken1",
-                        "symbol": "DT1",
-                        "decimals": 18,
-                        "totalSupply": 100.0,
-                        "cap": 1000.0,
-                        "minter": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "minterBalance": 0.0
-                    },
-                    "isInPurgatory": "false"
-                }
-            ],
-            "page": 1,
-            "resultsMetadata": {
-                "licenses": [
-                    {
-                        "name": "CC0: Public Domain",
-                        "count": 1
-                    }
-                ],
-                "tags": []
-            },
-            "total_pages": 1,
-            "total_results": 1
-          }
-    example:
-        {"query": {"query_string": {"query": "(covid) -isInPurgatory:true"}}, "offset":1, "page": 1}
-
-    """
-    assert isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-    query = data.get("query")
-
-    querystr = json.dumps(query)
-    did_str = "did:op:"
-    esc_did_str = "did\\\:op\\\:"  # noqa
-    querystr = querystr.replace(esc_did_str, did_str)
-    data["query"] = json.loads(querystr.replace(did_str, esc_did_str))
-
-    data.setdefault("page", 1)
-    data.setdefault("offset", 100)
-
-    query_result = dao.run_es_query(data)
-    search_model = FullTextModel("", data.get("sort"), data["offset"], data["page"])
-
-    for ddo in query_result[0]:
-        sanitize_record(ddo)
-
-    response = make_paginate_response(query_result, search_model)
-    return Response(
-        json.dumps(response, default=datetime_converter),
-        200,
-        content_type="application/json",
-    )
-
-
-@assets.route("/ddo/es-query", methods=["POST"])
-def es_query():
     """Runs a native ES query.
     ---
     tags:
@@ -463,11 +284,31 @@ def es_query():
     responses:
       200:
         description: successful action
+      500:
+        description: elasticsearch exception
     """
-    assert isinstance(request.json, dict), "invalid payload format."
-
     data = request.json
-    return es_instance.driver.es.search(data)
+    if not isinstance(request.json, dict):
+        return (
+            jsonify(
+                error="Invalid payload. The request could not be converted into a dict."
+            ),
+            400,
+        )
+
+    try:
+        return es_instance.es.search(data)
+    except elasticsearch.exceptions.TransportError as e:
+        logger.info(
+            f"Received elasticsearch TransportError: {e.error}, more info: {e.info}."
+        )
+        return (
+            jsonify(error=e.error, info=e.info),
+            e.status_code,
+        )
+    except Exception as e:
+        logger.error(f"Received elasticsearch Error: {str(e)}.")
+        return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
 
 
 @assets.route("/ddo/validate", methods=["POST"])
@@ -493,15 +334,26 @@ def validate():
       500:
         description: Error
     """
-    assert isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-    assert isinstance(data, dict), "invalid `body` type, should be formatted as a dict."
+    try:
+        data = request.json
+        if not isinstance(data, dict):
+            return (
+                jsonify(
+                    error="Invalid payload. The request could not be converted into a dict."
+                ),
+                400,
+            )
 
-    if is_valid_dict_local(data):
-        return jsonify(True)
-    else:
-        res = jsonify(list_errors(list_errors_dict_local, data))
-        return res
+        if is_valid_dict_local(data):
+            return jsonify(True)
+
+        return jsonify(list_errors(list_errors_dict_local, data))
+    except Exception as e:
+        logger.error(f"validate endpoint failed: {str(e)}.")
+        return (
+            jsonify(error=f"Encountered error when validating metadata: {str(e)}."),
+            500,
+        )
 
 
 @assets.route("/ddo/validate-remote", methods=["POST"])
@@ -529,23 +381,29 @@ def validate_remote():
       500:
         description: Error
     """
-    assert isinstance(request.json, dict), "invalid payload format."
-    data = request.json
-    assert isinstance(data, dict), "invalid `body` type, should be formatted as a dict."
+    try:
+        data = request.json
+        if not isinstance(data, dict):
+            return (
+                jsonify(
+                    error="Invalid payload. The request could not be converted into a dict."
+                ),
+                400,
+            )
 
-    if "service" not in data:
-        return jsonify(message="Invalid DDO format."), 400
+        if "service" not in data:
+            # made to resemble list_errors
+            return jsonify([{"message": "missing `service` key in data."}])
 
-    data = get_metadata_from_services(data["service"])
+        data = get_metadata_from_services(data["service"])
 
-    if "main" not in data:
-        return jsonify(message="Invalid DDO format."), 400
+        if is_valid_dict_remote(data):
+            return jsonify(True)
 
-    if is_valid_dict_remote(data):
-        return jsonify(True)
-    else:
-        res = jsonify(list_errors(list_errors_dict_remote, data))
-        return res
+        return jsonify(list_errors(list_errors_dict_remote, data))
+    except Exception as e:
+        logger.error(f"validate_remote failed: {str(e)}.")
+        return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500
 
 
 ###########################
@@ -577,15 +435,25 @@ def encrypt_ddo():
         description: Error
     """
     if request.content_type != "application/octet-stream":
-        return "invalid content-type", 400
-    data = request.get_data()
-    result, encrypted_data = encrypt_data(data)
-    if not result:
-        return encrypted_data, 400
+        return (
+            jsonify(
+                error="Invalid request content type: should be application/octet-stream"
+            ),
+            400,
+        )
 
-    response = Response(encrypted_data)
-    response.headers.set("Content-Type", "application/octet-stream")
-    return response
+    try:
+        data = request.get_data()
+        result, encrypted_data = encrypt_data(data)
+        if not result:
+            return encrypted_data, 400
+
+        response = Response(encrypted_data)
+        response.headers.set("Content-Type", "application/octet-stream")
+        return response
+    except Exception as e:
+        logger.error(f"encrypt_ddo failed: {str(e)}.")
+        return jsonify(error=f"Encountered error when encrypting asset: {str(e)}."), 500
 
 
 @assets.route("/ddo/encryptashex", methods=["POST"])
@@ -614,11 +482,26 @@ def encrypt_ddo_as_hex():
       500:
         description: Error
     """
-    data = request.get_data()
-    result, encrypted_data = encrypt_data(data)
-    if not result:
-        return encrypted_data, 400
+    if request.content_type != "application/octet-stream":
+        return (
+            jsonify(
+                error="Invalid request content type: should be application/octet-stream"
+            ),
+            400,
+        )
 
-    response = Response(Web3.toHex(encrypted_data))
-    response.headers.set("Content-Type", "text/plain")
-    return response
+    try:
+        data = request.get_data()
+        result, encrypted_data = encrypt_data(data)
+        if not result:
+            return encrypted_data, 400
+
+        response = Response(Web3.toHex(encrypted_data))
+        response.headers.set("Content-Type", "text/plain")
+        return response
+    except Exception as e:
+        logger.error(f"encrypt_ddo_as_hex failed: {str(e)}.")
+        return (
+            jsonify(error=f"Encountered error when encrypting asset as hex: {str(e)}."),
+            500,
+        )

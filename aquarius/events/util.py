@@ -30,10 +30,12 @@ def get_network_name():
         network = os.getenv("EVENTS_RPC")
         if network.startswith("wss://"):
             network_name = network[len("wss://") :].split(".")[0]
-        elif not network.startswith("http"):
-            network_name = network
+        elif network.startswith("https"):
+            network_name = network[len("https://") :].split(".")[0]
+        elif network.startswith("http"):
+            network_name = network[len("http://") :].split(".")[0]
         else:
-            network_name = os.getenv("NETWORK_NAME")
+            network_name = network
 
         if not network_name:
             raise AssertionError("Cannot figure out the network name.")

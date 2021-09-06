@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class Purgatory:
-    def __init__(self, oceandb):
+    def __init__(self, es_instance):
         self.update_time = None
-        self._oceandb = oceandb
+        self._es_instance = es_instance
         self.reference_asset_list = set()
         self.reference_account_list = set()
 
@@ -47,7 +47,7 @@ class Purgatory:
         asset["isInPurgatory"] = purgatory
         logger.info(f"PURGATORY: updating asset {did} with value {purgatory}.")
         try:
-            self._oceandb.update(json.dumps(asset), did)
+            self._es_instance.update(json.dumps(asset), did)
         except Exception as e:
             logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
 
@@ -64,14 +64,10 @@ class Purgatory:
                 }
             }
         }
-        page = self._oceandb.driver.es.search(
-            index=self._oceandb.driver.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
         total = page["hits"]["total"]
         body["size"] = total
-        page = self._oceandb.driver.es.search(
-            index=self._oceandb.driver.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
 
         object_list = []
         for x in page["hits"]["hits"]:
@@ -117,7 +113,7 @@ class Purgatory:
 
         for did, reason in new_ids_for_purgatory:
             try:
-                asset = self._oceandb.read(did)
+                asset = self._es_instance.read(did)
                 self.update_asset_purgatory_status(asset)
                 self.reference_asset_list.add((did, reason))
             except elasticsearch.exceptions.NotFoundError:
@@ -125,7 +121,7 @@ class Purgatory:
 
         for did, reason in new_ids_forgiven:
             try:
-                asset = self._oceandb.read(did)
+                asset = self._es_instance.read(did)
                 self.update_asset_purgatory_status(asset, "false")
                 self.reference_asset_list.remove((did, reason))
             except elasticsearch.exceptions.NotFoundError:

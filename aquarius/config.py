@@ -36,7 +36,7 @@ class Config(configparser.ConfigParser):
 
         self.read_dict(config_defaults)
         self._section_name = ConfigSections.RESOURCES
-        self._oceandb_name = ConfigSections.OCEANBD
+        self._es_name = ConfigSections.OCEANBD
         self._logger = kwargs.get("logger", logging.getLogger(__name__))
         self._logger.debug("Config: loading config file %s", filename)
 
@@ -58,20 +58,15 @@ class Config(configparser.ConfigParser):
                 )
                 self.set(self._section_name, option_name, value)
 
-    def set_arguments(self, items):
-        for name, value in items.items():
-            if value is not None:
-                self._logger.debug("Config: setting argument %s = %s", name, value)
-
-                self.set(self._section_name, name, value)
-
     @property
     def aquarius_url(self):
         return self.get(self._section_name, NAME_AQUARIUS_URL)
 
     @property
     def allow_free_assets_only(self):
-        return self.get(self._section_name, ALLOW_FREE_ASSETS_ONLY)
+        return self._section_name in self and self[self._section_name].get(
+            ALLOW_FREE_ASSETS_ONLY, False
+        )
 
     @property
     def db_url(self):
@@ -79,14 +74,14 @@ class Config(configparser.ConfigParser):
         :return: Database url (hostname:port)
         """
         return (
-            self.get(self._oceandb_name, DB_HOSTNAME)
+            self.get(self._es_name, DB_HOSTNAME)
             + ":"
-            + self.get(self._oceandb_name, DB_PORT)
+            + self.get(self._es_name, DB_PORT)
         )
 
     @property
     def module(self):
-        return self.get(self._oceandb_name, MODULE)
+        return self.get(self._es_name, MODULE)
 
     # static methods
 

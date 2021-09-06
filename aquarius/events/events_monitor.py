@@ -12,7 +12,6 @@ from threading import Thread
 import elasticsearch
 from eth_account import Account
 from eth_utils import is_address
-from oceandb_driver_interface import OceanDb
 
 from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.util import get_bool_env_value
@@ -24,6 +23,8 @@ from aquarius.events.processors import (
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_contract, get_metadata_start_block
+from aquarius.app.es_instance import ElasticsearchInstance
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,10 +55,10 @@ class EventsMonitor(BlockProcessingClass):
     _instance = None
 
     def __init__(self, web3, config_file, metadata_contract=None):
-        self._oceandb = OceanDb(config_file).plugin
+        self._es_instance = ElasticsearchInstance(config_file)
 
-        self._other_db_index = f"{self._oceandb.driver.db_index}_plus"
-        self._oceandb.driver.es.indices.create(index=self._other_db_index, ignore=400)
+        self._other_db_index = f"{self._es_instance.db_index}_plus"
+        self._es_instance.es.indices.create(index=self._other_db_index, ignore=400)
 
         self._web3 = web3
 
@@ -67,7 +68,7 @@ class EventsMonitor(BlockProcessingClass):
         self.add_chain_id_to_chains_list()
         self._index_name = "events_last_block_" + str(self._chain_id)
         self._contract = metadata_contract
-        self._contract_address = self._contract.address
+        self._contract_address = self._contract.address if self._contract else None
         self._start_block = get_metadata_start_block()
 
         if get_bool_env_value("EVENTS_CLEAN_START", 0):
@@ -89,7 +90,7 @@ class EventsMonitor(BlockProcessingClass):
         except (JSONDecodeError, TypeError, Exception) as e:
             logger.error(
                 f"Reading list of allowed publishers failed: {e}\n"
-                f'ALLOWED_PUBLISHER is set to "{os.getenv("ALLOWED_PUBLISHER")}"'
+                f"ALLOWED_PUBLISHERS is set to empty set."
             )
 
         self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
@@ -115,23 +116,19 @@ class EventsMonitor(BlockProcessingClass):
             self._contract = None
 
         self.purgatory = (
-            Purgatory(self._oceandb)
+            Purgatory(self._es_instance)
             if (os.getenv("ASSET_PURGATORY_URL") or os.getenv("ACCOUNT_PURGATORY_URL"))
             else None
         )
 
-        if self.purgatory:
-            logger.info("PURGATORY: Enabling purgatory.")
-        else:
-            logger.info("PURGATORY: Purgatory is disabled.")
+        purgatory_message = (
+            "Enabling purgatory" if self.purgatory else "Purgatory is disabled"
+        )
+        logger.info("PURGATORY: " + purgatory_message)
 
     @property
     def block_envvar(self):
         return "METADATA_CONTRACT_BLOCK"
-
-    @property
-    def is_monitor_running(self):
-        return self._monitor_is_on
 
     def start_events_monitor(self):
         if self._monitor_is_on:
@@ -157,23 +154,23 @@ class EventsMonitor(BlockProcessingClass):
 
     def run_monitor(self):
         while True:
-            if not self._monitor_is_on:
-                return
-
-            try:
-                self.process_current_blocks()
-            except (KeyError, Exception) as e:
-                logger.error("Error processing event:")
-                logger.error(e)
-
-            if self.purgatory:
-                try:
-                    self.purgatory.update_lists()
-                except (KeyError, Exception) as e:
-                    logger.error("Error updating purgatory list:")
-                    logger.error(e)
-
+            self.do_run_monitor()
             time.sleep(self._monitor_sleep_time)
+
+    def do_run_monitor(self):
+        if not self._monitor_is_on:
+            return
+
+        try:
+            self.process_current_blocks()
+        except (KeyError, Exception) as e:
+            logger.error(f"Error processing event: {str(e)}.")
+
+        if self.purgatory:
+            try:
+                self.purgatory.update_lists()
+            except (KeyError, Exception) as e:
+                logger.error(f"Error updating purgatory list: {str(e)}.")
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
@@ -208,7 +205,7 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         processor_args = [
-            self._oceandb,
+            self._es_instance,
             self._web3,
             self._ecies_account,
             self._allowed_publishers,
@@ -239,7 +236,7 @@ class EventsMonitor(BlockProcessingClass):
     def get_last_processed_block(self):
         block = 0
         try:
-            last_block_record = self._oceandb.driver.es.get(
+            last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
             block = last_block_record["last_block"]
@@ -257,7 +254,7 @@ class EventsMonitor(BlockProcessingClass):
             return
         record = {"last_block": block}
         try:
-            self._oceandb.driver.es.index(
+            self._es_instance.es.index(
                 index=self._other_db_index,
                 id=self._index_name,
                 body=record,
@@ -265,14 +262,14 @@ class EventsMonitor(BlockProcessingClass):
                 refresh="wait_for",
             )["_id"]
 
-        except elasticsearch.exceptions.RequestError as e:
+        except elasticsearch.exceptions.RequestError:
             logger.error(
-                f"store_last_processed_block: block={block} type={type(block)}, error={e}"
+                f"store_last_processed_block: block={block} type={type(block)}, ES RequestError"
             )
 
     def add_chain_id_to_chains_list(self):
         try:
-            chains = self._oceandb.driver.es.get(
+            chains = self._es_instance.es.get(
                 index=self._other_db_index, id="chains", doc_type="_doc"
             )["_source"]
         except Exception:
@@ -280,7 +277,7 @@ class EventsMonitor(BlockProcessingClass):
         chains[str(self._chain_id)] = True
 
         try:
-            self._oceandb.driver.es.index(
+            self._es_instance.es.index(
                 index=self._other_db_index,
                 id="chains",
                 body=json.dumps(chains),
@@ -288,14 +285,16 @@ class EventsMonitor(BlockProcessingClass):
                 refresh="wait_for",
             )["_id"]
             logger.info(f"Added {self._chain_id} to chains list")
-        except elasticsearch.exceptions.RequestError as e:
-            logger.error(f"Cannot add chain_id to chains list: {str(e)}")
+        except elasticsearch.exceptions.RequestError:
+            logger.error(
+                f"Cannot add chain_id {self._chain_id} to chains list: ES RequestError"
+            )
 
     def reset_chain(self):
         assets = self.get_assets_in_chain()
         for asset in assets:
             try:
-                self._oceandb.delete(asset["id"])
+                self._es_instance.delete(asset["id"])
             except Exception as e:
                 logging.error(f"Delete asset failed: {str(e)}")
 
@@ -310,14 +309,10 @@ class EventsMonitor(BlockProcessingClass):
                 }
             }
         }
-        page = self._oceandb.driver.es.search(
-            index=self._oceandb.driver.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
         total = page["hits"]["total"]
         body["size"] = total
-        page = self._oceandb.driver.es.search(
-            index=self._oceandb.driver.db_index, body=body
-        )
+        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
 
         object_list = []
         for x in page["hits"]["hits"]:
@@ -325,28 +320,22 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block):
-        def _get_logs(event, _from_block, _to_block):
+    def get_event_logs(self, event_name, from_block, to_block, _get_logs_callback=None):
+        def _get_logs_orig(event, _from_block, _to_block):
             logger.debug(f"get_event_logs ({event_name}, {from_block}, {to_block})..")
             _filter = event().createFilter(fromBlock=_from_block, toBlock=_to_block)
             return _filter.get_all_entries()
 
-        try:
-            logs = _get_logs(
-                getattr(self._contract.events, event_name), from_block, to_block
-            )
-            return logs
-        except ValueError as e:
-            logger.error(
-                f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}.\n Retrying once more."
-            )
+        _get_logs = _get_logs_callback if _get_logs_callback else _get_logs_orig
 
-        try:
-            logs = _get_logs(
-                getattr(self._contract.events, event_name), from_block, to_block
-            )
-            return logs
-        except ValueError as e:
-            logger.error(
-                f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}."
-            )
+        for x in [0, 1]:
+            try:
+                return _get_logs(
+                    getattr(self._contract.events, event_name), from_block, to_block
+                )
+            except ValueError as e:
+                suffix = "" if x == 1 else "\n Retrying once more."
+                logger.error(
+                    f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}."
+                    + suffix
+                )
