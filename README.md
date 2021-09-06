@@ -19,12 +19,12 @@ SPDX-License-Identifier: Apache-2.0
       * [The EventsMonitor](#the-eventsmonitor)
 * [Aquarius Setup](#aquarius-setup)
    * [Running Aquarius for multiple chains](#running-aquarius-for-multiple-chains)
-* [What can Aquarius do for me?](#what-can-aquarius-do-for-me)
-   * [I just want to run Aquarius](#i-just-want-to-run-aquarius)
-   * [I want to learn more about the Aquarius API](#i-want-to-learn-more-about-the-aquarius-api)
-   * [I want to improve or customise Aquarius](#i-want-to-improve-or-customise-aquarius)
-      * [General Ocean Dev Docs](#general-ocean-dev-docs)
+* [Using Aquarius](#using-aquarius)
+   * [Quickstart](#quickstart)
+   * [Learn about Aquarius API](#learn-about-aquarius-api)
+   * [Development](#development)
       * [Running Aquarius locally, for development and testing](#running-aquarius-locally-for-development-and-testing)
+      * [General Ocean Dev Docs](#general-ocean-dev-docs)
       * [Configuration](#configuration)
       * [Extras: Testing &amp; Versioning](#extras-testing--versioning)
 * [License](#license)
@@ -42,6 +42,9 @@ The metadata is published on-chain via the Metadata smartcontract:
 * Metadata is first compressed (using lzma), then published on-chain
 * The compressed metadata on-chain is not kept in storage, but rather is captured in an event log named `MetadataCreated`
 * The id (DID) of the dataset asset is the Datatoken address, off-chain the did consist of `did:op:` prepended to the datatoken address
+
+For more details on working with OCEAN DIDs check out the [DID concept documentation](https://docs.oceanprotocol.com/concepts/did-ddo/).
+The [DDO Metadata documentation](https://docs.oceanprotocol.com/concepts/ddo-metadata/) goes into more depth regarding metadata structure.
 
 ## Components and architecture
 
@@ -165,13 +168,13 @@ If you want to index multiple chains using a single Aquarius instance, that is p
 
 Voilà! You are now running a multi-chain Aquarius.
 
-# What can Aquarius do for me?
+# Using Aquarius
 
-## I just want to run Aquarius
+## Quickstart
 
 If you're developing a marketplace, you'll want to run Aquarius and several other components locally. The easiest way to do that is to use Barge. See the instructions in [the Barge repository](https://github.com/oceanprotocol/barge).
 
-## I want to learn more about the Aquarius API
+## Learn about Aquarius API
 
 [Here](https://docs.oceanprotocol.com/references/aquarius/) is API documentation. You can find more details about the ontology of the metadata in the [Ocean documentation](https://docs.oceanprotocol.com/concepts/ddo-metadata/).
 
@@ -180,13 +183,9 @@ If you have Aquarius running locally, you can find a Swagger API documentation a
 - Tip 1: If that doesn't work, then try `https`.
 - Tip 2: If your browser shows the Swagger header across the top but says "Failed to load spec." then we found that, in Chrome, if we went to `chrome://flags/#allow-insecure-localhost` and toggled it to Enabled, then relaunched Chrome, it worked.
 
-## I want to improve or customise Aquarius
+## Development
 
-You're our favourite kind of person! So let us help you with a list of resources and best practices:
-
-### General Ocean Dev Docs
-
-Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
+If you want to improve or customise Aquarius, you're our favourite kind of person! So let us help you with a list of resources and best practices:
 
 ### Running Aquarius locally, for development and testing
 
@@ -267,6 +266,11 @@ Then execute this command:
 ```bash
 gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 aquarius.run:app
 ```
+
+### General Ocean Dev Docs
+
+Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
+
 
 ### Configuration
 
