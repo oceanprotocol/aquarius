@@ -1,20 +1,16 @@
-##
-## Copyright 2021 Ocean Protocol Foundation
-## SPDX-License-Identifier: Apache-2.0
-##
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: aquarius
-  name: aquarius
+    app: aquarius-events-rinkeby
+  name: aquarius-events-rinkeby
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 5
   selector:
     matchLabels:
-      app: aquarius
+      app: aquarius-events-rinkeby
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -22,68 +18,69 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      creationTimestamp: null
       labels:
-        app: aquarius
+        app: aquarius-events-rinkeby
     spec:
       containers:
       - env:
         - name: LOG_LEVEL
-          value: < DEBUG or INFO >
+          value: DEBUG
         - name: AQUARIUS_BIND_URL
           value: http://0.0.0.0:5000
         - name: AQUARIUS_WORKERS
           value: "1"
         - name: DB_HOSTNAME
-          value: < elasticsearch service >
-        - name: DB_INDEX
-          value: aquarius
+          value: < ES service hostname >
         - name: DB_MODULE
           value: elasticsearch
+        - name: DB_NAME
+          value: aquarius
         - name: DB_PORT
           value: "9200"
+        - name: DB_SCHEME
+          value: http
         - name: DB_USERNAME
           value: elastic
         - name: DB_PASSWORD
-          value: <your password>
+          value: changeme
         - name: DB_SSL
           value: "false"
-        - name: DB_VERIFY_CERTS
-          value: "false"
-        - name: EVENTS_ALLOW
+        - name: RUN_AQUARIUS_SERVER
           value: "0"
-        - name: EVENTS_RPC
-          value: wss://rinkeby.infura.io/ws/v3/<YOUR-PROJECT-ID>
         - name: RUN_EVENTS_MONITOR
           value: "1"
+        - name: CONFIG_FILE
+          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         - name: BFACTORY_BLOCK
-          value: "< The block number of `Metadata` contract deployment >"
+          value: "7298806"
         - name: METADATA_CONTRACT_BLOCK
-          value: "< metadata contract block >"
+          value: "7298808"
         - name: NETWORK_NAME
-          value: < mainnet, rinkeby or ropsten >
-        - name: NETWORK_URL
-          value: < option selected as NETWORK_NAME above >
-        - name: METADATA_UPDATE_ALL
-          value: "0"
-        - name: UPDATE_ALL_PURGATORY
-          value: "0"
+          value: rinkeby
+        - name: EVENTS_RPC
+          value: < RPC service for Rinkeby >
         - name: OCEAN_ADDRESS
           value: 0x8967BCF84170c91B0d24D4302C2376283b0B3a07
-        image: oceanprotocol/aquarius:<tag from hub.docker.com> -- check: https://hub.docker.com/repository/docker/oceanprotocol/aquarius/tags?page=1&ordering=last_updated --
-        imagePullPolicy: Always
+        - name: BLOCKS_CHUNK_SIZE
+          value: "5000"
+        - name: EVENTS_HTTP
+          value: "1"
+        image: oceanprotocol/aquarius:v3.0.0
+        imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
           httpGet:
             path: /
-            port: 5000
+            port: 5001
             scheme: HTTP
           initialDelaySeconds: 20
           periodSeconds: 10
           successThreshold: 1
-          timeoutSeconds: 2
-        name: aquarius
+          timeoutSeconds: 1
+        name: aquarius-events-rinkeby
         ports:
         - containerPort: 5000
           protocol: TCP
@@ -91,7 +88,7 @@ spec:
           failureThreshold: 3
           httpGet:
             path: /
-            port: 5000
+            port: 5001
             scheme: HTTP
           initialDelaySeconds: 20
           periodSeconds: 10

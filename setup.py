@@ -30,7 +30,7 @@ install_requirements = [
     "PyYAML==5.4.1",
     "pytz==2021.1",
     "ocean-contracts==0.6.5",
-    "web3==5.22.0",
+    "web3==5.23.1",
     "jsonschema==3.2.0",
     "eciespy",
     "gevent",
@@ -49,7 +49,7 @@ dev_requirements = [
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==2.1.3",
+    "watchdog==2.1.5",
     "licenseheaders",
 ]
 
@@ -58,7 +58,7 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==5.5",
     "mccabe==0.6.1",
-    "pylint==2.9.6",
+    "pylint==2.10.2",
     "pytest",
     "tox",
     "pytest-env",

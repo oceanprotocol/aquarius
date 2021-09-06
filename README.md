@@ -27,6 +27,7 @@ SPDX-License-Identifier: Apache-2.0
       * [General Ocean Dev Docs](#general-ocean-dev-docs)
       * [Configuration](#configuration)
       * [Extras: Testing &amp; Versioning](#extras-testing--versioning)
+      * [Ensuring changes are well propagated](#ensuring-changes-are-well-propagated)
 * [License](#license)
 
 # What is Aquarius?
@@ -294,6 +295,21 @@ If you want to run a test individually, without using tox, run `pytest test_file
 In this case, if some environment variables are not set, pytest will default to those defined in `pytest.ini` (defined in the project root directory). These variables are the same as the ones tox.ini defines.
 
 The `bumpversion.sh` script helps bump the project version. You can execute the script using `{major|minor|patch}` as first argument, to bump the version accordingly.
+
+### Ensuring changes are well propagated
+
+Changes to Aquarius have ripple effects to this repo's docker image, and barge. 
+
+When you make changes, you have to make sure that you're not breaking downstream components that use this. Kindly make sure that you consider all ripple effects.
+
+You may need to:
+- update this repo
+- update this repo's docker container (if needed)
+- update barge with this repo's changes (if needed)
+
+All changes should double-check that Ocean Market still works as expected.
+- test Ocean Market locally, focusing on where the change was made. This will hit the API endpoint. [Ocean.py marketplace flow](https://github.com/oceanprotocol/ocean.py/blob/main/READMEs/marketplace-flow.md) shows how to spin it up locally in a Python context
+- test Ocean Market on rinkeby or ropsten
 
 # License
 
