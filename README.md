@@ -167,6 +167,8 @@ If you want to index multiple chains using a single Aquarius instance, that is p
      * Set `RUN_EVENTS_MONITOR=1` and `RUN_AQUARIUS_SERVER=0` (run only the EventsMonitor part of Aquarius)
      * Set coresponding `EVENTS_RPC`, `NETWORK_NAME`, `BLOCKS_CHUNK_SIZE`, `METADATA_CONTRACT_BLOCK`, `METADATA_CONTRACT_ADDRESS` etc.
 
+A list of deployment values and schematics [can be found here](https://github.com/oceanprotocol/aquarius/tree/main/deployment)
+
 Voilà! You are now running a multi-chain Aquarius.
 
 # Using Aquarius
