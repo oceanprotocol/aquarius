@@ -22,7 +22,7 @@ This doesn't actually affect the pip release of the following steps. And if you'
 
   - To bump the patch version: `./bumpversion.sh patch`
   - To bump the minor version: `./bumpversion.sh minor`
-  - To bump the major version: `./bumpversion.sh major`
+  - To bump the major version (for API-breaking changes): `./bumpversion.sh major`
 
 - Commit the changes to the feature branch.
 
@@ -49,7 +49,7 @@ This doesn't actually affect the pip release of the following steps. And if you'
   - For tag version, put something like `v3.2.5`
   - For release title, put the same value (like `v3.2.5`).
   - For the target, select the `main` branch, or the just-merged commit.
-  - Describe the main changes. (In the future, these will come from the changelog.)
+  - Describe the main changes.
   - Click "Publish release".
 
 ## Step 4: Verify
