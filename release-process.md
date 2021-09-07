@@ -51,8 +51,3 @@ This doesn't actually affect the pip release of the following steps. And if you'
   - For the target, select the `main` branch, or the just-merged commit.
   - Describe the main changes.
   - Click "Publish release".
-
-## Step 4: Verify
-
-- The Github Action will detect the release (a new tag) and run the deployment.
-- Check PyPI for the new release at <https://pypi.org/project/ocean-aquarius/>
