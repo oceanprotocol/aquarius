@@ -43,11 +43,10 @@ This doesn't actually affect the pip release of the following steps. And if you'
 ## Step 3: Release
 
 - To make a GitHub release (which creates a Git tag):
-
-  - Go to the Aquarius repo's Releases page <https://github.com/oceanprotocol/aquarius/releases>
-  - Click "Draft a new release".
-  - For tag version, put something like `v3.2.5`
-  - For release title, put the same value (like `v3.2.5`).
-  - For the target, select the `main` branch, or the just-merged commit.
-  - Describe the main changes.
-  - Click "Publish release".
+- Go to the Aquarius repo's Releases page <https://github.com/oceanprotocol/aquarius/releases>
+- Click "Draft a new release".
+- For tag version, put something like `v3.2.5`
+- For release title, put the same value (like `v3.2.5`).
+- For the target, select the `main` branch, or the just-merged commit.
+- Describe the main changes.
+- Click "Publish release".
