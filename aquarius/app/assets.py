@@ -299,11 +299,13 @@ def query_ddo():
     try:
         return es_instance.es.search(data)
     except elasticsearch.exceptions.TransportError as e:
+        error = e.error if isinstance(e.error, str) else str(e.error)
+        info = e.info if isinstance(e.info, dict) else ""
         logger.info(
-            f"Received elasticsearch TransportError: {e.error}, more info: {e.info}."
+            f"Received elasticsearch TransportError: {error}, more info: {info}."
         )
         return (
-            jsonify(error=e.error, info=e.info),
+            jsonify(error=error, info=info),
             e.status_code,
         )
     except Exception as e:
