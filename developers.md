@@ -8,7 +8,7 @@
      
 ## Running Aquarius locally, for development and testing
 
-Thee easiest way is through [Barge](https://github.com/oceanprotocol/barge). Run a Barge instance without Aquarius.
+The easiest way is through [Barge](https://github.com/oceanprotocol/barge). Run a Barge instance without Aquarius.
 
 ```bash
 git clone https://github.com/oceanprotocol/barge
