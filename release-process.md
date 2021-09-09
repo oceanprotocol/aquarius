@@ -12,7 +12,7 @@ Please note that this upgrade does not affect the deployed versions of Aquarius,
 - Go to https://github.com/oceanprotocol/readthedocs, and follow the steps
 - This will update what's shown in https://docs.oceanprotocol.com/references/read-the-docs/aquarius/.
 
-This doesn't actually affect the pip release of the following steps. And if you've just updated READMEs, you can stop after this step if you like.
+This doesn't actually affect the following steps of the release. And if you've just updated READMEs, you can stop after this step if you like.
 
 ## Step 1: Bump version and push changes
 
