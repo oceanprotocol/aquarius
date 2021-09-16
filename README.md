@@ -4,7 +4,9 @@ SPDX-License-Identifier: Apache-2.0
 -->
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-[![Docker Build Status](https://img.shields.io/docker/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/) [![Travis (.com)](https://img.shields.io/travis/com/oceanprotocol/aquarius.svg)](https://travis-ci.com/oceanprotocol/aquarius)
+[![Aquarius tests](https://github.com/oceanprotocol/aquarius/actions/workflows/tox.yml/badge.svg)](https://github.com/oceanprotocol/aquarius/actions/workflows/tox.yml)
+[![black](https://github.com/oceanprotocol/aquarius/actions/workflows/black.yml/badge.svg)](https://github.com/oceanprotocol/aquarius/actions/workflows/black.yml)
+[![Docker Build Status](https://img.shields.io/docker/cloud/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/)
 [![Maintainability](https://api.codeclimate.com/v1/badges/411b97f9749f9dcac801/maintainability)](https://codeclimate.com/github/oceanprotocol/aquarius/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/411b97f9749f9dcac801/test_coverage)](https://codeclimate.com/github/oceanprotocol/aquarius/test_coverage)
 [![PyPI](https://img.shields.io/pypi/v/ocean-aquarius.svg)](https://pypi.org/project/ocean-aquarius/)
