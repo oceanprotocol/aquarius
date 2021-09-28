@@ -13,6 +13,8 @@ import elasticsearch
 from eth_account import Account
 from eth_utils import is_address
 
+from jsonsempai import magic  # noqa: F401
+from artifacts import DataTokenTemplate
 from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.util import get_bool_env_value
 from aquarius.block_utils import BlockProcessingClass
@@ -20,6 +22,7 @@ from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPD
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
+    OrderStartedProcessor
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_contract, get_metadata_start_block
@@ -229,6 +232,34 @@ class EventsMonitor(BlockProcessingClass):
             except Exception as e:
                 logger.error(
                     f"Error processing update metadata event: {e}\n" f"event={event}"
+                )
+
+        event_signature_hash = self._web3.keccak(
+            text="OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
+        ).hex()
+
+        # TODO: remove
+        to_block = self._web3.eth.block_number
+
+        order_event_filter = self._web3.eth.filter({
+            "topics": [event_signature_hash],
+            "fromBlock": from_block,
+            "toBlock": to_block
+        })
+
+        order_events = order_event_filter.get_all_entries()
+
+        for event_dict in order_events:
+            evt_contract = self._web3.eth.contract(
+                address=event_dict['address'], abi=DataTokenTemplate.abi
+            )
+
+            try:
+                event_processor = OrderStartedProcessor(evt_contract, self._es_instance)
+                event_processor.process()
+            except Exception as e:
+                logger.error(
+                    f"Error processing order started event: {e}\n" f"event={event_dict}"
                 )
 
         self.store_last_processed_block(to_block)

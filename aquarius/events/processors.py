@@ -306,3 +306,26 @@ class MetadataUpdatedProcessor(EventProcessor):
             return False
 
         return data
+
+
+class OrderStartedProcessor:
+    def __init__(
+        self,
+        contract,
+        es_instance,
+    ):
+        import pdb; pdb.set_trace()
+        self.did = f"did:op:{remove_0x_prefix(contract.address)}"
+        self.es_instance = es_instance
+
+        try:
+            self.asset = self._es_instance.read(self.did)
+        except Exception:
+            self.asset = None
+
+    def process(self):
+        if not self.asset:
+            return
+
+        import pdb; pdb.set_trace()
+        # TODO
