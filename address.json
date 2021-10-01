@@ -1,0 +1,11 @@
+{
+  "ganache": {
+    "DataTokenTemplate": "0x3a5B61f6aBfA6Ae853449fc2988b8CaD8e6AE815",
+    "DTFactory": "0x78e43bdb144fC2A3eD4E001DfeD532c5906adC35",
+    "BPool": "0xf3B6E8182D40F9eD3F8C48844E134bB3107115d6",
+    "BFactory": "0xba5b0aAE361a1F768ca7FEf6442D261652376655",
+    "FixedRateExchange": "0xbb98989B3Ae474424F047E4f1f1ED2c12f19460D",
+    "Metadata": "0xaf9B6736d7Ad527b9bec46ecE9687677986C12ec",
+    "Ocean": "0x98b6901cE7C9fc65dBeeC98598136593EB7b4c6C"
+  }
+}
