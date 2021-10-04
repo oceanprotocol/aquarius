@@ -28,7 +28,7 @@ install_requirements = [
     "gunicorn==20.1.0",
     "elasticsearch==7.15.0",
     "PyYAML==5.4.1",
-    "pytz==2021.1",
+    "pytz==2021.3",
     "ocean-contracts==0.6.9",
     "web3==5.23.1",
     "jsonschema==3.2.0",
