@@ -49,7 +49,7 @@ dev_requirements = [
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==2.1.5",
+    "watchdog==2.1.6",
     "licenseheaders",
 ]
 
