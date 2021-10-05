@@ -238,9 +238,6 @@ class EventsMonitor(BlockProcessingClass):
             text="OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
         ).hex()
 
-        # TODO: remove
-        to_block = self._web3.eth.block_number
-
         order_event_filter = self._web3.eth.filter({
             "topics": [event_signature_hash],
             "fromBlock": from_block,
@@ -255,7 +252,7 @@ class EventsMonitor(BlockProcessingClass):
             )
 
             try:
-                event_processor = OrderStartedProcessor(evt_contract, self._es_instance)
+                event_processor = OrderStartedProcessor(evt_contract, self._es_instance, to_block)
                 event_processor.process()
             except Exception as e:
                 logger.error(

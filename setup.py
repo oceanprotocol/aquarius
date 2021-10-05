@@ -36,6 +36,8 @@ install_requirements = [
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
+    "gql==3.0.0a6",
+    "aiohttp==3.7.4.post0"
 ]
 
 setup_requirements = ["pytest-runner==5.3.1"]
