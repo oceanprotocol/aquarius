@@ -312,12 +312,7 @@ class MetadataUpdatedProcessor(EventProcessor):
 
 
 class OrderStartedProcessor:
-    def __init__(
-        self,
-        contract,
-        es_instance,
-        last_sync_block
-    ):
+    def __init__(self, contract, es_instance, last_sync_block):
         self.did = f"did:op:{remove_0x_prefix(contract.address)}"
         self.es_instance = es_instance
         self.token_address = contract.address
@@ -340,16 +335,22 @@ class OrderStartedProcessor:
             time.sleep(2)
 
         did_query = gql(
-            '{ datatokens(where: {id: "' + self.token_address.lower() + '"}) { orderVolume } }'
+            '{ datatokens(where: {id: "'
+            + self.token_address.lower()
+            + '"}) { orderVolume } }'
         )
         result = client.execute(did_query)
 
         try:
             number_orders = result["datatokens"][0]["orderVolume"]
         except (KeyError, IndexError):
-            raise Exception("Can not get number of orders for subgraph {get_network_name()} did {did}")
+            raise Exception(
+                "Can not get number of orders for subgraph {get_network_name()} did {did}"
+            )
 
-        import pdb; pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         # TODO: actual update
 
 
@@ -368,7 +369,7 @@ def get_client():
 
 
 def get_last_block(client):
-    last_block_query = gql('{_meta { block { number } } }')
+    last_block_query = gql("{_meta { block { number } } }")
 
     try:
         result = client.execute(last_block_query)

@@ -22,7 +22,7 @@ from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPD
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
-    OrderStartedProcessor
+    OrderStartedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_contract, get_metadata_start_block
@@ -238,21 +238,25 @@ class EventsMonitor(BlockProcessingClass):
             text="OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
         ).hex()
 
-        order_event_filter = self._web3.eth.filter({
-            "topics": [event_signature_hash],
-            "fromBlock": from_block,
-            "toBlock": to_block
-        })
+        order_event_filter = self._web3.eth.filter(
+            {
+                "topics": [event_signature_hash],
+                "fromBlock": from_block,
+                "toBlock": to_block,
+            }
+        )
 
         order_events = order_event_filter.get_all_entries()
 
         for event_dict in order_events:
             evt_contract = self._web3.eth.contract(
-                address=event_dict['address'], abi=DataTokenTemplate.abi
+                address=event_dict["address"], abi=DataTokenTemplate.abi
             )
 
             try:
-                event_processor = OrderStartedProcessor(evt_contract, self._es_instance, to_block)
+                event_processor = OrderStartedProcessor(
+                    evt_contract, self._es_instance, to_block
+                )
                 event_processor.process()
             except Exception as e:
                 logger.error(
