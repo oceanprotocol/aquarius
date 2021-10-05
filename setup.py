@@ -30,7 +30,7 @@ install_requirements = [
     "PyYAML==5.4.1",
     "pytz==2021.1",
     "ocean-contracts==0.6.9",
-    "web3==5.23.1",
+    "web3==5.24.0",
     "jsonschema==3.2.0",
     "eciespy",
     "gevent",
