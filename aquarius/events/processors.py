@@ -5,9 +5,6 @@
 from abc import ABC
 from datetime import datetime
 from eth_utils import add_0x_prefix, remove_0x_prefix
-from gql import gql, Client
-from gql.transport.aiohttp import AIOHTTPTransport
-import time
 import json
 import logging
 import os
@@ -27,8 +24,9 @@ from aquarius.app.util import (
     validate_data,
 )
 from aquarius.events.constants import EVENT_METADATA_CREATED
-from aquarius.events.util import get_datatoken_info, get_network_name
+from aquarius.events.util import get_datatoken_info
 from aquarius.events.decryptor import Decryptor
+from aquarius.graphql import get_number_orders
 
 logger = logging.getLogger(__name__)
 
@@ -327,26 +325,7 @@ class OrderStartedProcessor:
         if not self.asset:
             return
 
-        client = get_client()
-
-        last_block = get_last_block(client)
-        while last_block <= self.last_sync_block:
-            last_block = get_last_block(client)
-            time.sleep(2)
-
-        did_query = gql(
-            '{ datatokens(where: {id: "'
-            + self.token_address.lower()
-            + '"}) { orderVolume } }'
-        )
-        result = client.execute(did_query)
-
-        try:
-            number_orders = result["datatokens"][0]["orderVolume"]
-        except (KeyError, IndexError):
-            raise Exception(
-                "Can not get number of orders for subgraph {get_network_name()} did {did}"
-            )
+        number_orders = get_number_orders(self.token_address, self.last_sync_block)
 
         import pdb
 
@@ -354,27 +333,3 @@ class OrderStartedProcessor:
         # TODO: actual update
 
 
-def get_transport():
-    network_name = get_network_name()
-    if network_name == "ganache":
-        prefix = "http://localhost:9000"
-    else:
-        prefix = f"http://subgraph.{network_name}.oceanprotocol.com"
-
-    return AIOHTTPTransport(url=f"{prefix}/subgraphs/name/oceanprotocol/ocean-subgraph")
-
-
-def get_client():
-    return Client(transport=get_transport(), fetch_schema_from_transport=True)
-
-
-def get_last_block(client):
-    last_block_query = gql("{_meta { block { number } } }")
-
-    try:
-        result = client.execute(last_block_query)
-        last_block = result["_meta"]["block"]["number"]
-    except (KeyError, IndexError):
-        raise Exception("Can not get last block name for subgraph {get_network_name()}")
-
-    return last_block
