@@ -326,7 +326,8 @@ class OrderStartedProcessor:
             return
 
         number_orders = get_number_orders(self.token_address, self.last_sync_block)
-        metadata = get_metadata_from_services(self.asset["service"])
-        metadata["numOrders"] = number_orders
+        self.asset["ordersCount"] = number_orders
 
         self.es_instance.update(self.asset, self.did)
+
+        return self.asset

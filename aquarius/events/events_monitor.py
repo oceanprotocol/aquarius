@@ -249,6 +249,9 @@ class EventsMonitor(BlockProcessingClass):
         order_events = order_event_filter.get_all_entries()
 
         for event_dict in order_events:
+            import pdb
+
+            pdb.set_trace()
             evt_contract = self._web3.eth.contract(
                 address=event_dict["address"], abi=DataTokenTemplate.abi
             )
