@@ -1,18 +1,21 @@
+import json
 import pytest
 from hexbytes import HexBytes
 from unittest.mock import patch, Mock
 from web3.datastructures import AttributeDict
+from web3 import Web3
 
 from aquarius.events.decryptor import Decryptor
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
-    OrderStartedProcessor
+    OrderStartedProcessor,
 )
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
 
-from tests.helpers import new_ddo, test_account1
+from unittest.mock import patch
+from tests.helpers import new_ddo, test_account1, send_create_update_tx
 
 
 event_sample = AttributeDict(
@@ -65,14 +68,18 @@ event_updated_sample = AttributeDict(
 
 order_started_sample = AttributeDict(
     {
-        'address': '0x5C53218593244B7603b2F1dD47A2Fb9367552878',
-        'blockHash': HexBytes('0xb399348447727a0912e8e67e04e69e9b62ad6f3b615abcb473a5a88505432f3b'),
-        'blockNumber': 11139493,
-        'data': '0x0000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000005f983f000000000000000000000000000000000000000000000000000000000000000000',
-        'logIndex': 164,
-        'removed': False,
-        'transactionHash': HexBytes('0x2732a08eb120e4d7e9227ab6b486ee319b20a323bd1bcb346cfd2aee9b9393f7'),
-        'transactionIndex': 77
+        "address": "0x5C53218593244B7603b2F1dD47A2Fb9367552878",
+        "blockHash": HexBytes(
+            "0xb399348447727a0912e8e67e04e69e9b62ad6f3b615abcb473a5a88505432f3b"
+        ),
+        "blockNumber": 11139493,
+        "data": "0x0000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000005f983f000000000000000000000000000000000000000000000000000000000000000000",
+        "logIndex": 164,
+        "removed": False,
+        "transactionHash": HexBytes(
+            "0x2732a08eb120e4d7e9227ab6b486ee319b20a323bd1bcb346cfd2aee9b9393f7"
+        ),
+        "transactionIndex": 77,
     }
 )
 
@@ -178,14 +185,22 @@ def test_do_decode_update():
     assert processor.do_decode_update(asset, address) is False
 
 
-def test_order_started_processor(sample_metadata_dict_remote):
+def test_order_started_processor(sample_metadata_dict_remote, events_object):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     ddo = new_ddo(test_account1, web3, "test")
-    import pdb; pdb.set_trace()
-    processor = OrderStartedProcessor(
-        ddo.did, es_instance, token_address, last_sync_block
-    )
+    did = ddo.id
 
-    updated_asset = processor.make_record(sample_metadata_dict_remote)
-    assert updated_asset["numOrders"] == 2
+    ddo_string = json.dumps(dict(ddo))
+    data = Web3.toBytes(text=ddo_string)
+    send_create_update_tx("create", did, bytes([0]), data, test_account1)
+    events_object.process_current_blocks()
+    es_instance = events_object._es_instance
+
+    processor = OrderStartedProcessor(ddo.dataToken, es_instance, web3.eth.block_number)
+
+    with patch("aquarius.events.processors.get_number_orders") as mock:
+        mock.return_value = 2
+        updated_asset = processor.process()
+
+    assert updated_asset["ordersCount"] == 2

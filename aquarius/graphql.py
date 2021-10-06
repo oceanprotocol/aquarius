@@ -31,7 +31,7 @@ def get_number_orders(token_address, last_sync_block):
 
 def get_transport():
     network_name = get_network_name()
-    if network_name == "ganache":
+    if network_name == "development":
         prefix = "http://localhost:9000"
     else:
         prefix = f"http://subgraph.{network_name}.oceanprotocol.com"

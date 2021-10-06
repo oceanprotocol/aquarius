@@ -258,7 +258,7 @@ class EventsMonitor(BlockProcessingClass):
 
             try:
                 event_processor = OrderStartedProcessor(
-                    evt_contract, self._es_instance, to_block
+                    evt_contract.address, self._es_instance, to_block
                 )
                 event_processor.process()
             except Exception as e:

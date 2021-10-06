@@ -310,10 +310,10 @@ class MetadataUpdatedProcessor(EventProcessor):
 
 
 class OrderStartedProcessor:
-    def __init__(self, contract, es_instance, last_sync_block):
-        self.did = f"did:op:{remove_0x_prefix(contract.address)}"
+    def __init__(self, token_address, es_instance, last_sync_block):
+        self.did = f"did:op:{remove_0x_prefix(token_address)}"
         self.es_instance = es_instance
-        self.token_address = contract.address
+        self.token_address = token_address
         self.last_sync_block = last_sync_block
 
         try:
