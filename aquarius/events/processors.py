@@ -317,7 +317,7 @@ class OrderStartedProcessor:
         self.last_sync_block = last_sync_block
 
         try:
-            self.asset = self._es_instance.read(self.did)
+            self.asset = self.es_instance.read(self.did)
         except Exception:
             self.asset = None
 
@@ -326,10 +326,7 @@ class OrderStartedProcessor:
             return
 
         number_orders = get_number_orders(self.token_address, self.last_sync_block)
+        metadata = get_metadata_from_services(self.asset["service"])
+        metadata["numOrders"] = number_orders
 
-        import pdb
-
-        pdb.set_trace()
-        # TODO: actual update
-
-
+        self.es_instance.update(self.asset, self.did)
