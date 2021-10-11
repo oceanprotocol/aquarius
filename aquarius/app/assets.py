@@ -7,20 +7,9 @@ import json
 import logging
 
 from flask import Blueprint, jsonify, request, Response
-from aquarius.ddo_checker.ddo_checker import (
-    is_valid_dict_local,
-    list_errors_dict_local,
-    is_valid_dict_remote,
-    list_errors_dict_remote,
-)
-
+from aquarius.ddo_checker.ddo_checker import validate_dict
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import (
-    list_errors,
-    get_metadata_from_services,
-    sanitize_record,
-    encrypt_data,
-)
+from aquarius.app.util import get_metadata_from_services, sanitize_record, encrypt_data
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from web3 import Web3
@@ -304,10 +293,7 @@ def query_ddo():
         logger.info(
             f"Received elasticsearch TransportError: {error}, more info: {info}."
         )
-        return (
-            jsonify(error=error, info=info),
-            e.status_code,
-        )
+        return (jsonify(error=error, info=info), e.status_code)
     except Exception as e:
         logger.error(f"Received elasticsearch Error: {str(e)}.")
         return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
@@ -325,7 +311,7 @@ def validate():
       - in: body
         name: body
         required: true
-        description: Asset metadata.
+        description: Full asset contents (for v4), or asset metadata (for v3)
         schema:
           type: object
     responses:
@@ -346,10 +332,11 @@ def validate():
                 400,
             )
 
-        if is_valid_dict_local(data):
+        valid, errors = validate_dict(data, local=True)
+        if valid:
             return jsonify(True)
 
-        return jsonify(list_errors(list_errors_dict_local, data))
+        return jsonify(errors)
     except Exception as e:
         logger.error(f"validate endpoint failed: {str(e)}.")
         return (
@@ -399,10 +386,11 @@ def validate_remote():
 
         data = get_metadata_from_services(data["service"])
 
-        if is_valid_dict_remote(data):
+        valid, errors = validate_dict(data, local=False)
+        if valid:
             return jsonify(True)
 
-        return jsonify(list_errors(list_errors_dict_remote, data))
+        return jsonify(errors)
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500

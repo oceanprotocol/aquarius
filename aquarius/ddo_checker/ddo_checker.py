@@ -11,28 +11,20 @@ from pathlib import Path
 import jsonschema as jschema
 import pkg_resources
 
-# %%
-# Here is the Schema file, loaded as the default to validate against
-LOCAL_SCHEMA_FILE = Path(
-    pkg_resources.resource_filename(
-        "aquarius", "ddo_checker/schemas/metadata_local_v0_6.json"
+
+def get_schema_file(version, local=True):
+    local_or_remote = "local" if local else "remote"
+    suffix = "v4_0.json" if version == "v4" else "v0_6.json"
+    path = (
+        "ddo_checker/schemas/" + version + "/metadata_" + local_or_remote + "_" + suffix
     )
-)
-assert LOCAL_SCHEMA_FILE.exists(), "Can't find schema file {}".format(LOCAL_SCHEMA_FILE)
-REMOTE_SCHEMA_FILE = Path(
-    pkg_resources.resource_filename(
-        "aquarius", "ddo_checker/schemas/metadata_remote_v0_6.json"
+
+    local_schema_file = Path(pkg_resources.resource_filename("aquarius", path))
+    assert local_schema_file.exists(), "Can't find schema file {}".format(
+        local_schema_file
     )
-)
-assert LOCAL_SCHEMA_FILE.exists(), "Can't find schema file {}".format(
-    REMOTE_SCHEMA_FILE
-)
 
 
-# TODO: Handle full file path vs. dictionary better?
-
-
-# %%
 def load_serial_data_file_path(file_path):
     file_path_obj = Path(file_path)
     assert Path(file_path_obj).exists(), "File path {} does not exist".format(file_path)
@@ -45,16 +37,6 @@ def load_serial_data_file_path(file_path):
             json_dict = json.load(fp)
         return json_dict
 
-    # TODO: Add Yaml parser
-
-    # if file_path_obj.suffix in ['.yaml', '.yml']:
-    #     with open(file_path_obj) as fp:
-    #         json_dict = json.load(fp)
-    #     return json_dict
-
-
-# %%
-
 
 def validator_file(schema_file):
     logging.info("Schema: {}".format(schema_file))
@@ -62,38 +44,17 @@ def validator_file(schema_file):
     return jschema.validators.Draft7Validator(this_json_schema_dict)
 
 
-# %% Wrapper over jschema.Draft7Validator.validate()
-
-
-def validate_dict(this_json_dict, schema_file):
+def validate_dict(this_json_dict, local=True):
+    version = this_json_dict.get("version", "v3")
+    schema_file = get_schema_file(version, local)
     validator = validator_file(schema_file)
-    return validator.validate(this_json_dict)
 
+    valid = validator.is_valid(this_json_dict)
 
-def validate_dict_local(this_json_dict):
-    return validate_dict(this_json_dict, LOCAL_SCHEMA_FILE)
+    if valid:
+        return True, []
 
-
-def validate_dict_remote(this_json_dict):
-    return validate_dict(this_json_dict, REMOTE_SCHEMA_FILE)
-
-
-# %%
-# Wrapper over jschema.Draft7Validator.is_valid()
-
-
-def is_valid_dict(this_json_dict, schema_file=LOCAL_SCHEMA_FILE):
-    validator = validator_file(schema_file)
-    return validator.is_valid(this_json_dict)
-
-
-# Convenience functions
-def is_valid_dict_local(this_json_dict):
-    return is_valid_dict(this_json_dict, schema_file=LOCAL_SCHEMA_FILE)
-
-
-def is_valid_dict_remote(this_json_dict):
-    return is_valid_dict(this_json_dict, schema_file=REMOTE_SCHEMA_FILE)
+    return False, list_errors(this_json_dict, schema_file=schema_file)
 
 
 # %% Wrapper over jschema.Draft7Validator.iter_errors()
@@ -119,12 +80,3 @@ def list_errors(json_dict, schema_file):
         # error_summary.append(error_string)
         error_summary.append((error_string, err))
     return error_summary
-
-
-# Convenience functions
-def list_errors_dict_local(this_json_dict):
-    return list_errors(this_json_dict, LOCAL_SCHEMA_FILE)
-
-
-def list_errors_dict_remote(this_json_dict):
-    return list_errors(this_json_dict, REMOTE_SCHEMA_FILE)
