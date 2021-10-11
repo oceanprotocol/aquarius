@@ -9,7 +9,7 @@ import logging
 from flask import Blueprint, jsonify, request, Response
 from aquarius.ddo_checker.ddo_checker import validate_dict
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import get_metadata_from_services, sanitize_record, encrypt_data
+from aquarius.app.util import get_metadata_from_services, sanitize_record, encrypt_data, list_errors
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from web3 import Web3
@@ -336,7 +336,7 @@ def validate():
         if valid:
             return jsonify(True)
 
-        return jsonify(errors)
+        return jsonify(list_errors(errors, data))
     except Exception as e:
         logger.error(f"validate endpoint failed: {str(e)}.")
         return (
@@ -390,7 +390,7 @@ def validate_remote():
         if valid:
             return jsonify(True)
 
-        return jsonify(errors)
+        return jsonify(list_errors(errors, data))
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500

@@ -184,12 +184,10 @@ def test_assert_remote_without_file_url(
 
 
 def test_validate_dict(sample_metadata_dict_local, sample_metadata_dict_remote):
-    validate_dict(sample_metadata_dict_local, local=True)
-    validate_dict(sample_metadata_dict_remote, local=False)
-
-
-def test_is_valid_dict(sample_metadata_dict_local):
     valid, _ = validate_dict(sample_metadata_dict_local, local=True)
+    assert valid
+
+    valid, _ = validate_dict(sample_metadata_dict_remote, local=False)
     assert valid
 
 

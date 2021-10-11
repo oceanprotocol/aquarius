@@ -91,7 +91,7 @@ def test_validate_remote(client_with_no_data, base_ddo_url):
 
 
 def test_validate_error(client, base_ddo_url, monkeypatch):
-    with patch("aquarius.app.assets.list_errors") as mock:
+    with patch("aquarius.app.assets.validate_dict") as mock:
         mock.side_effect = Exception("Boom!")
         rv = run_request(client.post, base_ddo_url + "/validate", data={"test": "test"})
         assert rv.status_code == 500

@@ -91,17 +91,12 @@ def _load_sample_path(path, msg):
 
 @pytest.fixture
 def schema_local_dict():
-    return _load_sample_path(
-        ddo_checker.LOCAL_SCHEMA_FILE, f"Loaded schema: {ddo_checker.LOCAL_SCHEMA_FILE}"
-    )
+    return ddo_checker.get_schema('v3', local=True)
 
 
 @pytest.fixture
 def schema_remote_dict():
-    return _load_sample_path(
-        ddo_checker.REMOTE_SCHEMA_FILE,
-        f"Loaded schema: {ddo_checker.REMOTE_SCHEMA_FILE}",
-    )
+    return ddo_checker.get_schema('v3', local=False)
 
 
 @pytest.fixture
