@@ -101,9 +101,10 @@ class MetadataCreatedProcessor(EventProcessor):
             "update": False,
         }
 
-        valid_remote, errors = validate_dict(
-            get_metadata_from_services(_record["service"]), local=False
-        )
+        version = _record.get('version', 'v3')
+        content_to_validate = get_metadata_from_services(_record["service"]) if version == 'v3' else _record
+        valid_remote, errors = validate_dict(content_to_validate, local=False)
+
         if not valid_remote:
             logger.error(
                 f"New ddo has validation errors: {errors} \nfor record:\n {_record}"
@@ -197,9 +198,10 @@ class MetadataUpdatedProcessor(EventProcessor):
             "update": True,
         }
 
-        valid_remote, errors = validate_dict(
-            get_metadata_from_services(_record["service"]), local=False
-        )
+        version = _record.get('version', 'v3')
+        content_to_validate = get_metadata_from_services(_record["service"]) if version == 'v3' else _record
+        valid_remote, errors = validate_dict(content_to_validate, local=False)
+
         if not valid_remote:
             logger.error(f"ddo update has validation errors: {errors}")
             return False
