@@ -235,7 +235,6 @@
                 "$id": "#/properties/services/properties/items/files/properties/files",
                 "type": "array",
                 "default": null,
-                "additionalItems": false,
                 "items": {
                   "$id": "#/properties/services/properties/items/files/properties/files/properties/items",
                   "type": "object",
