@@ -10,12 +10,12 @@
   "properties": {
     "@context": {
       "$id": "#/properties/@context",
-      "type": "array",
+      "type": "array"
     },
     "id": {
       "$id": "#/properties/id",
       "type": "string",
-      "pattern": "^did\:op\:(.*)$"
+      "pattern": "^did\\:op\\:(.*)$"
     },
     "created": {
       "$id": "#/properties/created",
@@ -31,12 +31,12 @@
       "$id": "#/properties/version",
       "examples": ["v4.0.0"],
       "type": "string",
-      "pattern": "v([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$"
+      "pattern": "^(.*)$"
     },
     "chainId": {
       "$id": "#/properties/chainId",
       "examples": ["1331", "12"],
-      "type": "integer",
+      "type": "integer"
     },
     "metadata": {
       "$id": "#/properties/metadata",
@@ -143,12 +143,12 @@
             "default": "",
             "examples": ["image data", "classification", "animals"],
             "pattern": "^(.*)$"
-          },
+          }
         },
         "additionalInformation": {
           "$id": "#/properties/metadata/properties/additionalInformation",
           "type": "object",
-          "default": null,
+          "default": null
         },
         "algorithm": {
           "$id": "#/properties/metadata/properties/algorithm",
@@ -157,11 +157,11 @@
           "properties": {
             "language": {
               "$id": "#/properties/metadata/properties/algorithm/properties/language",
-              "type": "string",
+              "type": "string"
             },
             "version": {
               "$id": "#/properties/metadata/properties/algorithm/properties/version",
-              "type": "string",
+              "type": "string"
             },
             "container": {
               "$id": "#/properties/metadata/properties/algorithm/properties/container",
@@ -181,17 +181,17 @@
                 },
                 "tag": {
                  "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/tag",
-                 "type": "string",
+                 "type": "string"
                 },
                 "checksum": {
                  "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/checksum",
-                 "type": "string",
-                },
+                 "type": "string"
+                }
               }
             }
           }
-        },
-      },
+        }
+      }
     },
     "services": {
       "$id": "#/properties/services",
@@ -201,27 +201,27 @@
       "properties": {
         "type": {
           "$id": "#/properties/services/properties/type",
-          "type": "string",
+          "type": "string"
         },
         "name": {
           "$id": "#/properties/services/properties/name",
-          "type": "string",
+          "type": "string"
         },
         "description": {
           "$id": "#/properties/services/properties/description",
-          "type": "string",
+          "type": "string"
         },
         "datatokenAddress": {
           "$id": "#/properties/services/properties/datatokenAddress",
-          "type": "string",
+          "type": "string"
         },
         "providerEndpoint": {
           "$id": "#/properties/services/properties/providerEndpoint",
-          "type": "string",
+          "type": "string"
         },
         "timeout": {
           "$id": "#/properties/services/properties/timeout",
-          "type": "integer",
+          "type": "integer"
         },
         "files": { "$ref": "/schemas/files" },
         "privacy": {
@@ -246,8 +246,8 @@
               "type": "array",
               "items": {
                 "$id": "#/properties/services/properties/privacy/properties/publisherTrustedAlgorithmPublishers/items",
-                "type": "string",
-              },
+                "type": "string"
+              }
             },
             "publisherTrustedAlgorithms": {
               "$id": "#/properties/services/properties/privacy/properties/publisherTrustedAlgorithms",
@@ -256,21 +256,21 @@
               "properties": {
                 "did": {
                   "$id": "#/properties/services/properties/privacy/properties/publisherTrustedAlgorithms/properties/did",
-                  "type": "string",
+                  "type": "string"
                 },
                 "filesChecksum": {
                   "$id": "#/properties/services/properties/privacy/properties/publisherTrustedAlgorithms/properties/filesChecksum",
-                  "type": "string",
+                  "type": "string"
                 },
                 "containerSectionChecksum": {
                   "$id": "#/properties/services/properties/privacy/properties/publisherTrustedAlgorithms/properties/containerSectionChecksum",
-                  "type": "string",
-                },
-              },
-            },
-          },
-        },
-      },
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     },
     "credentials": {
       "default": null,
@@ -314,11 +314,11 @@
                     "$id": "#/properties/credentials/properties/deny/items/values",
                     "type": "array"
                   }
-              },
-            },
-          },
-        },
-      },
+              }
+            }
+          }
+        }
+      }
     },
     "status": {
       "$id": "#/properties/status",
@@ -344,10 +344,10 @@
           "default": false,
           "examples": [true, false]
         }
-      },
+      }
     },
     "files": { "$ref": "/schemas/files" }
-  },
+  }
 },
 
 {
@@ -355,7 +355,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["files", "encryptedFiles"],
-  "properties": {    
+  "properties": {
     "files": {
       "$id": "#/properties/files/properties/files",
       "type": "array",
@@ -437,7 +437,7 @@
             "$id": "#/properties/files/propertiesfiles/items/properties/attributes",
             "type": "array",
             "default": []
-          },
+          }
         }
       },
     "encryptedFiles": {
@@ -448,6 +448,6 @@
         "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
       ],
       "pattern": "^(.*)$"
-    },
-  },
-},
+    }
+  }
+}

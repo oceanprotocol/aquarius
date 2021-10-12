@@ -100,6 +100,16 @@ def schema_remote_dict():
 
 
 @pytest.fixture
+def schema_local_dict_v4():
+    return ddo_checker.get_schema('v4', local=True)
+
+
+@pytest.fixture
+def schema_remote_dict_v4():
+    return ddo_checker.get_schema('v4', local=False)
+
+
+@pytest.fixture
 def sample_metadata_dict_local():
     return _load_sample_path(
         PATH_SAMPLE_METADATA_LOCAL, f"Loaded sample: {PATH_SAMPLE_METADATA_LOCAL}"
