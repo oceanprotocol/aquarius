@@ -299,52 +299,6 @@ def query_ddo():
         return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
 
 
-@assets.route("/ddo/validate", methods=["POST"])
-def validate():
-    """Validate metadata content.
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/json
-    parameters:
-      - in: body
-        name: body
-        required: true
-        description: Full asset contents (for v4), or asset metadata (for v3)
-        schema:
-          type: object
-    responses:
-      200:
-        description: successfully request.
-        example:
-          application/json: true
-      500:
-        description: Error
-    """
-    try:
-        data = request.json
-        if not isinstance(data, dict):
-            return (
-                jsonify(
-                    error="Invalid payload. The request could not be converted into a dict."
-                ),
-                400,
-            )
-
-        valid, errors = validate_dict(data, local=True)
-        if valid:
-            return jsonify(True)
-
-        return jsonify(list_errors(errors, data))
-    except Exception as e:
-        logger.error(f"validate endpoint failed: {str(e)}.")
-        return (
-            jsonify(error=f"Encountered error when validating metadata: {str(e)}."),
-            500,
-        )
-
-
 @assets.route("/ddo/validate-remote", methods=["POST"])
 def validate_remote():
     """Validate DDO content.
@@ -386,7 +340,7 @@ def validate_remote():
 
         data = get_metadata_from_services(data["service"])
 
-        valid, errors = validate_dict(data, local=False)
+        valid, errors = validate_dict(data)
         if valid:
             return jsonify(True)
 

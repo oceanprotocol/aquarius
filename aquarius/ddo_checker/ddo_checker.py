@@ -12,11 +12,10 @@ import jsonschema as jschema
 import pkg_resources
 
 
-def get_schema(version, local=True):
-    local_or_remote = "local" if local else "remote"
+def get_schema(version):
     suffix = "v4_0.json" if version == "v4" else "v0_6.json"
     path = (
-        "ddo_checker/schemas/" + version + "/metadata_" + local_or_remote + "_" + suffix
+        "ddo_checker/schemas/" + version + "/metadata_remote_" + suffix
     )
 
     schema_file = Path(pkg_resources.resource_filename("aquarius", path))
@@ -41,9 +40,9 @@ def load_serial_data_file_path(file_path):
         return json_dict
 
 
-def validate_dict(this_json_dict, local=True):
+def validate_dict(this_json_dict):
     version = this_json_dict.get("version", "v3") if this_json_dict else 'v3'
-    schema = get_schema(version, local)
+    schema = get_schema(version)
     validator = jschema.validators.Draft7Validator(schema)
 
     valid = validator.is_valid(this_json_dict)

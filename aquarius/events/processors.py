@@ -103,7 +103,7 @@ class MetadataCreatedProcessor(EventProcessor):
 
         version = _record.get('version', 'v3')
         content_to_validate = get_metadata_from_services(_record["service"]) if version == 'v3' else _record
-        valid_remote, errors = validate_dict(content_to_validate, local=False)
+        valid_remote, errors = validate_dict(content_to_validate)
 
         if not valid_remote:
             logger.error(
@@ -200,7 +200,7 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         version = _record.get('version', 'v3')
         content_to_validate = get_metadata_from_services(_record["service"]) if version == 'v3' else _record
-        valid_remote, errors = validate_dict(content_to_validate, local=False)
+        valid_remote, errors = validate_dict(content_to_validate)
 
         if not valid_remote:
             logger.error(f"ddo update has validation errors: {errors}")

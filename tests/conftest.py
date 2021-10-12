@@ -64,17 +64,11 @@ def events_object():
 
 PATH_SAMPLES_DIR = Path().cwd() / "tests" / "metadata_samples"
 
-PATH_SAMPLE_METADATA_LOCAL = PATH_SAMPLES_DIR / "sample_metadata_local.json"
-assert PATH_SAMPLE_METADATA_LOCAL.exists(), "Path not found: {}".format(
-    PATH_SAMPLE_METADATA_LOCAL
-)
-
 PATH_SAMPLE_METADATA_REMOTE = PATH_SAMPLES_DIR / "sample_metadata_remote.json"
 assert PATH_SAMPLE_METADATA_REMOTE.exists(), "Path not found: {}".format(
     PATH_SAMPLE_METADATA_REMOTE
 )
 
-PATH_ALGORITHM_METADATA_LOCAL = PATH_SAMPLES_DIR / "algorithm_metadata_local.json"
 PATH_ALGORITHM_METADATA_REMOTE = PATH_SAMPLES_DIR / "algorithm_metadata_remote.json"
 
 
@@ -90,30 +84,13 @@ def _load_sample_path(path, msg):
 
 
 @pytest.fixture
-def schema_local_dict():
-    return ddo_checker.get_schema('v3', local=True)
-
-
-@pytest.fixture
 def schema_remote_dict():
-    return ddo_checker.get_schema('v3', local=False)
-
-
-@pytest.fixture
-def schema_local_dict_v4():
-    return ddo_checker.get_schema('v4', local=True)
+    return ddo_checker.get_schema('v3')
 
 
 @pytest.fixture
 def schema_remote_dict_v4():
-    return ddo_checker.get_schema('v4', local=False)
-
-
-@pytest.fixture
-def sample_metadata_dict_local():
-    return _load_sample_path(
-        PATH_SAMPLE_METADATA_LOCAL, f"Loaded sample: {PATH_SAMPLE_METADATA_LOCAL}"
-    )
+    return ddo_checker.get_schema('v4')
 
 
 @pytest.fixture
@@ -124,20 +101,8 @@ def sample_metadata_dict_remote():
 
 
 @pytest.fixture
-def path_sample_metadata_local():
-    return PATH_SAMPLE_METADATA_LOCAL
-
-
-@pytest.fixture
 def path_sample_metadata_remote():
     return PATH_SAMPLE_METADATA_REMOTE
-
-
-@pytest.fixture
-def sample_algorithm_md_dict_local():
-    return _load_sample_path(
-        PATH_ALGORITHM_METADATA_LOCAL, f"Loaded sample: {PATH_ALGORITHM_METADATA_LOCAL}"
-    )
 
 
 @pytest.fixture

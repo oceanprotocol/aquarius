@@ -9,19 +9,8 @@ from tests.helpers import run_request
 from unittest.mock import patch
 
 
-def test_validate(client_with_no_data, base_ddo_url):
-    post = run_request(client_with_no_data.post, base_ddo_url + "/validate", data={})
-    assert post.status_code == 200
-    assert (
-        post.data == b'[{"message":"\'main\' is a required property","path":""}]\n'
-    )  # noqa
-    post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate", data=json_valid
-    )
-    assert post.data == b"true\n"
-
-
-def test_validate_credentials(client_with_no_data, base_ddo_url):
+# TODO: repurpose for v4
+def validate_credentials(client_with_no_data, base_ddo_url):
     json_valid_copy = json_valid.copy()
     json_valid_copy["credentials"] = {
         "allow": [{"type": "address", "values": ["0x123", "0x456A"]}],
@@ -93,9 +82,13 @@ def test_validate_remote(client_with_no_data, base_ddo_url):
 def test_validate_error(client, base_ddo_url, monkeypatch):
     with patch("aquarius.app.assets.validate_dict") as mock:
         mock.side_effect = Exception("Boom!")
-        rv = run_request(client.post, base_ddo_url + "/validate", data={"test": "test"})
+        rv = run_request(
+            client.post,
+            base_ddo_url + "/validate-remote",
+            data={"service": [], "test": "test"}
+        )
         assert rv.status_code == 500
-        assert rv.json["error"] == "Encountered error when validating metadata: Boom!."
+        assert rv.json["error"] == "Encountered error when validating asset: Boom!."
 
 
 def test_validate_error_remote(client, base_ddo_url, monkeypatch):
