@@ -449,7 +449,7 @@
       }
     },
     "files": {
-      "$id": "/properties/file",
+      "$id": "/properties/files",
       "type": "object",
       "additionalProperties": false,
       "required": ["files", "encryptedFiles"],
@@ -537,7 +537,8 @@
                 "default": []
               }
             }
-          },
+          }
+        },
         "encryptedFiles": {
           "$id": "#/properties/files/properties/encryptedFiles",
           "type": "string",
@@ -550,5 +551,4 @@
       }
     }
   }
-}
 }
