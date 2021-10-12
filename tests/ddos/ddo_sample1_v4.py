@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 json_dict = {
-    "@context": "https://w3id.org/did/v1",
+    "@context": ["https://w3id.org/did/v1"],
     "id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
     "created": "2000-10-31T01:30:00.000-05:00",
     "updated": "2000-10-31T01:30:00.000-05:00",
@@ -37,6 +37,7 @@ json_dict = {
             "name": "Download service",
             "description": "Download service",
             "providerEndpoint": "http://localhost:8030/",
+            "timeout": 0
         }
     ],
     "files": {

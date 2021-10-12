@@ -14,9 +14,9 @@ from jsonschema.validators import Draft7Validator
 
 from aquarius.ddo_checker.ddo_checker import validate_dict
 
-from tests.ddos.ddo_sample1 import json_dict
+from tests.ddos.ddo_sample1_v4 import json_dict
 
 
 def test_remote_metadata_passes(schema_remote_dict_v4):
-    validator = Draft7Validator(json_dict)
-    validator.validate(sample_metadata_dict_remote)
+    validator = Draft7Validator(schema_remote_dict_v4)
+    validator.validate(json_dict)

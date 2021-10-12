@@ -5,7 +5,7 @@
   "type": "object",
   "title": "The Root Schema",
   "required": [
-    "@context", "id", "created", "updated", "proof"
+    "@context", "id", "created", "updated"
   ],
   "properties": {
     "@context": {
@@ -225,7 +225,7 @@
             "$id": "#/properties/services/properties/items/timeout",
             "type": "integer"
           },
-          "files": { 
+          "files": {
             "$id": "/properties/services/properties/items/files",
             "type": "object",
             "additionalProperties": false,
@@ -449,7 +449,7 @@
         }
       }
     },
-    "files": { 
+    "files": {
       "$id": "/properties/file",
       "type": "object",
       "additionalProperties": false,
@@ -551,4 +551,5 @@
       }
     }
   }
+}
 }
