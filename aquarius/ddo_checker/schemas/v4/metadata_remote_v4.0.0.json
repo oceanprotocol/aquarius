@@ -376,46 +376,45 @@
     },
     "credentials": {
       "default": null,
-       "properties": {
-          "allow": {
-            "$id": "#/properties/credentials/properties/allow",
-            "type": "array",
-            "default": null,
+      "properties": {
+        "allow": {
+          "$id": "#/properties/credentials/properties/allow",
+          "type": "array",
+          "default": null,
+          "additionalProperties": false,
+          "items": {
+            "$id": "#/properties/credentials/properties/allow/items",
             "additionalProperties": false,
-            "items": {
-              "$id": "#/properties/credentials/properties/allow/items",
-              "additionalProperties": false,
-              "required": ["type", "values"],
-              "properties": {
-                 "type": {
-                    "$id": "#/properties/credentials/properties/allow/items/type",
-                    "type": "string"
-                  },
-                 "values": {
-                    "$id": "#/properties/credentials/properties/allow/items/values",
-                    "type": "array"
-                  }
+            "required": ["type", "values"],
+            "properties": {
+              "type": {
+                "$id": "#/properties/credentials/properties/allow/items/type",
+                "type": "string"
+              },
+              "values": {
+                "$id": "#/properties/credentials/properties/allow/items/values",
+                "type": "array"
               }
             }
-          },
-          "deny": {
-            "$id": "#/properties/credentials/properties/deny",
-            "type": "array",
-            "default": null,
+          }
+        },
+        "deny": {
+          "$id": "#/properties/credentials/properties/deny",
+          "type": "array",
+          "default": null,
+          "additionalProperties": false,
+          "items": {
+            "$id": "#/properties/credentials/properties/deny/items",
             "additionalProperties": false,
-            "items": {
-              "$id": "#/properties/credentials/properties/deny/items",
-              "additionalProperties": false,
-              "required": ["type", "values"],
-              "properties": {
-                 "type": {
-                    "$id": "#/properties/credentials/properties/deny/items/type",
-                    "type": "string"
-                  },
-                 "values": {
-                    "$id": "#/properties/credentials/properties/deny/items/values",
-                    "type": "array"
-                  }
+            "required": ["type", "values"],
+            "properties": {
+              "type": {
+                "$id": "#/properties/credentials/properties/deny/items/type",
+                "type": "string"
+              },
+              "values": {
+                "$id": "#/properties/credentials/properties/deny/items/values",
+                "type": "array"
               }
             }
           }
