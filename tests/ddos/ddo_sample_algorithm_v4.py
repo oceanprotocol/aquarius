@@ -32,7 +32,7 @@ algorithm_ddo_sample = {
                 "entrypoint": "node $ALGO",
                 "image": "node",
                 "tag": "10",
-                "checksum": "test"
+                "checksum": "test",
             },
         },
         "additionalInformation": {
@@ -42,14 +42,16 @@ algorithm_ddo_sample = {
         },
     },
     "files": {
-        "files": [{
-            "name": "build_model",
-            "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-            "contentLength": "4535431",
-            "contentType": "text/plain",
-            "encoding": "UTF-8",
-            "compression": "zip",
-        }],
-        "encryptedFiles": "encryptedFiles"
-    }
+        "files": [
+            {
+                "name": "build_model",
+                "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                "contentLength": "4535431",
+                "contentType": "text/plain",
+                "encoding": "UTF-8",
+                "compression": "zip",
+            }
+        ],
+        "encryptedFiles": "encryptedFiles",
+    },
 }

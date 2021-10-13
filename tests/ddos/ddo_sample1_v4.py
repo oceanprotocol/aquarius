@@ -37,7 +37,7 @@ json_dict = {
             "name": "Download service",
             "description": "Download service",
             "providerEndpoint": "http://localhost:8030/",
-            "timeout": 0
+            "timeout": 0,
         }
     ],
     "files": {

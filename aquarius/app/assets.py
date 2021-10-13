@@ -9,7 +9,12 @@ import logging
 from flask import Blueprint, jsonify, request, Response
 from aquarius.ddo_checker.ddo_checker import validate_dict
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import get_metadata_from_services, sanitize_record, encrypt_data, list_errors
+from aquarius.app.util import (
+    get_metadata_from_services,
+    sanitize_record,
+    encrypt_data,
+    list_errors,
+)
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from web3 import Web3

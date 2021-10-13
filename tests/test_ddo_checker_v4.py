@@ -94,13 +94,7 @@ def test_remote_ddo_fails():
 
 
 def test_remote_ddo_metadata_fails():
-    for required_prop in [
-        "description",
-        "name",
-        "type",
-        "author",
-        "license"
-    ]:
+    for required_prop in ["description", "name", "type", "author", "license"]:
         _copy = copy.deepcopy(json_dict)
         _copy["metadata"].pop(required_prop)
 
@@ -122,4 +116,3 @@ def test_remote_ddo_metadata_fails():
 
     valid, errors = validate_dict(_copy)
     assert not valid
-

@@ -4,7 +4,7 @@
 #
 import json
 
-from tests.ddos.ddo_sample_updates import json_before, json_valid
+from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import run_request
 from unittest.mock import patch
 
@@ -19,17 +19,21 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
     }
 
     post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_valid_copy
+        client_with_no_data.post,
+        base_ddo_url + "/validate-remote",
+        data=json_valid_copy,
     )
     assert post.data == b"true\n"
 
     # still valid if only one of "allow" and "deny are present
     json_valid_copy["credentials"] = {
-        "deny": [{"type": "address", "values": ["0x2222", "0x333"]}],
+        "deny": [{"type": "address", "values": ["0x2222", "0x333"]}]
     }
 
     post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_valid_copy
+        client_with_no_data.post,
+        base_ddo_url + "/validate-remote",
+        data=json_valid_copy,
     )
     assert post.data == b"true\n"
 
@@ -45,7 +49,9 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
         json_valid_copy["credentials"] = invalid_credential
 
         post = run_request(
-            client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_valid_copy
+            client_with_no_data.post,
+            base_ddo_url + "/validate-remote",
+            data=json_valid_copy,
         )
         assert post.data != b"true\n"
 
@@ -86,7 +92,7 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
         rv = run_request(
             client.post,
             base_ddo_url + "/validate-remote",
-            data={"service": [], "test": "test"}
+            data={"service": [], "test": "test"},
         )
         assert rv.status_code == 500
         assert rv.json["error"] == "Encountered error when validating asset: Boom!."
