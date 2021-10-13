@@ -5,7 +5,7 @@
   "type": "object",
   "title": "The Root Schema",
   "required": [
-    "@context", "id", "created", "updated"
+    "@context", "id", "created", "updated", "version"
   ],
   "properties": {
     "@context": {

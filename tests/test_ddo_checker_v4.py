@@ -6,17 +6,87 @@
 # from metadata_validator.json_versions import json4, json1
 # from metadata_validator.schema_definitions import valid_schema
 import copy
-
 import pytest
-from jsonschema import validate
-from jsonschema.exceptions import ValidationError
-from jsonschema.validators import Draft7Validator
-
 from aquarius.ddo_checker.ddo_checker import validate_dict
 
 from tests.ddos.ddo_sample1_v4 import json_dict
 
 
-def test_remote_metadata_passes(schema_remote_dict_v4):
-    validator = Draft7Validator(schema_remote_dict_v4)
-    validator.validate(json_dict)
+def test_remote_metadata_passes():
+    valid, _ = validate_dict(json_dict)
+    assert valid
+
+    # test service file override
+    _copy = copy.deepcopy(json_dict)
+    files_structure = copy.deepcopy(json_dict["files"])
+    _copy["services"][0]["files"] = files_structure
+    valid, errors = validate_dict(_copy)
+    assert valid
+
+
+def test_remote_metadata_fails():
+    for required_prop in ["id", "created", "updated", "version"]:
+        _copy = copy.deepcopy(json_dict)
+        _copy.pop(required_prop)
+
+        valid, _ = validate_dict(_copy)
+        assert not valid
+
+    _copy = copy.deepcopy(json_dict)
+    _copy["version"] = "something not semver"
+
+    with pytest.raises(AssertionError):
+        validate_dict(_copy)
+
+    # status invalid
+    _copy = copy.deepcopy(json_dict)
+    _copy["status"] = {"additionalProp": "something"}
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    _copy = copy.deepcopy(json_dict)
+    _copy["status"] = {"isListed": "something not boolean"}
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    # files invalid
+    _copy = copy.deepcopy(json_dict)
+    _copy["files"]["encryptedFiles"] = None
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    _copy = copy.deepcopy(json_dict)
+    _copy["files"]["files"][0]["contentType"] = None
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    # services invalid
+    _copy = copy.deepcopy(json_dict)
+    files_structure = copy.deepcopy(json_dict["files"])
+    files_structure.pop("encryptedFiles")
+    _copy["services"][0]["files"] = files_structure
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    _copy = copy.deepcopy(json_dict)
+    files_structure = copy.deepcopy(json_dict["files"])
+    files_structure["files"][0]["contentType"] = None
+    _copy["services"][0]["files"] = files_structure
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    for required_prop in ["type", "datatokenAddress", "providerEndpoint", "timeout"]:
+        _copy = copy.deepcopy(json_dict)
+        _copy["services"][0].pop(required_prop)
+
+        valid, _ = validate_dict(_copy)
+        assert not valid
+
+    _copy = copy.deepcopy(json_dict)
+    _copy["services"][0]["timeout"] = "not an integer"
+
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+
+# TODO: metadata

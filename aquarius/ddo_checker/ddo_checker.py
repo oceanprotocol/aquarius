@@ -13,7 +13,7 @@ import pkg_resources
 
 
 def get_schema(version):
-    base_version = "v4" if version.startswith("v4") else "v3"
+    base_version = "v3" if version.startswith("v3") else "v4"
     suffix = "v0_6.json" if base_version == "v3" else version + ".json"
     path = (
         "ddo_checker/schemas/" + base_version + "/metadata_remote_" + suffix
@@ -43,6 +43,8 @@ def load_serial_data_file_path(file_path):
 
 def validate_dict(this_json_dict):
     version = this_json_dict.get("version", "v3.0.0") if this_json_dict else 'v3.0.0'
+
+
     schema = get_schema(version)
     validator = jschema.validators.Draft7Validator(schema)
 
