@@ -5,7 +5,7 @@
   "type": "object",
   "title": "The Root Schema",
   "required": [
-    "@context", "id", "created", "updated", "version"
+    "@context", "id", "created", "updated"
   ],
   "properties": {
     "@context": {
@@ -37,6 +37,11 @@
       "$id": "#/properties/chainId",
       "examples": ["1331", "12"],
       "type": "integer"
+    },
+    "proof": {
+      "$id": "#/properties/proof",
+      "type": "object",
+      "default": null
     },
     "metadata": {
       "$id": "#/properties/metadata",
@@ -139,6 +144,18 @@
           "default": null,
           "items": {
             "$id": "#/properties/metadata/properties/tags/items",
+            "type": "string",
+            "default": "",
+            "examples": ["image data", "classification", "animals"],
+            "pattern": "^(.*)$"
+          }
+        },
+        "categories": {
+          "$id": "#/properties/metadata/properties/categories",
+          "type": "array",
+          "default": null,
+          "items": {
+            "$id": "#/properties/metadata/properties/categories/items",
             "type": "string",
             "default": "",
             "examples": ["image data", "classification", "animals"],
