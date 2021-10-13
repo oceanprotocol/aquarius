@@ -8,17 +8,18 @@ from tests.ddos.ddo_sample_updates import json_before, json_valid
 from tests.helpers import run_request
 from unittest.mock import patch
 
+from tests.ddos.ddo_sample1_v4 import json_dict
 
-# TODO: repurpose for v4
-def validate_credentials(client_with_no_data, base_ddo_url):
-    json_valid_copy = json_valid.copy()
+
+def test_validate_credentials(client_with_no_data, base_ddo_url):
+    json_valid_copy = json_dict.copy()
     json_valid_copy["credentials"] = {
         "allow": [{"type": "address", "values": ["0x123", "0x456A"]}],
         "deny": [{"type": "address", "values": ["0x2222", "0x333"]}],
     }
 
     post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate", data=json_valid_copy
+        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_valid_copy
     )
     assert post.data == b"true\n"
 
@@ -28,7 +29,7 @@ def validate_credentials(client_with_no_data, base_ddo_url):
     }
 
     post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate", data=json_valid_copy
+        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_valid_copy
     )
     assert post.data == b"true\n"
 
@@ -44,12 +45,12 @@ def validate_credentials(client_with_no_data, base_ddo_url):
         json_valid_copy["credentials"] = invalid_credential
 
         post = run_request(
-            client_with_no_data.post, base_ddo_url + "/validate", data=json_valid_copy
+            client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_valid_copy
         )
         assert post.data != b"true\n"
 
 
-def test_validate_remote(client_with_no_data, base_ddo_url):
+def test_validate_remote_v3(client_with_no_data, base_ddo_url):
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data={}
     )

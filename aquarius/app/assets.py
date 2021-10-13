@@ -334,11 +334,14 @@ def validate_remote():
                 400,
             )
 
-        if "service" not in data:
-            # made to resemble list_errors
-            return jsonify([{"message": "missing `service` key in data."}])
+        version = data.get("version", "v3.0.0")
 
-        data = get_metadata_from_services(data["service"])
+        if version == "v3.0.0":
+            if "service" not in data:
+                # made to resemble list_errors
+                return jsonify([{"message": "missing `service` key in data."}])
+
+            data = get_metadata_from_services(data["service"])
 
         valid, errors = validate_dict(data)
         if valid:
