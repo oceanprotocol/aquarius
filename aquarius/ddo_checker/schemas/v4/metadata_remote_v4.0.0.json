@@ -153,7 +153,7 @@
         "algorithm": {
           "$id": "#/properties/metadata/properties/algorithm",
           "type": "object",
-          "required": ["container"  ],
+          "required": ["container"],
           "properties": {
             "language": {
               "$id": "#/properties/metadata/properties/algorithm/properties/language",
@@ -170,22 +170,22 @@
               "required": ["entrypoint", "image", "tag", "checksum"],
               "properties": {
                 "entrypoint": {
-                 "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/entrypoint",
-                 "type": "string",
-                 "title": "The command to execute, or script to run inside the Docker image"
+                  "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/entrypoint",
+                  "type": "string",
+                  "title": "The command to execute, or script to run inside the Docker image"
                 },
                 "image": {
-                 "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/image",
-                 "type": "string",
-                 "title": "Name of the Docker image"
+                  "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/image",
+                  "type": "string",
+                  "title": "Name of the Docker image"
                 },
                 "tag": {
-                 "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/tag",
-                 "type": "string"
+                  "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/tag",
+                  "type": "string"
                 },
                 "checksum": {
-                 "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/checksum",
-                 "type": "string"
+                  "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/checksum",
+                  "type": "string"
                 }
               }
             }
@@ -314,58 +314,59 @@
                     }
                   }
                 },
-              "encryptedFiles": {
-                "$id": "#/properties/services/properties/items/files/properties/encryptedFiles",
-                "type": "string",
-                "default": "",
-                "examples": [
-                  "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
-                ],
-                "pattern": "^(.*)$"
-              }
-            }
-          },
-          "privacy": {
-            "$id": "#/properties/services/properties/items/privacy",
-            "type": "object",
-            "default": null,
-            "required": ["allowRawAlgorithm", "allowNetworkAccess", "publisherTrustedAlgorithmPublishers", "publisherTrustedAlgorithms"],
-            "properties": {
-              "allowRawAlgorithm": {
-                "$id": "#/properties/services/properties/items/privacy/properties/allowRawAlgorithm",
-                "type": "boolean",
-                "examples": [true, false]
-              },
-              "allowNetworkAccess": {
-                "$id": "#/properties/services/properties/items/privacy/properties/allowNetworkAccess",
-                "type": "boolean",
-                "default": false,
-                "examples": [true, false]
-              },
-              "publisherTrustedAlgorithmPublishers": {
-                "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithmPublishers",
-                "type": "array",
-                "items": {
-                  "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithmPublishers/items",
-                  "type": "string"
+                "encryptedFiles": {
+                  "$id": "#/properties/services/properties/items/files/properties/encryptedFiles",
+                  "type": "string",
+                  "default": "",
+                  "examples": [
+                    "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
+                  ],
+                  "pattern": "^(.*)$"
                 }
-              },
-              "publisherTrustedAlgorithms": {
-                "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms",
-                "type": "object",
-                "required": ["did", "filesChecksum", "containerSectionChecksum"],
-                "properties": {
-                  "did": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/did",
+              }
+            },
+            "privacy": {
+              "$id": "#/properties/services/properties/items/privacy",
+              "type": "object",
+              "default": null,
+              "required": ["allowRawAlgorithm", "allowNetworkAccess", "publisherTrustedAlgorithmPublishers", "publisherTrustedAlgorithms"],
+              "properties": {
+                "allowRawAlgorithm": {
+                  "$id": "#/properties/services/properties/items/privacy/properties/allowRawAlgorithm",
+                  "type": "boolean",
+                  "examples": [true, false]
+                },
+                "allowNetworkAccess": {
+                  "$id": "#/properties/services/properties/items/privacy/properties/allowNetworkAccess",
+                  "type": "boolean",
+                  "default": false,
+                  "examples": [true, false]
+                },
+                "publisherTrustedAlgorithmPublishers": {
+                  "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithmPublishers",
+                  "type": "array",
+                  "items": {
+                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithmPublishers/items",
                     "type": "string"
-                  },
-                  "filesChecksum": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/filesChecksum",
-                    "type": "string"
-                  },
-                  "containerSectionChecksum": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/containerSectionChecksum",
-                    "type": "string"
+                  }
+                },
+                "publisherTrustedAlgorithms": {
+                  "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms",
+                  "type": "object",
+                  "required": ["did", "filesChecksum", "containerSectionChecksum"],
+                  "properties": {
+                    "did": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/did",
+                      "type": "string"
+                    },
+                    "filesChecksum": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/filesChecksum",
+                      "type": "string"
+                    },
+                    "containerSectionChecksum": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/containerSectionChecksum",
+                      "type": "string"
+                    }
                   }
                 }
               }
