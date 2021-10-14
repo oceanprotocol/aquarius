@@ -54,8 +54,7 @@ Aquarius is a simple, lightweight scanner and API. It is built using Python, usi
 - `GET api/v1/aquarius/assets/metadata/<did>`: retrieve metadata associated to the given DID
 - `POST api/v1/aquarius/assets/names/`: takes in a list of DIDs of the format `["did:op:123455644356", "did:op:533443322223344"]` and returns a dictionary of correspondence between the given DIDs and the asset name
 - `POST api/v1/aquarius/assets/query`: takes in a native Elasticsearch query, passes it over to Elasticsearch and returns the unformatted results, as given by the Elasticsearch instance. Please note that Elasticsearch imposes a limitation of 10K results. If you get a Transport Error indicating such a problem, try to refine your search.
-- `POST api/v1/aquarius/assets/ddo/validate` and `POST api/v1/aquarius/assets/ddo/validate-remote`: accepts a DDO sample and validates them in the local and remote format, respectively. Please use these endpoints to validate your OCEAN DDOs before and after publishing them on-chain.
-- `POST api/v1/aquarius/assets/ddo/encrypt` and `POST api/v1/aquarius/assets/ddo/encryptashex`: encrypts the asset using the `EVENTS_ECIES_PRIVATE_KEY` env var. Unencrypted assets can be read by any Aquarius instance, but if you are running a private Aquarius, this makes your assets private.
+- `POST api/v1/aquarius/assets/ddo/validate-remote`: accepts a DDO sample and validates them in the local and remote format, respectively. Please use these endpoints to validate your OCEAN DDOs.
 - `GET api/v1/aquarius/chains/list`: lists all chains indexed by the Aquarius version
 - `GET api/v1/aquarius/chains/status/<chain_id>`: shows the status of the chain corresponding to the given `chain_id`
 
@@ -65,7 +64,7 @@ The events monitor runs continuously to retrieve and index the chain Metadata. I
 
 - an ElasticsearchInstance, configured through the config.ini or env variables
 - an associated MetadataContract, configured through the config.ini or the `METADATA_CONTRACT_ADDRESS` env variable
-- a Decryptor configured based on the `ECIES_EVENTS_PRIVATE_KEY`, if one exists. The Decryptor handles decompression and decryption on the chain data.
+- a Decryptor class that handles decompression and decryption on the chain data, through communication with Provider
 - a set of `ALLOWED_PUBLISHERS`, if such a restriction exists. You can set a limited number of allowed publisher addresses using this env variable.
 - a Purgatory, based on the `ASSET_PURGATORY_URL` and `ACCOUNT_PURGATORY_URL` env variables. These mark some assets as being in purgatory (`"isInPurgatory": True`), enabling restrictions for some assets or accounts.
 - start blocks, if such defined using `BFACTORY_BLOCK` and `METADATA_CONTRACT_BLOCK`. These start blocks are coroborated with the last stored blocks per Elasticsearch, to avoid indexing multiple times
@@ -111,12 +110,6 @@ And these are optional
 ```bash
 # Enables the Aquarius API. Default: 1, disable if you only want to use the events monitor, without exposing an API.
 RUN_AQUARIUS_SERVER
-
-# Enable encryption and decryption of the metadata, when read from the blockchain event log
-EVENTS_ECIES_PRIVATE_KEY
-
-# When set to 1, Aquarius only caches encrypted (private) ddos. This will prevent Aquarius from caching all other datasets on the network
-ONLY_ENCRYPTED_DDO
 
 # Path to the `address.json` file or any json file that has the deployed contracts addresses
 ADDRESS_FILE

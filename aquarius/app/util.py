@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import copy
-import ecies
-import eth_keys
 import json
 import logging
 import os
@@ -12,7 +10,6 @@ import os
 from collections import OrderedDict
 from datetime import datetime
 import dateutil.parser as parser
-from eth_account import Account
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
@@ -194,31 +191,3 @@ def validate_data(data, method):
         return msg, status
 
     return None, None
-
-
-def encrypt_data(data):
-    """
-    Encrypts the input `data` with the private key
-    :return: encrypted data - bytes
-    """
-    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-    if ecies_private_key is None:
-        return False, "No private key configured."
-
-    try:
-        ecies_account = Account.from_key(ecies_private_key)
-        key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
-    except Exception:
-        msg = "ECIES Key malformed."
-        logger.error(msg)
-        return False, msg
-
-    logger.debug(f"Encrypting:{data} with {key.public_key.to_hex()}")
-    try:
-        encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
-    except Exception as e:
-        msg = f"Encryption error: {str(e)}"
-        logger.error(msg)
-        return False, msg
-
-    return True, encrypted_data

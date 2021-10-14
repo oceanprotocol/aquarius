@@ -138,14 +138,6 @@ def test_check_required_attributes_errors():
     assert result_code == 400
 
 
-def test_encrypt_data(monkeypatch):
-    with patch("ecies.encrypt") as mock:
-        mock.side_effect = Exception("Boom!")
-        result, message = encrypt_data("test")
-        assert result is False
-        assert message == "Encryption error: Boom!"
-
-
 class BlockProcessingClassChild(BlockProcessingClass):
     def get_last_processed_block(self):
         raise Exception("BAD!")

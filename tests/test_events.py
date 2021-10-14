@@ -5,7 +5,6 @@
 import json
 import lzma
 
-import ecies
 import elasticsearch
 from web3 import Web3
 from unittest.mock import patch
@@ -22,13 +21,12 @@ from tests.helpers import (
     test_account1,
     test_account3,
     send_create_update_tx,
-    ecies_account,
     get_ddo,
     get_event,
 )
 
 
-def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=None):
+def run_test(client, base_ddo_url, events_instance, flags=None):
     web3 = get_web3()
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
@@ -41,12 +39,6 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
         # mark bit 1
         _flags = _flags | 1
 
-    if encryption_key is not None:
-        # ecies encrypt - bit 2
-        _flags = _flags | 2
-        key = eth_keys.KeyAPI.PrivateKey(encryption_key)
-        data = ecies.encrypt(key.public_key.to_hex(), data)
-
     send_create_update_tx("create", did, bytes([_flags]), data, test_account1)
     get_event(EVENT_METADATA_CREATED, block, did)
     events_instance.process_current_blocks()
@@ -58,10 +50,6 @@ def run_test(client, base_ddo_url, events_instance, flags=None, encryption_key=N
     data = Web3.toBytes(text=ddo_string)
     if flags is not None:
         data = lzma.compress(data)
-
-    if encryption_key is not None:
-        key = eth_keys.KeyAPI.PrivateKey(encryption_key)
-        data = ecies.encrypt(key.public_key.to_hex(), data)
 
     send_create_update_tx("update", did, bytes([_flags]), data, test_account1)
     get_event(EVENT_METADATA_UPDATED, block, did)
@@ -80,12 +68,6 @@ def test_publish_and_update_ddo(client, base_ddo_url, events_object):
 
 def test_publish_and_update_ddo_with_lzma(client, base_ddo_url, events_object):
     run_test(client, base_ddo_url, events_object, 0)
-
-
-def test_publish_and_update_ddo_with_lzma_and_ecies(
-    client, base_ddo_url, events_object
-):
-    run_test(client, base_ddo_url, events_object, 0, ecies_account.key)
 
 
 def test_publish(client, base_ddo_url, events_object):

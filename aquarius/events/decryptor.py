@@ -2,8 +2,6 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import ecies
-import eth_keys
 import json
 import logging
 import lzma as Lzma
@@ -14,18 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class Decryptor:
-    def __init__(self, ecies_account):
-        """Initialises Decryptor object based on ecies account."""
-        self._ecies_account = ecies_account
-
-    def ecies_decrypt(self, rawddo):
-        if self._ecies_account is not None:
-            key = eth_keys.KeyAPI.PrivateKey(self._ecies_account.key)
-            rawddo = ecies.decrypt(key.to_hex(), rawddo)
-        return rawddo
-
     def decode_ddo(self, rawddo, flags):
-
+        # TODO
         if len(flags) < 1:
             logger.debug("Set check_flags to 0!")
             check_flags = 0

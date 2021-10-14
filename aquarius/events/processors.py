@@ -36,7 +36,6 @@ class EventProcessor(ABC):
         event,
         es_instance,
         web3,
-        ecies_account,
         allowed_publishers,
         purgatory,
         chain_id,
@@ -55,8 +54,6 @@ class EventProcessor(ABC):
 
         self._es_instance = es_instance
         self._web3 = web3
-        self._ecies_account = ecies_account
-        self.decryptor = Decryptor(ecies_account)
         self.allowed_publishers = allowed_publishers
         self.purgatory = purgatory
         self._chain_id = chain_id
@@ -245,7 +242,6 @@ class MetadataUpdatedProcessor(EventProcessor):
                 self.event,
                 self._es_instance,
                 self._web3,
-                self._ecies_account,
                 self.allowed_publishers,
                 self.purgatory,
                 self._chain_id,

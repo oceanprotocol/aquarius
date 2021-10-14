@@ -38,10 +38,7 @@ class EventsMonitor(BlockProcessingClass):
     the `MetadataUpdated` event.
 
     The Metadata json object is expected to be
-    in an `lzma` compressed form. If desired the metadata can also be encrypted for specific
-    use cases. When using encrypted Metadata, the EventsMonitor requires the private key of
-    the ethereum account that is used for encryption. This can be specified in `EVENTS_ECIES_PRIVATE_KEY`
-    envvar.
+    in an `lzma` compressed form and then encrypted. Decryption is done through Provider.
 
     The events monitor pauses for 25 seconds between updates.
 
@@ -73,12 +70,6 @@ class EventsMonitor(BlockProcessingClass):
 
         if get_bool_env_value("EVENTS_CLEAN_START", 0):
             self.reset_chain()
-
-        self._ecies_private_key = os.getenv("EVENTS_ECIES_PRIVATE_KEY", "")
-        self._ecies_account = None
-        if self._ecies_private_key:
-            self._ecies_account = Account.from_key(self._ecies_private_key)
-        self._only_encrypted_ddo = get_bool_env_value("ONLY_ENCRYPTED_DDO", 0)
 
         self.get_or_set_last_block()
         allowed_publishers = set()
@@ -207,7 +198,6 @@ class EventsMonitor(BlockProcessingClass):
         processor_args = [
             self._es_instance,
             self._web3,
-            self._ecies_account,
             self._allowed_publishers,
             self.purgatory,
             self._chain_id,
