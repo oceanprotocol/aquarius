@@ -15,7 +15,6 @@ from aquarius.app.util import (
     check_no_urls_in_files,
     check_required_attributes,
     validate_date_format,
-    encrypt_data,
 )
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.events.http_provider import get_web3_connection_provider

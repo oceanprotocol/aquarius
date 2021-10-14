@@ -6,7 +6,7 @@ import elasticsearch
 import json
 import logging
 
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, request
 from aquarius.ddo_checker.ddo_checker import (
     is_valid_dict_local,
     list_errors_dict_local,
@@ -19,11 +19,9 @@ from aquarius.app.util import (
     list_errors,
     get_metadata_from_services,
     sanitize_record,
-    encrypt_data,
 )
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-from web3 import Web3
 
 setup_logging()
 assets = Blueprint("assets", __name__)
@@ -406,104 +404,3 @@ def validate_remote():
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500
-
-
-###########################
-# ENCRYPT DDO
-# Since this methods are public, this is just an example of how to do. You should either add some auth methods here, or protect this endpoint from your nginx
-# Using it like this, means that anyone call encrypt their ddo, so they will be able to publish to your market.
-###########################
-@assets.route("/ddo/encrypt", methods=["POST"])
-def encrypt_ddo():
-    """Encrypt a DDO.
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/octet-stream
-    parameters:
-      - in: body
-        name: body
-        required: true
-        description: data
-        schema:
-          type: object
-    responses:
-      200:
-        description: successfully request.
-      400:
-        description: Invalid format
-      500:
-        description: Error
-    """
-    if request.content_type != "application/octet-stream":
-        return (
-            jsonify(
-                error="Invalid request content type: should be application/octet-stream"
-            ),
-            400,
-        )
-
-    try:
-        data = request.get_data()
-        result, encrypted_data = encrypt_data(data)
-        if not result:
-            return encrypted_data, 400
-
-        response = Response(encrypted_data)
-        response.headers.set("Content-Type", "application/octet-stream")
-        return response
-    except Exception as e:
-        logger.error(f"encrypt_ddo failed: {str(e)}.")
-        return jsonify(error=f"Encountered error when encrypting asset: {str(e)}."), 500
-
-
-@assets.route("/ddo/encryptashex", methods=["POST"])
-def encrypt_ddo_as_hex():
-    """Encrypt a DDO.
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/octet-stream
-    parameters:
-      - in: body
-        name: body
-        required: true
-        description: data
-        schema:
-          type: object
-    responses:
-      200:
-        description: successfully request. data is converted to hex
-        example:
-          text/plain:
-            "0x041a1953f19ca7410bcbef240a65246399d477765b966aef3553b3c89cc5837943706359e44f3b991"
-      400:
-        description: Invalid format
-      500:
-        description: Error
-    """
-    if request.content_type != "application/octet-stream":
-        return (
-            jsonify(
-                error="Invalid request content type: should be application/octet-stream"
-            ),
-            400,
-        )
-
-    try:
-        data = request.get_data()
-        result, encrypted_data = encrypt_data(data)
-        if not result:
-            return encrypted_data, 400
-
-        response = Response(Web3.toHex(encrypted_data))
-        response.headers.set("Content-Type", "text/plain")
-        return response
-    except Exception as e:
-        logger.error(f"encrypt_ddo_as_hex failed: {str(e)}.")
-        return (
-            jsonify(error=f"Encountered error when encrypting asset as hex: {str(e)}."),
-            500,
-        )

@@ -64,7 +64,7 @@ event_updated_sample = AttributeDict(
 def test_check_permission(monkeypatch):
     monkeypatch.setenv("RBAC_SERVER_URL", "http://rbac")
     processor = MetadataCreatedProcessor(
-        event_sample, None, None, None, None, None, None
+        event_sample, None, None, None, None, None
     )
     with patch("requests.post") as mock:
         mock.side_effect = Exception("Boom!")
@@ -80,7 +80,7 @@ def test_check_permission(monkeypatch):
             processor.process()
 
     processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, None, None, None, None, None
+        event_updated_sample, None, None, None, None, None
     )
     processor.decryptor = decryptor
     # will affect the process() function too
@@ -94,7 +94,7 @@ def test_is_publisher_allowed():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     processor = MetadataCreatedProcessor(
-        event_sample, None, web3, None, None, None, None
+        event_sample, None, web3, None, None, None
     )
     processor.allowed_publishers = None
     assert processor.is_publisher_allowed(processor.sender_address) is True
@@ -104,13 +104,13 @@ def test_make_record(sample_metadata_dict_remote):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     processor = MetadataCreatedProcessor(
-        event_sample, None, web3, None, None, None, None
+        event_sample, None, web3, None, None, None
     )
     sample_metadata_dict_remote["main"]["EXTRA ATTRIB!"] = 0
     assert processor.make_record(sample_metadata_dict_remote) is False
 
     processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, web3, None, None, None, None
+        event_updated_sample, None, web3, None, None, None
     )
     sample_metadata_dict_remote["main"]["EXTRA ATTRIB!"] = 0
     assert (
@@ -122,12 +122,12 @@ def test_process(monkeypatch):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     processor = MetadataCreatedProcessor(
-        event_sample, None, web3, None, None, None, None
+        event_sample, None, web3, None, None, None
     )
     processor.process()
 
     processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, web3, None, None, None, None
+        event_updated_sample, None, web3, None, None, None
     )
     # falls back on the MetadataCreatedProcessor
     # since no es instance means read will throw an Exception
@@ -140,7 +140,7 @@ def test_do_decode_update():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, web3, None, None, None, None
+        event_updated_sample, None, web3, None, None, None
     )
 
     bk_block = processor.block

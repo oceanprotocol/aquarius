@@ -25,7 +25,7 @@ from aquarius.app.util import (
 )
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.events.util import get_datatoken_info
-from aquarius.events.decryptor import Decryptor
+from aquarius.events.decryptor import decrypt_ddo
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +150,8 @@ class MetadataCreatedProcessor(EventProcessor):
         except Exception:
             pass
 
-        data = self.decryptor.decode_ddo(self.rawddo, self.flags)
+        # TODO: provider_url from getMetaData()
+        data = decrypt_ddo(provider_url, self.rawddo, self.flags)
         if data is None:
             logger.warning(f"Could not decode ddo using flags {self.flags}")
             return
@@ -291,7 +292,8 @@ class MetadataUpdatedProcessor(EventProcessor):
             logger.warning("Transaction sender must mach ddo owner")
             return False
 
-        data = self.decryptor.decode_ddo(self.rawddo, self.flags)
+        # TODO: provider_url from getMetaData()
+        data = decrypt_ddo(provider_url, self.rawddo, self.flags)
         if data is None:
             logger.warning("Cound not decode ddo")
             return False

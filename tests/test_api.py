@@ -44,17 +44,3 @@ def test_invalid_requests(client_with_no_data, base_ddo_url, query_url):
         "not a dict request",
     )
     assert response.status == "400 BAD REQUEST"
-
-    response = client_with_no_data.post(
-        base_ddo_url + "/encrypt",
-        data="irrelevant",
-        content_type="not_application/octet-stream",
-    )
-    assert response.status == "400 BAD REQUEST"
-
-    response = client_with_no_data.post(
-        base_ddo_url + "/encryptashex",
-        data="irrelevant",
-        content_type="not_application/octet-stream",
-    )
-    assert response.status == "400 BAD REQUEST"
