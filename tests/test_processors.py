@@ -3,7 +3,7 @@ from hexbytes import HexBytes
 from unittest.mock import patch, Mock
 from web3.datastructures import AttributeDict
 
-from aquarius.events.decryptor import Decryptor
+from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,

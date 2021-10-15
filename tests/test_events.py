@@ -32,14 +32,12 @@ def run_test(client, base_ddo_url, events_instance, flags=None):
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))
-    data = Web3.toBytes(text=ddo_string)
+
     _flags = flags or 0
     if flags is not None:
-        data = lzma.compress(data)
-        # mark bit 1
         _flags = _flags | 1
 
-    send_create_update_tx("create", did, bytes([_flags]), data, test_account1)
+    send_create_update_tx("create", _ddo, bytes([_flags]), test_account1)
     get_event(EVENT_METADATA_CREATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)

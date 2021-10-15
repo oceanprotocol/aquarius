@@ -22,7 +22,7 @@ from aquarius.events.processors import (
     MetadataUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
-from aquarius.events.util import get_metadata_contract, get_metadata_start_block
+from aquarius.events.util import get_metadata_start_block
 from aquarius.app.es_instance import ElasticsearchInstance
 
 
@@ -51,7 +51,7 @@ class EventsMonitor(BlockProcessingClass):
 
     _instance = None
 
-    def __init__(self, web3, config_file, metadata_contract=None):
+    def __init__(self, web3, config_file):
         self._es_instance = ElasticsearchInstance(config_file)
 
         self._other_db_index = f"{self._es_instance.db_index}_plus"
@@ -59,13 +59,9 @@ class EventsMonitor(BlockProcessingClass):
 
         self._web3 = web3
 
-        if not metadata_contract:
-            metadata_contract = get_metadata_contract(self._web3)
         self._chain_id = self._web3.eth.chain_id
         self.add_chain_id_to_chains_list()
         self._index_name = "events_last_block_" + str(self._chain_id)
-        self._contract = metadata_contract
-        self._contract_address = self._contract.address if self._contract else None
         self._start_block = get_metadata_start_block()
 
         if get_bool_env_value("EVENTS_CLEAN_START", 0):
@@ -87,9 +83,6 @@ class EventsMonitor(BlockProcessingClass):
         self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
         logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
-        logger.info(
-            f"EventsMonitor: using Metadata contract address {self._contract_address} from block {self._start_block} on chain {self._chain_id}"
-        )
         self._monitor_is_on = False
         default_sleep_time = 10
         try:
@@ -100,11 +93,6 @@ class EventsMonitor(BlockProcessingClass):
             self._monitor_sleep_time = default_sleep_time
 
         self._monitor_sleep_time = max(self._monitor_sleep_time, default_sleep_time)
-        if not self._contract or not is_address(self._contract_address):
-            logger.error(
-                f"Contract address {self._contract_address} is not a valid address. Events thread not starting"
-            )
-            self._contract = None
 
         self.purgatory = (
             Purgatory(self._es_instance)
@@ -125,17 +113,7 @@ class EventsMonitor(BlockProcessingClass):
         if self._monitor_is_on:
             return
 
-        if self._contract_address is None:
-            logger.error("Cannot start events monitor without a valid contract address")
-            return
-
-        if self._contract is None:
-            logger.error("Cannot start events monitor without a valid contract object")
-            return
-
-        logger.info(
-            f"Starting the events monitor on contract {self._contract_address}."
-        )
+        logger.info("Starting the events monitor.")
         t = Thread(target=self.run_monitor, daemon=True)
         self._monitor_is_on = True
         t.start()
@@ -310,19 +288,28 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block, _get_logs_callback=None):
-        def _get_logs_orig(event, _from_block, _to_block):
-            logger.debug(f"get_event_logs ({event_name}, {from_block}, {to_block})..")
-            _filter = event().createFilter(fromBlock=_from_block, toBlock=_to_block)
-            return _filter.get_all_entries()
+    def get_event_logs(self, event_name, from_block, to_block):
+        if event_name not in ["MetadataCreated", "MetadataUpdated"]:
+            return []
 
-        _get_logs = _get_logs_callback if _get_logs_callback else _get_logs_orig
+        if event_name == "MetadataCreated":
+            hash_text = "MetadataCreated(adddress,uint8,string,bytes,bytes,bytes,uint256,uint256)"
+        else:
+            hash_text = "MetadataUpdated(adddress,uint8,string,bytes,bytes,bytes,uint256,uint256)"
 
         for x in [0, 1]:
             try:
-                return _get_logs(
-                    getattr(self._contract.events, event_name), from_block, to_block
+                event_signature_hash = self._web3.keccak(text=hash_text).hex()
+
+                event_filter = self._web3.eth.filter(
+                    {
+                        "topics": [event_signature_hash],
+                        "fromBlock": from_block,
+                        "toBlock": to_block,
+                    }
                 )
+
+                return event_filter.get_all_entries()
             except ValueError as e:
                 suffix = "" if x == 1 else "\n Retrying once more."
                 logger.error(

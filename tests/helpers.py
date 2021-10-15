@@ -2,17 +2,20 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import hashlib
 import json
 import os
 import time
 import uuid
 
+from jsonsempai import magic  # noqa: F401
+from artifacts import ERC721
 from eth_utils import remove_0x_prefix, add_0x_prefix
 from web3 import Web3
 from eth_account import Account
 from web3.datastructures import AttributeDict
 
-from aquarius.events.util import get_metadata_contract, deploy_datatoken
+from aquarius.events.util import deploy_datatoken
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.http_provider import get_web3_connection_provider
 from tests.ddos.ddo_event_sample import ddo_event_sample
@@ -48,7 +51,7 @@ def new_ddo(account, web3, name, ddo=None):
         _ddo["publicKey"] = [{"owner": ""}]
     _ddo["publicKey"][0]["owner"] = account.address
     _ddo["random"] = str(uuid.uuid4())
-    dt_address = deploy_datatoken(web3, account.key, name, name, account.address)
+    dt_address = deploy_datatoken(web3, account, name, name)
     _ddo["id"] = new_did(dt_address)
     _ddo["dataToken"] = dt_address
     return AttributeDict(_ddo)
@@ -94,16 +97,15 @@ def get_event(event_name, block, did, timeout=45):
     return _log
 
 
-def send_tx(fn_name, tx_args, account):
-    get_web3().eth.default_account = account.address
-    txn_hash = getattr(get_metadata_contract(get_web3()).functions, fn_name)(
-        *tx_args
-    ).transact()
-    txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
-    return txn_receipt
+def send_create_update_tx(name, ddo, flags, account):
+    # TODO: replace with actual defaults
+    provider_url = 'http://localhost:8030'
+    provider_address = 'TEST'
+    did = ddo.id
+    datatoken_address = ddo["dataToken"]
+    data = Web3.toBytes(text=json.dumps(dict(ddo)))
+    dataHash = hashlib.sha256(json.dumps(dict(ddo)).encode("UTF-8")).hexdigest()
 
-
-def send_create_update_tx(name, did, flags, data, account):
     print(f"{name}DDO {did} with flags: {flags} from {account.address}")
     did = prepare_did(did)
     print(
@@ -113,13 +115,25 @@ def send_create_update_tx(name, did, flags, data, account):
     print(
         "*****************************************************************************\r\n"
     )
-    r = send_tx(name, (did, flags, data), account)
+
+    web3 = get_web3()
+    web3.eth.default_account = account.address
+
     event_name = EVENT_METADATA_CREATED if name == "create" else EVENT_METADATA_UPDATED
-    _ = getattr(get_metadata_contract(get_web3()).events, event_name)().processReceipt(
-        r
+
+    dt_contract = get_web3().eth.contract(ERC721.abi, address=datatoken_address)
+    import pdb; pdb.set_trace()
+    txn_hash = dt_contract.functions.setMetaData(
+        1, provider_url, provider_address, flags, data, dataHash
+    ).transact()
+    txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
+
+    # TODO: change this to the proper processReceipt, event name is not relevant anymore
+    # and we can even remove it
+    _ = getattr(dt_contract.events, event_name)().processReceipt(
+        txn_receipt
     )
-    # print(f'got {event_name} logs: {events}')
-    return r
+    return txn_receipt
 
 
 def run_request_get_data(client_method, url, data=None):

@@ -10,7 +10,8 @@ from pathlib import Path
 import pkg_resources
 
 from jsonsempai import magic  # noqa: F401
-from artifacts import address as contract_addresses, Metadata, DataTokenTemplate
+from addresses import address as contract_addresses
+from artifacts import ERC721
 from aquarius.events.http_provider import get_web3_connection_provider
 from web3 import Web3
 
@@ -43,30 +44,6 @@ def get_network_name():
     return network_name
 
 
-def deploy_contract(w3, _json, private_key, *args):
-    """
-    :param w3: Web3 object instance
-    :param private_key: Private key of the account
-    :param _json: Json content of artifact file
-    :param *args: arguments to be passed to be constructor of the contract
-    :return: address of deployed contract
-    """
-    account = w3.eth.account.from_key(private_key)
-    _contract = w3.eth.contract(abi=_json["abi"], bytecode=_json["bytecode"])
-    built_tx = _contract.constructor(*args).buildTransaction({"from": account.address})
-    if "gas" not in built_tx:
-        built_tx["gas"] = w3.eth.estimate_gas(built_tx)
-    raw_tx = sign_tx(w3, built_tx, private_key)
-    tx_hash = w3.eth.send_raw_transaction(raw_tx)
-    time.sleep(3)
-    try:
-        address = w3.eth.get_transaction_receipt(tx_hash)["contractAddress"]
-        return address
-    except Exception:
-        print(f"tx not found: {tx_hash.hex()}")
-        raise
-
-
 def sign_tx(web3, tx, private_key):
     """
     :param web3: Web3 object instance
@@ -83,7 +60,7 @@ def sign_tx(web3, tx, private_key):
     return signed_tx.rawTransaction
 
 
-def deploy_datatoken(web3, private_key, name, symbol, minter_address):
+def deploy_datatoken(w3, account, name, symbol):
     """
     :param web3: Web3 object instance
     :param private_key: Private key of the account
@@ -92,17 +69,22 @@ def deploy_datatoken(web3, private_key, name, symbol, minter_address):
     :param minter_address: Account address
     :return: Address of the deployed contract
     """
-    return deploy_contract(
-        web3,
-        {"abi": DataTokenTemplate.abi, "bytecode": DataTokenTemplate.bytecode},
-        private_key,
-        name,
-        symbol,
-        minter_address,
-        1000,
-        "no blob",
-        minter_address,
+    # TODO: deploy through factory
+    _contract = w3.eth.contract(abi=ERC721.abi, bytecode=ERC721.bytecode)
+    built_tx = _contract.constructor(name, symbol).buildTransaction(
+        {"from": account.address}
     )
+    if "gas" not in built_tx:
+        built_tx["gas"] = w3.eth.estimate_gas(built_tx)
+    raw_tx = sign_tx(w3, built_tx, account.key)
+    tx_hash = w3.eth.send_raw_transaction(raw_tx)
+
+    time.sleep(3)
+    try:
+        return w3.eth.get_transaction_receipt(tx_hash)["contractAddress"]
+    except Exception:
+        print(f"tx not found: {tx_hash.hex()}")
+        raise
 
 
 def get_address_file():
@@ -115,20 +97,6 @@ def get_address_file():
         if env_file
         else Path(contract_addresses.__file__).expanduser().resolve()
     )
-
-
-def get_metadata_contract(web3):
-    """Returns a Contract built from the Metadata contract address (or ENV) and ABI"""
-    address = os.getenv("METADATA_CONTRACT_ADDRESS", None)
-    if not address:
-        address_file = get_address_file()
-        with open(address_file) as f:
-            address_json = json.load(f)
-        network = get_network_name()
-        address = address_json[network]["Metadata"]
-    abi = Metadata.abi
-
-    return web3.eth.contract(address=address, abi=abi)
 
 
 def get_metadata_start_block():
