@@ -11,7 +11,7 @@ import pkg_resources
 
 from jsonsempai import magic  # noqa: F401
 from addresses import address as contract_addresses
-from artifacts import ERC721
+from artifacts import ERC721, ERC721Factory
 from aquarius.events.http_provider import get_web3_connection_provider
 from web3 import Web3
 
@@ -69,15 +69,24 @@ def deploy_datatoken(w3, account, name, symbol):
     :param minter_address: Account address
     :return: Address of the deployed contract
     """
-    # TODO: deploy through factory
-    _contract = w3.eth.contract(abi=ERC721.abi, bytecode=ERC721.bytecode)
-    built_tx = _contract.constructor(name, symbol).buildTransaction(
-        {"from": account.address}
+    # TODO: get address more smartly
+    dt_factory = w3.eth.contract(
+        abi=ERC721Factory.abi, address="0xf5059a5D33d5853360D16C683c16e67980206f36"
     )
+    built_tx = dt_factory.functions.deployERC721Contract(
+        name, symbol, 1, "0x0000000000000000000000000000000000000000"
+    ).buildTransaction({"from": account.address})
+
+    #_contract = w3.eth.contract(abi=ERC721.abi, bytecode=ERC721.bytecode)
+    #built_tx = _contract.constructor(name, symbol).buildTransaction(
+    #    {"from": account.address}
+    #)
     if "gas" not in built_tx:
         built_tx["gas"] = w3.eth.estimate_gas(built_tx)
     raw_tx = sign_tx(w3, built_tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(raw_tx)
+
+    import pdb; pdb.set_trace()
 
     time.sleep(3)
     try:
@@ -101,6 +110,8 @@ def get_address_file():
 
 def get_metadata_start_block():
     """Returns the block number to use as start"""
+    # TODO
+    return 0
     block_number = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
     if not block_number:
         address_file = get_address_file()
