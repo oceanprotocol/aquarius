@@ -27,7 +27,7 @@ from tests.helpers import (
 
 
 def run_test(client, base_ddo_url, events_instance, flags=None):
-    web3 = get_web3()
+    web3 = events_instance._web3 #get_web3()
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
@@ -38,8 +38,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None):
         _flags = _flags | 1
 
     send_create_update_tx("create", _ddo, bytes([_flags]), test_account1)
-    import pdb; pdb.set_trace()
-    get_event(EVENT_METADATA_CREATED, block, did)
+    #get_event(EVENT_METADATA_CREATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did

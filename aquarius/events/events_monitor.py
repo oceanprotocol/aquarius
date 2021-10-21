@@ -13,6 +13,8 @@ import elasticsearch
 from eth_account import Account
 from eth_utils import is_address
 
+from jsonsempai import magic  # noqa: F401
+from artifacts import ERC721Template
 from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.util import get_bool_env_value
 from aquarius.block_utils import BlockProcessingClass
@@ -182,6 +184,10 @@ class EventsMonitor(BlockProcessingClass):
         ]
 
         for event in self.get_event_logs(EVENT_METADATA_CREATED, from_block, to_block):
+            dt_contract = self._web3.eth.contract(
+                abi=ERC721Template.abi, address=event.address
+            )
+            import pdb; pdb.set_trace()
             try:
                 event_processor = MetadataCreatedProcessor(*([event] + processor_args))
                 event_processor.process()
@@ -293,9 +299,9 @@ class EventsMonitor(BlockProcessingClass):
             return []
 
         if event_name == "MetadataCreated":
-            hash_text = "MetadataCreated(adddress,uint8,string,bytes,bytes,bytes,uint256,uint256)"
+            hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
         else:
-            hash_text = "MetadataUpdated(adddress,uint8,string,bytes,bytes,bytes,uint256,uint256)"
+            hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
 
         for x in [0, 1]:
             try:
