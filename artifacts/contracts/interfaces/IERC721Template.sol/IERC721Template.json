@@ -363,6 +363,11 @@
           "internalType": "address",
           "name": "additionalERC20Deployer",
           "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "baseURI",
+          "type": "string"
         }
       ],
       "name": "initialize",

@@ -9,7 +9,7 @@ import time
 import uuid
 
 from jsonsempai import magic  # noqa: F401
-from artifacts import ERC721
+from artifacts import ERC721Template
 from eth_utils import remove_0x_prefix, add_0x_prefix
 from web3 import Web3
 from eth_account import Account
@@ -121,8 +121,7 @@ def send_create_update_tx(name, ddo, flags, account):
 
     event_name = EVENT_METADATA_CREATED if name == "create" else EVENT_METADATA_UPDATED
 
-    dt_contract = get_web3().eth.contract(ERC721.abi, address=datatoken_address)
-    import pdb; pdb.set_trace()
+    dt_contract = get_web3().eth.contract(abi=ERC721Template.abi, address=datatoken_address)
     txn_hash = dt_contract.functions.setMetaData(
         1, provider_url, provider_address, flags, data, dataHash
     ).transact()

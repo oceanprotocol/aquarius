@@ -71,26 +71,26 @@ def deploy_datatoken(w3, account, name, symbol):
     """
     # TODO: get address more smartly
     dt_factory = w3.eth.contract(
-        abi=ERC721Factory.abi, address="0xf5059a5D33d5853360D16C683c16e67980206f36"
+        abi=ERC721Factory.abi, address="0x611f28Ef25D778aFC5a0034Aea94297e2c215a42"
     )
+
     built_tx = dt_factory.functions.deployERC721Contract(
-        name, symbol, 1, "0x0000000000000000000000000000000000000000"
+        name, symbol, 1, "0x0000000000000000000000000000000000000000", ""
     ).buildTransaction({"from": account.address})
 
     #_contract = w3.eth.contract(abi=ERC721.abi, bytecode=ERC721.bytecode)
     #built_tx = _contract.constructor(name, symbol).buildTransaction(
     #    {"from": account.address}
     #)
-    if "gas" not in built_tx:
-        built_tx["gas"] = w3.eth.estimate_gas(built_tx)
+    #if "gas" not in built_tx:
+    #    built_tx["gas"] = w3.eth.estimate_gas(built_tx)
     raw_tx = sign_tx(w3, built_tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(raw_tx)
 
-    import pdb; pdb.set_trace()
-
     time.sleep(3)
     try:
-        return w3.eth.get_transaction_receipt(tx_hash)["contractAddress"]
+        receipt = w3.eth.getTransactionReceipt(tx_hash)
+        return dt_factory.events.NFTCreated().processReceipt(receipt)[0].args.newTokenAddress
     except Exception:
         print(f"tx not found: {tx_hash.hex()}")
         raise
