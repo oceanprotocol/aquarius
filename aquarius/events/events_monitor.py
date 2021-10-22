@@ -187,9 +187,10 @@ class EventsMonitor(BlockProcessingClass):
             dt_contract = self._web3.eth.contract(
                 abi=ERC721Template.abi, address=event.address
             )
-            import pdb; pdb.set_trace()
+            receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
+            event_object = dt_contract.events.MetadataCreated().processReceipt(receipt)[0]
             try:
-                event_processor = MetadataCreatedProcessor(*([event] + processor_args))
+                event_processor = MetadataCreatedProcessor(*([event_object] + processor_args))
                 event_processor.process()
             except Exception as e:
                 logger.error(
@@ -197,8 +198,13 @@ class EventsMonitor(BlockProcessingClass):
                 )
 
         for event in self.get_event_logs(EVENT_METADATA_UPDATED, from_block, to_block):
+            dt_contract = self._web3.eth.contract(
+                abi=ERC721Template.abi, address=event.address
+            )
+            receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
+            event_object = dt_contract.events.MetadataCreated().processReceipt(receipt)[0]
             try:
-                event_processor = MetadataUpdatedProcessor(*([event] + processor_args))
+                event_processor = MetadataUpdatedProcessor(*([event_object] + processor_args))
                 event_processor.process()
             except Exception as e:
                 logger.error(

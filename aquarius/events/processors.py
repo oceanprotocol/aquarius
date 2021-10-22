@@ -10,6 +10,8 @@ import logging
 import os
 import requests
 
+from jsonsempai import magic  # noqa: F401
+from artifacts import ERC721Template
 from aquarius.ddo_checker.ddo_checker import (
     is_valid_dict_remote,
     list_errors_dict_remote,
@@ -42,15 +44,15 @@ class EventProcessor(ABC):
     ):
         """Initialises common Event processing properties."""
         self.event = event
-        self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
+        #self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
         self.block = event.blockNumber
         self.txid = self.event.transactionHash.hex()
-        self.contract_address = self.event.address
-        self.sender_address = self.event.args.get(
-            "createdBy", self.event.args.get("updatedBy")
-        )
-        self.flags = event.args.get("flags", None)
-        self.rawddo = event.args.get("data", None)
+        #self.contract_address = self.event.address
+        #self.sender_address = self.event.args.get(
+        #    "createdBy", self.event.args.get("updatedBy")
+        #)
+        #self.flags = event.args.get("flags", None)
+        #self.rawddo = event.args.get("data", None)
 
         self._es_instance = es_instance
         self._web3 = web3
@@ -133,6 +135,15 @@ class MetadataCreatedProcessor(EventProcessor):
         return _record
 
     def process(self):
+        txid = self.txid
+        decrypt_ddo(
+            self._web3,
+            self.event.args.decryptorUrl,
+            self.event.address,
+            self._chain_id,
+            txid,
+        )
+
         did, sender_address = self.did, self.sender_address
         logger.info(
             f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"

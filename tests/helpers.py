@@ -5,6 +5,7 @@
 import hashlib
 import json
 import os
+import requests
 import time
 import uuid
 
@@ -103,8 +104,15 @@ def send_create_update_tx(name, ddo, flags, account):
     provider_address = 'TEST'
     did = ddo.id
     datatoken_address = ddo["dataToken"]
-    data = Web3.toBytes(text=json.dumps(dict(ddo)))
-    dataHash = hashlib.sha256(json.dumps(dict(ddo)).encode("UTF-8")).hexdigest()
+    aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
+    data = {
+        "document": json.dumps(dict(ddo)),
+        "documentId": did,
+        "publisherAddress": aquarius_account.address
+    }
+    response = requests.post(provider_url + '/api/v1/services/encryptDDO', json=data)
+    encrypted_data = response.content
+    dataHash = hashlib.sha256(json.dumps(data).encode("UTF-8")).hexdigest()
 
     print(f"{name}DDO {did} with flags: {flags} from {account.address}")
     did = prepare_did(did)
@@ -123,7 +131,7 @@ def send_create_update_tx(name, ddo, flags, account):
 
     dt_contract = get_web3().eth.contract(abi=ERC721Template.abi, address=datatoken_address)
     txn_hash = dt_contract.functions.setMetaData(
-        1, provider_url, provider_address, flags, data, dataHash
+        0, provider_url, provider_address, flags, encrypted_data, dataHash
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
