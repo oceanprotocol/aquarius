@@ -105,14 +105,15 @@ def send_create_update_tx(name, ddo, flags, account):
     did = ddo.id
     datatoken_address = ddo["dataToken"]
     aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
+    document = json.dumps(dict(ddo))
     data = {
-        "document": json.dumps(dict(ddo)),
+        "document": document,
         "documentId": did,
         "publisherAddress": aquarius_account.address
     }
     response = requests.post(provider_url + '/api/v1/services/encryptDDO', json=data)
     encrypted_data = response.content
-    dataHash = hashlib.sha256(json.dumps(data).encode("UTF-8")).hexdigest()
+    dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
     print(f"{name}DDO {did} with flags: {flags} from {account.address}")
     did = prepare_did(did)
