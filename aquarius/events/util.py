@@ -124,43 +124,6 @@ def get_metadata_start_block():
     return block_number
 
 
-def get_datatoken_info(web3, token_address):
-    """
-    :param token_address: Datatoken address
-    :return: Json object as below
-        ```
-        {
-        "address": <token_address>,
-        "name": <contract_name>,
-        "symbol": <symbol>,
-        "decimals":  <decimals>,
-        "totalSupply": <totalSupply>,
-        "cap": <cap>,
-        "minter": <minter>,
-        "minterBalance": <balance of minter>,
-        }
-        ```
-    """
-    token_address = Web3.toChecksumAddress(token_address)
-    dt_abi_path = Path(
-        pkg_resources.resource_filename("aquarius", "events/datatoken_abi.json")
-    ).resolve()
-    with open(dt_abi_path) as f:
-        datatoken_abi = json.load(f)
-
-    dt = web3.eth.contract(address=token_address, abi=datatoken_abi)
-    decimals = dt.functions.decimals().call()
-    cap_orig = dt.functions.cap().call()
-
-    return {
-        "address": token_address,
-        "name": dt.functions.name().call(),
-        "symbol": dt.functions.symbol().call(),
-        "decimals": decimals,
-        "cap": float(cap_orig / (10 ** decimals)),
-    }
-
-
 def setup_web3(config_file, _logger=None):
     """
     :param config_file: Web3 object instance

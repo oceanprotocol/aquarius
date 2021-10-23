@@ -190,7 +190,7 @@ class EventsMonitor(BlockProcessingClass):
             receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
             event_object = dt_contract.events.MetadataCreated().processReceipt(receipt)[0]
             try:
-                event_processor = MetadataCreatedProcessor(*([event_object] + processor_args))
+                event_processor = MetadataCreatedProcessor(*([event_object, dt_contract] + processor_args))
                 event_processor.process()
             except Exception as e:
                 logger.error(
@@ -204,7 +204,7 @@ class EventsMonitor(BlockProcessingClass):
             receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
             event_object = dt_contract.events.MetadataCreated().processReceipt(receipt)[0]
             try:
-                event_processor = MetadataUpdatedProcessor(*([event_object] + processor_args))
+                event_processor = MetadataUpdatedProcessor(*([event_object, dt_contract] + processor_args))
                 event_processor.process()
             except Exception as e:
                 logger.error(

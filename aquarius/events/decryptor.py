@@ -11,18 +11,16 @@ import requests
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
     aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
     signature = get_signature(w3, provider_url, aquarius_account)
+    payload = {
+        "transactionId": txid,
+        "chainId": chain_id,
+        "dataNftAddress": contract_address,
+        "decrypterAddress": aquarius_account.address,
+        "signature": signature
+    }
 
-    response = requests.post(
-        provider_url + '/api/v1/services/decryptDDO',
-        json={
-            "transactionId": txid,
-            "chainId": chain_id,
-            "dataNftAddress": contract_address,
-            "decrypterAddress": aquarius_account.address,
-            "signature": signature
-        }
-    )
-    import pdb; pdb.set_trace()
+    response = requests.post(provider_url + '/api/v1/services/decryptDDO', json=payload)
+    return response.json()
 
 
 def get_signature(w3, provider_url, account):

@@ -26,7 +26,6 @@ from aquarius.app.util import (
     validate_data,
 )
 from aquarius.events.constants import EVENT_METADATA_CREATED
-from aquarius.events.util import get_datatoken_info
 from aquarius.events.decryptor import decrypt_ddo
 
 logger = logging.getLogger(__name__)
@@ -36,6 +35,7 @@ class EventProcessor(ABC):
     def __init__(
         self,
         event,
+        dt_contract,
         es_instance,
         web3,
         allowed_publishers,
@@ -44,6 +44,7 @@ class EventProcessor(ABC):
     ):
         """Initialises common Event processing properties."""
         self.event = event
+        self.dt_contract = dt_contract
         #self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
         self.block = event.blockNumber
         self.txid = self.event.transactionHash.hex()
@@ -99,11 +100,12 @@ class MetadataCreatedProcessor(EventProcessor):
         _record["event"] = {
             "txid": self.txid,
             "blockNo": self.block,
-            "from": self.sender_address,
-            "contract": self.contract_address,
+            "from": self.event.address,
+            "contract": self.event.address,
             "update": False,
         }
 
+        # TODO: rework after merging v4 validator
         if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
             errors = list_errors(
                 list_errors_dict_remote, get_metadata_from_services(_record["service"])
@@ -114,10 +116,11 @@ class MetadataCreatedProcessor(EventProcessor):
             return False
 
         # check purgatory only if is a valid asset
-        if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["isInPurgatory"] = "true"
-        else:
-            _record["isInPurgatory"] = "false"
+        # TODO: reinstate: get address of template? factory? how can we ban now?
+        #if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
+        #    _record["isInPurgatory"] = "true"
+        #else:
+        #    _record["isInPurgatory"] = "false"
 
         # add info related to blockchain
         blockInfo = self._web3.eth.get_block(self.event.blockNumber)
@@ -130,13 +133,19 @@ class MetadataCreatedProcessor(EventProcessor):
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
-            _record["dataTokenInfo"] = get_datatoken_info(self._web3, dt_address)
+            _record["dataTokenInfo"] = {
+                "address": self.dt_contract.address,
+                "name": self.dt_contract.caller.name(),
+                "symbol": self.dt_contract.caller.symbol(),
+                "decimals": "8",  # TODO decimals,
+                "cap": "1.2",  # TODO: float(cap_orig / (10 ** decimals)),
+            }
 
         return _record
 
     def process(self):
         txid = self.txid
-        decrypt_ddo(
+        asset = decrypt_ddo(
             self._web3,
             self.event.args.decryptorUrl,
             self.event.address,
@@ -144,14 +153,16 @@ class MetadataCreatedProcessor(EventProcessor):
             txid,
         )
 
-        did, sender_address = self.did, self.sender_address
+        self.did = asset["id"]
+        did, sender_address = self.did, self.event.address
         logger.info(
-            f"Process new DDO, did from event log:{did}, sender:{sender_address}, flags: {self.flags}, block {self.block}, contract: {self.contract_address}, txid: {self.txid}, chainId: {self._chain_id}"
+            f"Process new DDO, did from event log:{did}, block {self.block}, contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
-        if not self.is_publisher_allowed(sender_address):
-            logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
-            return
+        # TODO: reinstate
+        #if not self.is_publisher_allowed(sender_address):
+        #    logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
+        #    return
 
         try:
             ddo = self._es_instance.read(did)
@@ -161,22 +172,16 @@ class MetadataCreatedProcessor(EventProcessor):
         except Exception:
             pass
 
-        # TODO: provider_url from getMetaData()
-        data = decrypt_ddo(provider_url, self.rawddo, self.flags)
-        if data is None:
-            logger.warning(f"Could not decode ddo using flags {self.flags}")
-            return
-
         permission = self.check_permission(sender_address)
         if not permission:
             raise Exception("RBAC permission denied.")
 
-        msg, _ = validate_data(data, f"event {EVENT_METADATA_CREATED}")
+        msg, _ = validate_data(asset, f"event {EVENT_METADATA_CREATED}")
         if msg:
             logger.warning(msg)
             return
 
-        _record = self.make_record(data)
+        _record = self.make_record(asset)
         if _record:
             try:
                 record_str = json.dumps(_record)
@@ -231,7 +236,13 @@ class MetadataUpdatedProcessor(EventProcessor):
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
-            _record["dataTokenInfo"] = get_datatoken_info(self._web3, dt_address)
+            _record["dataTokenInfo"] = {
+                "address": self.dt_contract.address,
+                "name": self.dt_contract.caller.name(),
+                "symbol": self.dt_contract.caller.symbol(),
+                "decimals": "8",  # TODO decimals,
+                "cap": "1.2",  # TODO: float(cap_orig / (10 ** decimals)),
+            }
 
         return _record
 
@@ -309,9 +320,10 @@ class MetadataUpdatedProcessor(EventProcessor):
             logger.warning("Cound not decode ddo")
             return False
 
-        msg, _ = validate_data(data, "event update")
-        if msg:
-            logger.error(msg)
-            return False
+        # TODO: reinstate, but I would suggest on publish
+        #msg, _ = validate_data(data, "event update")
+        #if msg:
+        #    logger.error(msg)
+        #    return False
 
         return data

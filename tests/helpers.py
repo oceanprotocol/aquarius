@@ -105,7 +105,7 @@ def send_create_update_tx(name, ddo, flags, account):
     did = ddo.id
     datatoken_address = ddo["dataToken"]
     aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
-    document = json.dumps(dict(ddo))
+    document = json.dumps(dict(ddo), separators=(",", ":"))
     data = {
         "document": document,
         "documentId": did,
