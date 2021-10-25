@@ -195,7 +195,7 @@ class EventsMonitor(BlockProcessingClass):
             ]
             try:
                 event_processor = MetadataCreatedProcessor(
-                    *([event_object, dt_contract] + processor_args)
+                    *([event_object, dt_contract, receipt["from"]] + processor_args)
                 )
                 event_processor.process()
             except Exception as e:
@@ -215,7 +215,7 @@ class EventsMonitor(BlockProcessingClass):
             ]
             try:
                 event_processor = MetadataUpdatedProcessor(
-                    *([event_object, dt_contract] + processor_args)
+                    *([event_object, dt_contract, receipt["from"]] + processor_args)
                 )
                 event_processor.process()
             except Exception as e:

@@ -23,6 +23,7 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
     }
 
     response = requests.post(provider_url + "/api/v1/services/decryptDDO", json=payload)
+    # TODO: check response status
     return response.json()
 
 

@@ -36,6 +36,7 @@ class EventProcessor(ABC):
         self,
         event,
         dt_contract,
+        sender_address,
         es_instance,
         web3,
         allowed_publishers,
@@ -45,15 +46,9 @@ class EventProcessor(ABC):
         """Initialises common Event processing properties."""
         self.event = event
         self.dt_contract = dt_contract
-        # self.did = f"did:op:{remove_0x_prefix(self.event.args.dataToken)}"
+        self.sender_address = sender_address
         self.block = event.blockNumber
         self.txid = self.event.transactionHash.hex()
-        # self.contract_address = self.event.address
-        # self.sender_address = self.event.args.get(
-        #    "createdBy", self.event.args.get("updatedBy")
-        # )
-        # self.flags = event.args.get("flags", None)
-        # self.rawddo = event.args.get("data", None)
 
         self._es_instance = es_instance
         self._web3 = web3
@@ -115,12 +110,10 @@ class MetadataCreatedProcessor(EventProcessor):
             )
             return False
 
-        # check purgatory only if is a valid asset
-        # TODO: reinstate: get address of template? factory? how can we ban now?
-        # if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-        #    _record["isInPurgatory"] = "true"
-        # else:
-        #    _record["isInPurgatory"] = "false"
+        if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
+            _record["isInPurgatory"] = "true"
+        else:
+            _record["isInPurgatory"] = "false"
 
         # add info related to blockchain
         blockInfo = self._web3.eth.get_block(self.event.blockNumber)
@@ -137,8 +130,6 @@ class MetadataCreatedProcessor(EventProcessor):
                 "address": self.dt_contract.address,
                 "name": self.dt_contract.caller.name(),
                 "symbol": self.dt_contract.caller.symbol(),
-                "decimals": "8",  # TODO decimals,
-                "cap": "1.2",  # TODO: float(cap_orig / (10 ** decimals)),
             }
 
         return _record
@@ -154,15 +145,14 @@ class MetadataCreatedProcessor(EventProcessor):
         )
 
         self.did = asset["id"]
-        did, sender_address = self.did, self.event.address
+        did, sender_address = self.did, self.sender_address
         logger.info(
             f"Process new DDO, did from event log:{did}, block {self.block}, contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
-        # TODO: reinstate
-        # if not self.is_publisher_allowed(sender_address):
-        #    logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
-        #    return
+        if not self.is_publisher_allowed(sender_address):
+            logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
+            return
 
         try:
             ddo = self._es_instance.read(did)
@@ -222,12 +212,12 @@ class MetadataUpdatedProcessor(EventProcessor):
             )
             logger.error(f"ddo update has validation errors: {errors}")
             return False
+
         # check purgatory only if asset is valid
-        # TODO: reinstate
-        #if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-        #    _record["isInPurgatory"] = "true"
-        #else:
-        #    _record["isInPurgatory"] = old_asset.get("isInPurgatory", "false")
+        if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
+            _record["isInPurgatory"] = "true"
+        else:
+            _record["isInPurgatory"] = old_asset.get("isInPurgatory", "false")
 
         # add info related to blockchain
         blockInfo = self._web3.eth.get_block(self.event.blockNumber)
@@ -242,8 +232,6 @@ class MetadataUpdatedProcessor(EventProcessor):
                 "address": self.dt_contract.address,
                 "name": self.dt_contract.caller.name(),
                 "symbol": self.dt_contract.caller.symbol(),
-                "decimals": "8",  # TODO decimals,
-                "cap": "1.2",  # TODO: float(cap_orig / (10 ** decimals)),
             }
 
         return _record
@@ -259,7 +247,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         )
 
         self.did = asset["id"]
-        did, sender_address = self.did, self.event.address
+        did, sender_address = self.did, self.sender_address
         logger.info(
             f"Process new DDO, did from event log:{did}, block {self.block}, contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
@@ -271,12 +259,13 @@ class MetadataUpdatedProcessor(EventProcessor):
         try:
             old_asset = self._es_instance.read(did)
         except Exception:
-            # TODO: check if this asset was deleted/hidden due to some violation issues
+            # check if this asset was deleted/hidden due to some violation issues
             # if so, don't add it again
             logger.warning(f"{did} is not registered, will add it as a new DDO.")
             event_processor = MetadataCreatedProcessor(
                 self.event,
                 self.contract,
+                self.sender_address,
                 self._es_instance,
                 self._web3,
                 self.allowed_publishers,
@@ -325,7 +314,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         # TODO: reinstate
         # check owner
         #if not compare_eth_addresses(
-        #    asset["publicKey"][0]["owner"], sender_address, logger
+        #    old_asset["publicKey"][0]["owner"], sender_address, logger
         #):
         #    logger.warning("Transaction sender must mach ddo owner")
         #    return False
