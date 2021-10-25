@@ -210,8 +210,8 @@ class MetadataUpdatedProcessor(EventProcessor):
         _record["event"] = {
             "txid": self.txid,
             "blockNo": self.block,
-            "from": self.sender_address,
-            "contract": self.contract_address,
+            "from": self.event.address,
+            "contract": self.event.address,
             "update": True,
         }
 
@@ -286,9 +286,10 @@ class MetadataUpdatedProcessor(EventProcessor):
             event_processor.process()
             return False
 
-        is_updateable = self.check_update(asset, sender_address)
-        if not is_updateable:
-            return False
+        # TODO: reinstate, it's a bug that "event" doesn't exist
+        #is_updateable = self.check_update(asset, sender_address)
+        #if not is_updateable:
+        #    return False
 
         _record = self.make_record(asset, old_asset)
         if _record:
