@@ -100,18 +100,18 @@ def get_event(event_name, block, did, timeout=45):
 
 def send_create_update_tx(name, ddo, flags, account):
     # TODO: replace with actual defaults
-    provider_url = 'http://localhost:8030'
-    provider_address = 'TEST'
+    provider_url = "http://localhost:8030"
+    provider_address = "TEST"
     did = ddo.id
     datatoken_address = ddo["dataToken"]
     aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
-    document = json.dumps(dict(ddo), separators=(",", ":"))
+    document = json.dumps(dict(ddo))
     data = {
         "document": document,
         "documentId": did,
-        "publisherAddress": aquarius_account.address
+        "publisherAddress": aquarius_account.address,
     }
-    response = requests.post(provider_url + '/api/v1/services/encryptDDO', json=data)
+    response = requests.post(provider_url + "/api/v1/services/encryptDDO", json=data)
     encrypted_data = response.content
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
@@ -130,7 +130,9 @@ def send_create_update_tx(name, ddo, flags, account):
 
     event_name = EVENT_METADATA_CREATED if name == "create" else EVENT_METADATA_UPDATED
 
-    dt_contract = get_web3().eth.contract(abi=ERC721Template.abi, address=datatoken_address)
+    dt_contract = get_web3().eth.contract(
+        abi=ERC721Template.abi, address=datatoken_address
+    )
     txn_hash = dt_contract.functions.setMetaData(
         0, provider_url, provider_address, flags, encrypted_data, dataHash
     ).transact()
@@ -138,9 +140,7 @@ def send_create_update_tx(name, ddo, flags, account):
 
     # TODO: change this to the proper processReceipt, event name is not relevant anymore
     # and we can even remove it
-    _ = getattr(dt_contract.events, event_name)().processReceipt(
-        txn_receipt
-    )
+    _ = getattr(dt_contract.events, event_name)().processReceipt(txn_receipt)
     return txn_receipt
 
 

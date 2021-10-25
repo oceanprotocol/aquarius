@@ -26,19 +26,15 @@ from tests.helpers import (
 )
 
 
-def run_test(client, base_ddo_url, events_instance, flags=None):
-    web3 = events_instance._web3 #get_web3()
+def run_test(client, base_ddo_url, events_instance, flags):
+    web3 = events_instance._web3  # get_web3()
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
     ddo_string = json.dumps(dict(_ddo))
 
-    _flags = flags or 0
-    if flags is not None:
-        _flags = _flags | 1
-
-    send_create_update_tx("create", _ddo, bytes([_flags]), test_account1)
-    #get_event(EVENT_METADATA_CREATED, block, did)
+    send_create_update_tx("create", _ddo, bytes([flags]), test_account1)
+    # get_event(EVENT_METADATA_CREATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
@@ -49,8 +45,8 @@ def run_test(client, base_ddo_url, events_instance, flags=None):
     if flags is not None:
         data = lzma.compress(data)
 
-    send_create_update_tx("update", did, bytes([_flags]), data, test_account1)
-    get_event(EVENT_METADATA_UPDATED, block, did)
+    send_create_update_tx("update", _ddo, bytes([flags]), test_account1)
+    # TODO: get_event(EVENT_METADATA_UPDATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
@@ -61,7 +57,7 @@ def run_test(client, base_ddo_url, events_instance, flags=None):
 
 
 def test_publish_and_update_ddo(client, base_ddo_url, events_object):
-    run_test(client, base_ddo_url, events_object)
+    run_test(client, base_ddo_url, events_object, 2)
 
 
 def test_publish_and_update_ddo_with_lzma(client, base_ddo_url, events_object):

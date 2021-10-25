@@ -78,11 +78,11 @@ def deploy_datatoken(w3, account, name, symbol):
         name, symbol, 1, "0x0000000000000000000000000000000000000000", ""
     ).buildTransaction({"from": account.address})
 
-    #_contract = w3.eth.contract(abi=ERC721.abi, bytecode=ERC721.bytecode)
-    #built_tx = _contract.constructor(name, symbol).buildTransaction(
+    # _contract = w3.eth.contract(abi=ERC721.abi, bytecode=ERC721.bytecode)
+    # built_tx = _contract.constructor(name, symbol).buildTransaction(
     #    {"from": account.address}
-    #)
-    #if "gas" not in built_tx:
+    # )
+    # if "gas" not in built_tx:
     #    built_tx["gas"] = w3.eth.estimate_gas(built_tx)
     raw_tx = sign_tx(w3, built_tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(raw_tx)
@@ -90,7 +90,11 @@ def deploy_datatoken(w3, account, name, symbol):
     time.sleep(3)
     try:
         receipt = w3.eth.getTransactionReceipt(tx_hash)
-        return dt_factory.events.NFTCreated().processReceipt(receipt)[0].args.newTokenAddress
+        return (
+            dt_factory.events.NFTCreated()
+            .processReceipt(receipt)[0]
+            .args.newTokenAddress
+        )
     except Exception:
         print(f"tx not found: {tx_hash.hex()}")
         raise
