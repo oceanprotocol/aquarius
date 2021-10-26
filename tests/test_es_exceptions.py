@@ -12,7 +12,6 @@ from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1 import json_dict
 from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import (
-    get_event,
     get_web3,
     new_ddo,
     send_create_update_tx,

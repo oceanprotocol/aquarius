@@ -71,34 +71,6 @@ def get_ddo(client, base_ddo_url, did):
         return None
 
 
-def get_event(event_name, block, did, timeout=45):
-    did = prepare_did(did)
-    start = time.time()
-    f = getattr(get_metadata_contract(get_web3()).events, event_name)().createFilter(
-        fromBlock=block
-    )
-    logs = []
-    while not logs:
-        logs = f.get_all_entries()
-        if not logs:
-            time.sleep(0.2)
-
-        if time.time() - start > timeout:
-            break
-
-    assert logs, f"no events found {event_name}, block {block}."
-    print(
-        f"done waiting for {event_name} event, got {len(logs)} logs, and datatokens: {[l.args.dataToken for l in logs]}"
-    )
-    _log = None
-    for log in logs:
-        if log.args.dataToken == did:
-            _log = log
-            break
-    assert _log, f"event log not found: {event_name}, {block}, {did}"
-    return _log
-
-
 def send_create_update_tx(name, ddo, flags, account):
     # TODO: replace with actual defaults
     provider_url = "http://localhost:8030"

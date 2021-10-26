@@ -22,7 +22,6 @@ from tests.helpers import (
     test_account3,
     send_create_update_tx,
     get_ddo,
-    get_event,
 )
 
 
@@ -33,14 +32,12 @@ def run_test(client, base_ddo_url, events_instance, flags):
     did = _ddo.id
 
     send_create_update_tx("create", _ddo, bytes([flags]), test_account1)
-    # get_event(EVENT_METADATA_CREATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
 
     _ddo["service"][0]["attributes"]["main"]["name"] = "Updated ddo by event"
     send_create_update_tx("update", _ddo, bytes([flags]), test_account1)
-    # TODO: get_event(EVENT_METADATA_UPDATED, block, did)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
