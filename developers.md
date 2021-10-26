@@ -8,12 +8,12 @@
      
 ## Running Aquarius locally, for development and testing
 
-The easiest way is through [Barge](https://github.com/oceanprotocol/barge). Run a Barge instance without Aquarius.
+The easiest way is through [Barge](https://github.com/oceanprotocol/barge). Run a Barge instance without Aquarius and with RBAC Server.
 
 ```bash
 git clone https://github.com/oceanprotocol/barge
 cd barge
-./start_ocean.sh  --no-aquarius
+./start_ocean.sh  --no-aquarius --with-rbac
 ```
 
 In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
