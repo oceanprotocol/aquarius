@@ -4,6 +4,7 @@
 #
 import hashlib
 import json
+import lzma
 import os
 import requests
 import time
@@ -106,13 +107,23 @@ def send_create_update_tx(name, ddo, flags, account):
     datatoken_address = ddo["dataToken"]
     aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
     document = json.dumps(dict(ddo))
-    data = {
-        "document": document,
-        "documentId": did,
-        "publisherAddress": aquarius_account.address,
-    }
-    response = requests.post(provider_url + "/api/v1/services/encryptDDO", json=data)
-    encrypted_data = response.content
+
+    if flags[0] & 1:
+        compressed_document = lzma.compress(document.encode("utf-8")).hex()
+    else:
+        compressed_document = document
+
+    if flags[0] & 2:
+        data = {
+            "document": compressed_document,
+            "documentId": did,
+            "publisherAddress": aquarius_account.address,
+        }
+        response = requests.post(provider_url + "/api/v1/services/encryptDDO", json=data)
+        encrypted_data = response.content
+    else:
+        encrypted_data = compressed_document.encode("utf-8")
+
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
     print(f"{name}DDO {did} with flags: {flags} from {account.address}")
@@ -133,6 +144,7 @@ def send_create_update_tx(name, ddo, flags, account):
     dt_contract = get_web3().eth.contract(
         abi=ERC721Template.abi, address=datatoken_address
     )
+
     txn_hash = dt_contract.functions.setMetaData(
         0, provider_url, provider_address, flags, encrypted_data, dataHash
     ).transact()
