@@ -23,8 +23,10 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
     }
 
     response = requests.post(provider_url + "/api/v1/services/decryptDDO", json=payload)
-    # TODO: check response status
-    return response.json()
+    if response.status_code == 201:
+        return response.json()
+
+    raise Exception("Provider exception: {response.content}")
 
 
 def get_nonce_and_signature(w3, provider_url, account, txid, chain_id):

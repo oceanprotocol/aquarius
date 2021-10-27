@@ -72,9 +72,8 @@ def get_ddo(client, base_ddo_url, did):
 
 
 def send_create_update_tx(name, ddo, flags, account):
-    # TODO: replace with actual defaults
     provider_url = "http://localhost:8030"
-    provider_address = "TEST"
+    provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
     did = ddo.id
     datatoken_address = ddo["dataToken"]
     aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
