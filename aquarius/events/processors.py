@@ -275,10 +275,9 @@ class MetadataUpdatedProcessor(EventProcessor):
             event_processor.process()
             return False
 
-        # TODO: reinstate, it's a bug that "event" doesn't exist
-        #is_updateable = self.check_update(asset, sender_address)
-        #if not is_updateable:
-        #    return False
+        is_updateable = self.check_update(asset, old_asset, sender_address)
+        if not is_updateable:
+            return False
 
         _record = self.make_record(asset, old_asset)
         if _record:
@@ -294,7 +293,7 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         return False
 
-    def check_update(self, old_asset, sender_address):
+    def check_update(self, new_asset, old_asset, sender_address):
         # do not update if we have the same txid
         ddo_txid = old_asset["event"]["txid"]
         if self.txid == ddo_txid:
@@ -311,18 +310,15 @@ class MetadataUpdatedProcessor(EventProcessor):
             )
             return False
 
-        # TODO: reinstate
-        # check owner
-        #if not compare_eth_addresses(
-        #    old_asset["publicKey"][0]["owner"], sender_address, logger
-        #):
-        #    logger.warning("Transaction sender must mach ddo owner")
-        #    return False
+        if not compare_eth_addresses(
+            old_asset["publicKey"][0]["owner"], sender_address, logger
+        ):
+            logger.warning("Transaction sender must mach ddo owner")
+            return False
 
-        # TODO: reinstate, but I would suggest on publish
-        # msg, _ = validate_data(data, "event update")
-        # if msg:
-        #    logger.error(msg)
-        #    return False
+        msg, _ = validate_data(new_asset, "event update")
+        if msg:
+           logger.error(msg)
+           return False
 
         return True

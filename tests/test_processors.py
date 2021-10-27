@@ -20,6 +20,7 @@ event_sample = AttributeDict(
                 "createdBy": "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260",
                 "flags": b"\x00",
                 "data": "",
+                "decryptorUrl": "http://localhost:8030",
             }
         ),
         "event": "MetadataCreated",
@@ -44,6 +45,7 @@ event_updated_sample = AttributeDict(
                 "updatedBy": "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260",
                 "flags": b"\x00",
                 "data": "",
+                "decryptorUrl": "http://localhost:8030",
             }
         ),
         "event": "MetadataUpdated",
@@ -63,24 +65,20 @@ event_updated_sample = AttributeDict(
 
 def test_check_permission(monkeypatch):
     monkeypatch.setenv("RBAC_SERVER_URL", "http://rbac")
-    processor = MetadataCreatedProcessor(event_sample, None, None, None, None, None)
+    processor = MetadataCreatedProcessor(event_sample, None, None, None, None, None, None, None)
     with patch("requests.post") as mock:
         mock.side_effect = Exception("Boom!")
         assert processor.check_permission("some_address") is False
 
     # will affect the process() function too
-    decryptor = Mock(spec=Decryptor)
-    decryptor.decode_ddo.return_value = "not none"
-    processor.decryptor = decryptor
     with pytest.raises(Exception):
         with patch("requests.post") as mock:
             mock.side_effect = Exception("Boom!")
             processor.process()
 
     processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, None, None, None, None
+        event_updated_sample, None, None, None, None, None, None, None
     )
-    processor.decryptor = decryptor
     # will affect the process() function too
     with pytest.raises(Exception):
         with patch("requests.post") as mock:
@@ -91,7 +89,7 @@ def test_check_permission(monkeypatch):
 def test_is_publisher_allowed():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
-    processor = MetadataCreatedProcessor(event_sample, None, web3, None, None, None)
+    processor = MetadataCreatedProcessor(event_sample, None, web3, None, None, None, None, None)
     processor.allowed_publishers = None
     assert processor.is_publisher_allowed(processor.sender_address) is True
 
@@ -99,12 +97,12 @@ def test_is_publisher_allowed():
 def test_make_record(sample_metadata_dict_remote):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
-    processor = MetadataCreatedProcessor(event_sample, None, web3, None, None, None)
+    processor = MetadataCreatedProcessor(event_sample, None, web3, None, None, None, None, None)
     sample_metadata_dict_remote["main"]["EXTRA ATTRIB!"] = 0
     assert processor.make_record(sample_metadata_dict_remote) is False
 
     processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, web3, None, None, None
+        event_updated_sample, None, web3, None, None, None, None, None
     )
     sample_metadata_dict_remote["main"]["EXTRA ATTRIB!"] = 0
     assert (
@@ -112,43 +110,28 @@ def test_make_record(sample_metadata_dict_remote):
     )
 
 
-def test_process(monkeypatch):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
-    processor = MetadataCreatedProcessor(event_sample, None, web3, None, None, None)
-    processor.process()
-
-    processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, web3, None, None, None
-    )
-    # falls back on the MetadataCreatedProcessor
-    # since no es instance means read will throw an Exception
-    with patch("aquarius.events.processors.MetadataCreatedProcessor.process") as mock:
-        processor.process()
-        mock.assert_called_once()
-
-
 def test_do_decode_update():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, web3, None, None, None
+        event_updated_sample, None, web3, None, None, None, None, None
     )
 
     bk_block = processor.block
     processor.block = 0
-    asset = {
+    old_asset = {
         "event": {"blockNo": 100, "txid": "placeholder"},
         "publicKey": [{"owner": "some_address"}],
     }
-    assert processor.do_decode_update(asset, "") is False
+    assert processor.check_update(None, old_asset, "") is False
 
     processor.block = bk_block
-    assert processor.do_decode_update(asset, "") is False
+    assert processor.check_update(None, old_asset, "") is False
 
     address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
-    asset = {
+    old_asset = {
         "event": {"blockNo": 100, "txid": "placeholder"},
         "publicKey": [{"owner": address}],
     }
-    assert processor.do_decode_update(asset, address) is False
+    new_asset = old_asset
+    assert processor.check_update(new_asset, old_asset, address) is False
