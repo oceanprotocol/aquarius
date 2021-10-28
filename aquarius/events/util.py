@@ -90,16 +90,6 @@ def deploy_datatoken(w3, account, name, symbol):
         print(f"tx not found: {tx_hash.hex()}")
         raise
 
-def get_dt_factory(web3):
-    address_file = get_address_file()
-    with open(address_file) as f:
-        address_json = json.load(f)
-    network = get_network_name()
-    address = address_json[network]["ERC721Factory"]
-    abi = ERC721Factory.abi
-
-    return web3.eth.contract(address=address, abi=abi)
-
 
 def get_dt_factory(web3):
     address_file = get_address_file()
