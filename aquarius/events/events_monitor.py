@@ -320,22 +320,14 @@ class EventsMonitor(BlockProcessingClass):
         else:
             hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
 
-        for x in [0, 1]:
-            try:
-                event_signature_hash = self._web3.keccak(text=hash_text).hex()
+        event_signature_hash = self._web3.keccak(text=hash_text).hex()
 
-                event_filter = self._web3.eth.filter(
-                    {
-                        "topics": [event_signature_hash],
-                        "fromBlock": from_block,
-                        "toBlock": to_block,
-                    }
-                )
+        event_filter = self._web3.eth.filter(
+            {
+                "topics": [event_signature_hash],
+                "fromBlock": from_block,
+                "toBlock": to_block,
+            }
+        )
 
-                return event_filter.get_all_entries()
-            except ValueError as e:
-                suffix = "" if x == 1 else "\n Retrying once more."
-                logger.error(
-                    f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}."
-                    + suffix
-                )
+        return event_filter.get_all_entries()
