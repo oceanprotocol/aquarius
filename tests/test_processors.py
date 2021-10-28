@@ -11,7 +11,7 @@ from aquarius.events.processors import (
 )
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
-from tests.helpers import new_ddo, test_account1, send_create_update_tx, get_ddo
+from tests.helpers import get_ddo, new_ddo, send_create_update_tx, test_account1
 
 event_sample = AttributeDict(
     {

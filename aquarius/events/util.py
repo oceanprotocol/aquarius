@@ -69,10 +69,7 @@ def deploy_datatoken(w3, account, name, symbol):
     :param minter_address: Account address
     :return: Address of the deployed contract
     """
-    # TODO: get address more smartly
-    dt_factory = w3.eth.contract(
-        abi=ERC721Factory.abi, address="0x312213d6f6b5FCF9F56B7B8946A6C727Bf4Bc21f"
-    )
+    dt_factory = get_dt_factory(w3)
 
     built_tx = dt_factory.functions.deployERC721Contract(
         name, symbol, 1, "0x0000000000000000000000000000000000000000", ""
@@ -92,6 +89,17 @@ def deploy_datatoken(w3, account, name, symbol):
     except Exception:
         print(f"tx not found: {tx_hash.hex()}")
         raise
+
+
+def get_dt_factory(web3):
+    address_file = get_address_file()
+    with open(address_file) as f:
+        address_json = json.load(f)
+    network = get_network_name()
+    address = address_json[network]["ERC721Factory"]
+    abi = ERC721Factory.abi
+
+    return web3.eth.contract(address=address, abi=abi)
 
 
 def get_address_file():
