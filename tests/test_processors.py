@@ -1,6 +1,7 @@
+from unittest.mock import Mock, patch
+
 import pytest
 from hexbytes import HexBytes
-from unittest.mock import patch, Mock
 from web3.datastructures import AttributeDict
 
 from aquarius.events.decryptor import decrypt_ddo
@@ -10,7 +11,6 @@ from aquarius.events.processors import (
 )
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
-
 
 event_sample = AttributeDict(
     {
@@ -65,7 +65,9 @@ event_updated_sample = AttributeDict(
 
 def test_check_permission(monkeypatch):
     monkeypatch.setenv("RBAC_SERVER_URL", "http://rbac")
-    processor = MetadataCreatedProcessor(event_sample, None, None, None, None, None, None, None)
+    processor = MetadataCreatedProcessor(
+        event_sample, None, None, None, None, None, None, None
+    )
     with patch("requests.post") as mock:
         mock.side_effect = Exception("Boom!")
         assert processor.check_permission("some_address") is False
@@ -89,7 +91,9 @@ def test_check_permission(monkeypatch):
 def test_is_publisher_allowed():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
-    processor = MetadataCreatedProcessor(event_sample, None, web3, None, None, None, None, None)
+    processor = MetadataCreatedProcessor(
+        event_sample, None, web3, None, None, None, None, None
+    )
     processor.allowed_publishers = None
     assert processor.is_publisher_allowed(processor.sender_address) is True
 
@@ -97,7 +101,9 @@ def test_is_publisher_allowed():
 def test_make_record(sample_metadata_dict_remote):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
-    processor = MetadataCreatedProcessor(event_sample, None, web3, None, None, None, None, None)
+    processor = MetadataCreatedProcessor(
+        event_sample, None, web3, None, None, None, None, None
+    )
     sample_metadata_dict_remote["main"]["EXTRA ATTRIB!"] = 0
     assert processor.make_record(sample_metadata_dict_remote) is False
 

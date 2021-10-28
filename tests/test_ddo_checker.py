@@ -14,7 +14,6 @@ from jsonschema.validators import Draft7Validator
 
 from aquarius.ddo_checker import ddo_checker
 
-
 # %%
 
 

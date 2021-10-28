@@ -12,10 +12,10 @@ from threading import Thread
 import elasticsearch
 from eth_account import Account
 from eth_utils import is_address
-
 from jsonsempai import magic  # noqa: F401
-from artifacts import ERC721Template
+
 from aquarius.app.auth_util import sanitize_addresses
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
@@ -25,8 +25,7 @@ from aquarius.events.processors import (
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block
-from aquarius.app.es_instance import ElasticsearchInstance
-
+from artifacts import ERC721Template
 
 logger = logging.getLogger(__name__)
 

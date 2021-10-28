@@ -5,7 +5,7 @@
 import json
 
 from aquarius.run import get_status, get_version
-from tests.helpers import run_request_get_data, run_request
+from tests.helpers import run_request, run_request_get_data
 
 
 def test_version(client):

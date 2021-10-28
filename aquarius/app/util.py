@@ -6,9 +6,9 @@ import copy
 import json
 import logging
 import os
-
 from collections import OrderedDict
 from datetime import datetime
+
 import dateutil.parser as parser
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"

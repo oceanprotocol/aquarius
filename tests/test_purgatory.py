@@ -2,20 +2,21 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from web3 import Web3
 from datetime import datetime, timedelta
-from requests.models import Response
+from unittest.mock import Mock, patch
 
-from tests.helpers import (
-    get_web3,
-    test_account1,
-    send_create_update_tx,
-    get_ddo,
-    new_ddo,
-)
-from aquarius.events.purgatory import Purgatory
 from freezegun import freeze_time
-from unittest.mock import patch, Mock
+from requests.models import Response
+from web3 import Web3
+
+from aquarius.events.purgatory import Purgatory
+from tests.helpers import (
+    get_ddo,
+    get_web3,
+    new_ddo,
+    send_create_update_tx,
+    test_account1,
+)
 
 
 class PurgatoryForTesting(Purgatory):

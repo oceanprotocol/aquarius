@@ -14,10 +14,10 @@ from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import (
     get_web3,
     new_ddo,
-    send_create_update_tx,
-    test_account1,
     run_request,
     run_request_get_data,
+    send_create_update_tx,
+    test_account1,
 )
 
 
@@ -101,7 +101,9 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     assert len(result["hits"]["hits"]) > 0
 
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
-    response = client.get(base_url + f"/metadata/{did}", content_type="application/json")
+    response = client.get(
+        base_url + f"/metadata/{did}", content_type="application/json"
+    )
     assert response.status_code == 200
 
 

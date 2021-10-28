@@ -3,22 +3,22 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import json
+from unittest.mock import patch
 
 import elasticsearch
 from web3 import Web3
-from unittest.mock import patch
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
 from tests.helpers import (
+    get_ddo,
     get_web3,
     new_ddo,
+    send_create_update_tx,
     test_account1,
     test_account3,
-    send_create_update_tx,
-    get_ddo,
 )
 
 
@@ -52,7 +52,9 @@ def test_publish_and_update_ddo_with_lzma(client, base_ddo_url, events_object):
     run_test(client, base_ddo_url, events_object, 1)
 
 
-def test_publish_and_update_ddo_with_lzma_and_encrypt(client, base_ddo_url, events_object):
+def test_publish_and_update_ddo_with_lzma_and_encrypt(
+    client, base_ddo_url, events_object
+):
     run_test(client, base_ddo_url, events_object, 3)
 
 

@@ -2,10 +2,11 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import os
+
+import requests
 from eth_account import Account
 from eth_account.messages import encode_defunct
-import os
-import requests
 
 
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):

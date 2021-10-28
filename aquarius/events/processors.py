@@ -2,20 +2,16 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from abc import ABC
-from datetime import datetime
-from eth_utils import add_0x_prefix, remove_0x_prefix
 import json
 import logging
 import os
-import requests
+from abc import ABC
+from datetime import datetime
 
+import requests
+from eth_utils import add_0x_prefix, remove_0x_prefix
 from jsonsempai import magic  # noqa: F401
-from artifacts import ERC721Template
-from aquarius.ddo_checker.ddo_checker import (
-    is_valid_dict_remote,
-    list_errors_dict_remote,
-)
+
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.app.util import (
     DATETIME_FORMAT,
@@ -25,8 +21,13 @@ from aquarius.app.util import (
     list_errors,
     validate_data,
 )
+from aquarius.ddo_checker.ddo_checker import (
+    is_valid_dict_remote,
+    list_errors_dict_remote,
+)
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.events.decryptor import decrypt_ddo
+from artifacts import ERC721Template
 
 logger = logging.getLogger(__name__)
 
@@ -318,7 +319,7 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         msg, _ = validate_data(new_asset, "event update")
         if msg:
-           logger.error(msg)
-           return False
+            logger.error(msg)
+            return False
 
         return True

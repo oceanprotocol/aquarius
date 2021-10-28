@@ -2,23 +2,19 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import elasticsearch
 import json
 import logging
 
+import elasticsearch
 from flask import Blueprint, jsonify, request
-from aquarius.ddo_checker.ddo_checker import (
-    is_valid_dict_local,
-    list_errors_dict_local,
-    is_valid_dict_remote,
-    list_errors_dict_remote,
-)
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import (
-    list_errors,
-    get_metadata_from_services,
-    sanitize_record,
+from aquarius.app.util import get_metadata_from_services, list_errors, sanitize_record
+from aquarius.ddo_checker.ddo_checker import (
+    is_valid_dict_local,
+    is_valid_dict_remote,
+    list_errors_dict_local,
+    list_errors_dict_remote,
 )
 from aquarius.log import setup_logging
 from aquarius.myapp import app

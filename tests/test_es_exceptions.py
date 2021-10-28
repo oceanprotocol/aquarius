@@ -2,6 +2,8 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+from unittest.mock import patch
+
 import elasticsearch
 from web3 import Web3
 
@@ -14,12 +16,11 @@ from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import (
     get_web3,
     new_ddo,
-    send_create_update_tx,
-    test_account1,
     run_request,
     run_request_get_data,
+    send_create_update_tx,
+    test_account1,
 )
-from unittest.mock import patch
 
 
 def test_get_ddo_exception(client, base_ddo_url):

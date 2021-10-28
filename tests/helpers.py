@@ -6,20 +6,20 @@ import hashlib
 import json
 import lzma
 import os
-import requests
 import time
 import uuid
 
-from jsonsempai import magic  # noqa: F401
-from artifacts import ERC721Template
-from eth_utils import remove_0x_prefix, add_0x_prefix
-from web3 import Web3
+import requests
 from eth_account import Account
+from eth_utils import add_0x_prefix, remove_0x_prefix
+from jsonsempai import magic  # noqa: F401
+from web3 import Web3
 from web3.datastructures import AttributeDict
 
-from aquarius.events.util import deploy_datatoken
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.http_provider import get_web3_connection_provider
+from aquarius.events.util import deploy_datatoken
+from artifacts import ERC721Template
 from tests.ddos.ddo_event_sample import ddo_event_sample
 
 rpc = os.environ.get("EVENTS_RPC", "")
@@ -90,7 +90,9 @@ def send_create_update_tx(name, ddo, flags, account):
             "documentId": did,
             "publisherAddress": aquarius_account.address,
         }
-        response = requests.post(provider_url + "/api/v1/services/encryptDDO", json=data)
+        response = requests.post(
+            provider_url + "/api/v1/services/encryptDDO", json=data
+        )
         encrypted_data = response.content
     else:
         encrypted_data = compressed_document.encode("utf-8")

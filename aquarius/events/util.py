@@ -3,19 +3,19 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import json
+import logging
 import os
 import time
-import logging
 from pathlib import Path
-import pkg_resources
 
+import pkg_resources
 from jsonsempai import magic  # noqa: F401
-from addresses import address as contract_addresses
-from artifacts import ERC721, ERC721Factory
-from aquarius.events.http_provider import get_web3_connection_provider
 from web3 import Web3
 
+from addresses import address as contract_addresses
 from aquarius.app.util import get_bool_env_value
+from aquarius.events.http_provider import get_web3_connection_provider
+from artifacts import ERC721, ERC721Factory
 
 logger = logging.getLogger(__name__)
 ENV_ADDRESS_FILE = "ADDRESS_FILE"

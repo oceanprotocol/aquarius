@@ -2,9 +2,10 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import os
 import logging
+import os
 import time
+
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 

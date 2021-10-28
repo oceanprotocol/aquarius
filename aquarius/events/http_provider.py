@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import os
-from web3 import HTTPProvider
-from web3 import WebsocketProvider
+
+from web3 import HTTPProvider, WebsocketProvider
 
 from aquarius.events.request import make_post_request
 

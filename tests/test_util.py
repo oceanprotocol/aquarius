@@ -2,27 +2,28 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import os
 import json
 import logging
-import pytest
+import os
 from datetime import datetime
+from unittest.mock import patch
 
+import pytest
+
+from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.app.util import (
-    sanitize_record,
-    get_bool_env_value,
-    datetime_converter,
     check_no_urls_in_files,
     check_required_attributes,
+    datetime_converter,
+    get_bool_env_value,
+    sanitize_record,
     validate_date_format,
 )
-from aquarius.app.auth_util import compare_eth_addresses
+from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import get_network_name, setup_web3
-from aquarius.block_utils import BlockProcessingClass
-from aquarius.myapp import app
 from aquarius.log import setup_logging
-from unittest.mock import patch
+from aquarius.myapp import app
 
 logger = logging.getLogger(__name__)
 
