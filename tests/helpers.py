@@ -80,9 +80,9 @@ def send_create_update_tx(name, ddo, flags, account):
     document = json.dumps(dict(ddo))
 
     if flags[0] & 1:
-        compressed_document = lzma.compress(document.encode("utf-8")).hex()
+        compressed_document = lzma.compress(document.encode("utf-8"))
     else:
-        compressed_document = document
+        compressed_document = document.encode("utf-8")
 
     if flags[0] & 2:
         data = {
@@ -90,12 +90,14 @@ def send_create_update_tx(name, ddo, flags, account):
             "documentId": did,
             "publisherAddress": aquarius_account.address,
         }
+
+        headers = {'Content-type': 'application/octet-stream'}
         response = requests.post(
-            provider_url + "/api/v1/services/encryptDDO", json=data
+            provider_url + "/api/v1/services/encryptDDO", data=data, headers=headers
         )
-        encrypted_data = response.content
+        encrypted_data = response.text
     else:
-        encrypted_data = compressed_document.encode("utf-8")
+        encrypted_data = compressed_document
 
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 

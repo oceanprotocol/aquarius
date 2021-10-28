@@ -17,7 +17,6 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
     payload = {
         "transactionId": txid,
         "chainId": chain_id,
-        "dataNftAddress": contract_address,
         "decrypterAddress": aquarius_account.address,
         "signature": signature,
         "nonce": nonce,
