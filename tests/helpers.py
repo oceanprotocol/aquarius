@@ -76,7 +76,6 @@ def send_create_update_tx(name, ddo, flags, account):
     provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
     did = ddo.id
     datatoken_address = ddo["dataToken"]
-    aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
     document = json.dumps(dict(ddo))
 
     if flags[0] & 1:
@@ -85,15 +84,10 @@ def send_create_update_tx(name, ddo, flags, account):
         compressed_document = document.encode("utf-8")
 
     if flags[0] & 2:
-        data = {
-            "document": compressed_document,
-            "documentId": did,
-            "publisherAddress": aquarius_account.address,
-        }
-
         headers = {'Content-type': 'application/octet-stream'}
         response = requests.post(
-            provider_url + "/api/v1/services/encryptDDO", data=data, headers=headers
+            provider_url + "/api/v1/services/encryptDDO",
+            data=compressed_document, headers=headers
         )
         encrypted_data = response.text
     else:
