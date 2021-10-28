@@ -11,6 +11,7 @@ from aquarius.events.processors import (
 )
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
+from tests.helpers import new_ddo, test_account1, send_create_update_tx, get_ddo
 
 event_sample = AttributeDict(
     {
@@ -114,6 +115,29 @@ def test_make_record(sample_metadata_dict_remote):
     assert (
         processor.make_record(sample_metadata_dict_remote, {"created": "test"}) is False
     )
+
+
+def test_process_fallback(monkeypatch, client, base_ddo_url, events_object):
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    web3 = setup_web3(config_file)
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+    send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
+
+    events_object._es_instance.delete(did)
+
+    _ddo["service"][0]["attributes"]["main"]["name"] = "Updated ddo by event"
+    send_create_update_tx("update", _ddo, bytes(2), test_account1)
+
+    # falls back on the MetadataCreatedProcessor
+    # since no es instance means read will throw an Exception
+    with patch("aquarius.events.processors.MetadataCreatedProcessor.process") as mock:
+        events_object.process_current_blocks()
+        mock.assert_called()
 
 
 def test_do_decode_update():
