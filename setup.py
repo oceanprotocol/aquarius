@@ -32,7 +32,6 @@ install_requirements = [
     "ocean-contracts==0.6.9",
     "web3==5.24.0",
     "jsonschema==3.2.0",
-    "eciespy",
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",

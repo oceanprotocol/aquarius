@@ -78,6 +78,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     block = get_web3().eth.block_number
     _ddo = json_before.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
+    did = ddo["id"]
     send_create_update_tx(
         "create",
         ddo,
@@ -98,6 +99,10 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
         },
     )
     assert len(result["hits"]["hits"]) > 0
+
+    base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
+    response = client.get(base_url + f"/metadata/{did}", content_type="application/json")
+    assert response.status_code == 200
 
 
 def test_get_assets_names(client, events_object):

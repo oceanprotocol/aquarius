@@ -26,17 +26,20 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
     if response.status_code == 201:
         return response.json()
 
-    raise Exception("Provider exception: {response.content}")
+    raise Exception(f"Provider exception on decryptDDO: {response.content}")
 
 
 def get_nonce_and_signature(w3, provider_url, account, txid, chain_id):
     response = requests.get(
         provider_url + "/api/v1/services/nonce", params={"userAddress": account.address}
     )
-    nonce = response.json()["nonce"]
-    return (
-        nonce,
-        account.sign_message(
-            encode_defunct(text=f"{txid}{account.address}{chain_id}{nonce}")
-        ).signature.hex(),
-    )
+    if response.status_code == 200:
+        nonce = response.json()["nonce"]
+        return (
+            nonce,
+            account.sign_message(
+                encode_defunct(text=f"{txid}{account.address}{chain_id}{nonce}")
+            ).signature.hex(),
+        )
+
+    raise Exception(f"Provider exception on nonce retrieval: {response.content}")

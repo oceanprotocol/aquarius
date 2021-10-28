@@ -3,13 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import json
-import lzma
 
 import elasticsearch
 from web3 import Web3
 from unittest.mock import patch
-
-import eth_keys
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.events_monitor import EventsMonitor
@@ -244,5 +241,4 @@ def test_add_chain_id_to_chains_list(events_object):
 
 
 def test_get_event_logs(events_object):
-    # TODO: reinstate with new structure
-    pass
+    assert events_object.get_event_logs("NonExistentEvent", 0, 10) == []
