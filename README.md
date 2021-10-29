@@ -111,6 +111,9 @@ And these are optional
 # Enables the Aquarius API. Default: 1, disable if you only want to use the events monitor, without exposing an API.
 RUN_AQUARIUS_SERVER
 
+# Identify instance of Aquarius to Provider, when decrypting assets. Provider may allow or deny decryption based on this address.
+PRIVATE_KEY
+
 # Path to the `address.json` file or any json file that has the deployed contracts addresses
 ADDRESS_FILE
 
