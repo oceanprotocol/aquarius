@@ -1,7 +1,10 @@
 from unittest.mock import Mock, patch
 
+from hashlib import sha256
+import json
 import pytest
 from hexbytes import HexBytes
+from web3 import Web3
 from web3.datastructures import AttributeDict
 
 from aquarius.events.decryptor import decrypt_ddo
@@ -97,6 +100,18 @@ def test_is_publisher_allowed():
     )
     processor.allowed_publishers = None
     assert processor.is_publisher_allowed(processor.sender_address) is True
+
+
+def test_check_document_hash():
+    original_dict = {"some_json": "for testing"}
+    original_string = json.dumps(original_dict)
+    hash_result = sha256(original_string.encode("utf-8")).hexdigest()
+    event_sample.args.__dict__["metaDataHash"] = Web3.toBytes(hexstr=hash_result)
+
+    processor = MetadataCreatedProcessor(
+        event_sample, None, None, None, None, None, None, None
+    )
+    assert processor.check_document_hash(original_dict) is True
 
 
 def test_make_record(sample_metadata_dict_remote):

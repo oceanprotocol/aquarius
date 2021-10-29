@@ -7,6 +7,7 @@ import logging
 import os
 from abc import ABC
 from datetime import datetime
+from hashlib import sha256
 
 import requests
 from eth_utils import add_0x_prefix, remove_0x_prefix
@@ -78,6 +79,10 @@ class EventProcessor(ABC):
         except Exception:
             return False
 
+    def check_document_hash(self, asset):
+        document_hash = self.event.args.metaDataHash
+        return sha256(json.dumps(asset).encode("utf-8")).hexdigest() == document_hash.hex()
+
 
 class MetadataCreatedProcessor(EventProcessor):
     def is_publisher_allowed(self, publisher_address):
@@ -144,6 +149,9 @@ class MetadataCreatedProcessor(EventProcessor):
             self._chain_id,
             txid,
         )
+
+        if not self.check_document_hash(asset):
+            return False
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
@@ -246,6 +254,9 @@ class MetadataUpdatedProcessor(EventProcessor):
             self._chain_id,
             txid,
         )
+
+        if not self.check_document_hash(asset):
+            return False
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
