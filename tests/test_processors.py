@@ -1,7 +1,7 @@
+import json
+from hashlib import sha256
 from unittest.mock import Mock, patch
 
-from hashlib import sha256
-import json
 import pytest
 from hexbytes import HexBytes
 from web3 import Web3

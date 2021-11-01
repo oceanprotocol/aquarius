@@ -156,9 +156,9 @@ def check_required_attributes(required_attributes, data, method):
     return None, None
 
 
-def list_errors(list_errors_function, data):
+def list_errors(errors, data):
     error_list = list()
-    for err in list_errors_function(data):
+    for err in errors:
         stack_path = list(err[1].relative_path)
         stack_path = [str(p) for p in stack_path]
         this_err_response = {"path": "/".join(stack_path), "message": err[1].message}

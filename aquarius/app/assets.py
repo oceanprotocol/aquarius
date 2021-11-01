@@ -10,12 +10,7 @@ from flask import Blueprint, jsonify, request
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_metadata_from_services, list_errors, sanitize_record
-from aquarius.ddo_checker.ddo_checker import (
-    is_valid_dict_local,
-    is_valid_dict_remote,
-    list_errors_dict_local,
-    list_errors_dict_remote,
-)
+from aquarius.ddo_checker.ddo_checker import validate_dict
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 
@@ -298,58 +293,10 @@ def query_ddo():
         logger.info(
             f"Received elasticsearch TransportError: {error}, more info: {info}."
         )
-        return (
-            jsonify(error=error, info=info),
-            e.status_code,
-        )
+        return (jsonify(error=error, info=info), e.status_code)
     except Exception as e:
         logger.error(f"Received elasticsearch Error: {str(e)}.")
         return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
-
-
-@assets.route("/ddo/validate", methods=["POST"])
-def validate():
-    """Validate metadata content.
-    ---
-    tags:
-      - ddo
-    consumes:
-      - application/json
-    parameters:
-      - in: body
-        name: body
-        required: true
-        description: Asset metadata.
-        schema:
-          type: object
-    responses:
-      200:
-        description: successfully request.
-        example:
-          application/json: true
-      500:
-        description: Error
-    """
-    try:
-        data = request.json
-        if not isinstance(data, dict):
-            return (
-                jsonify(
-                    error="Invalid payload. The request could not be converted into a dict."
-                ),
-                400,
-            )
-
-        if is_valid_dict_local(data):
-            return jsonify(True)
-
-        return jsonify(list_errors(list_errors_dict_local, data))
-    except Exception as e:
-        logger.error(f"validate endpoint failed: {str(e)}.")
-        return (
-            jsonify(error=f"Encountered error when validating metadata: {str(e)}."),
-            500,
-        )
 
 
 @assets.route("/ddo/validate-remote", methods=["POST"])
@@ -387,16 +334,20 @@ def validate_remote():
                 400,
             )
 
-        if "service" not in data:
-            # made to resemble list_errors
-            return jsonify([{"message": "missing `service` key in data."}])
+        version = data.get("version", "v3.0.0")
 
-        data = get_metadata_from_services(data["service"])
+        if version == "v3.0.0":
+            if "service" not in data:
+                # made to resemble list_errors
+                return jsonify([{"message": "missing `service` key in data."}])
 
-        if is_valid_dict_remote(data):
+            data = get_metadata_from_services(data["service"])
+
+        valid, errors = validate_dict(data)
+        if valid:
             return jsonify(True)
 
-        return jsonify(list_errors(list_errors_dict_remote, data))
+        return jsonify(list_errors(errors, data))
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500
