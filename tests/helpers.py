@@ -20,7 +20,7 @@ from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPD
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import deploy_datatoken
 from artifacts import ERC721Template
-from tests.ddos.ddo_event_sample import ddo_event_sample
+from tests.ddos.ddo_event_sample_v4 import ddo_event_sample_v4
 
 rpc = os.environ.get("EVENTS_RPC", "")
 provider = get_web3_connection_provider(rpc)
@@ -48,7 +48,7 @@ def new_did(dt_address):
 
 
 def new_ddo(account, web3, name, ddo=None):
-    _ddo = ddo if ddo else ddo_event_sample.copy()
+    _ddo = ddo if ddo else ddo_event_sample_v4.copy()
     if "publicKey" not in _ddo or not _ddo["publicKey"]:
         _ddo["publicKey"] = [{"owner": ""}]
     _ddo["publicKey"][0]["owner"] = account.address

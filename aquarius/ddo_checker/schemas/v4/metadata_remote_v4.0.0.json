@@ -370,20 +370,24 @@
               },
               "publisherTrustedAlgorithms": {
                 "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms",
-                "type": "object",
-                "required": ["did", "filesChecksum", "containerSectionChecksum"],
-                "properties": {
-                  "did": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/did",
-                    "type": "string"
-                  },
-                  "filesChecksum": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/filesChecksum",
-                    "type": "string"
-                  },
-                  "containerSectionChecksum": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/containerSectionChecksum",
-                    "type": "string"
+                "type": "array",
+                "items": {
+                  "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/items",
+                  "type": "object",
+                  "required": ["did", "filesChecksum", "containerSectionChecksum"],
+                  "properties": {
+                    "did": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/did",
+                      "type": "string"
+                    },
+                    "filesChecksum": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/filesChecksum",
+                      "type": "string"
+                    },
+                    "containerSectionChecksum": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/containerSectionChecksum",
+                      "type": "string"
+                    }
                   }
                 }
               }

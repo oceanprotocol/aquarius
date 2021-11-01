@@ -13,6 +13,7 @@ import dateutil.parser as parser
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
+ISO_DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
 
 logger = logging.getLogger("aquarius")
 
@@ -67,14 +68,6 @@ def get_metadata_from_services(services):
             return service["attributes"]
 
 
-def reorder_services_list(services):
-    service_dict = OrderedDict([(s["type"], s) for s in services])
-    result = [service_dict.pop("metadata")]
-    result.extend([s for t, s in service_dict.items()])
-
-    return result
-
-
 def init_new_ddo(data, timestamp):
     _record = copy.deepcopy(data)
     _record["created"] = format_timestamp(
@@ -90,39 +83,23 @@ def init_new_ddo(data, timestamp):
         else:
             _record["accessWhiteList"] = data["accessWhiteList"]
 
-    for service in _record.get("service", []):
-        if service["type"] == "metadata":
-            samain = service["attributes"]["main"]
-            date_created = (
-                parser.parse(samain["dateCreated"].rstrip("Z"))
-                if "dateCreated" in samain
-                else None
-            )
-            samain["dateCreated"] = (
-                date_created.strftime(DATETIME_FORMAT)
-                if date_created
-                else get_timestamp()
-            )
-            samain["datePublished"] = get_timestamp()
+    metadata = data["metadata"]
+    curation = dict()
+    curation["rating"] = 0.00
+    curation["numVotes"] = 0
+    curation["isListed"] = True
+    metadata["curation"] = curation
 
-            curation = dict()
-            curation["rating"] = 0.00
-            curation["numVotes"] = 0
-            curation["isListed"] = True
-            service["attributes"]["curation"] = curation
-    _record["service"] = (
-        reorder_services_list(_record["service"]) if _record.get("service") else None
-    )
     return _record
 
 
 def validate_date_format(date):
     try:
-        datetime.strptime(date, DATETIME_FORMAT)
+        datetime.fromisoformat(date)
         return None, None
     except Exception as e:
         logging.error(f"validate_date_format: {str(e)}")
-        return f"Incorrect data format, should be '{DATETIME_FORMAT}'", 400
+        return f"Incorrect data format, should be ISO Datetime Format", 400
 
 
 def check_no_urls_in_files(main, method):
@@ -172,9 +149,7 @@ def validate_data(data, method):
         "created",
         "id",
         "publicKey",
-        "authentication",
-        "proof",
-        "service",
+        "services",
         "dataToken",
     }
 
@@ -182,9 +157,10 @@ def validate_data(data, method):
     if msg:
         return msg, status
 
-    msg, status = check_no_urls_in_files(get_main_metadata(data["service"]), method)
-    if msg:
-        return msg, status
+    # TODO
+    #msg, status = check_no_urls_in_files(get_main_metadata(data["service"]), method)
+    #if msg:
+    #    return msg, status
 
     msg, status = validate_date_format(data["created"])
     if status:
