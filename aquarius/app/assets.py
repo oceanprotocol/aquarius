@@ -191,8 +191,7 @@ def get_metadata(did):
     """
     try:
         asset_record = es_instance.get(did)
-        metadata = get_metadata_from_services(asset_record["service"])
-        return sanitize_record(metadata)
+        return sanitize_record(asset_record["metadata"])
     except Exception as e:
         logger.error(f"get_metadata: {str(e)}")
         return (
@@ -254,8 +253,7 @@ def get_assets_names():
     for did in did_list:
         try:
             asset_record = es_instance.get(did)
-            metadata = get_metadata_from_services(asset_record["service"])
-            names[did] = metadata["main"]["name"]
+            names[did] = asset_record["metadata"]["name"]
         except Exception:
             names[did] = ""
 

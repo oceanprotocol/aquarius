@@ -4,12 +4,10 @@
 #
 import json
 
-from web3 import Web3
-
 from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
-from tests.ddos.ddo_sample1 import json_dict
+from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import (
     get_web3,
@@ -76,7 +74,7 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
 def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     client = client_with_no_data
     block = get_web3().eth.block_number
-    _ddo = json_before.copy()
+    _ddo = json_dict.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
     did = ddo["id"]
     send_create_update_tx(
