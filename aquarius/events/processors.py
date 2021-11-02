@@ -76,7 +76,9 @@ class EventProcessor(ABC):
 
     def check_document_hash(self, asset):
         document_hash = self.event.args.metaDataHash
-        return sha256(json.dumps(asset).encode("utf-8")).hexdigest() == document_hash.hex()
+        return (
+            sha256(json.dumps(asset).encode("utf-8")).hexdigest() == document_hash.hex()
+        )
 
 
 class MetadataCreatedProcessor(EventProcessor):

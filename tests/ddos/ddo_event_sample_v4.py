@@ -16,7 +16,7 @@ ddo_event_sample_v4 = {
         "author": "Met Office",
         "license": "CC-BY",
         "contentLanguage": "en-US",
-        "tags": ["samples"]
+        "tags": ["samples"],
     },
     "services": [
         {
@@ -40,6 +40,6 @@ ddo_event_sample_v4 = {
                 "publisherTrustedAlgorithms": [],
                 "publisherTrustedAlgorithmPublishers": [],
             },
-        }
+        },
     ],
 }

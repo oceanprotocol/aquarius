@@ -38,10 +38,7 @@ def run_test(client, base_ddo_url, events_instance, flags):
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
-    assert (
-        published_ddo["metadata"]["name"]
-        == "Updated ddo by event"
-    )
+    assert published_ddo["metadata"]["name"] == "Updated ddo by event"
 
 
 def test_publish_and_update_ddo(client, base_ddo_url, events_object):

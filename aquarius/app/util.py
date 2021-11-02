@@ -158,8 +158,8 @@ def validate_data(data, method):
         return msg, status
 
     # TODO
-    #msg, status = check_no_urls_in_files(get_main_metadata(data["service"]), method)
-    #if msg:
+    # msg, status = check_no_urls_in_files(get_main_metadata(data["service"]), method)
+    # if msg:
     #    return msg, status
 
     msg, status = validate_date_format(data["created"])

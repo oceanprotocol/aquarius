@@ -84,10 +84,11 @@ def send_create_update_tx(name, ddo, flags, account):
         compressed_document = document.encode("utf-8")
 
     if flags[0] & 2:
-        headers = {'Content-type': 'application/octet-stream'}
+        headers = {"Content-type": "application/octet-stream"}
         response = requests.post(
             provider_url + "/api/v1/services/encrypt",
-            data=compressed_document, headers=headers
+            data=compressed_document,
+            headers=headers,
         )
         encrypted_data = response.text
     else:

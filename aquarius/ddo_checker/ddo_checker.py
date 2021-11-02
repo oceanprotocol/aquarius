@@ -15,14 +15,10 @@ import pkg_resources
 def get_schema(version):
     base_version = "v3" if version.startswith("v3") else "v4"
     suffix = "v0_6.json" if base_version == "v3" else version + ".json"
-    path = (
-        "ddo_checker/schemas/" + base_version + "/metadata_remote_" + suffix
-    )
+    path = "ddo_checker/schemas/" + base_version + "/metadata_remote_" + suffix
 
     schema_file = Path(pkg_resources.resource_filename("aquarius", path))
-    assert schema_file.exists(), "Can't find schema file {}".format(
-        schema_file
-    )
+    assert schema_file.exists(), "Can't find schema file {}".format(schema_file)
 
     logging.info("Schema: {}".format(schema_file))
     return load_serial_data_file_path(schema_file)

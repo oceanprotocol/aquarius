@@ -128,9 +128,7 @@ def test_make_record():
     processor = MetadataUpdatedProcessor(
         event_updated_sample, None, web3, None, None, None, None, None
     )
-    assert (
-        processor.make_record(_ddo_copy, {"created": "test"}) is False
-    )
+    assert processor.make_record(_ddo_copy, {"created": "test"}) is False
 
 
 def test_process_fallback(monkeypatch, client, base_ddo_url, events_object):

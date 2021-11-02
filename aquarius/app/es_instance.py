@@ -171,10 +171,7 @@ class ElasticsearchInstance(object):
 
     @staticmethod
     def is_listed(metadata):
-        if (
-            "curation" in metadata
-            and "isListed" in metadata["curation"]
-        ):
+        if "curation" in metadata and "isListed" in metadata["curation"]:
             return metadata["curation"]["isListed"]
 
         return True

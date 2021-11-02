@@ -94,4 +94,3 @@ def test_remote_ddo_metadata_fails():
 
     valid, errors = validate_dict(_copy)
     assert not valid
-
