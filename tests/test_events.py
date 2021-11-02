@@ -33,13 +33,13 @@ def run_test(client, base_ddo_url, events_instance, flags):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
 
-    _ddo["service"][0]["attributes"]["main"]["name"] = "Updated ddo by event"
+    _ddo["metadata"]["name"] = "Updated ddo by event"
     send_create_update_tx("update", _ddo, bytes([flags]), test_account1)
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     assert (
-        published_ddo["service"][0]["attributes"]["main"]["name"]
+        published_ddo["metadata"]["name"]
         == "Updated ddo by event"
     )
 

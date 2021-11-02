@@ -107,14 +107,14 @@ def test_check_no_urls_in_files_fails():
 
 
 def test_date_format_validator():
-    date = "2016-02-08T16:02:20Z"
+    date = "2000-10-31T01:30:00.000-05:00"
     assert validate_date_format(date) == (None, None)
 
 
 def test_invalid_date():
     date = "XXXX"
     assert validate_date_format(date) == (
-        "Incorrect data format, should be '%Y-%m-%dT%H:%M:%SZ'",
+        "Incorrect data format, should be ISO Datetime Format",
         400,
     )
 

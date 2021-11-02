@@ -181,7 +181,7 @@ class MetadataCreatedProcessor(EventProcessor):
                 record_str = json.dumps(_record)
                 self._es_instance.write(record_str, did)
                 _record = json.loads(record_str)
-                name = _record["service"][0]["attributes"]["main"]["name"]
+                name = _record["metadata"]["name"]
                 created = _record["created"]
                 logger.info(
                     f"DDO saved: did={did}, name={name}, publisher={sender_address}, created={created}, chainId={self._chain_id}"
