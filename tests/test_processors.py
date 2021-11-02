@@ -1,19 +1,20 @@
+import copy
 import json
 from hashlib import sha256
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.datastructures import AttributeDict
 
-from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
 )
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
+from tests.ddos.ddo_event_sample_v4 import ddo_event_sample_v4
 from tests.helpers import get_ddo, new_ddo, send_create_update_tx, test_account1
 
 event_sample = AttributeDict(
@@ -114,21 +115,21 @@ def test_check_document_hash():
     assert processor.check_document_hash(original_dict) is True
 
 
-def test_make_record(sample_metadata_dict_remote):
+def test_make_record():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     processor = MetadataCreatedProcessor(
         event_sample, None, web3, None, None, None, None, None
     )
-    sample_metadata_dict_remote["main"]["EXTRA ATTRIB!"] = 0
-    assert processor.make_record(sample_metadata_dict_remote) is False
+    _ddo_copy = copy.deepcopy(ddo_event_sample_v4)
+    _ddo_copy["metadata"]["EXTRA ATTRIB!"] = 0
+    assert processor.make_record(_ddo_copy) is False
 
     processor = MetadataUpdatedProcessor(
         event_updated_sample, None, web3, None, None, None, None, None
     )
-    sample_metadata_dict_remote["main"]["EXTRA ATTRIB!"] = 0
     assert (
-        processor.make_record(sample_metadata_dict_remote, {"created": "test"}) is False
+        processor.make_record(_ddo_copy, {"created": "test"}) is False
     )
 
 
@@ -145,7 +146,7 @@ def test_process_fallback(monkeypatch, client, base_ddo_url, events_object):
 
     events_object._es_instance.delete(did)
 
-    _ddo["service"][0]["attributes"]["main"]["name"] = "Updated ddo by event"
+    _ddo["metadata"]["name"] = "Updated ddo by event"
     send_create_update_tx("update", _ddo, bytes(2), test_account1)
 
     # falls back on the MetadataCreatedProcessor
