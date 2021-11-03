@@ -16,7 +16,8 @@ cd barge
 ./start_ocean.sh  --no-aquarius --with-rbac
 ```
 
-In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
+#### Running Elasticsearch
+There are two ways of running Elasticsearch. The first one is to run it bare-bones. In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
 
 ```bash
 export ES_VERSION=6.6.2
@@ -26,7 +27,16 @@ tar -xzf elasticsearch-${ES_VERSION}.tar.gz
 ./elasticsearch-${ES_VERSION}/bin/elasticsearch
 ```
 
-In yet another tab, clone this repository:
+Alternately, you can run Elasticsearch from docker:
+`docker run --rm -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:6.6.2`
+
+The arguments have the following meaning:
+- `--rm` Automatically remove the container when it exits
+- `-p 9200:9200 -p 9300:9300` expose ports 9200 and 9300 and bind them.
+- `-e "discovery.type=single-node"` sets the environment variable for Elasticsearch. 
+If `discovery.type` is set to `single-node`, Elasticsearch forms a single-node cluster. Thus, our node will elect itself master and will not join a cluster with any other node. Since we are not building a multiple-node cluster, we are settings this to `single-node`.
+
+After spinning up Elasticsearch using either method, you can continue with the following Aquarius instructions. In yet another tab, clone this repository:
 
 ```bash
 git clone git@github.com:oceanprotocol/aquarius.git
