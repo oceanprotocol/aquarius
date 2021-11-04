@@ -70,7 +70,7 @@ class EventProcessor(ABC):
         payload = {
             "eventType": event_type,
             "component": "metadatacache",
-            "credentials": {"address": address},
+            "credentials": {"type": "address", "value": address},
         }
 
         try:
