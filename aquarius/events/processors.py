@@ -10,25 +10,20 @@ from datetime import datetime
 from hashlib import sha256
 
 import requests
-from eth_utils import add_0x_prefix, remove_0x_prefix
+from eth_utils import add_0x_prefix
 from jsonsempai import magic  # noqa: F401
 
+from aquarius.ddo_checker.ddo_checker import validate_dict
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.app.util import (
     DATETIME_FORMAT,
     format_timestamp,
     get_metadata_from_services,
     init_new_ddo,
-    list_errors,
     validate_data,
-)
-from aquarius.ddo_checker.ddo_checker import (
-    is_valid_dict_remote,
-    list_errors_dict_remote,
 )
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.events.decryptor import decrypt_ddo
-from artifacts import ERC721Template
 
 logger = logging.getLogger(__name__)
 
@@ -106,11 +101,15 @@ class MetadataCreatedProcessor(EventProcessor):
             "update": False,
         }
 
-        # TODO: rework after merging v4 validator
-        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
-            errors = list_errors(
-                list_errors_dict_remote, get_metadata_from_services(_record["service"])
-            )
+        version = _record.get("version", "v3")
+        content_to_validate = (
+            get_metadata_from_services(_record["service"])
+            if version == "v3"
+            else _record
+        )
+        valid_remote, errors = validate_dict(content_to_validate)
+
+        if not valid_remote:
             logger.error(
                 f"New ddo has validation errors: {errors} \nfor record:\n {_record}"
             )
@@ -214,11 +213,15 @@ class MetadataUpdatedProcessor(EventProcessor):
             "update": True,
         }
 
-        # TODO: rework after merging v4 validator
-        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
-            errors = list_errors(
-                list_errors_dict_remote, get_metadata_from_services(_record["service"])
-            )
+        version = _record.get("version", "v3")
+        content_to_validate = (
+            get_metadata_from_services(_record["service"])
+            if version == "v3"
+            else _record
+        )
+        valid_remote, errors = validate_dict(content_to_validate)
+
+        if not valid_remote:
             logger.error(f"ddo update has validation errors: {errors}")
             return False
 
