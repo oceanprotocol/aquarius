@@ -20,13 +20,6 @@ def test_remote_metadata_passes():
     valid, _ = validate_dict(algorithm_ddo_sample)
     assert valid
 
-    # test service file override
-    _copy = copy.deepcopy(json_dict)
-    files_structure = copy.deepcopy(json_dict["files"])
-    _copy["services"][0]["files"] = files_structure
-    valid, errors = validate_dict(_copy)
-    assert valid
-
 
 def test_remote_ddo_fails():
     for required_prop in ["id", "created", "updated", "version"]:
@@ -53,29 +46,14 @@ def test_remote_ddo_fails():
     valid, _ = validate_dict(_copy)
     assert not valid
 
-    # files invalid
-    _copy = copy.deepcopy(json_dict)
-    _copy["files"]["encryptedFiles"] = None
-    valid, _ = validate_dict(_copy)
-    assert not valid
-
-    _copy = copy.deepcopy(json_dict)
-    _copy["files"]["files"][0]["contentType"] = None
-    valid, _ = validate_dict(_copy)
-    assert not valid
-
     # services invalid
     _copy = copy.deepcopy(json_dict)
-    files_structure = copy.deepcopy(json_dict["files"])
-    files_structure.pop("encryptedFiles")
-    _copy["services"][0]["files"] = files_structure
+    _copy["services"][0]["files"].pop("encryptedFiles")
     valid, _ = validate_dict(_copy)
     assert not valid
 
     _copy = copy.deepcopy(json_dict)
-    files_structure = copy.deepcopy(json_dict["files"])
-    files_structure["files"][0]["contentType"] = None
-    _copy["services"][0]["files"] = files_structure
+    _copy["services"][0]["files"]["files"][0]["contentType"] = None
     valid, _ = validate_dict(_copy)
     assert not valid
 

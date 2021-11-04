@@ -41,17 +41,33 @@ algorithm_ddo_sample = {
             "copyrightHolder": "John Doe",
         },
     },
-    "files": {
-        "files": [
-            {
-                "name": "build_model",
-                "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                "contentLength": "4535431",
-                "contentType": "text/plain",
-                "encoding": "UTF-8",
-                "compression": "zip",
-            }
-        ],
-        "encryptedFiles": "encryptedFiles",
-    },
+    "services": [
+        {
+            "type": "compute",
+            "name": "dataAssetComputingService",
+            "description": "dataAssetComputingService",
+            "datatokenAddress": "0x20e91598bb797eEd2C7D4431a274c2997D080f53",
+            "providerEndpoint": "http://localhost:8030/",
+            "timeout": 3600,
+            "privacy": {
+                "allowRawAlgorithm": False,
+                "allowNetworkAccess": False,
+                "publisherTrustedAlgorithms": [],
+                "publisherTrustedAlgorithmPublishers": [],
+            },
+            "files": {
+                "files": [
+                    {
+                        "name": "build_model",
+                        "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                        "contentLength": "4535431",
+                        "contentType": "text/plain",
+                        "encoding": "UTF-8",
+                        "compression": "zip",
+                    }
+                ],
+                "encryptedFiles": "encryptedFiles",
+            },
+        }
+    ]
 }

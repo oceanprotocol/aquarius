@@ -359,23 +359,24 @@
               },
               "publisherTrustedAlgorithms": {
                 "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms",
-                "type": "object",
-                "required": ["did", "filesChecksum", "containerSectionChecksum"],
-                "properties": {
-                  "did": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/did",
-                    "type": "string",
-                    "pattern": "^(.*)$"
-                  },
-                  "filesChecksum": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/filesChecksum",
-                    "type": "string",
-                    "pattern": "^(.*)$"
-                  },
-                  "containerSectionChecksum": {
-                    "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/containerSectionChecksum",
-                    "type": "string",
-                    "pattern": "^(.*)$"
+                "type": "array",
+                "items": {
+                  "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/items",
+                  "type": "object",
+                  "required": ["did", "filesChecksum", "containerSectionChecksum"],
+                  "properties": {
+                    "did": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/did",
+                      "type": "string"
+                    },
+                    "filesChecksum": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/filesChecksum",
+                      "type": "string"
+                    },
+                    "containerSectionChecksum": {
+                      "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithms/properties/containerSectionChecksum",
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -456,110 +457,6 @@
           "type": "boolean",
           "default": false,
           "examples": [true, false]
-        }
-      }
-    },
-    "files": {
-      "$id": "/properties/files",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["files", "encryptedFiles"],
-      "properties": {
-        "files": {
-          "$id": "#/properties/files/properties/files",
-          "type": "array",
-          "default": null,
-          "additionalItems": false,
-          "items": {
-            "$id": "#/properties/files/properties/files/items",
-            "type": "object",
-            "default": null,
-            "additionalProperties": false,
-            "required": ["contentType"],
-            "properties": {
-              "contentType": {
-                "$id": "#/properties/files/properties/files/items/properties/contentType",
-                "type": "string",
-                "examples": ["application/zip"],
-                "pattern": "^(.*)$"
-              },
-              "name": {
-                "$id": "#/properties/files/properties/files/items/properties/name",
-                "type": "string",
-                "default": "",
-                "examples": ["monkey_species.csv"],
-                "pattern": "^(.*)$"
-              },
-              "checksum": {
-                "$id": "#/properties/files/properties/files/items/properties/checksum",
-                "type": "string",
-                "default": "",
-                "examples": ["2bf9d229d110d1976cdf85e9f3256c7f"],
-                "pattern": "^(.*)$"
-              },
-              "checksumType": {
-                "$id": "#/properties/files/properties/files/items/properties/checksumType",
-                "type": "string",
-                "default": "",
-                "examples": ["MD5"],
-                "pattern": "^(.*)$"
-              },
-              "contentLength": {
-                "$id": "#/properties/files/properties/files/items/properties/contentLength",
-                "type": "string",
-                "default": "0",
-                "examples": ["12057507"]
-              },
-              "encoding": {
-                "$id": "#/properties/files/properties/files/items/properties/encoding",
-                "type": "string",
-                "default": "",
-                "examples": ["UTF-8"],
-                "pattern": "^(.*)$"
-              },
-              "compression": {
-                "$id": "#/properties/files/properties/files/items/properties/compression",
-                "type": "string",
-                "default": "",
-                "examples": ["zip"],
-                "pattern": "^(.*)$"
-              },
-              "encrypted": {
-                "$id": "#/properties/files/properties/files/items/properties/encrypted",
-                "type": "boolean",
-                "default": false,
-                "examples": [true, false]
-              },
-              "encryptionMode": {
-                "$id": "#/properties/files/properties/files/items/properties/encryptionMode",
-                "type": "string",
-                "default": "",
-                "examples": ["CBC"],
-                "pattern": "^(.*)$"
-              },
-              "resourceId": {
-                "$id": "#/properties/files/properties/files/items/properties/resourceId",
-                "type": "string",
-                "default": 0,
-                "examples": ["bucket:47550"],
-                "pattern": "^(.*)$"
-              },
-              "attributes": {
-                "$id": "#/properties/files/propertiesfiles/items/properties/attributes",
-                "type": "array",
-                "default": []
-              }
-            }
-          }
-        },
-        "encryptedFiles": {
-          "$id": "#/properties/files/properties/encryptedFiles",
-          "type": "string",
-          "default": "",
-          "examples": [
-            "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
-          ],
-          "pattern": "^(.*)$"
         }
       }
     }
