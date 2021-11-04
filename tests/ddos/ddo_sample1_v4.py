@@ -21,7 +21,7 @@ json_dict = {
         "links": [
             "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/",
             "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
-            "http://data.ceda.ac.uk/badc/ukcp09/"
+            "http://data.ceda.ac.uk/badc/ukcp09/",
         ],
     },
     "services": [

@@ -69,5 +69,5 @@ algorithm_ddo_sample = {
                 "encryptedFiles": "encryptedFiles",
             },
         }
-    ]
+    ],
 }
