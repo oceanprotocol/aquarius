@@ -10,17 +10,13 @@ import logging
 import os
 import requests
 
-from aquarius.ddo_checker.ddo_checker import (
-    is_valid_dict_remote,
-    list_errors_dict_remote,
-)
+from aquarius.ddo_checker.ddo_checker import validate_dict
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.app.util import (
     DATETIME_FORMAT,
     format_timestamp,
     get_metadata_from_services,
     init_new_ddo,
-    list_errors,
     validate_data,
 )
 from aquarius.events.constants import EVENT_METADATA_CREATED
@@ -105,10 +101,15 @@ class MetadataCreatedProcessor(EventProcessor):
             "update": False,
         }
 
-        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
-            errors = list_errors(
-                list_errors_dict_remote, get_metadata_from_services(_record["service"])
-            )
+        version = _record.get("version", "v3")
+        content_to_validate = (
+            get_metadata_from_services(_record["service"])
+            if version == "v3"
+            else _record
+        )
+        valid_remote, errors = validate_dict(content_to_validate)
+
+        if not valid_remote:
             logger.error(
                 f"New ddo has validation errors: {errors} \nfor record:\n {_record}"
             )
@@ -201,12 +202,18 @@ class MetadataUpdatedProcessor(EventProcessor):
             "update": True,
         }
 
-        if not is_valid_dict_remote(get_metadata_from_services(_record["service"])):
-            errors = list_errors(
-                list_errors_dict_remote, get_metadata_from_services(_record["service"])
-            )
+        version = _record.get("version", "v3")
+        content_to_validate = (
+            get_metadata_from_services(_record["service"])
+            if version == "v3"
+            else _record
+        )
+        valid_remote, errors = validate_dict(content_to_validate)
+
+        if not valid_remote:
             logger.error(f"ddo update has validation errors: {errors}")
             return False
+
         # check purgatory only if asset is valid
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
             _record["isInPurgatory"] = "true"
