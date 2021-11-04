@@ -101,8 +101,12 @@ class MetadataCreatedProcessor(EventProcessor):
             "update": False,
         }
 
-        version = _record.get('version', 'v3')
-        content_to_validate = get_metadata_from_services(_record["service"]) if version == 'v3' else _record
+        version = _record.get("version", "v3")
+        content_to_validate = (
+            get_metadata_from_services(_record["service"])
+            if version == "v3"
+            else _record
+        )
         valid_remote, errors = validate_dict(content_to_validate)
 
         if not valid_remote:
@@ -209,8 +213,12 @@ class MetadataUpdatedProcessor(EventProcessor):
             "update": True,
         }
 
-        version = _record.get('version', 'v3')
-        content_to_validate = get_metadata_from_services(_record["service"]) if version == 'v3' else _record
+        version = _record.get("version", "v3")
+        content_to_validate = (
+            get_metadata_from_services(_record["service"])
+            if version == "v3"
+            else _record
+        )
         valid_remote, errors = validate_dict(content_to_validate)
 
         if not valid_remote:

@@ -14,8 +14,6 @@ from jsonschema.validators import Draft7Validator
 
 from aquarius.ddo_checker.ddo_checker import validate_dict
 
-# %%
-
 
 def test_validator_simple():
     # A sample schema, like what we'd get from json.load()
@@ -35,9 +33,6 @@ def test_validator_simple():
     with pytest.raises(ValidationError) as e_info:
         validate(instance={"name2": "Eggs"}, schema=schema)
     print("Raised", e_info.value.message)
-
-
-# %%
 
 
 def test_remote_metadata_passes(schema_remote_dict, sample_metadata_dict_remote):

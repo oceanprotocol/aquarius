@@ -85,12 +85,12 @@ def _load_sample_path(path, msg):
 
 @pytest.fixture
 def schema_remote_dict():
-    return ddo_checker.get_schema('v3.0.0')
+    return ddo_checker.get_schema("v3.0.0")
 
 
 @pytest.fixture
 def schema_remote_dict_v4():
-    return ddo_checker.get_schema('v4.0.0')
+    return ddo_checker.get_schema("v4.0.0")
 
 
 @pytest.fixture

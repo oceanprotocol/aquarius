@@ -7,10 +7,13 @@ import logging
 
 import elasticsearch
 from flask import Blueprint, jsonify, request
-
-from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import get_metadata_from_services, list_errors, sanitize_record
 from aquarius.ddo_checker.ddo_checker import validate_dict
+from aquarius.app.es_instance import ElasticsearchInstance
+from aquarius.app.util import (
+    get_metadata_from_services,
+    sanitize_record,
+    list_errors,
+)
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 

@@ -19,15 +19,9 @@ json_dict = {
         "tags": ["white-papers"],
         "additionalInformation": {"test-key": "test-value"},
         "links": [
-            {
-                "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
-                "-daily/"
-            },
-            {
-                "url": "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs"
-                "-averages-25km/"
-            },
-            {"url": "http://data.ceda.ac.uk/badc/ukcp09/"},
+            "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/",
+            "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/"
+            "http://data.ceda.ac.uk/badc/ukcp09/",
         ],
     },
     "services": [
@@ -37,26 +31,26 @@ json_dict = {
             "name": "Download service",
             "description": "Download service",
             "providerEndpoint": "http://localhost:8030/",
-            "timeout": 0
+            "timeout": 0,
+            "files": {
+                "files": [
+                    {
+                        "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                        "contentType": "text/csv",
+                        "checksumType": "MD5",
+                        "contentLength": "4535431",
+                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
+                    },
+                    {
+                        "checksum": "efb2c764274b745f5fc37f97c6b0e761",
+                        "contentType": "text/csv",
+                        "contentLength": "4535431",
+                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
+                    },
+                    {"contentType": "text/csv"},
+                ],
+                "encryptedFiles": "encryptedFiles",
+            },
         }
     ],
-    "files": {
-        "files": [
-            {
-                "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                "contentType": "text/csv",
-                "checksumType": "MD5",
-                "contentLength": "4535431",
-                "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
-            },
-            {
-                "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                "contentType": "text/csv",
-                "contentLength": "4535431",
-                "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
-            },
-            {"contentType": "text/csv"},
-        ],
-        "encryptedFiles": "encryptedFiles",
-    },
 }

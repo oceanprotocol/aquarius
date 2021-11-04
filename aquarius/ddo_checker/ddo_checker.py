@@ -42,8 +42,7 @@ def load_serial_data_file_path(file_path):
 
 
 def validate_dict(this_json_dict):
-    version = this_json_dict.get("version", "v3.0.0") if this_json_dict else 'v3.0.0'
-
+    version = this_json_dict.get("version", "v3.0.0") if this_json_dict else "v3.0.0"
 
     schema = get_schema(version)
     validator = jschema.validators.Draft7Validator(schema)

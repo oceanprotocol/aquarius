@@ -20,11 +20,13 @@
     "created": {
       "$id": "#/properties/created",
       "examples": ["2012-02-01T10:55:11Z"],
+      "type": "string",
       "pattern": "^(.*)$"
     },
     "updated": {
       "$id": "#/properties/updated",
       "examples": ["2012-02-01T10:55:11Z"],
+      "type": "string",
       "pattern": "^(.*)$"
     },
     "version": {
@@ -101,35 +103,9 @@
           "default": null,
           "items": {
             "$id": "#/properties/metadata/properties/links/items",
-            "type": "object",
-            "default": null,
-            "additionalProperties": true,
-            "required": ["url"],
-            "properties": {
-              "name": {
-                "$id": "#/properties/metadata/properties/links/items/properties/name",
-                "type": "string",
-                "title": "The Name Schema",
-                "examples": ["example model"],
-                "pattern": "^(.*)$"
-              },
-              "type": {
-                "$id": "#/properties/metadata/properties/links/items/properties/type",
-                "type": "string",
-                "title": "sample link",
-                "default": "",
-                "examples": ["https://sample.com"],
-                "pattern": "^(.*)$"
-              },
-              "url": {
-                "$id": "#/properties/metadata/properties/links/items/properties/url",
-                "type": "string",
-                "title": "The Url Schema",
-                "default": "",
-                "examples": ["https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"],
-                "pattern": "^(.*)$"
-              }
-            }
+            "type": "string",
+            "examples": ["https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"],
+            "pattern": "^(.*)$"
           }
         },
         "contentLanguage": {
@@ -189,19 +165,23 @@
                 "entrypoint": {
                   "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/entrypoint",
                   "type": "string",
+                  "pattern": "^(.*)$",
                   "title": "The command to execute, or script to run inside the Docker image"
                 },
                 "image": {
                   "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/image",
                   "type": "string",
+                  "pattern": "^(.*)$",
                   "title": "Name of the Docker image"
                 },
                 "tag": {
                   "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/tag",
+                  "pattern": "^(.*)$",
                   "type": "string"
                 },
                 "checksum": {
                   "$id": "#/properties/metadata/properties/algorithm/properties/container/properties/checksum",
+                  "pattern": "^(.*)$",
                   "type": "string"
                 }
               }
@@ -220,23 +200,28 @@
         "properties": {
           "type": {
             "$id": "#/properties/services/properties/items/type",
-            "type": "string"
+            "type": "string",
+            "pattern": "^(.*)$"
           },
           "name": {
             "$id": "#/properties/services/properties/items/name",
-            "type": "string"
+            "type": "string",
+            "pattern": "^(.*)$"
           },
           "description": {
             "$id": "#/properties/services/properties/items/description",
-            "type": "string"
+            "type": "string",
+            "pattern": "^(.*)$"
           },
           "datatokenAddress": {
             "$id": "#/properties/services/properties/items/datatokenAddress",
-            "type": "string"
+            "type": "string",
+            "pattern": "^(.*)$"
           },
           "providerEndpoint": {
             "$id": "#/properties/services/properties/items/providerEndpoint",
-            "type": "string"
+            "type": "string",
+            "pattern": "^(.*)$"
           },
           "timeout": {
             "$id": "#/properties/services/properties/items/timeout",
@@ -315,13 +300,15 @@
                     "encryptionMode": {
                       "$id": "#/properties/services/properties/items/files/properties/files/properties/encryptionMode",
                       "type": "string",
+                      "pattern": "^(.*)$",
                       "default": "",
                       "examples": ["CBC"]
                     },
                     "resourceId": {
                       "$id": "#/properties/services/properties/items/files/properties/files/properties/resourceId",
                       "type": "string",
-                      "default": 0,
+                      "pattern": "^(.*)$",
+                      "default": "0",
                       "examples": ["bucket:47550"]
                     },
                     "attributes": {
@@ -335,6 +322,7 @@
               "encryptedFiles": {
                 "$id": "#/properties/services/properties/items/files/properties/encryptedFiles",
                 "type": "string",
+                "pattern": "^(.*)$",
                 "default": "",
                 "examples": [
                   "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
@@ -365,7 +353,8 @@
                 "type": "array",
                 "items": {
                   "$id": "#/properties/services/properties/items/privacy/properties/publisherTrustedAlgorithmPublishers/items",
-                  "type": "string"
+                  "type": "string",
+                  "pattern": "^(.*)$"
                 }
               },
               "publisherTrustedAlgorithms": {
@@ -411,7 +400,8 @@
             "properties": {
               "type": {
                 "$id": "#/properties/credentials/properties/allow/items/type",
-                "type": "string"
+                "type": "string",
+                "pattern": "^(.*)$"
               },
               "values": {
                 "$id": "#/properties/credentials/properties/allow/items/values",
@@ -432,7 +422,8 @@
             "properties": {
               "type": {
                 "$id": "#/properties/credentials/properties/deny/items/type",
-                "type": "string"
+                "type": "string",
+                "pattern": "^(.*)$"
               },
               "values": {
                 "$id": "#/properties/credentials/properties/deny/items/values",
@@ -455,119 +446,17 @@
           "default": true,
           "examples": [true, false]
         },
-        "isRetired": {
-          "$id": "#/properties/status/properties/isRetired",
-          "type": "boolean",
-          "default": false,
-          "examples": [true, false]
+        "state": {
+          "$id": "#/properties/status/properties/state",
+          "type": "integer",
+          "default": 0,
+          "examples": [0, 1, 2, 3]
         },
         "isOrderDisabled": {
           "$id": "#/properties/status/properties/isOrderDisabled",
           "type": "boolean",
           "default": false,
           "examples": [true, false]
-        }
-      }
-    },
-    "files": {
-      "$id": "/properties/files",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["files", "encryptedFiles"],
-      "properties": {
-        "files": {
-          "$id": "#/properties/files/properties/files",
-          "type": "array",
-          "default": null,
-          "additionalItems": false,
-          "items": {
-            "$id": "#/properties/files/properties/files/items",
-            "type": "object",
-            "default": null,
-            "additionalProperties": false,
-            "required": ["contentType"],
-            "properties": {
-              "contentType": {
-                "$id": "#/properties/files/properties/files/items/properties/contentType",
-                "type": "string",
-                "examples": ["application/zip"],
-                "pattern": "^(.*)$"
-              },
-              "name": {
-                "$id": "#/properties/files/properties/files/items/properties/name",
-                "type": "string",
-                "default": "",
-                "examples": ["monkey_species.csv"],
-                "pattern": "^(.*)$"
-              },
-              "checksum": {
-                "$id": "#/properties/files/properties/files/items/properties/checksum",
-                "type": "string",
-                "default": "",
-                "examples": ["2bf9d229d110d1976cdf85e9f3256c7f"],
-                "pattern": "^(.*)$"
-              },
-              "checksumType": {
-                "$id": "#/properties/files/properties/files/items/properties/checksumType",
-                "type": "string",
-                "default": "",
-                "examples": ["MD5"],
-                "pattern": "^(.*)$"
-              },
-              "contentLength": {
-                "$id": "#/properties/files/properties/files/items/properties/contentLength",
-                "type": "string",
-                "default": "0",
-                "examples": ["12057507"]
-              },
-              "encoding": {
-                "$id": "#/properties/files/properties/files/items/properties/encoding",
-                "type": "string",
-                "default": "",
-                "examples": ["UTF-8"],
-                "pattern": "^(.*)$"
-              },
-              "compression": {
-                "$id": "#/properties/files/properties/files/items/properties/compression",
-                "type": "string",
-                "default": "",
-                "examples": ["zip"],
-                "pattern": "^(.*)$"
-              },
-              "encrypted": {
-                "$id": "#/properties/files/properties/files/items/properties/encrypted",
-                "type": "boolean",
-                "default": false,
-                "examples": [true, false]
-              },
-              "encryptionMode": {
-                "$id": "#/properties/files/properties/files/items/properties/encryptionMode",
-                "type": "string",
-                "default": "",
-                "examples": ["CBC"]
-              },
-              "resourceId": {
-                "$id": "#/properties/files/properties/files/items/properties/resourceId",
-                "type": "string",
-                "default": 0,
-                "examples": ["bucket:47550"]
-              },
-              "attributes": {
-                "$id": "#/properties/files/propertiesfiles/items/properties/attributes",
-                "type": "array",
-                "default": []
-              }
-            }
-          }
-        },
-        "encryptedFiles": {
-          "$id": "#/properties/files/properties/encryptedFiles",
-          "type": "string",
-          "default": "",
-          "examples": [
-            "0x234ab87234acbd095430853424ab87234acbd09543085340abffh21983ddhiiee9821438274234210abffh21983ddhiiee982143827423421"
-          ],
-          "pattern": "^(.*)$"
         }
       }
     }
