@@ -446,11 +446,11 @@
           "default": true,
           "examples": [true, false]
         },
-        "isRetired": {
-          "$id": "#/properties/status/properties/isRetired",
-          "type": "boolean",
-          "default": false,
-          "examples": [true, false]
+        "state": {
+          "$id": "#/properties/status/properties/state",
+          "type": "integer",
+          "default": 0,
+          "examples": [0, 1, 2, 3]
         },
         "isOrderDisabled": {
           "$id": "#/properties/status/properties/isOrderDisabled",
