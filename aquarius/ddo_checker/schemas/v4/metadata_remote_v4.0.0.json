@@ -103,35 +103,9 @@
           "default": null,
           "items": {
             "$id": "#/properties/metadata/properties/links/items",
-            "type": "object",
-            "default": null,
-            "additionalProperties": true,
-            "required": ["url"],
-            "properties": {
-              "name": {
-                "$id": "#/properties/metadata/properties/links/items/properties/name",
-                "type": "string",
-                "title": "The Name Schema",
-                "examples": ["example model"],
-                "pattern": "^(.*)$"
-              },
-              "type": {
-                "$id": "#/properties/metadata/properties/links/items/properties/type",
-                "type": "string",
-                "title": "sample link",
-                "default": "",
-                "examples": ["https://sample.com"],
-                "pattern": "^(.*)$"
-              },
-              "url": {
-                "$id": "#/properties/metadata/properties/links/items/properties/url",
-                "type": "string",
-                "title": "The Url Schema",
-                "default": "",
-                "examples": ["https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"],
-                "pattern": "^(.*)$"
-              }
-            }
+            "type": "string",
+            "examples": ["https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"],
+            "pattern": "^(.*)$"
           }
         },
         "contentLanguage": {
