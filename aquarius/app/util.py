@@ -75,6 +75,7 @@ def init_new_ddo(data, timestamp):
     )
     _record["updated"] = _record["created"]
 
+    # TODO: still needed?
     if "accessWhiteList" not in data:
         _record["accessWhiteList"] = []
     else:
@@ -82,13 +83,6 @@ def init_new_ddo(data, timestamp):
             _record["accessWhiteList"] = []
         else:
             _record["accessWhiteList"] = data["accessWhiteList"]
-
-    metadata = data["metadata"]
-    curation = dict()
-    curation["rating"] = 0.00
-    curation["numVotes"] = 0
-    curation["isListed"] = True
-    metadata["curation"] = curation
 
     return _record
 
@@ -102,12 +96,17 @@ def validate_date_format(date):
         return f"Incorrect data format, should be ISO Datetime Format", 400
 
 
-def check_no_urls_in_files(main, method):
-    if "files" in main:
-        for file_var in main["files"]:
-            if "url" in file_var:
+def check_no_urls_in_files(services, method):
+    for service in services:
+        if "files" not in service:
+            continue
+
+        files = service["files"]["files"]
+        for file_item in files:
+            if "url" in file_item:
                 logger.error("%s request failed: url is not allowed in files " % method)
                 return "%s request failed: url is not allowed in files " % method, 400
+
     return None, None
 
 
@@ -157,10 +156,9 @@ def validate_data(data, method):
     if msg:
         return msg, status
 
-    # TODO
-    # msg, status = check_no_urls_in_files(get_main_metadata(data["service"]), method)
-    # if msg:
-    #    return msg, status
+    msg, status = check_no_urls_in_files(data["services"], method)
+    if msg:
+        return msg, status
 
     msg, status = validate_date_format(data["created"])
     if status:

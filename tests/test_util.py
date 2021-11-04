@@ -100,8 +100,8 @@ def test_datetime_converter():
 
 
 def test_check_no_urls_in_files_fails():
-    main = {"files": [{"url": "test"}]}
-    message, code = check_no_urls_in_files(main, "GET")
+    services = [{"files": {"files": [{"url": "test"}]}}]
+    message, code = check_no_urls_in_files(services, "GET")
     assert message == "GET request failed: url is not allowed in files "
     assert code == 400
 

@@ -60,11 +60,6 @@ def get_ddo(did):
                   {
                       "type": "metadata",
                       "attributes": {
-                          "curation": {
-                              "rating": 0.0,
-                              "numVotes": 0,
-                              "isListed": true
-                          },
                           "main": {
                               "type": "dataset",
                               "name": "Nu nl",
@@ -168,11 +163,6 @@ def get_metadata(did):
         description: successful operation.
         example:
           application/json: {
-            "curation": {
-                "rating": 0.0,
-                "numVotes": 0,
-                "isListed": true
-            },
             "main": {
                 "type": "dataset",
                 "name": "Nu nl",

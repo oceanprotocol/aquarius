@@ -164,14 +164,18 @@ class ElasticsearchInstance(object):
             logger.error(f"get: {str(e)}")
             raise
 
-        if asset is None or not self.is_listed(asset["metadata"]):
+        if asset is None or not self.is_listed(asset):
             return None
 
         return asset
 
     @staticmethod
-    def is_listed(metadata):
-        if "curation" in metadata and "isListed" in metadata["curation"]:
-            return metadata["curation"]["isListed"]
+    def is_listed(asset):
+        if (
+            "status" in asset
+            and "isListed" in asset["status"]
+            and not asset["status"]["isListed"]
+        ):
+            return False
 
         return True
