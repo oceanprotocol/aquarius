@@ -98,7 +98,7 @@ class MetadataCreatedProcessor(EventProcessor):
         _record["event"] = {
             "txid": self.txid,
             "blockNo": self.block,
-            "from": self.event.address,
+            "from": self.sender_address,
             "contract": self.event.address,
             "update": False,
         }
@@ -157,7 +157,8 @@ class MetadataCreatedProcessor(EventProcessor):
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
         logger.info(
-            f"Process new DDO, did from event log:{did}, block {self.block}, contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
+            f"Process new DDO, did from event log:{did}, block {self.block}, "
+            f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
         if not self.is_publisher_allowed(sender_address):
@@ -190,7 +191,8 @@ class MetadataCreatedProcessor(EventProcessor):
                 name = _record["metadata"]["name"]
                 created = _record["created"]
                 logger.info(
-                    f"DDO saved: did={did}, name={name}, publisher={sender_address}, created={created}, chainId={self._chain_id}"
+                    f"DDO saved: did={did}, name={name}, "
+                    f"publisher={sender_address}, created={created}, chainId={self._chain_id}"
                 )
                 return True
             except (KeyError, Exception) as err:
@@ -266,7 +268,8 @@ class MetadataUpdatedProcessor(EventProcessor):
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
         logger.info(
-            f"Process new DDO, did from event log:{did}, block {self.block}, contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
+            f"Process new DDO, did from event log:{did}, block {self.block}, "
+            f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
         permission = self.check_permission(sender_address)
@@ -289,8 +292,8 @@ class MetadataUpdatedProcessor(EventProcessor):
                 self.purgatory,
                 self._chain_id,
             )
-            event_processor.process()
-            return False
+
+            return event_processor.process()
 
         is_updateable = self.check_update(asset, old_asset, sender_address)
         if not is_updateable:
@@ -315,7 +318,8 @@ class MetadataUpdatedProcessor(EventProcessor):
         ddo_txid = old_asset["event"]["txid"]
         if self.txid == ddo_txid:
             logger.warning(
-                f'old asset has the same txid, no need to update: event-txid={self.txid} <> asset-event-txid={asset["event"]["txid"]}'
+                "old asset has the same txid, no need to update: "
+                f'event-txid={self.txid} <> asset-event-txid={asset["event"]["txid"]}'
             )
             return False
 
