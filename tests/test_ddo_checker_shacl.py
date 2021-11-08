@@ -27,6 +27,16 @@ def test_basic():
     data = json.dumps({
         "@context": {"@vocab": "http://schema.org/"},
         "@type": "DDO",
+    })
+
+    dataGraph = rdflib.Graph().parse(data=data, format='json-ld')
+
+    conforms, results_graph, results_text = validate(dataGraph, shacl_graph=schema_file)
+    assert not conforms
+
+    data = json.dumps({
+        "@context": {"@vocab": "http://schema.org/"},
+        "@type": "DDO",
         "id": "did:op:123"
     })
 

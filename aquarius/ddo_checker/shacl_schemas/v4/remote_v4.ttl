@@ -10,6 +10,7 @@ schema:DDOShape
     sh:property [
         sh:path schema:id ;
         sh:datatype xsd:string ;
-        sh:name "test" ;
         sh:pattern "^did\\:op\\:(.*)$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
     ] ;.
