@@ -30,7 +30,7 @@ install_requirements = [
     "PyYAML==6.0",
     "pytz==2021.3",
     # temporarily removed
-    #"ocean-contracts==0.6.9",
+    # "ocean-contracts==0.6.9",
     "web3==5.24.0",
     "jsonschema==3.2.0",
     "gevent",
