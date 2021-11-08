@@ -6,10 +6,7 @@ import copy
 import json
 import logging
 import os
-from collections import OrderedDict
 from datetime import datetime
-
-import dateutil.parser as parser
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
@@ -135,11 +132,15 @@ def list_errors(errors, data):
 def validate_data(data, method):
     required_attributes = {
         "@context",
-        "created",
         "id",
-        "publicKey",
+        "version",
+        "chainId",
+        "created",
+        "updated",
+        "metadata",
         "services",
-        "dataToken",
+        "files",
+        "credentials",
     }
 
     msg, status = check_required_attributes(required_attributes, data, method)
