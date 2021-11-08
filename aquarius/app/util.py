@@ -13,7 +13,6 @@ import dateutil.parser as parser
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
-ISO_DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
 
 logger = logging.getLogger("aquarius")
 
@@ -74,15 +73,6 @@ def init_new_ddo(data, timestamp):
         datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT)
     )
     _record["updated"] = _record["created"]
-
-    # TODO: still needed?
-    if "accessWhiteList" not in data:
-        _record["accessWhiteList"] = []
-    else:
-        if not isinstance(data["accessWhiteList"], list):
-            _record["accessWhiteList"] = []
-        else:
-            _record["accessWhiteList"] = data["accessWhiteList"]
 
     return _record
 

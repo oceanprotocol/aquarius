@@ -112,7 +112,6 @@ def get_ddo(did):
                   "minterBalance": 99.999
               },
               "updated": "2021-04-02T18:00:01Z",
-              "accessWhiteList": [],
               "price": {
                   "datatoken": 0.0,
                   "ocean": 0.0,
