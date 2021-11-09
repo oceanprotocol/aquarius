@@ -2,7 +2,20 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import json
 import rdflib
+from pathlib import Path
+import pkg_resources
+from pyshacl import validate
+
+
+def get_schema(version="v4.0.0"):
+    path = "ddo_checker/shacl_schemas/v4/remote_" + version + ".ttl"
+
+    schema_file = Path(pkg_resources.resource_filename("aquarius", path))
+    assert schema_file.exists(), "Can't find schema file {}".format(schema_file)
+
+    return schema_file.read_text()
 
 
 def parse_report_to_errors(results_graph):
@@ -28,3 +41,19 @@ def beautify_message(message):
         message = "Less than 1 value on " + message[index:]
 
     return message
+
+
+def validate_dict(dictionary):
+    dictionary["@type"] = "DDO"
+    # TODO: we have to validate @context separately, since it is reserved
+    dictionary["@context"] = {"@vocab": "http://schema.org/"}
+    dictionary_as_string = json.dumps(dictionary)
+
+    version = dictionary.get("version", "v4.0.0")
+    schema_file = get_schema(version)
+    dataGraph = rdflib.Graph().parse(data=dictionary_as_string, format="json-ld")
+
+    conforms, results_graph, _ = validate(dataGraph, shacl_graph=schema_file)
+    errors = parse_report_to_errors(results_graph)
+
+    return conforms, errors
