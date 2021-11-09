@@ -11,9 +11,9 @@ import rdflib
 from aquarius.ddo_checker.ddo_checker_shacl import parse_report_to_errors
 
 
-def test_basic():
-    path = "ddo_checker/shacl_schemas/v4/remote_v4.ttl"
-    schema_file = Path(pkg_resources.resource_filename("aquarius", path)).read_text()
+def test_sample_schema():
+    path = "sample_schemas/remote_v4.ttl"
+    schema_file = Path(pkg_resources.resource_filename("tests", path)).read_text()
 
     data = json.dumps(
         {
