@@ -84,19 +84,21 @@ def test_remote_ddo_fails():
     with pytest.raises(AssertionError):
         validate_dict(_copy)
 
-    # TODO: not yet implemented, need to add more to shacl schema
-    # TODO: metadata validation
     # status invalid
     _copy = copy.deepcopy(json_dict)
     _copy["status"] = {"additionalProp": "something"}
-    valid, _ = validate_dict(_copy)
+    valid, errors = validate_dict(_copy)
     assert not valid
+    assert "status" in errors
 
     _copy = copy.deepcopy(json_dict)
     _copy["status"] = {"isListed": "something not boolean"}
-    valid, _ = validate_dict(_copy)
+    valid, errors = validate_dict(_copy)
     assert not valid
+    assert "status" in errors
 
+    # TODO: not yet implemented, need to add more to shacl schema
+    # TODO: metadata validation
     # services invalid
     _copy = copy.deepcopy(json_dict)
     _copy["services"][0]["files"].pop("encryptedFiles")
