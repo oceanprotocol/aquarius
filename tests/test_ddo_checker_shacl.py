@@ -85,6 +85,7 @@ def test_remote_ddo_fails():
         validate_dict(_copy)
 
     # TODO: not yet implemented, need to add more to shacl schema
+    # TODO: metadata validation
     # status invalid
     _copy = copy.deepcopy(json_dict)
     _copy["status"] = {"additionalProp": "something"}

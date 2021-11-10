@@ -41,4 +41,114 @@ schema:DDOShape
     ] ;
     sh:property [
         sh:path schema:proof;
+    ] ;
+    sh:property [
+        sh:path schema:metadata ;
+        sh:node schema:MetadataShape ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ; .
+
+schema:MetadataShape
+    sh:targetClass schema:Metadata ;
+    sh:property [
+        sh:path schema:description ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:copyrightHolder;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+    ] ;
+    sh:property [
+        sh:path schema:name ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:type;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:author;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:license;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    # TODO: links, tags, categories as arrays of strings
+    sh:property [
+        sh:path schema:contentLanguage;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+    ] ;
+    sh:property [
+        sh:path schema:additionalInformation;
+    ] ; .
+
+
+schema:AlgorithmShape
+    sh:targetClass schema:Algorithm ;
+    sh:property [
+        sh:path schema:version ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+    ] ;
+    sh:property [
+        sh:path schema:language ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+    ] ;
+    sh:property [
+        sh:path schema:container ;
+        sh:node schema:ContainerShape ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;.
+
+
+schema:ContainerShape
+    sh:targetClass schema:Container ;
+    sh:property [
+        sh:path schema:entrypoint ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:image ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:tag ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:checksum ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
     ] ;.
