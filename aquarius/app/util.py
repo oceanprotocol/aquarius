@@ -6,10 +6,7 @@ import copy
 import json
 import logging
 import os
-from collections import OrderedDict
 from datetime import datetime
-
-import dateutil.parser as parser
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
@@ -77,51 +74,6 @@ def init_new_ddo(data, timestamp):
     return _record
 
 
-def validate_date_format(date):
-    try:
-        datetime.fromisoformat(date)
-        return None, None
-    except Exception as e:
-        logging.error(f"validate_date_format: {str(e)}")
-        return f"Incorrect data format, should be ISO Datetime Format", 400
-
-
-def check_no_urls_in_files(services, method):
-    for service in services:
-        if "files" not in service:
-            continue
-
-        files = service["files"]["files"]
-        for file_item in files:
-            if "url" in file_item:
-                logger.error("%s request failed: url is not allowed in files " % method)
-                return "%s request failed: url is not allowed in files " % method, 400
-
-    return None, None
-
-
-def check_required_attributes(required_attributes, data, method):
-    assert isinstance(
-        data, dict
-    ), "invalid `body` type, should already formatted into a dict."
-    # logger.info("got %s request: %s" % (method, data))
-    if not data:
-        logger.error("%s request failed: data is empty." % method)
-        return "payload seems empty.", 400
-
-    keys = set(data.keys())
-    if not isinstance(required_attributes, set):
-        required_attributes = set(required_attributes)
-    missing_attrs = required_attributes.difference(keys)
-    if missing_attrs:
-        logger.error(
-            f"{method} request failed: required attributes {missing_attrs} are missing."
-        )
-        return f'"{missing_attrs}" are required in the call to {method}', 400
-
-    return None, None
-
-
 def list_errors(errors, data):
     error_list = list()
     for err in errors:
@@ -130,28 +82,3 @@ def list_errors(errors, data):
         this_err_response = {"path": "/".join(stack_path), "message": err[1].message}
         error_list.append(this_err_response)
     return error_list
-
-
-def validate_data(data, method):
-    required_attributes = {
-        "@context",
-        "created",
-        "id",
-        "publicKey",
-        "services",
-        "dataToken",
-    }
-
-    msg, status = check_required_attributes(required_attributes, data, method)
-    if msg:
-        return msg, status
-
-    msg, status = check_no_urls_in_files(data["services"], method)
-    if msg:
-        return msg, status
-
-    msg, status = validate_date_format(data["created"])
-    if status:
-        return msg, status
-
-    return None, None
