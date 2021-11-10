@@ -47,7 +47,12 @@ schema:DDOShape
         sh:node schema:MetadataShape ;
         sh:minCount 1;
         sh:maxCount 1;
-    ] ; .
+    ] ;
+    # TODO: services, credentials
+    sh:property [
+        sh:path schema:status ;
+        sh:node schema:StatusShape;
+    ] ;.
 
 schema:MetadataShape
     sh:targetClass schema:Metadata ;
@@ -151,4 +156,21 @@ schema:ContainerShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
+    ] ;.
+
+
+schema:StatusShape
+    sh:targetClass schema:Status ;
+    sh:closed true;
+    sh:property [
+        sh:path schema:isListed ;
+        sh:datatype xsd:boolean ;
+    ] ;
+    sh:property [
+        sh:path schema:state;
+        sh:datatype xsd:integer ;
+    ] ;
+    sh:property [
+        sh:path schema:isOrderDisabled ;
+        sh:datatype xsd:boolean ;
     ] ;.
