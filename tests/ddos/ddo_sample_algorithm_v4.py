@@ -7,7 +7,7 @@ algorithm_ddo_sample = {
     "id": "did:op:0bc278fee025464f8012b811d1bce8e22094d0984e4e49139df5d5ff7a028bdf",
     "created": "2019-02-08T08:13:49Z",
     "updated": "2019-02-08T08:13:49Z",
-    "version": "v4.0.0",
+    "version": "4.0.0",
     "proof": {
         "created": "2019-02-08T08:13:41Z",
         "creator": "0x37BB53e3d293494DE59fBe1FF78500423dcFd43B",

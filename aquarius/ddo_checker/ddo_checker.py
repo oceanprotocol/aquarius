@@ -13,7 +13,7 @@ import pkg_resources
 
 
 def get_schema(version):
-    base_version = "v3" if version.startswith("v3") else "v4"
+    base_version = "v3" if version.startswith("3.") else "v4"
     suffix = "v0_6.json" if base_version == "v3" else version + ".json"
     path = "ddo_checker/schemas/" + base_version + "/metadata_remote_" + suffix
 

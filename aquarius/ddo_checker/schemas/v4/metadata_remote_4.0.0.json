@@ -31,7 +31,7 @@
     },
     "version": {
       "$id": "#/properties/version",
-      "examples": ["v4.0.0"],
+      "examples": ["4.0.0"],
       "type": "string",
       "pattern": "^(.*)$"
     },
