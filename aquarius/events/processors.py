@@ -21,7 +21,7 @@ from aquarius.app.util import (
     init_new_ddo,
     validate_data,
 )
-from aquarius.ddo_checker.ddo_checker import validate_dict
+from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.events.decryptor import decrypt_ddo
 
@@ -103,13 +103,11 @@ class MetadataCreatedProcessor(EventProcessor):
             "update": False,
         }
 
-        version = _record.get("version", "v3")
-        content_to_validate = (
-            get_metadata_from_services(_record["service"])
-            if version == "v3"
-            else _record
-        )
-        valid_remote, errors = validate_dict(content_to_validate)
+        version = _record.get("version")
+        if not version:
+            logger.error("DDO has no version.")
+            return False
+        valid_remote, errors = validate_dict(_record)
 
         if not valid_remote:
             logger.error(
@@ -217,13 +215,12 @@ class MetadataUpdatedProcessor(EventProcessor):
             "update": True,
         }
 
-        version = _record.get("version", "v3")
-        content_to_validate = (
-            get_metadata_from_services(_record["service"])
-            if version == "v3"
-            else _record
-        )
-        valid_remote, errors = validate_dict(content_to_validate)
+        version = _record.get("version")
+        if not version:
+            logger.error("DDO has no version.")
+            return False
+
+        valid_remote, errors = validate_dict(_record)
 
         if not valid_remote:
             logger.error(f"ddo update has validation errors: {errors}")

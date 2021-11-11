@@ -57,34 +57,12 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
         assert post.data != b"true\n"
 
 
-def test_validate_remote_v3(client_with_no_data, base_ddo_url):
+def test_validate_remote_noversion(client_with_no_data, base_ddo_url):
     post = run_request(
         client_with_no_data.post, base_ddo_url + "/validate-remote", data={}
     )
     assert post.status_code == 200
-    assert post.json[0]["message"] == "missing `service` key in data."
-
-    # main key missing from metadata service - should fail from Aqua
-    val = json_before["service"][2]["attributes"].pop("main")
-    post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
-    )
-    assert post.status_code == 200
-
-    # main key empty in metadata service - should fail from DDO Checker
-    json_before["service"][2]["attributes"]["main"] = {}
-    post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
-    )
-    assert post.status_code == 200
-    assert json.loads(post.data)[0]["message"] == "'name' is a required property"
-
-    # putting back the correct value in metadata main service - should pass
-    json_before["service"][2]["attributes"]["main"] = val
-    post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate-remote", data=json_before
-    )
-    assert post.data == b"true\n"
+    assert post.json[0]["message"] == "no version provided for DDO."
 
 
 def test_validate_error(client, base_ddo_url, monkeypatch):
@@ -93,7 +71,7 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
         rv = run_request(
             client.post,
             base_ddo_url + "/validate-remote",
-            data={"service": [], "test": "test"},
+            data={"service": [], "test": "test", "version": "v4.0.0"},
         )
         assert rv.status_code == 500
         assert rv.json["error"] == "Encountered error when validating asset: Boom!."
@@ -101,7 +79,7 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
 
 def test_validate_error_remote(client, base_ddo_url, monkeypatch):
     rv = run_request(
-        client.post, base_ddo_url + "/validate-remote", data={"service": "bla"}
+        client.post, base_ddo_url + "/validate-remote", data={"service": "bla", "version": "v4.0.0"}
     )
     assert rv.status_code == 500
     assert (

@@ -10,8 +10,9 @@ from pyshacl import validate
 import pytest
 import rdflib
 
-from aquarius.ddo_checker.ddo_checker_shacl import validate_dict, parse_report_to_errors
+from aquarius.ddo_checker.shacl_checker import validate_dict, parse_report_to_errors
 from tests.ddos.ddo_sample1_v4 import json_dict
+from tests.ddos.ddo_sample_algorithm_v4 import algorithm_ddo_sample
 
 
 def test_sample_schema():
@@ -121,4 +122,29 @@ def test_remote_ddo_fails():
     _copy["services"][0]["timeout"] = "not an integer"
 
     valid, _ = validate_dict(_copy)
+    assert not valid
+
+
+def test_remote_ddo_metadata_fails():
+    for required_prop in ["description", "name", "type", "author", "license"]:
+        _copy = copy.deepcopy(json_dict)
+        _copy["metadata"].pop(required_prop)
+
+        valid, _ = validate_dict(_copy)
+        assert not valid
+
+    _copy = copy.deepcopy(json_dict)
+    _copy["metadata"]["links"] = {"url_is_missing": "in this dict"}
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    _copy = copy.deepcopy(json_dict)
+    _copy["metadata"]["tags"] = "malformed if not an object"
+    valid, _ = validate_dict(_copy)
+    assert not valid
+
+    _copy = copy.deepcopy(algorithm_ddo_sample)
+    _copy["metadata"]["algorithm"]["container"] = None
+
+    valid, errors = validate_dict(_copy)
     assert not valid
