@@ -85,7 +85,21 @@ schema:MetadataShape
         sh:minCount 1;
         sh:maxCount 1;
     ] ;
-    # TODO: links, tags, categories as arrays of strings
+    sh:property [
+        sh:path schema:links;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+    ] ;
+    sh:property [
+        sh:path schema:tags;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+    ] ;
+    sh:property [
+        sh:path schema:categories;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.|\\s)*$" ;
+    ] ;
     sh:property [
         sh:path schema:contentLanguage;
         sh:datatype xsd:string ;

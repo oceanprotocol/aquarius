@@ -47,7 +47,11 @@ def beautify_message(message):
 def validate_dict(dict_orig):
     dictionary = copy.deepcopy(dict_orig)
     dictionary["@type"] = "DDO"
-    # TODO: we have to validate @context separately, since it is reserved
+
+    if "@context" not in dict_orig or not isinstance(dict_orig["@context"], (list, dict)):
+        return False, {"@context": "Context is missing or invalid."}
+
+    # @context key is reserved in JSON-LD format
     dictionary["@context"] = {"@vocab": "http://schema.org/"}
     dictionary_as_string = json.dumps(dictionary)
 

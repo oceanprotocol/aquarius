@@ -116,7 +116,6 @@ def test_remote_ddo_fails():
 
 
 def test_remote_ddo_metadata_fails():
-    # TODO
     for required_prop in ["description", "name", "type", "author", "license"]:
         _copy = copy.deepcopy(json_dict)
         _copy["metadata"].pop(required_prop)
@@ -125,12 +124,12 @@ def test_remote_ddo_metadata_fails():
         assert not valid
 
     _copy = copy.deepcopy(json_dict)
-    _copy["metadata"]["links"] = {"url_is_missing": "in this dict"}
+    _copy["metadata"]["links"] = 14  # not a link or string list
     valid, _ = validate_dict(_copy)
     assert not valid
 
     _copy = copy.deepcopy(json_dict)
-    _copy["metadata"]["tags"] = "malformed if not an object"
+    _copy["metadata"]["tags"] = 14  # not a string or string list
     valid, _ = validate_dict(_copy)
     assert not valid
 

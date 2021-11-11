@@ -328,10 +328,11 @@ def validate_remote():
             return jsonify([{"message": "no version provided for DDO."}])
 
         valid, errors = validate_dict(data)
+
         if valid:
             return jsonify(True)
 
-        return jsonify(list_errors(errors, data))
+        return jsonify(errors=errors)
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500

@@ -79,10 +79,12 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
 
 def test_validate_error_remote(client, base_ddo_url, monkeypatch):
     rv = run_request(
-        client.post, base_ddo_url + "/validate-remote", data={"service": "bla", "version": "v4.0.0"}
+        client.post, base_ddo_url + "/validate-remote", data={
+            "@context": ["test"],
+            "services": "bla", "version": "v4.0.0"}
     )
-    assert rv.status_code == 500
+    assert rv.status_code == 200
     assert (
-        rv.json["error"]
-        == "Encountered error when validating asset: string indices must be integers."
+        rv.json["errors"]["services"]
+        == "Value does not conform to Shape schema:ServiceShape"
     )
