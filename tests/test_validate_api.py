@@ -2,10 +2,6 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import json
-from unittest.mock import patch
-
-from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import run_request
 from unittest.mock import patch
 
@@ -71,7 +67,7 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
         rv = run_request(
             client.post,
             base_ddo_url + "/validate-remote",
-            data={"service": [], "test": "test", "version": "v4.0.0"},
+            data={"service": [], "test": "test", "version": "4.0.0"},
         )
         assert rv.status_code == 500
         assert rv.json["error"] == "Encountered error when validating asset: Boom!."
@@ -79,9 +75,9 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
 
 def test_validate_error_remote(client, base_ddo_url, monkeypatch):
     rv = run_request(
-        client.post, base_ddo_url + "/validate-remote", data={
-            "@context": ["test"],
-            "services": "bla", "version": "v4.0.0"}
+        client.post,
+        base_ddo_url + "/validate-remote",
+        data={"@context": ["test"], "services": "bla", "version": "4.0.0"},
     )
     assert rv.status_code == 200
     assert (

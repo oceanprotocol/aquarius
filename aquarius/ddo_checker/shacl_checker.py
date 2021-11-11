@@ -10,7 +10,7 @@ import pkg_resources
 from pyshacl import validate
 
 
-def get_schema(version="v4.0.0"):
+def get_schema(version="4.0.0"):
     path = "ddo_checker/shacl_schemas/v4/remote_" + version + ".ttl"
 
     schema_file = Path(pkg_resources.resource_filename("aquarius", path))
@@ -48,14 +48,16 @@ def validate_dict(dict_orig):
     dictionary = copy.deepcopy(dict_orig)
     dictionary["@type"] = "DDO"
 
-    if "@context" not in dict_orig or not isinstance(dict_orig["@context"], (list, dict)):
+    if "@context" not in dict_orig or not isinstance(
+        dict_orig["@context"], (list, dict)
+    ):
         return False, {"@context": "Context is missing or invalid."}
 
     # @context key is reserved in JSON-LD format
     dictionary["@context"] = {"@vocab": "http://schema.org/"}
     dictionary_as_string = json.dumps(dictionary)
 
-    version = dictionary.get("version", "v4.0.0")
+    version = dictionary.get("version", "4.0.0")
     schema_file = get_schema(version)
     dataGraph = rdflib.Graph().parse(data=dictionary_as_string, format="json-ld")
 
