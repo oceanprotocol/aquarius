@@ -129,7 +129,6 @@ class MetadataCreatedProcessor(EventProcessor):
         _record["chainId"] = self._chain_id
 
         dt_address = _record.get("dataToken")
-        assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
             _record["dataTokenInfo"] = {
                 "address": self.dt_contract.address,
