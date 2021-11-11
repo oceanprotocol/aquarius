@@ -3,16 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import copy
-import ecies
-import eth_keys
 import json
 import logging
 import os
-
-from collections import OrderedDict
 from datetime import datetime
-import dateutil.parser as parser
-from eth_account import Account
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
@@ -70,14 +64,6 @@ def get_metadata_from_services(services):
             return service["attributes"]
 
 
-def reorder_services_list(services):
-    service_dict = OrderedDict([(s["type"], s) for s in services])
-    result = [service_dict.pop("metadata")]
-    result.extend([s for t, s in service_dict.items()])
-
-    return result
-
-
 def init_new_ddo(data, timestamp):
     _record = copy.deepcopy(data)
     _record["created"] = format_timestamp(
@@ -85,78 +71,7 @@ def init_new_ddo(data, timestamp):
     )
     _record["updated"] = _record["created"]
 
-    if "accessWhiteList" not in data:
-        _record["accessWhiteList"] = []
-    else:
-        if not isinstance(data["accessWhiteList"], list):
-            _record["accessWhiteList"] = []
-        else:
-            _record["accessWhiteList"] = data["accessWhiteList"]
-
-    for service in _record.get("service", []):
-        if service["type"] == "metadata":
-            samain = service["attributes"]["main"]
-            date_created = (
-                parser.parse(samain["dateCreated"].rstrip("Z"))
-                if "dateCreated" in samain
-                else None
-            )
-            samain["dateCreated"] = (
-                date_created.strftime(DATETIME_FORMAT)
-                if date_created
-                else get_timestamp()
-            )
-            samain["datePublished"] = get_timestamp()
-
-            curation = dict()
-            curation["rating"] = 0.00
-            curation["numVotes"] = 0
-            curation["isListed"] = True
-            service["attributes"]["curation"] = curation
-    _record["service"] = (
-        reorder_services_list(_record["service"]) if _record.get("service") else None
-    )
     return _record
-
-
-def validate_date_format(date):
-    try:
-        datetime.strptime(date, DATETIME_FORMAT)
-        return None, None
-    except Exception as e:
-        logging.error(f"validate_date_format: {str(e)}")
-        return f"Incorrect data format, should be '{DATETIME_FORMAT}'", 400
-
-
-def check_no_urls_in_files(main, method):
-    if "files" in main:
-        for file_var in main["files"]:
-            if "url" in file_var:
-                logger.error("%s request failed: url is not allowed in files " % method)
-                return "%s request failed: url is not allowed in files " % method, 400
-    return None, None
-
-
-def check_required_attributes(required_attributes, data, method):
-    assert isinstance(
-        data, dict
-    ), "invalid `body` type, should already formatted into a dict."
-    # logger.info("got %s request: %s" % (method, data))
-    if not data:
-        logger.error("%s request failed: data is empty." % method)
-        return "payload seems empty.", 400
-
-    keys = set(data.keys())
-    if not isinstance(required_attributes, set):
-        required_attributes = set(required_attributes)
-    missing_attrs = required_attributes.difference(keys)
-    if missing_attrs:
-        logger.error(
-            f"{method} request failed: required attributes {missing_attrs} are missing."
-        )
-        return f'"{missing_attrs}" are required in the call to {method}', 400
-
-    return None, None
 
 
 def list_errors(errors, data):
@@ -167,58 +82,3 @@ def list_errors(errors, data):
         this_err_response = {"path": "/".join(stack_path), "message": err[1].message}
         error_list.append(this_err_response)
     return error_list
-
-
-def validate_data(data, method):
-    required_attributes = {
-        "@context",
-        "created",
-        "id",
-        "publicKey",
-        "authentication",
-        "proof",
-        "service",
-        "dataToken",
-    }
-
-    msg, status = check_required_attributes(required_attributes, data, method)
-    if msg:
-        return msg, status
-
-    msg, status = check_no_urls_in_files(get_main_metadata(data["service"]), method)
-    if msg:
-        return msg, status
-
-    msg, status = validate_date_format(data["created"])
-    if status:
-        return msg, status
-
-    return None, None
-
-
-def encrypt_data(data):
-    """
-    Encrypts the input `data` with the private key
-    :return: encrypted data - bytes
-    """
-    ecies_private_key = os.environ.get("EVENTS_ECIES_PRIVATE_KEY", None)
-    if ecies_private_key is None:
-        return False, "No private key configured."
-
-    try:
-        ecies_account = Account.from_key(ecies_private_key)
-        key = eth_keys.KeyAPI.PrivateKey(ecies_account.key)
-    except Exception:
-        msg = "ECIES Key malformed."
-        logger.error(msg)
-        return False, msg
-
-    logger.debug(f"Encrypting:{data} with {key.public_key.to_hex()}")
-    try:
-        encrypted_data = ecies.encrypt(key.public_key.to_hex(), data)
-    except Exception as e:
-        msg = f"Encryption error: {str(e)}"
-        logger.error(msg)
-        return False, msg
-
-    return True, encrypted_data

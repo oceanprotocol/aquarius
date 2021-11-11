@@ -2,11 +2,12 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from aquarius.app.es_instance import ElasticsearchInstance, get_value
 from aquarius.myapp import app
-
 
 es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 

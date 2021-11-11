@@ -2,8 +2,8 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from web3 import Web3
 from eth_utils import is_address
+from web3 import Web3
 
 
 def sanitize_addresses(addresses):

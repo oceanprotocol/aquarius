@@ -117,5 +117,4 @@ ddo_event_sample = {
         "signatureValue": "0x48fa02b7227d09b2a4ae9d6bab9ed8bfc42b3c5bf105b8eba92f16f39842672e4605387cabdc56b4f42edf57879fb02ab9d4b1d699522d6b15c949b4a7a734f101",
     },
     "updated": "2020-07-13T09:47:29Z",
-    "accessWhiteList": ["0x123", "0x456"],
 }

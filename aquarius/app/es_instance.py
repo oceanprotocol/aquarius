@@ -2,9 +2,10 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import os
 import logging
+import os
 import time
+
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
@@ -163,17 +164,18 @@ class ElasticsearchInstance(object):
             logger.error(f"get: {str(e)}")
             raise
 
-        if asset is None or not self.is_listed(asset["service"]):
+        if asset is None or not self.is_listed(asset):
             return None
 
         return asset
 
     @staticmethod
-    def is_listed(services):
-        for service in services:
-            if (
-                service["type"] == "metadata"
-                and "curation" in service["attributes"]
-                and "isListed" in service["attributes"]["curation"]
-            ):
-                return service["attributes"]["curation"]["isListed"]
+    def is_listed(asset):
+        if (
+            "status" in asset
+            and "isListed" in asset["status"]
+            and not asset["status"]["isListed"]
+        ):
+            return False
+
+        return True

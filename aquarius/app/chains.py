@@ -2,11 +2,12 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import elasticsearch
 import json
 import logging
 
+import elasticsearch
 from flask import Blueprint, jsonify
+
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.log import setup_logging
 from aquarius.myapp import app

@@ -2,12 +2,13 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import elasticsearch
-import os
 import json
 import logging
-import requests
+import os
 from datetime import datetime
+
+import elasticsearch
+import requests
 
 logger = logging.getLogger(__name__)
 

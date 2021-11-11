@@ -3,23 +3,19 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import json
-import lzma
-
-from web3 import Web3
 
 from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
-from tests.ddos.ddo_sample1 import json_dict
+from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import (
-    get_event,
     get_web3,
     new_ddo,
-    send_create_update_tx,
-    test_account1,
     run_request,
     run_request_get_data,
+    send_create_update_tx,
+    test_account1,
 )
 
 
@@ -40,9 +36,8 @@ def add_assets(_events_object, name, total=5):
         txs.append(
             send_create_update_tx(
                 "create",
-                ddo.id,
+                ddo,
                 bytes([1]),
-                lzma.compress(Web3.toBytes(text=json.dumps(dict(ddo.items())))),
                 test_account1,
             )
         )
@@ -50,7 +45,6 @@ def add_assets(_events_object, name, total=5):
     block = txs[0].blockNumber
     _events_object.store_last_processed_block(block)
     for ddo in assets:
-        _ = get_event(EVENT_METADATA_CREATED, block, ddo.id)
         _events_object.process_current_blocks()
 
     return assets
@@ -59,15 +53,12 @@ def add_assets(_events_object, name, total=5):
 def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
     block = get_web3().eth.block_number
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", json_dict_no_valid_metadata)
-    ddo_string = json.dumps(dict(ddo.items()))
     _ = send_create_update_tx(
         "create",
-        ddo.id,
+        ddo,
         bytes([1]),
-        lzma.compress(Web3.toBytes(text=ddo_string)),
         test_account1,
     )
-    get_event(EVENT_METADATA_CREATED, block, ddo.id)
     events_object.process_current_blocks()
     try:
         published_ddo = get_ddo(client, base_ddo_url, ddo.id)
@@ -83,16 +74,15 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
 def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     client = client_with_no_data
     block = get_web3().eth.block_number
-    _ddo = json_before.copy()
+    _ddo = json_dict.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
+    did = ddo["id"]
     send_create_update_tx(
         "create",
-        ddo["id"],
+        ddo,
         bytes([1]),
-        lzma.compress(Web3.toBytes(text=json.dumps(dict(ddo)))),
         test_account1,
     )
-    get_event(EVENT_METADATA_CREATED, block, ddo["id"])
     events_object.process_current_blocks()
     result = run_request_get_data(
         client.post,
@@ -107,6 +97,12 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
         },
     )
     assert len(result["hits"]["hits"]) > 0
+
+    base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"
+    response = client.get(
+        base_url + f"/metadata/{did}", content_type="application/json"
+    )
+    assert response.status_code == 200
 
 
 def test_get_assets_names(client, events_object):

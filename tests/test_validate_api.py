@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import json
+from unittest.mock import patch
 
 from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import run_request

@@ -2,11 +2,11 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import http.server
 import logging
 import os
-import time
-import http.server
 import socketserver
+import time
 
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3

@@ -21,6 +21,8 @@ RUN python3.8 -m pip install -U pip==20.2.2
 RUN pip install setuptools
 RUN pip install wheel
 RUN pip install .
+RUN mkdir /usr/local/lib/python3.8/dist-packages/artifacts && find ./artifacts -name '*.json' -exec cp -pr '{}' '/usr/local/lib/python3.8/dist-packages/artifacts' ';'
+
 
 # config.ini configuration file variables
 ENV DB_MODULE='elasticsearch'
@@ -40,8 +42,7 @@ ENV ACCOUNT_PURGATORY_URL="https://raw.githubusercontent.com/oceanprotocol/list-
 ENV PURGATORY_UPDATE_INTERVAL='60'
 ENV RUN_AQUARIUS_SERVER='1'
 ENV EVENTS_RPC='http://127.0.0.1:8545'
-ENV EVENTS_ECIES_PRIVATE_KEY='0xc6914ea1e5ac6a1cd2107240be714735bf799ce9ea4125016aeb479266720ff4'
-ENV ONLY_ENCRYPTED_DDO = '0'
+ENV PRIVATE_KEY='0xc6914ea1e5ac6a1cd2107240be714735bf799ce9ea4125016aeb479266720ff4'
 ENV BLOCKS_CHUNK_SIZE='1000'
 #ENV ADDRESS_FILE=''
 #ENV ALLOWED_PUBLISHERS=['0x123','0x1234']

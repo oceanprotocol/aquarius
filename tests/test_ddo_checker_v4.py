@@ -7,8 +7,8 @@
 # from metadata_validator.schema_definitions import valid_schema
 import copy
 import pytest
-from aquarius.ddo_checker.ddo_checker import validate_dict
 
+from aquarius.ddo_checker.ddo_checker import validate_dict
 from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.ddos.ddo_sample_algorithm_v4 import algorithm_ddo_sample
 

@@ -2,18 +2,18 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import os
 import json
+import os
+from pathlib import Path
 
 import pytest
 from web3 import Web3
-from pathlib import Path
 
-from aquarius.events.events_monitor import EventsMonitor
 from aquarius.constants import BaseURLs
+from aquarius.ddo_checker import ddo_checker
+from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.run import app
-from aquarius.ddo_checker import ddo_checker
 
 app = app
 
