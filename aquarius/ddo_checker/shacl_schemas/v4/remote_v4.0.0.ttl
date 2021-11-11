@@ -32,8 +32,14 @@ schema:DDOShape
         sh:node schema:MetadataShape ;
         sh:minCount 1;
         sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:services ;
+        sh:node schema:ServiceShape ;
+        sh:minCount 1;
     ] ; .
-    # TODO: services, credentials
+    # TODO: credentials
+
 
 schema:MetadataShape
     sh:targetClass schema:Metadata ;
@@ -49,6 +55,7 @@ schema:MetadataShape
         sh:path schema:copyrightHolder;
         sh:datatype xsd:string ;
         sh:pattern "^(.|\\s)*$" ;
+        sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:name ;
@@ -83,6 +90,7 @@ schema:MetadataShape
         sh:path schema:contentLanguage;
         sh:datatype xsd:string ;
         sh:pattern "^(.|\\s)*$" ;
+        sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:additionalInformation;
@@ -90,6 +98,7 @@ schema:MetadataShape
     sh:property [
         sh:path schema:algorithm;
         sh:node schema:AlgorithmShape ;
+        sh:maxCount 1;
     ] ;.
 
 
@@ -99,11 +108,13 @@ schema:AlgorithmShape
         sh:path schema:version ;
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
+        sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:language ;
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
+        sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:container ;
@@ -143,3 +154,151 @@ schema:ContainerShape
         sh:minCount 1;
         sh:maxCount 1;
     ] ;.
+
+
+schema:ServiceShape
+    sh:targetClass schema:Service ;
+    sh:property [
+        sh:path schema:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:type ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:name ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:description ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:datatokenAddress ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:serviceEndpoint ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:files;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:timeout ;
+        sh:datatype xsd:integer ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:compute;
+        sh:node schema:ComputeShape ;
+        sh:maxCount 1;
+    ] ; .
+
+
+schema:ComputeShape
+    sh:targetClass schema:Compute ;
+    sh:property [
+        sh:path schema:namespace ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:cpus ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:gpus ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:gpuType ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:memory ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:volumeSize;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:allowRawAlgorithm ;
+        sh:datatype xsd:boolean ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:allowNetworkAccess ;
+        sh:datatype xsd:boolean ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:publisherTrustedAlgorithmPublishers ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+    ] ;
+    sh:property [
+        sh:path schema:publisherTrustedAlgorithms;
+        sh:node schema:TrustedAlgoShape ;
+    ] ; .
+
+
+schema:TrustedAlgoShape
+    sh:targetClass schema:TrustedAlgo;
+    sh:property [
+        sh:path schema:did ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:filesChecksum ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:containerSectionChecksum ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ; .

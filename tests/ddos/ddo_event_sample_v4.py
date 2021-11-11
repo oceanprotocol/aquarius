@@ -20,21 +20,26 @@ ddo_event_sample_v4 = {
     },
     "services": [
         {
+            "id": "test_id",
             "type": "access",
             "datatokenAddress": "0x20e91598bb797eEd2C7D4431a274c2997D080f53",
             "name": "dataAssetAccess",
             "description": "dataAssetAccess",
-            "providerEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://localhost:8030/",
             "timeout": 0,
+            "files": "encrypted files"
         },
         {
+            "id": "test_id2",
             "type": "compute",
             "name": "dataAssetComputingService",
             "description": "dataAssetComputingService",
             "datatokenAddress": "0x20e91598bb797eEd2C7D4431a274c2997D080f53",
-            "providerEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://localhost:8030/",
             "timeout": 3600,
-            "privacy": {
+            "files": "encrypted files",
+            "compute": {
+                "namespace": "dataAssetComputingService",
                 "allowRawAlgorithm": False,
                 "allowNetworkAccess": False,
                 "publisherTrustedAlgorithms": [],

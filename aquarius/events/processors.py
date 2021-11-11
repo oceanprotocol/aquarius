@@ -105,6 +105,7 @@ class MetadataCreatedProcessor(EventProcessor):
         if not version:
             logger.error("DDO has no version.")
             return False
+
         valid_remote, errors = validate_dict(_record)
 
         if not valid_remote:

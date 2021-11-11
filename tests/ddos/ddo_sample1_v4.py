@@ -26,31 +26,14 @@ json_dict = {
     },
     "services": [
         {
+            "id": "test",
             "type": "access",
             "datatokenAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
             "name": "Download service",
             "description": "Download service",
-            "providerEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://localhost:8030/",
             "timeout": 0,
-            "files": {
-                "files": [
-                    {
-                        "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                        "contentType": "text/csv",
-                        "checksumType": "MD5",
-                        "contentLength": "4535431",
-                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
-                    },
-                    {
-                        "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                        "contentType": "text/csv",
-                        "contentLength": "4535431",
-                        "resourceId": "access-log2018-02-13-15-17-29-18386C502CAEA932",
-                    },
-                    {"contentType": "text/csv"},
-                ],
-                "encryptedFiles": "encryptedFiles",
-            },
+            "files": "encryptedFiles"
         }
     ],
 }

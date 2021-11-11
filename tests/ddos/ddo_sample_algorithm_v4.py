@@ -6,6 +6,7 @@ algorithm_ddo_sample = {
     "@context": ["https://w3id.org/did/v1"],
     "id": "did:op:0bc278fee025464f8012b811d1bce8e22094d0984e4e49139df5d5ff7a028bdf",
     "version": "v4.0.0",
+    "chainId": 1337,
     "proof": {
         "created": "2019-02-08T08:13:41Z",
         "creator": "0x37BB53e3d293494DE59fBe1FF78500423dcFd43B",
@@ -43,31 +44,21 @@ algorithm_ddo_sample = {
     },
     "services": [
         {
+            "id": "test",
             "type": "compute",
             "name": "dataAssetComputingService",
             "description": "dataAssetComputingService",
             "datatokenAddress": "0x20e91598bb797eEd2C7D4431a274c2997D080f53",
-            "providerEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://localhost:8030/",
             "timeout": 3600,
-            "privacy": {
+            "compute": {
+                "namespace": "test",
                 "allowRawAlgorithm": False,
                 "allowNetworkAccess": False,
                 "publisherTrustedAlgorithms": [],
                 "publisherTrustedAlgorithmPublishers": [],
             },
-            "files": {
-                "files": [
-                    {
-                        "name": "build_model",
-                        "checksum": "efb2c764274b745f5fc37f97c6b0e761",
-                        "contentLength": "4535431",
-                        "contentType": "text/plain",
-                        "encoding": "UTF-8",
-                        "compression": "zip",
-                    }
-                ],
-                "encryptedFiles": "encryptedFiles",
-            },
+            "files": "encryptedFiles"
         }
     ],
 }

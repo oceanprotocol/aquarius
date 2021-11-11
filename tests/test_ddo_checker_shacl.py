@@ -69,9 +69,16 @@ def test_sample_schema():
     assert not errors
 
 
+def test_remote_ddo_passes():
+    valid, _ = validate_dict(json_dict)
+    assert valid
+
+    valid, errors = validate_dict(algorithm_ddo_sample)
+    assert valid
+
+
 def test_remote_ddo_fails():
-    # structure from test_ddo_checker_v4
-    for required_prop in ["id", "created", "updated", "version"]:
+    for required_prop in ["id", "version"]:
         _copy = copy.deepcopy(json_dict)
         _copy.pop(required_prop)
 
@@ -85,47 +92,31 @@ def test_remote_ddo_fails():
     with pytest.raises(AssertionError):
         validate_dict(_copy)
 
-    # status invalid
-    _copy = copy.deepcopy(json_dict)
-    _copy["status"] = {"additionalProp": "something"}
-    valid, errors = validate_dict(_copy)
-    assert not valid
-    assert "status" in errors
-
-    _copy = copy.deepcopy(json_dict)
-    _copy["status"] = {"isListed": "something not boolean"}
-    valid, errors = validate_dict(_copy)
-    assert not valid
-    assert "status" in errors
-
-    # TODO: not yet implemented, need to add more to shacl schema
-    # TODO: metadata validation
     # services invalid
     _copy = copy.deepcopy(json_dict)
-    _copy["services"][0]["files"].pop("encryptedFiles")
-    valid, _ = validate_dict(_copy)
+    _copy["services"][0].pop("files")
+    valid, errors = validate_dict(_copy)
     assert not valid
+    assert "services" in errors
 
-    _copy = copy.deepcopy(json_dict)
-    _copy["services"][0]["files"]["files"][0]["contentType"] = None
-    valid, _ = validate_dict(_copy)
-    assert not valid
-
-    for required_prop in ["type", "datatokenAddress", "providerEndpoint", "timeout"]:
+    for required_prop in ["type", "datatokenAddress", "serviceEndpoint", "timeout"]:
         _copy = copy.deepcopy(json_dict)
         _copy["services"][0].pop(required_prop)
 
-        valid, _ = validate_dict(_copy)
+        valid, errors = validate_dict(_copy)
         assert not valid
+        assert "services" in errors
 
     _copy = copy.deepcopy(json_dict)
     _copy["services"][0]["timeout"] = "not an integer"
 
-    valid, _ = validate_dict(_copy)
+    valid, errors = validate_dict(_copy)
     assert not valid
+    assert "services" in errors
 
 
 def test_remote_ddo_metadata_fails():
+    # TODO
     for required_prop in ["description", "name", "type", "author", "license"]:
         _copy = copy.deepcopy(json_dict)
         _copy["metadata"].pop(required_prop)
