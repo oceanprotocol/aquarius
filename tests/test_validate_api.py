@@ -37,7 +37,6 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
     invalid_credentials = [
         {"allow": [{"type": "address", "value": ["0x123", "0x456A"]}]},
         {"deny": [{"type": "address", "value": ["0x123", "0x456A"]}]},
-        {"allow": [{"type": "address", "values": "not_an_array"}]},
         {"allow": [{"type": "address"}]},  # missing values
         {"allow": [{"values": "not_an_array"}]},  # missing type
     ]
