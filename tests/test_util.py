@@ -11,14 +11,7 @@ from unittest.mock import patch
 import pytest
 
 from aquarius.app.auth_util import compare_eth_addresses
-from aquarius.app.util import (
-    check_no_urls_in_files,
-    check_required_attributes,
-    datetime_converter,
-    get_bool_env_value,
-    sanitize_record,
-    validate_date_format,
-)
+from aquarius.app.util import datetime_converter, get_bool_env_value, sanitize_record
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import get_network_name, setup_web3
@@ -99,43 +92,11 @@ def test_datetime_converter():
     assert datetime_converter(datetime.now())
 
 
-def test_check_no_urls_in_files_fails():
-    services = [{"files": {"files": [{"url": "test"}]}}]
-    message, code = check_no_urls_in_files(services, "GET")
-    assert message == "GET request failed: url is not allowed in files "
-    assert code == 400
-
-
-def test_date_format_validator():
-    date = "2000-10-31T01:30:00.000-05:00"
-    assert validate_date_format(date) == (None, None)
-
-
-def test_invalid_date():
-    date = "XXXX"
-    assert validate_date_format(date) == (
-        "Incorrect data format, should be ISO Datetime Format",
-        400,
-    )
-
-
 def test_sanitize_record():
     record = {"_id": "something", "other_value": "something else"}
     result = json.loads(sanitize_record(record))
     assert "_id" not in result
     assert result["other_value"] == "something else"
-
-
-def test_check_required_attributes_errors():
-    result, result_code = check_required_attributes("", {}, "method")
-    assert result == "payload seems empty."
-    assert result_code == 400
-
-    result, result_code = check_required_attributes(
-        ["key2", "key2"], {"key": "val"}, "method"
-    )
-    assert result == "\"{'key2'}\" are required in the call to method"
-    assert result_code == 400
 
 
 class BlockProcessingClassChild(BlockProcessingClass):

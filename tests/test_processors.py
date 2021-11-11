@@ -1,3 +1,7 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import copy
 import json
 from hashlib import sha256
@@ -171,11 +175,3 @@ def test_do_decode_update():
 
     processor.block = bk_block
     assert processor.check_update(None, old_asset, "") is False
-
-    address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
-    old_asset = {
-        "event": {"blockNo": 100, "txid": "placeholder"},
-        "publicKey": [{"owner": address}],
-    }
-    new_asset = old_asset
-    assert processor.check_update(new_asset, old_asset, address) is False

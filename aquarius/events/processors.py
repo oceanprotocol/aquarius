@@ -19,10 +19,8 @@ from aquarius.app.util import (
     format_timestamp,
     get_metadata_from_services,
     init_new_ddo,
-    validate_data,
 )
 from aquarius.ddo_checker.ddo_checker import validate_dict
-from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.events.decryptor import decrypt_ddo
 
 logger = logging.getLogger(__name__)
@@ -177,11 +175,6 @@ class MetadataCreatedProcessor(EventProcessor):
         if not permission:
             raise Exception("RBAC permission denied.")
 
-        msg, _ = validate_data(asset, f"event {EVENT_METADATA_CREATED}")
-        if msg:
-            logger.warning(msg)
-            return
-
         _record = self.make_record(asset)
         if _record:
             try:
@@ -319,7 +312,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         if self.txid == ddo_txid:
             logger.warning(
                 "old asset has the same txid, no need to update: "
-                f'event-txid={self.txid} <> asset-event-txid={asset["event"]["txid"]}'
+                f'event-txid={self.txid} <> asset-event-txid={old_asset["event"]["txid"]}'
             )
             return False
 
@@ -335,11 +328,6 @@ class MetadataUpdatedProcessor(EventProcessor):
             old_asset["publicKey"][0]["owner"], sender_address, logger
         ):
             logger.warning("Transaction sender must mach ddo owner")
-            return False
-
-        msg, _ = validate_data(new_asset, "event update")
-        if msg:
-            logger.error(msg)
             return False
 
         return True
