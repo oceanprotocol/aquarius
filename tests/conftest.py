@@ -10,7 +10,6 @@ import pytest
 from web3 import Web3
 
 from aquarius.constants import BaseURLs
-from aquarius.ddo_checker import ddo_checker
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.run import app
@@ -81,16 +80,6 @@ def _load_sample_path(path, msg):
         print(f"error: {e}")
     print(msg)
     return this_json
-
-
-@pytest.fixture
-def schema_remote_dict():
-    return ddo_checker.get_schema("v3.0.0")
-
-
-@pytest.fixture
-def schema_remote_dict_v4():
-    return ddo_checker.get_schema("v4.0.0")
 
 
 @pytest.fixture

@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import copy
 import json
 import rdflib
 from pathlib import Path
@@ -43,7 +44,8 @@ def beautify_message(message):
     return message
 
 
-def validate_dict(dictionary):
+def validate_dict(dict_orig):
+    dictionary = copy.deepcopy(dict_orig)
     dictionary["@type"] = "DDO"
     # TODO: we have to validate @context separately, since it is reserved
     dictionary["@context"] = {"@vocab": "http://schema.org/"}

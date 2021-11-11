@@ -7,10 +7,9 @@ import logging
 
 import elasticsearch
 from flask import Blueprint, jsonify, request
-from aquarius.ddo_checker.ddo_checker import validate_dict
+from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
-    get_metadata_from_services,
     sanitize_record,
     list_errors,
 )
@@ -324,14 +323,9 @@ def validate_remote():
                 400,
             )
 
-        version = data.get("version", "v3.0.0")
-
-        if version == "v3.0.0":
-            if "service" not in data:
-                # made to resemble list_errors
-                return jsonify([{"message": "missing `service` key in data."}])
-
-            data = get_metadata_from_services(data["service"])
+        version = data.get("version")
+        if not version:
+            return jsonify([{"message": "no version provided for DDO."}])
 
         valid, errors = validate_dict(data)
         if valid:
