@@ -10,8 +10,6 @@ from json import JSONDecodeError
 from threading import Thread
 
 import elasticsearch
-from eth_account import Account
-from eth_utils import is_address
 from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.auth_util import sanitize_addresses
@@ -198,7 +196,7 @@ class EventsMonitor(BlockProcessingClass):
                 )
                 event_processor.process()
             except Exception as e:
-                logger.error(
+                logger.exception(
                     f"Error processing create metadata event: {e}\n" f"event={event}"
                 )
 
@@ -294,10 +292,7 @@ class EventsMonitor(BlockProcessingClass):
     def get_assets_in_chain(self):
         body = {
             "query": {
-                "query_string": {
-                    "query": self._chain_id,
-                    "default_field": "chainId",
-                }
+                "query_string": {"query": self._chain_id, "default_field": "chainId"}
             }
         }
         page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
