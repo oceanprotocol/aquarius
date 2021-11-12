@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import copy
+from datetime import datetime
 import json
 import logging
 import os
@@ -11,6 +12,7 @@ from hashlib import sha256
 
 import requests
 from jsonsempai import magic  # noqa: F401
+from artifacts import ERC20Template
 
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
@@ -72,15 +74,14 @@ class EventProcessor(ABC):
         )
 
     def add_aqua_data(self, record):
-        # TODO: maybe we need this for the datetime key
-        # blockInfo = self._web3.eth.get_block(self.event.blockNumber)
+        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
 
         record["event"] = {
             "tx": self.txid,
             "block": self.block,
             "from": self.sender_address,
             "contract": self.event.address,
-            "datetime": False,
+            "datetime": datetime.fromtimestamp(blockInfo["timestamp"]).isoformat(),
         }
 
         record["nft"] = {
@@ -90,7 +91,27 @@ class EventProcessor(ABC):
             # TODO: owner, state, created
         }
 
+        record["datatokens"] = self.get_tokens_info()
+        # TODO: record["stats"]["consumes"]
+
         return record
+
+    def get_tokens_info(self):
+        datatokens = []
+        tokens = self.dt_contract.caller.getTokensList()
+        for token in tokens:
+            token_contract = self._web3.eth.contract(
+                abi=ERC20Template.abi, address=token
+            )
+
+            datatokens.append({
+                "adddress": token,
+                "name": token_contract.caller.name(),
+                "symbol": token_contract.caller.symbol(),
+                "serviceId": "TODO"
+            })
+
+        return datatokens
 
 
 class MetadataCreatedProcessor(EventProcessor):
