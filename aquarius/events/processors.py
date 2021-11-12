@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import copy
 import json
 import logging
 import os
@@ -9,14 +10,9 @@ from abc import ABC
 from hashlib import sha256
 
 import requests
-from eth_utils import add_0x_prefix
 from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.auth_util import compare_eth_addresses
-from aquarius.app.util import (
-    get_metadata_from_services,
-    init_new_ddo,
-)
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
 
@@ -86,8 +82,7 @@ class MetadataCreatedProcessor(EventProcessor):
         return publisher_address in self.allowed_publishers
 
     def make_record(self, data):
-        # to avoid unnecesary get_block calls, always init with timestamp 0 and get it from chain if the asset is valid
-        _record = init_new_ddo(data, 0)
+        _record = copy.deepcopy(data)
 
         # the event record will be used when updating the ddo
         _record["event"] = {
@@ -188,9 +183,9 @@ class MetadataCreatedProcessor(EventProcessor):
 class MetadataUpdatedProcessor(EventProcessor):
     def make_record(self, data, old_asset):
         # to avoid unnecesary get_block calls, always init with timestamp 0 and get it from chain if the asset is valid
-        _record = init_new_ddo(data, 0)
-        # make sure that we do not alter created flag
-        _record["created"] = old_asset["created"]
+        _record = copy.deepcopy(data)
+        # TODO: see if warrants reinstate: make sure that we do not alter created flag
+        # _record["created"] = old_asset["created"]
 
         _record["event"] = {
             "txid": self.txid,
@@ -221,7 +216,6 @@ class MetadataUpdatedProcessor(EventProcessor):
         # blockInfo = self._web3.eth.get_block(self.event.blockNumber)
 
         dt_address = _record.get("dataToken")
-        assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:
             _record["dataTokenInfo"] = {
                 "address": self.dt_contract.address,

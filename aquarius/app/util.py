@@ -2,7 +2,6 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import copy
 import json
 import logging
 import os
@@ -34,39 +33,3 @@ def datetime_converter(o):
 def get_timestamp():
     """Return the current system timestamp."""
     return f"{datetime.utcnow().replace(microsecond=0).isoformat()}Z"
-
-
-def get_main_metadata(services):
-    metadata = get_metadata_from_services(services)
-    assert "main" in metadata, "metadata is missing the `main` section."
-    return metadata["main"]
-
-
-def get_metadata_from_services(services):
-    if not services:
-        return None
-
-    for service in services:
-        if service["type"] == "metadata":
-            assert (
-                "attributes" in service
-            ), "metadata service is missing the `attributes` section."
-            return service["attributes"]
-
-
-def init_new_ddo(data, timestamp):
-    _record = copy.deepcopy(data)
-    _record["created"] = datetime.now().isoformat()
-    _record["updated"] = _record["created"]
-
-    return _record
-
-
-def list_errors(errors, data):
-    error_list = list()
-    for err in errors:
-        stack_path = list(err[1].relative_path)
-        stack_path = [str(p) for p in stack_path]
-        this_err_response = {"path": "/".join(stack_path), "message": err[1].message}
-        error_list.append(this_err_response)
-    return error_list

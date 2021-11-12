@@ -11,7 +11,6 @@ from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
     sanitize_record,
-    list_errors,
 )
 from aquarius.log import setup_logging
 from aquarius.myapp import app
