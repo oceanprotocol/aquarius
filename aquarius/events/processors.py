@@ -82,7 +82,7 @@ class EventProcessor(ABC):
             "block": self.block,
             "from": self.sender_address,
             "contract": self.event.address,
-            "datetime": block_time
+            "datetime": block_time,
         }
 
         record["nft"] = {
@@ -90,7 +90,7 @@ class EventProcessor(ABC):
             "name": self.dt_contract.caller.name(),
             "symbol": self.dt_contract.caller.symbol(),
             "state": self.dt_contract.caller.metaDataState(),
-            "owner": self.dt_contract.caller.ownerOf(1)
+            "owner": self.dt_contract.caller.ownerOf(1),
         }
 
         record["datatokens"] = self.get_tokens_info()
