@@ -88,7 +88,9 @@ class EventProcessor(ABC):
             "address": self.dt_contract.address,
             "name": self.dt_contract.caller.name(),
             "symbol": self.dt_contract.caller.symbol(),
-            # TODO: owner, state, created
+            "state": self.dt_contract.caller.metaDataState(),
+            "owner": self.dt_contract.caller.ownerOf(1)
+            # TODO: created
         }
 
         record["datatokens"] = self.get_tokens_info()
