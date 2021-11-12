@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import copy
+from datetime import datetime
 import json
 import rdflib
 from pathlib import Path
@@ -44,14 +45,34 @@ def beautify_message(message):
     return message
 
 
+def is_iso_format(date_string):
+    try:
+        datetime.fromisoformat(date_string)
+    except:
+        return False
+
+    return True
+
+
 def validate_dict(dict_orig):
     dictionary = copy.deepcopy(dict_orig)
     dictionary["@type"] = "DDO"
+    extra_errors = {}
 
     if "@context" not in dict_orig or not isinstance(
         dict_orig["@context"], (list, dict)
     ):
-        return False, {"@context": "Context is missing or invalid."}
+        extra_errors["@context"] = "Context is missing or invalid."
+
+    if "metadata" not in dict_orig:
+        extra_errors["metadata"] = "Metadata is missing or invalid."
+
+    for attr in ["created", "updated"]:
+        if attr not in dict_orig["metadata"]:
+            continue
+
+        if not is_iso_format(dict_orig["metadata"][attr]):
+            extra_errors["metadata"] = attr + " is not in iso format."
 
     # @context key is reserved in JSON-LD format
     dictionary["@context"] = {"@vocab": "http://schema.org/"}
@@ -64,4 +85,8 @@ def validate_dict(dict_orig):
     conforms, results_graph, _ = validate(dataGraph, shacl_graph=schema_file)
     errors = parse_report_to_errors(results_graph)
 
+    if extra_errors:
+        conforms = False
+
+    errors.update(extra_errors)
     return conforms, errors

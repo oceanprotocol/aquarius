@@ -46,7 +46,6 @@ schema:DDOShape
 
 schema:MetadataShape
     sh:targetClass schema:Metadata ;
-    # TODO: add created, updated
     sh:property [
         sh:path schema:description ;
         sh:datatype xsd:string ;

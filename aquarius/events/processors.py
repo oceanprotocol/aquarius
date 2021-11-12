@@ -104,12 +104,14 @@ class EventProcessor(ABC):
                 abi=ERC20Template.abi, address=token
             )
 
-            datatokens.append({
-                "adddress": token,
-                "name": token_contract.caller.name(),
-                "symbol": token_contract.caller.symbol(),
-                "serviceId": "TODO"
-            })
+            datatokens.append(
+                {
+                    "adddress": token,
+                    "name": token_contract.caller.name(),
+                    "symbol": token_contract.caller.symbol(),
+                    "serviceId": "TODO",
+                }
+            )
 
         return datatokens
 

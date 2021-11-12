@@ -124,6 +124,12 @@ def test_remote_ddo_metadata_fails():
         assert not valid
 
     _copy = copy.deepcopy(json_dict)
+    _copy["metadata"]["created"] = "not iso format"
+    valid, errors = validate_dict(_copy)
+    assert not valid
+    assert errors["metadata"] == "created is not in iso format."
+
+    _copy = copy.deepcopy(json_dict)
     _copy["metadata"]["links"] = 14  # not a link or string list
     valid, _ = validate_dict(_copy)
     assert not valid
