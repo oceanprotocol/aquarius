@@ -152,7 +152,7 @@ def test_do_decode_update():
     bk_block = processor.block
     processor.block = 0
     old_asset = {
-        "event": {"blockNo": 100, "txid": "placeholder"},
+        "event": {"block": 100, "tx": "placeholder"},
         "publicKey": [{"owner": "some_address"}],
     }
     assert processor.check_update(None, old_asset, "") is False
