@@ -68,7 +68,7 @@ def validate_dict(dict_orig):
         extra_errors["metadata"] = "Metadata is missing or invalid."
 
     for attr in ["created", "updated"]:
-        if attr not in dict_orig["metadata"]:
+        if "metadata" not in dict_orig or attr not in dict_orig["metadata"]:
             continue
 
         if not is_iso_format(dict_orig["metadata"][attr]):
