@@ -6,7 +6,6 @@ import json
 import logging
 import os
 from abc import ABC
-from datetime import datetime
 from hashlib import sha256
 
 import requests
@@ -15,8 +14,6 @@ from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.app.util import (
-    DATETIME_FORMAT,
-    format_timestamp,
     get_metadata_from_services,
     init_new_ddo,
 )
@@ -120,12 +117,7 @@ class MetadataCreatedProcessor(EventProcessor):
             _record["isInPurgatory"] = "false"
 
         # add info related to blockchain
-        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
-        _record["created"] = format_timestamp(
-            datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
-        )
-        _record["updated"] = _record["created"]
-        _record["chainId"] = self._chain_id
+        # blockInfo = self._web3.eth.get_block(self.event.blockNumber)
 
         dt_address = _record.get("dataToken")
         if dt_address:
@@ -226,11 +218,8 @@ class MetadataUpdatedProcessor(EventProcessor):
             _record["isInPurgatory"] = old_asset.get("isInPurgatory", "false")
 
         # add info related to blockchain
-        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
-        _record["updated"] = format_timestamp(
-            datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
-        )
-        _record["chainId"] = self._chain_id
+        # blockInfo = self._web3.eth.get_block(self.event.blockNumber)
+
         dt_address = _record.get("dataToken")
         assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
         if dt_address:

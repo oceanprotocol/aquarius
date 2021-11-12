@@ -8,9 +8,6 @@ import logging
 import os
 from datetime import datetime
 
-DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-DATETIME_FORMAT_NO_Z = "%Y-%m-%dT%H:%M:%S"
-
 logger = logging.getLogger("aquarius")
 
 
@@ -31,14 +28,7 @@ def get_bool_env_value(envvar_name, default_value=0):
 
 def datetime_converter(o):
     if isinstance(o, datetime):
-        return o.strftime(DATETIME_FORMAT)
-
-
-def format_timestamp(timestamp):
-    try:
-        return f"{datetime.strptime(timestamp, DATETIME_FORMAT).replace(microsecond=0).isoformat()}Z"
-    except Exception:
-        return f"{datetime.strptime(timestamp, DATETIME_FORMAT_NO_Z).replace(microsecond=0).isoformat()}Z"
+        return o.isoformat()
 
 
 def get_timestamp():
@@ -66,9 +56,7 @@ def get_metadata_from_services(services):
 
 def init_new_ddo(data, timestamp):
     _record = copy.deepcopy(data)
-    _record["created"] = format_timestamp(
-        datetime.fromtimestamp(timestamp).strftime(DATETIME_FORMAT)
-    )
+    _record["created"] = datetime.now().isoformat()
     _record["updated"] = _record["created"]
 
     return _record
