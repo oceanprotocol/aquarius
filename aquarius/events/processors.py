@@ -74,6 +74,8 @@ class EventProcessor(ABC):
         )
 
     def add_aqua_data(self, record):
+        """Adds keys that are specific to Aquarius, on top of the DDO structure:
+        event, nft, datatokens."""
         block_info = self._web3.eth.get_block(self.event.blockNumber)
         block_time = datetime.fromtimestamp(block_info["timestamp"]).isoformat()
 
