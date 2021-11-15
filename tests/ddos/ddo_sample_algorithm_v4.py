@@ -18,8 +18,8 @@ algorithm_ddo_sample = {
         },
     },
     "metadata": {
-        "created": "2019-02-08T08:13:49Z",
-        "updated": "2019-02-08T08:13:49Z",
+        "created": "2019-02-08T08:13:49",
+        "updated": "2019-02-08T08:13:49",
         "author": "John Doe",
         "license": "CC-BY",
         "name": "My super algorithm",

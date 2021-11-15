@@ -134,10 +134,8 @@ def send_create_update_tx(name, ddo, flags, account):
         [b""],
     ).transact()
     _ = get_web3().eth.wait_for_transaction_receipt(erc20_txn)
-
-    # TODO: change this to the proper processReceipt, event name is not relevant anymore
-    # and we can even remove it
     _ = getattr(dt_contract.events, event_name)().processReceipt(txn_receipt)
+
     return txn_receipt
 
 

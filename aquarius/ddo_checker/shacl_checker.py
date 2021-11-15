@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import copy
+from datetime import datetime
 import json
 import rdflib
 from pathlib import Path
@@ -11,6 +12,7 @@ from pyshacl import validate
 
 
 def get_schema(version="4.0.0"):
+    """Gets the schema file corresponding to the version."""
     path = "ddo_checker/shacl_schemas/v4/remote_" + version + ".ttl"
 
     schema_file = Path(pkg_resources.resource_filename("aquarius", path))
@@ -20,6 +22,7 @@ def get_schema(version="4.0.0"):
 
 
 def parse_report_to_errors(results_graph):
+    """Iterats throgh results graph to create a dictionary of key: validation message."""
     paths = [
         str(x[2]).replace("http://schema.org/", "")
         for x in results_graph.triples(
@@ -37,6 +40,7 @@ def parse_report_to_errors(results_graph):
 
 
 def beautify_message(message):
+    """Make the message more readable by removing some SHACL-specific formatting."""
     if message.startswith("Less than 1 values on"):
         index = message.find("->") + 2
         message = "Less than 1 value on " + message[index:]
@@ -44,14 +48,36 @@ def beautify_message(message):
     return message
 
 
+def is_iso_format(date_string):
+    """Checks if a datetime is in ISO format."""
+    try:
+        datetime.fromisoformat(date_string)
+    except:
+        return False
+
+    return True
+
+
 def validate_dict(dict_orig):
+    """Performs shacl validation on a dict. Returns a tuple of conforms, error messages."""
     dictionary = copy.deepcopy(dict_orig)
     dictionary["@type"] = "DDO"
+    extra_errors = {}
 
     if "@context" not in dict_orig or not isinstance(
         dict_orig["@context"], (list, dict)
     ):
-        return False, {"@context": "Context is missing or invalid."}
+        extra_errors["@context"] = "Context is missing or invalid."
+
+    if "metadata" not in dict_orig:
+        extra_errors["metadata"] = "Metadata is missing or invalid."
+
+    for attr in ["created", "updated"]:
+        if "metadata" not in dict_orig or attr not in dict_orig["metadata"]:
+            continue
+
+        if not is_iso_format(dict_orig["metadata"][attr]):
+            extra_errors["metadata"] = attr + " is not in iso format."
 
     # @context key is reserved in JSON-LD format
     dictionary["@context"] = {"@vocab": "http://schema.org/"}
@@ -64,4 +90,8 @@ def validate_dict(dict_orig):
     conforms, results_graph, _ = validate(dataGraph, shacl_graph=schema_file)
     errors = parse_report_to_errors(results_graph)
 
+    if extra_errors:
+        conforms = False
+
+    errors.update(extra_errors)
     return conforms, errors

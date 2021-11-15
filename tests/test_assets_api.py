@@ -8,7 +8,6 @@ from aquarius.constants import BaseURLs
 from aquarius.events.constants import EVENT_METADATA_CREATED
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1_v4 import json_dict
-from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import (
     get_web3,
     new_ddo,

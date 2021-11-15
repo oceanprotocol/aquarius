@@ -74,27 +74,31 @@ class EventProcessor(ABC):
         )
 
     def add_aqua_data(self, record):
-        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
+        """Adds keys that are specific to Aquarius, on top of the DDO structure:
+        event, nft, datatokens."""
+        block_info = self._web3.eth.get_block(self.event.blockNumber)
+        block_time = datetime.fromtimestamp(block_info["timestamp"]).isoformat()
 
         record["event"] = {
             "tx": self.txid,
             "block": self.block,
             "from": self.sender_address,
             "contract": self.event.address,
-            "datetime": datetime.fromtimestamp(blockInfo["timestamp"]).isoformat(),
+            "datetime": block_time,
         }
 
         record["nft"] = {
             "address": self.dt_contract.address,
             "name": self.dt_contract.caller.name(),
             "symbol": self.dt_contract.caller.symbol(),
-            # TODO: owner, state, created
+            "state": self.dt_contract.caller.metaDataState(),
+            "owner": self.dt_contract.caller.ownerOf(1),
         }
 
         record["datatokens"] = self.get_tokens_info()
         # TODO: record["stats"]["consumes"]
 
-        return record
+        return record, block_time
 
     def get_tokens_info(self):
         datatokens = []
@@ -104,12 +108,14 @@ class EventProcessor(ABC):
                 abi=ERC20Template.abi, address=token
             )
 
-            datatokens.append({
-                "adddress": token,
-                "name": token_contract.caller.name(),
-                "symbol": token_contract.caller.symbol(),
-                "serviceId": "TODO"
-            })
+            datatokens.append(
+                {
+                    "adddress": token,
+                    "name": token_contract.caller.name(),
+                    "symbol": token_contract.caller.symbol(),
+                    "serviceId": "TODO",
+                }
+            )
 
         return datatokens
 
@@ -125,7 +131,8 @@ class MetadataCreatedProcessor(EventProcessor):
 
     def make_record(self, data):
         _record = copy.deepcopy(data)
-        _record = self.add_aqua_data(_record)
+        _record, block_time = self.add_aqua_data(_record)
+        _record["nft"]["created"] = block_time
 
         # the event record will be used when updating the ddo
         version = _record.get("version")
@@ -208,7 +215,8 @@ class MetadataUpdatedProcessor(EventProcessor):
     def make_record(self, data, old_asset):
         # to avoid unnecesary get_block calls, always init with timestamp 0 and get it from chain if the asset is valid
         _record = copy.deepcopy(data)
-        _record = self.add_aqua_data(_record)
+        _record, _ = self.add_aqua_data(_record)
+        _record["nft"]["created"] = old_asset["nft"]["created"]
 
         version = _record.get("version")
         if not version:
