@@ -171,7 +171,7 @@ class MetadataCreatedProcessor(EventProcessor):
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
         logger.info(
-            f"Process new DDO, did from event log:{did}, block {self.block}, "
+            f"Process new DDO, did from event log: {did}, block {self.block}, "
             f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
