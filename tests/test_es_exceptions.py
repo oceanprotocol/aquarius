@@ -31,7 +31,7 @@ def test_get_metadata_exception(client):
     with patch("aquarius.app.es_instance.ElasticsearchInstance.get") as mock:
         mock.side_effect = Exception("Boom!")
         rv = client.get(
-            "api/v1/aquarius/assets/metadata/1", content_type="application/json"
+            "api/aquarius/assets/metadata/1", content_type="application/json"
         )
         assert rv.status_code == 404
         assert rv.json["error"] == "Error encountered while retrieving metadata: Boom!."

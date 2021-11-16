@@ -134,5 +134,5 @@ def test_get_assets_names(client, events_object):
 
 
 def test_asset_metadata_not_found(client):
-    result = run_request(client.get, "api/v1/aquarius/assets/metadata/missing")
+    result = run_request(client.get, "api/aquarius/assets/metadata/missing")
     assert result.status == "404 NOT FOUND"
