@@ -32,10 +32,10 @@ install_requirements = [
     # temporarily removed
     # "ocean-contracts==0.6.9",
     "web3==5.24.0",
-    "jsonschema==3.2.0",
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
+    "pyshacl==0.17.2",
 ]
 
 setup_requirements = ["pytest-runner==5.3.1"]

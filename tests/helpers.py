@@ -86,7 +86,7 @@ def send_create_update_tx(name, ddo, flags, account):
     if flags[0] & 2:
         headers = {"Content-type": "application/octet-stream"}
         response = requests.post(
-            provider_url + "/api/v1/services/encrypt",
+            provider_url + "/api/services/encrypt",
             data=compressed_document,
             headers=headers,
         )
@@ -120,9 +120,22 @@ def send_create_update_tx(name, ddo, flags, account):
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
-    # TODO: change this to the proper processReceipt, event name is not relevant anymore
-    # and we can even remove it
+    cap = web3.toWei(100000, "ether")
+    erc20_txn = dt_contract.functions.createERC20(
+        1,
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [
+            account.address,
+            account.address,
+            account.address,
+            "0x0000000000000000000000000000000000000000",
+        ],
+        [cap, 0],
+        [b""],
+    ).transact()
+    _ = get_web3().eth.wait_for_transaction_receipt(erc20_txn)
     _ = getattr(dt_contract.events, event_name)().processReceipt(txn_receipt)
+
     return txn_receipt
 
 

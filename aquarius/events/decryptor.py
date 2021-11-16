@@ -22,7 +22,7 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
         "nonce": nonce,
     }
 
-    response = requests.post(provider_url + "/api/v1/services/decrypt", json=payload)
+    response = requests.post(provider_url + "/api/services/decrypt", json=payload)
     if response.status_code == 201:
         return response.json()
 
@@ -31,7 +31,7 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
 
 def get_nonce_and_signature(w3, provider_url, account, txid, chain_id):
     response = requests.get(
-        provider_url + "/api/v1/services/nonce", params={"userAddress": account.address}
+        provider_url + "/api/services/nonce", params={"userAddress": account.address}
     )
     if response.status_code == 200:
         nonce = response.json()["nonce"]

@@ -10,7 +10,6 @@ import pytest
 from web3 import Web3
 
 from aquarius.constants import BaseURLs
-from aquarius.ddo_checker import ddo_checker
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.run import app
@@ -60,54 +59,3 @@ def events_object():
         EVENTS_INSTANCE = EventsMonitor(web3, app.config["AQUARIUS_CONFIG_FILE"])
         EVENTS_INSTANCE.store_last_processed_block(0)
     return EVENTS_INSTANCE
-
-
-PATH_SAMPLES_DIR = Path().cwd() / "tests" / "metadata_samples"
-
-PATH_SAMPLE_METADATA_REMOTE = PATH_SAMPLES_DIR / "sample_metadata_remote.json"
-assert PATH_SAMPLE_METADATA_REMOTE.exists(), "Path not found: {}".format(
-    PATH_SAMPLE_METADATA_REMOTE
-)
-
-PATH_ALGORITHM_METADATA_REMOTE = PATH_SAMPLES_DIR / "algorithm_metadata_remote.json"
-
-
-def _load_sample_path(path, msg):
-    this_json = {}
-    try:
-        with open(str(path)) as json_file:
-            this_json = json.load(json_file)
-    except TypeError as e:
-        print(f"error: {e}")
-    print(msg)
-    return this_json
-
-
-@pytest.fixture
-def schema_remote_dict():
-    return ddo_checker.get_schema("v3.0.0")
-
-
-@pytest.fixture
-def schema_remote_dict_v4():
-    return ddo_checker.get_schema("v4.0.0")
-
-
-@pytest.fixture
-def sample_metadata_dict_remote():
-    return _load_sample_path(
-        PATH_SAMPLE_METADATA_REMOTE, f"Loaded sample: {PATH_SAMPLE_METADATA_REMOTE}"
-    )
-
-
-@pytest.fixture
-def path_sample_metadata_remote():
-    return PATH_SAMPLE_METADATA_REMOTE
-
-
-@pytest.fixture
-def sample_algorithm_md_dict_remote():
-    return _load_sample_path(
-        PATH_ALGORITHM_METADATA_REMOTE,
-        f"Loaded sample: {PATH_ALGORITHM_METADATA_REMOTE}",
-    )

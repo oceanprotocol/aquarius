@@ -119,22 +119,6 @@ def test_check_document_hash():
     assert processor.check_document_hash(original_dict) is True
 
 
-def test_make_record():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
-    processor = MetadataCreatedProcessor(
-        event_sample, None, web3, None, None, None, None, None
-    )
-    _ddo_copy = copy.deepcopy(ddo_event_sample_v4)
-    _ddo_copy["metadata"]["EXTRA ATTRIB!"] = 0
-    assert processor.make_record(_ddo_copy) is False
-
-    processor = MetadataUpdatedProcessor(
-        event_updated_sample, None, web3, None, None, None, None, None
-    )
-    assert processor.make_record(_ddo_copy, {"created": "test"}) is False
-
-
 def test_process_fallback(monkeypatch, client, base_ddo_url, events_object):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
@@ -168,7 +152,7 @@ def test_do_decode_update():
     bk_block = processor.block
     processor.block = 0
     old_asset = {
-        "event": {"blockNo": 100, "txid": "placeholder"},
+        "event": {"block": 100, "tx": "placeholder"},
         "publicKey": [{"owner": "some_address"}],
     }
     assert processor.check_update(None, old_asset, "") is False

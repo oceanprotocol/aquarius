@@ -2,25 +2,20 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import copy
+from datetime import datetime
 import json
 import logging
 import os
 from abc import ABC
-from datetime import datetime
 from hashlib import sha256
 
 import requests
-from eth_utils import add_0x_prefix
 from jsonsempai import magic  # noqa: F401
+from artifacts import ERC20Template
 
 from aquarius.app.auth_util import compare_eth_addresses
-from aquarius.app.util import (
-    DATETIME_FORMAT,
-    format_timestamp,
-    get_metadata_from_services,
-    init_new_ddo,
-)
-from aquarius.ddo_checker.ddo_checker import validate_dict
+from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
 
 logger = logging.getLogger(__name__)
@@ -78,6 +73,52 @@ class EventProcessor(ABC):
             sha256(json.dumps(asset).encode("utf-8")).hexdigest() == document_hash.hex()
         )
 
+    def add_aqua_data(self, record):
+        """Adds keys that are specific to Aquarius, on top of the DDO structure:
+        event, nft, datatokens."""
+        block_info = self._web3.eth.get_block(self.event.blockNumber)
+        block_time = datetime.fromtimestamp(block_info["timestamp"]).isoformat()
+
+        record["event"] = {
+            "tx": self.txid,
+            "block": self.block,
+            "from": self.sender_address,
+            "contract": self.event.address,
+            "datetime": block_time,
+        }
+
+        record["nft"] = {
+            "address": self.dt_contract.address,
+            "name": self.dt_contract.caller.name(),
+            "symbol": self.dt_contract.caller.symbol(),
+            "state": self.dt_contract.caller.metaDataState(),
+            "owner": self.dt_contract.caller.ownerOf(1),
+        }
+
+        record["datatokens"] = self.get_tokens_info()
+        # TODO: record["stats"]["consumes"]
+
+        return record, block_time
+
+    def get_tokens_info(self):
+        datatokens = []
+        tokens = self.dt_contract.caller.getTokensList()
+        for token in tokens:
+            token_contract = self._web3.eth.contract(
+                abi=ERC20Template.abi, address=token
+            )
+
+            datatokens.append(
+                {
+                    "adddress": token,
+                    "name": token_contract.caller.name(),
+                    "symbol": token_contract.caller.symbol(),
+                    "serviceId": "TODO",
+                }
+            )
+
+        return datatokens
+
 
 class MetadataCreatedProcessor(EventProcessor):
     def is_publisher_allowed(self, publisher_address):
@@ -89,25 +130,17 @@ class MetadataCreatedProcessor(EventProcessor):
         return publisher_address in self.allowed_publishers
 
     def make_record(self, data):
-        # to avoid unnecesary get_block calls, always init with timestamp 0 and get it from chain if the asset is valid
-        _record = init_new_ddo(data, 0)
+        _record = copy.deepcopy(data)
+        _record, block_time = self.add_aqua_data(_record)
+        _record["nft"]["created"] = block_time
 
         # the event record will be used when updating the ddo
-        _record["event"] = {
-            "txid": self.txid,
-            "blockNo": self.block,
-            "from": self.sender_address,
-            "contract": self.event.address,
-            "update": False,
-        }
+        version = _record.get("version")
+        if not version:
+            logger.error("DDO has no version.")
+            return False
 
-        version = _record.get("version", "v3")
-        content_to_validate = (
-            get_metadata_from_services(_record["service"])
-            if version == "v3"
-            else _record
-        )
-        valid_remote, errors = validate_dict(content_to_validate)
+        valid_remote, errors = validate_dict(_record)
 
         if not valid_remote:
             logger.error(
@@ -119,22 +152,6 @@ class MetadataCreatedProcessor(EventProcessor):
             _record["isInPurgatory"] = "true"
         else:
             _record["isInPurgatory"] = "false"
-
-        # add info related to blockchain
-        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
-        _record["created"] = format_timestamp(
-            datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
-        )
-        _record["updated"] = _record["created"]
-        _record["chainId"] = self._chain_id
-
-        dt_address = _record.get("dataToken")
-        if dt_address:
-            _record["dataTokenInfo"] = {
-                "address": self.dt_contract.address,
-                "name": self.dt_contract.caller.name(),
-                "symbol": self.dt_contract.caller.symbol(),
-            }
 
         return _record
 
@@ -154,7 +171,7 @@ class MetadataCreatedProcessor(EventProcessor):
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
         logger.info(
-            f"Process new DDO, did from event log:{did}, block {self.block}, "
+            f"Process new DDO, did from event log: {did}, block {self.block}, "
             f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
         )
 
@@ -197,25 +214,16 @@ class MetadataCreatedProcessor(EventProcessor):
 class MetadataUpdatedProcessor(EventProcessor):
     def make_record(self, data, old_asset):
         # to avoid unnecesary get_block calls, always init with timestamp 0 and get it from chain if the asset is valid
-        _record = init_new_ddo(data, 0)
-        # make sure that we do not alter created flag
-        _record["created"] = old_asset["created"]
+        _record = copy.deepcopy(data)
+        _record, _ = self.add_aqua_data(_record)
+        _record["nft"]["created"] = old_asset["nft"]["created"]
 
-        _record["event"] = {
-            "txid": self.txid,
-            "blockNo": self.block,
-            "from": self.event.address,
-            "contract": self.event.address,
-            "update": True,
-        }
+        version = _record.get("version")
+        if not version:
+            logger.error("DDO has no version.")
+            return False
 
-        version = _record.get("version", "v3")
-        content_to_validate = (
-            get_metadata_from_services(_record["service"])
-            if version == "v3"
-            else _record
-        )
-        valid_remote, errors = validate_dict(content_to_validate)
+        valid_remote, errors = validate_dict(_record)
 
         if not valid_remote:
             logger.error(f"ddo update has validation errors: {errors}")
@@ -226,21 +234,6 @@ class MetadataUpdatedProcessor(EventProcessor):
             _record["isInPurgatory"] = "true"
         else:
             _record["isInPurgatory"] = old_asset.get("isInPurgatory", "false")
-
-        # add info related to blockchain
-        blockInfo = self._web3.eth.get_block(self.event.blockNumber)
-        _record["updated"] = format_timestamp(
-            datetime.fromtimestamp(blockInfo["timestamp"]).strftime(DATETIME_FORMAT)
-        )
-        _record["chainId"] = self._chain_id
-        dt_address = _record.get("dataToken")
-        assert dt_address == add_0x_prefix(self.did[len("did:op:") :])
-        if dt_address:
-            _record["dataTokenInfo"] = {
-                "address": self.dt_contract.address,
-                "name": self.dt_contract.caller.name(),
-                "symbol": self.dt_contract.caller.symbol(),
-            }
 
         return _record
 
@@ -276,7 +269,7 @@ class MetadataUpdatedProcessor(EventProcessor):
             logger.warning(f"{did} is not registered, will add it as a new DDO.")
             event_processor = MetadataCreatedProcessor(
                 self.event,
-                self.contract,
+                self.dt_contract,
                 self.sender_address,
                 self._es_instance,
                 self._web3,
@@ -307,16 +300,16 @@ class MetadataUpdatedProcessor(EventProcessor):
 
     def check_update(self, new_asset, old_asset, sender_address):
         # do not update if we have the same txid
-        ddo_txid = old_asset["event"]["txid"]
+        ddo_txid = old_asset["event"]["tx"]
         if self.txid == ddo_txid:
             logger.warning(
                 "old asset has the same txid, no need to update: "
-                f'event-txid={self.txid} <> asset-event-txid={old_asset["event"]["txid"]}'
+                f'event-txid={self.txid} <> asset-event-txid={old_asset["event"]["tx"]}'
             )
             return False
 
         # check block
-        ddo_block = old_asset["event"]["blockNo"]
+        ddo_block = old_asset["event"]["block"]
         if int(self.block) <= int(ddo_block):
             logger.warning(
                 f"asset was updated later (block: {ddo_block}) vs transaction block: {self.block}"

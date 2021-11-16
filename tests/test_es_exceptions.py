@@ -5,17 +5,10 @@
 from unittest.mock import patch
 
 import elasticsearch
-from web3 import Web3
 
 from aquarius.constants import BaseURLs
-from aquarius.events.constants import EVENT_METADATA_CREATED
 from aquarius.run import get_status
-from tests.ddo_samples_invalid import json_dict_no_valid_metadata
-from tests.ddos.ddo_sample1 import json_dict
-from tests.ddos.ddo_sample_updates import json_before
 from tests.helpers import (
-    get_web3,
-    new_ddo,
     run_request,
     run_request_get_data,
     send_create_update_tx,
