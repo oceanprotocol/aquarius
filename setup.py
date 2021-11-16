@@ -26,7 +26,7 @@ install_requirements = [
     "Jinja2>=2.10.1",
     "requests>=2.21.0",
     "gunicorn==20.1.0",
-    "elasticsearch==7.15.1",
+    "elasticsearch==7.15.2",
     "PyYAML==6.0",
     "pytz==2021.3",
     "ocean-contracts==0.6.9",
@@ -43,7 +43,7 @@ setup_requirements = ["pytest-runner==5.3.1"]
 dev_requirements = [
     "bumpversion==0.6.0",
     "pkginfo==1.7.1",
-    "twine==3.5.0",
+    "twine==3.6.0",
     "flake8",
     "isort",
     "black",
