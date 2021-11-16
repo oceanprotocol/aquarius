@@ -50,6 +50,7 @@ def beautify_message(message):
 
 def is_iso_format(date_string):
     """Checks if a datetime is in ISO format."""
+    date_string = date_string.rstrip("Z")
     try:
         datetime.fromisoformat(date_string)
     except:

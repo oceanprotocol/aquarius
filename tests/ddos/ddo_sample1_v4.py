@@ -8,7 +8,7 @@ json_dict = {
     "version": "4.0.0",
     "chainId": 1337,
     "metadata": {
-        "created": "2000-10-31T01:30:00.000-05:00",
+        "created": "2000-10-31T01:30:00.000-05:00Z",
         "updated": "2000-10-31T01:30:00.000-05:00",
         "name": "Ocean protocol white paper",
         "type": "dataset",
