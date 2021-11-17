@@ -42,10 +42,10 @@ class Purgatory:
 
     def update_asset_purgatory_status(self, asset, purgatory="true"):
         """
-        Updates the field `isInPurgatory` of `asset` object.
+        Updates the field `isInPurgatory`of field `stats` in `asset` object.
         """
         did = asset["id"]
-        asset["isInPurgatory"] = purgatory
+        asset["stats"]["isInPurgatory"] = purgatory
         logger.info(f"PURGATORY: updating asset {did} with value {purgatory}.")
         try:
             self._es_instance.update(json.dumps(asset), did)
