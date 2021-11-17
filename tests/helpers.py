@@ -35,15 +35,10 @@ def get_web3():
     return WEB3_INSTANCE
 
 
-def prepare_did(text):
-    prefix = "did:op:"
-    if text.startswith(prefix):
-        text = text[len(prefix) :]
-    return add_0x_prefix(text)
-
-
 def new_did(dt_address):
-    return f"did:op:{remove_0x_prefix(dt_address)}"
+    partial = hashlib.sha256((dt_address + "1337").encode("UTF-8")).hexdigest()
+
+    return f"did:op:{partial}"
 
 
 def new_ddo(account, web3, name, ddo=None):
@@ -73,7 +68,6 @@ def get_ddo(client, base_ddo_url, did):
 def send_create_update_tx(name, ddo, flags, account):
     provider_url = "http://localhost:8030"
     provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
-    did = ddo.id
     datatoken_address = ddo["dataToken"]
     document = json.dumps(dict(ddo))
 
@@ -94,16 +88,6 @@ def send_create_update_tx(name, ddo, flags, account):
         encrypted_data = compressed_document
 
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
-
-    print(f"{name}DDO {did} with flags: {flags} from {account.address}")
-    did = prepare_did(did)
-    print(
-        "*****************************************************************************\r\n"
-    )
-    print(did)
-    print(
-        "*****************************************************************************\r\n"
-    )
 
     web3 = get_web3()
     web3.eth.default_account = account.address

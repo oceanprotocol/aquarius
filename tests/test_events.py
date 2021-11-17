@@ -247,7 +247,6 @@ def test_order_started(events_object):
     web3 = events_object._web3  # get_web3()
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
-    did = _ddo.id
 
     _, dt_contract = send_create_update_tx("create", _ddo, bytes([2]), test_account1)
     tokens = dt_contract.caller.getTokensList()

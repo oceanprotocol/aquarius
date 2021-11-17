@@ -24,7 +24,7 @@ from aquarius.events.processors import (
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block
-from artifacts import ERC721Template
+from artifacts import ERC721Template, ERC20Template
 
 logger = logging.getLogger(__name__)
 
@@ -226,21 +226,22 @@ class EventsMonitor(BlockProcessingClass):
 
     def handle_order_started(self, from_block, to_block):
         events = self.get_event_logs("OrderStarted", from_block, to_block)
-        import pdb; pdb.set_trace()
 
-        for event_dict in order_events:
-            dt_contract = self._web3.eth.contract(
-                abi=ERC721Template.abi, address=event_dict["address"]
+        for event in events:
+            erc20_contract = self._web3.eth.contract(
+                abi=ERC20Template.abi, address=event.address
             )
 
+            # TODO: event address seems to be ERC20, yet stats is NFT-level
+            # not sure how to mitigate this for now
             try:
                 event_processor = OrderStartedProcessor(
-                    dt_contract.address, self._es_instance, to_block
+                    erc20_contract.address, self._es_instance, to_block, self._chain_id
                 )
                 event_processor.process()
             except Exception as e:
                 logger.error(
-                    f"Error processing order started event: {e}\n" f"event={event_dict}"
+                    f"Error processing order started event: {e}\n" f"event={event}"
                 )
 
     def get_last_processed_block(self):

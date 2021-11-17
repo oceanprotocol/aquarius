@@ -4,6 +4,7 @@
 #
 import copy
 from datetime import datetime
+import hashlib
 import json
 import logging
 import os
@@ -17,6 +18,7 @@ from artifacts import ERC20Template
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
+from aquarius.graphql import get_number_orders
 
 logger = logging.getLogger(__name__)
 
@@ -331,10 +333,9 @@ class MetadataUpdatedProcessor(EventProcessor):
 
 
 class OrderStartedProcessor:
-    def __init__(self, token_address, es_instance, last_sync_block):
-        import pdb; pdb.set_trace()
-        # TODO: did is not this, probably need to decrypt
-        self.did = f"did:op:{token_address}"
+    def __init__(self, token_address, es_instance, last_sync_block, chain_id):
+        # TODO: this is not the correct did, see comment in events monitor. Putting this on hold for now
+        self.did = "did:op:" + hashlib.sha256((token_address + str(chain_id)).encode("UTF-8")).hexdigest()
         self.es_instance = es_instance
         self.token_address = token_address
         self.last_sync_block = last_sync_block
