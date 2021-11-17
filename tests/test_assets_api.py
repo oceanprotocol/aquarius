@@ -38,7 +38,7 @@ def add_assets(_events_object, name, total=5):
                 ddo,
                 bytes([1]),
                 test_account1,
-            )
+            )[0]
         )
 
     block = txs[0].blockNumber
