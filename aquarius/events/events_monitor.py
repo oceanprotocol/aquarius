@@ -20,7 +20,7 @@ from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPD
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
-    OrderStartedProcessor
+    OrderStartedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block

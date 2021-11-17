@@ -17,7 +17,7 @@ from web3.datastructures import AttributeDict
 
 from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.http_provider import get_web3_connection_provider
-from aquarius.events.util import deploy_datatoken
+from aquarius.events.util import deploy_datatoken, make_did
 from artifacts import ERC721Template
 from tests.ddos.ddo_event_sample_v4 import ddo_event_sample_v4
 
@@ -35,12 +35,6 @@ def get_web3():
     return WEB3_INSTANCE
 
 
-def new_did(dt_address):
-    partial = hashlib.sha256((dt_address + "1337").encode("UTF-8")).hexdigest()
-
-    return f"did:op:{partial}"
-
-
 def new_ddo(account, web3, name, ddo=None):
     _ddo = ddo if ddo else ddo_event_sample_v4.copy()
     if "publicKey" not in _ddo or not _ddo["publicKey"]:
@@ -48,7 +42,10 @@ def new_ddo(account, web3, name, ddo=None):
     _ddo["publicKey"][0]["owner"] = account.address
     _ddo["random"] = str(uuid.uuid4())
     dt_address = deploy_datatoken(web3, account, name, name)
-    _ddo["id"] = new_did(dt_address)
+    chain_id = web3.eth.chain_id
+    _ddo["id"] = make_did(dt_address, chain_id)
+    _ddo["chainId"] = chain_id
+    # just for test purposes, referenced only in send_create_update_tx
     _ddo["dataToken"] = dt_address
     return AttributeDict(_ddo)
 
