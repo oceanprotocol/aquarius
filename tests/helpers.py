@@ -6,7 +6,6 @@ import hashlib
 import json
 import lzma
 import os
-import time
 import uuid
 
 import requests
@@ -136,7 +135,7 @@ def send_create_update_tx(name, ddo, flags, account):
     _ = get_web3().eth.wait_for_transaction_receipt(erc20_txn)
     _ = getattr(dt_contract.events, event_name)().processReceipt(txn_receipt)
 
-    return txn_receipt
+    return txn_receipt, dt_contract
 
 
 def run_request_get_data(client_method, url, data=None):

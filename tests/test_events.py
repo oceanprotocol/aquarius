@@ -5,10 +5,10 @@
 import json
 from unittest.mock import patch
 
+from jsonsempai import magic  # noqa: F401
+from artifacts import ERC20Template
 import elasticsearch
-from web3 import Web3
 
-from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
@@ -241,3 +241,31 @@ def test_add_chain_id_to_chains_list(events_object):
 
 def test_get_event_logs(events_object):
     assert events_object.get_event_logs("NonExistentEvent", 0, 10) == []
+
+
+def test_order_started(events_object):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    _, dt_contract = send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    tokens = dt_contract.caller.getTokensList()
+    for token in tokens:
+        token_contract = web3.eth.contract(abi=ERC20Template.abi, address=token)
+
+    token_contract.functions.mint(
+        test_account3.address, web3.toWei(10, "ether")
+    ).transact({"from": test_account1.address})
+    txn = token_contract.functions.startOrder(
+        test_account3.address,
+        web3.toWei(1, "ether"),
+        1,
+        "0x0000000000000000000000000000000000000000",
+        "0x0000000000000000000000000000000000000000",
+        0,
+    ).transact({"from": test_account3.address})
+    web3.eth.wait_for_transaction_receipt(txn)
+    events_object.process_current_blocks()
+
+    # TODO: asserts

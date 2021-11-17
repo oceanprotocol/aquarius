@@ -20,6 +20,7 @@ from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPD
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
+    OrderStartedProcessor
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block
@@ -220,7 +221,27 @@ class EventsMonitor(BlockProcessingClass):
                     f"Error processing update metadata event: {e}\n" f"event={event}"
                 )
 
+        self.handle_order_started(from_block, to_block)
         self.store_last_processed_block(to_block)
+
+    def handle_order_started(self, from_block, to_block):
+        events = self.get_event_logs("OrderStarted", from_block, to_block)
+        import pdb; pdb.set_trace()
+
+        for event_dict in order_events:
+            dt_contract = self._web3.eth.contract(
+                abi=ERC721Template.abi, address=event_dict["address"]
+            )
+
+            try:
+                event_processor = OrderStartedProcessor(
+                    dt_contract.address, self._es_instance, to_block
+                )
+                event_processor.process()
+            except Exception as e:
+                logger.error(
+                    f"Error processing order started event: {e}\n" f"event={event_dict}"
+                )
 
     def get_last_processed_block(self):
         block = 0
@@ -307,13 +328,15 @@ class EventsMonitor(BlockProcessingClass):
         return object_list
 
     def get_event_logs(self, event_name, from_block, to_block):
-        if event_name not in ["MetadataCreated", "MetadataUpdated"]:
+        if event_name not in ["MetadataCreated", "MetadataUpdated", "OrderStarted"]:
             return []
 
         if event_name == "MetadataCreated":
             hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
-        else:
+        elif event_name == "MetadataUpdated":
             hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
+        else:
+            hash_text = "OrderStarted(address,address,uint256,uint256,uint256,address,address,uint256)"
 
         event_signature_hash = self._web3.keccak(text=hash_text).hex()
 

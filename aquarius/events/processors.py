@@ -323,3 +323,29 @@ class MetadataUpdatedProcessor(EventProcessor):
             return False
 
         return True
+
+
+class OrderStartedProcessor:
+    def __init__(self, token_address, es_instance, last_sync_block):
+        import pdb; pdb.set_trace()
+        # TODO: did is not this, probably need to decrypt
+        self.did = f"did:op:{token_address}"
+        self.es_instance = es_instance
+        self.token_address = token_address
+        self.last_sync_block = last_sync_block
+
+        try:
+            self.asset = self.es_instance.read(self.did)
+        except Exception:
+            self.asset = None
+
+    def process(self):
+        if not self.asset:
+            return
+
+        number_orders = get_number_orders(self.token_address, self.last_sync_block)
+        self.asset["ordersCount"] = number_orders
+
+        self.es_instance.update(self.asset, self.did)
+
+        return self.asset
