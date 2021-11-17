@@ -98,6 +98,9 @@ class EventProcessor(ABC):
         record["datatokens"] = self.get_tokens_info()
         # TODO: record["stats"]["consumes"]
 
+        # Initialise stats field
+        record["stats"] = {}
+
         return record, block_time
 
     def get_tokens_info(self):
@@ -149,9 +152,9 @@ class MetadataCreatedProcessor(EventProcessor):
             return False
 
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["isInPurgatory"] = "true"
+            _record["stats"]["isInPurgatory"] = "true"
         else:
-            _record["isInPurgatory"] = "false"
+            _record["stats"]["isInPurgatory"] = "false"
 
         return _record
 
@@ -231,9 +234,11 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         # check purgatory only if asset is valid
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["isInPurgatory"] = "true"
+            _record["stats"]["isInPurgatory"] = "true"
         else:
-            _record["isInPurgatory"] = old_asset.get("isInPurgatory", "false")
+            _record["stats"]["isInPurgatory"] = old_asset.get("stats", "false").get(
+                "isInPurgatory", "false"
+            )
 
         return _record
 
