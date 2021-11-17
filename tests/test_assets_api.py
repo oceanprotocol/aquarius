@@ -38,8 +38,8 @@ def add_assets(_events_object, name, total=5):
                 ddo,
                 bytes([1]),
                 test_account1,
-            )
-        )[0]
+            )[0]
+        )
 
     block = txs[0].blockNumber
     _events_object.store_last_processed_block(block)

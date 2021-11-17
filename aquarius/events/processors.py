@@ -97,28 +97,26 @@ class EventProcessor(ABC):
             "owner": self.dt_contract.caller.ownerOf(1),
         }
 
-        record["datatokens"] = self.get_tokens_info()
-        # TODO: record["stats"]["consumes"]
+        record["datatokens"] = self.get_tokens_info(record)
 
         # Initialise stats field
         record["stats"] = {}
 
         return record, block_time
 
-    def get_tokens_info(self):
+    def get_tokens_info(self, record):
         datatokens = []
-        tokens = self.dt_contract.caller.getTokensList()
-        for token in tokens:
+        for service in record.get("services"):
             token_contract = self._web3.eth.contract(
-                abi=ERC20Template.abi, address=token
+                abi=ERC20Template.abi, address=service["datatokenAddress"]
             )
 
             datatokens.append(
                 {
-                    "adddress": token,
+                    "adddress": service["datatokenAddress"],
                     "name": token_contract.caller.name(),
                     "symbol": token_contract.caller.symbol(),
-                    "serviceId": "TODO",
+                    "serviceId": service["id"],
                 }
             )
 

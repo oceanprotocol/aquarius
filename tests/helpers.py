@@ -69,8 +69,36 @@ def send_create_update_tx(name, ddo, flags, account):
     provider_url = "http://localhost:8030"
     provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
     datatoken_address = ddo["dataToken"]
-    document = json.dumps(dict(ddo))
 
+    web3 = get_web3()
+    web3.eth.default_account = account.address
+
+    event_name = EVENT_METADATA_CREATED if name == "create" else EVENT_METADATA_UPDATED
+
+    dt_contract = get_web3().eth.contract(
+        abi=ERC721Template.abi, address=datatoken_address
+    )
+
+    cap = web3.toWei(100000, "ether")
+    erc20_txn = dt_contract.functions.createERC20(
+        1,
+        ["ERC20DT1", "ERC20DT1Symbol"],
+        [
+            account.address,
+            account.address,
+            account.address,
+            "0x0000000000000000000000000000000000000000",
+        ],
+        [cap, 0],
+        [b""],
+    ).transact()
+    _ = get_web3().eth.wait_for_transaction_receipt(erc20_txn)
+    erc20_address = dt_contract.caller.getTokensList()[0]
+
+    for i in range(len(ddo.get("services", []))):
+        ddo["services"][i]["datatokenAddress"] = erc20_address
+
+    document = json.dumps(dict(ddo))
     if flags[0] & 1:
         compressed_document = lzma.compress(document.encode("utf-8"))
     else:
@@ -89,37 +117,14 @@ def send_create_update_tx(name, ddo, flags, account):
 
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
-    web3 = get_web3()
-    web3.eth.default_account = account.address
-
-    event_name = EVENT_METADATA_CREATED if name == "create" else EVENT_METADATA_UPDATED
-
-    dt_contract = get_web3().eth.contract(
-        abi=ERC721Template.abi, address=datatoken_address
-    )
-
     txn_hash = dt_contract.functions.setMetaData(
         0, provider_url, provider_address, flags, encrypted_data, dataHash
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
-    cap = web3.toWei(100000, "ether")
-    erc20_txn = dt_contract.functions.createERC20(
-        1,
-        ["ERC20DT1", "ERC20DT1Symbol"],
-        [
-            account.address,
-            account.address,
-            account.address,
-            "0x0000000000000000000000000000000000000000",
-        ],
-        [cap, 0],
-        [b""],
-    ).transact()
-    _ = get_web3().eth.wait_for_transaction_receipt(erc20_txn)
     _ = getattr(dt_contract.events, event_name)().processReceipt(txn_receipt)
 
-    return txn_receipt, dt_contract
+    return txn_receipt, dt_contract, erc20_address
 
 
 def run_request_get_data(client_method, url, data=None):

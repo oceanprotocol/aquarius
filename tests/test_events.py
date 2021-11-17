@@ -28,10 +28,14 @@ def run_test(client, base_ddo_url, events_instance, flags):
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
 
-    send_create_update_tx("create", _ddo, bytes([flags]), test_account1)
+    _, _, erc20_address = send_create_update_tx(
+        "create", _ddo, bytes([flags]), test_account1
+    )
     events_instance.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
+    for service in published_ddo["services"]:
+        assert service["datatokenAddress"] == erc20_address
 
     _ddo["metadata"]["name"] = "Updated ddo by event"
     send_create_update_tx("update", _ddo, bytes([flags]), test_account1)
@@ -248,10 +252,8 @@ def test_order_started(events_object):
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
 
-    _, dt_contract = send_create_update_tx("create", _ddo, bytes([2]), test_account1)
-    tokens = dt_contract.caller.getTokensList()
-    for token in tokens:
-        token_contract = web3.eth.contract(abi=ERC20Template.abi, address=token)
+    _, dt_contract, erc20_address = send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    token_contract = web3.eth.contract(abi=ERC20Template.abi, address=erc20_address)
 
     token_contract.functions.mint(
         test_account3.address, web3.toWei(10, "ether")
