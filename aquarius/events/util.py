@@ -2,20 +2,21 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+from eth_utils import remove_0x_prefix
+import hashlib
 import json
 import logging
 import os
 import time
 from pathlib import Path
 
-import pkg_resources
 from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 
 from addresses import address as contract_addresses
 from aquarius.app.util import get_bool_env_value
 from aquarius.events.http_provider import get_web3_connection_provider
-from artifacts import ERC721, ERC721Factory
+from artifacts import ERC721Factory
 
 logger = logging.getLogger(__name__)
 ENV_ADDRESS_FILE = "ADDRESS_FILE"
@@ -81,6 +82,7 @@ def deploy_datatoken(w3, account, name, symbol):
     time.sleep(3)
     try:
         receipt = w3.eth.getTransactionReceipt(tx_hash)
+
         return (
             dt_factory.events.NFTCreated()
             .processReceipt(receipt)[0]
@@ -154,3 +156,11 @@ def setup_web3(config_file, _logger=None):
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     return web3
+
+
+def make_did(data_nft_address, chain_id):
+    return "did:op:" + remove_0x_prefix(
+        Web3.toHex(
+            hashlib.sha256((data_nft_address + str(chain_id)).encode("utf-8")).digest()
+        )
+    )

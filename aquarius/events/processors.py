@@ -17,6 +17,8 @@ from artifacts import ERC20Template
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
+from aquarius.events.util import make_did
+from aquarius.graphql import get_number_orders
 
 logger = logging.getLogger(__name__)
 
@@ -97,8 +99,9 @@ class EventProcessor(ABC):
 
         record["datatokens"] = self.get_tokens_info(record)
 
-        # Initialise stats field
-        record["stats"] = {}
+        record["stats"] = {
+            "consumes": get_number_orders(self.dt_contract.address, self.block)
+        }
 
         return record, block_time
 
@@ -326,3 +329,27 @@ class MetadataUpdatedProcessor(EventProcessor):
             return False
 
         return True
+
+
+class OrderStartedProcessor:
+    def __init__(self, token_address, es_instance, last_sync_block, chain_id):
+        self.did = make_did(token_address, chain_id)
+        self.es_instance = es_instance
+        self.token_address = token_address
+        self.last_sync_block = last_sync_block
+
+        try:
+            self.asset = self.es_instance.read(self.did)
+        except Exception:
+            self.asset = None
+
+    def process(self):
+        if not self.asset:
+            return
+
+        number_orders = get_number_orders(self.token_address, self.last_sync_block)
+        self.asset["stats"]["consumes"] = number_orders
+
+        self.es_instance.update(self.asset, self.did)
+
+        return self.asset
