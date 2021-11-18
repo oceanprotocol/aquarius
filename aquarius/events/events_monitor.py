@@ -16,9 +16,14 @@ from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value
 from aquarius.block_utils import BlockProcessingClass
-from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
+from aquarius.events.constants import (
+    EVENT_METADATA_CREATED,
+    EVENT_METADATA_UPDATED,
+    EVENT_METADATA_STATE,
+)
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
+    MetadataStateProcessor,
     MetadataUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
@@ -220,6 +225,24 @@ class EventsMonitor(BlockProcessingClass):
                     f"Error processing update metadata event: {e}\n" f"event={event}"
                 )
 
+        for event in self.get_event_logs(EVENT_METADATA_STATE, from_block, to_block):
+            dt_contract = self._web3.eth.contract(
+                abi=ERC721Template.abi, address=event.address
+            )
+            receipt = self._web3.eth.get_transaction_receipt(
+                event.transactionHash.hex()
+            )
+            event_object = dt_contract.events.MetadataState().processReceipt(receipt)[0]
+            try:
+                event_processor = MetadataStateProcessor(
+                    *([event_object, dt_contract, receipt["from"]] + processor_args)
+                )
+                event_processor.process()
+            except Exception as e:
+                logger.exception(
+                    f"Error processing metadata state event: {e}\n" f"event={event}"
+                )
+
         self.store_last_processed_block(to_block)
 
     def get_last_processed_block(self):
@@ -307,13 +330,19 @@ class EventsMonitor(BlockProcessingClass):
         return object_list
 
     def get_event_logs(self, event_name, from_block, to_block):
-        if event_name not in ["MetadataCreated", "MetadataUpdated"]:
+        if event_name not in [
+            EVENT_METADATA_CREATED,
+            EVENT_METADATA_UPDATED,
+            EVENT_METADATA_STATE,
+        ]:
             return []
 
-        if event_name == "MetadataCreated":
+        if event_name == EVENT_METADATA_CREATED:
             hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
-        else:
+        elif event_name == EVENT_METADATA_UPDATED:
             hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
+        elif event_name == EVENT_METADATA_STATE:
+            hash_text = "MetadataState(address,uint8,uint256,uint256)"
 
         event_signature_hash = self._web3.keccak(text=hash_text).hex()
 

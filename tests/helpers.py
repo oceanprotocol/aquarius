@@ -143,6 +143,27 @@ def send_create_update_tx(name, ddo, flags, account):
     return txn_receipt, dt_contract, erc20_address
 
 
+def send_set_metadata_state_tx(ddo, account):
+    did = ddo.id
+    datatoken_address = ddo["dataToken"]
+
+    did = prepare_did(did)
+
+    web3 = get_web3()
+    web3.eth.default_account = account.address
+
+    dt_contract = get_web3().eth.contract(
+        abi=ERC721Template.abi, address=datatoken_address
+    )
+
+    txn_hash = dt_contract.functions.setMetaDataState(
+        2,
+    ).transact()
+    txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
+
+    return txn_receipt
+
+
 def run_request_get_data(client_method, url, data=None):
     _response = run_request(client_method, url, data)
     print(f"response: {_response}")

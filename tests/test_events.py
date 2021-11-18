@@ -17,6 +17,7 @@ from tests.helpers import (
     get_web3,
     new_ddo,
     send_create_update_tx,
+    send_set_metadata_state_tx,
     test_account1,
     test_account3,
 )
@@ -43,6 +44,11 @@ def run_test(client, base_ddo_url, events_instance, flags):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
+
+    send_set_metadata_state_tx(_ddo,test_account1)
+    events_instance.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
 
 
 def test_publish_and_update_ddo(client, base_ddo_url, events_object):

@@ -326,3 +326,10 @@ class MetadataUpdatedProcessor(EventProcessor):
             return False
 
         return True
+
+class MetadataStateProcessor(EventProcessor):
+    def make_record(self,data):
+        print("test")
+
+    def process(self):
+        print("test")
