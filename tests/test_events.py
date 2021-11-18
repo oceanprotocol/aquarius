@@ -45,11 +45,6 @@ def run_test(client, base_ddo_url, events_instance, flags):
     assert published_ddo["id"] == did
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
 
-    send_set_metadata_state_tx(_ddo,test_account1)
-    events_instance.process_current_blocks()
-    published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["id"] == did
-
 
 def test_publish_and_update_ddo(client, base_ddo_url, events_object):
     run_test(client, base_ddo_url, events_object, 2)
@@ -251,3 +246,22 @@ def test_add_chain_id_to_chains_list(events_object):
 
 def test_get_event_logs(events_object):
     assert events_object.get_event_logs("NonExistentEvent", 0, 10) == []
+
+
+def test_metadata_state_update(client, base_ddo_url, events_object):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    send_create_update_tx(
+        "create", _ddo, bytes([2]), test_account1
+    )
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
+
+    send_set_metadata_state_tx(_ddo, test_account1)
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did

@@ -327,9 +327,37 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         return True
 
-class MetadataStateProcessor(EventProcessor):
-    def make_record(self,data):
-        print("test")
 
+class MetadataStateProcessor(EventProcessor):
     def process(self):
-        print("test")
+        txid = self.txid
+
+        decryptor_url, *_ = self.dt_contract.caller.getMetaData()
+
+        asset = decrypt_ddo(
+            web3=self._web3,
+            provider_url=decryptor_url,
+            contract_address=self.event.address,
+            chain_id=self._chain_id,
+            txid=txid,
+        )
+
+        if not self.check_document_hash(asset):
+            return False
+
+        self.did = asset["id"]
+
+        if self.event.args.state == 0:
+            event_processor = MetadataCreatedProcessor(
+                self.event,
+                self.dt_contract,
+                self.sender_address,
+                self._es_instance,
+                self._web3,
+                self.allowed_publishers,
+                self.purgatory,
+                self._chain_id,
+            )
+            return event_processor.process()
+        else:
+            self._es_instance.delete(asset["id"])
