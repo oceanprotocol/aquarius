@@ -82,6 +82,7 @@ def deploy_datatoken(w3, account, name, symbol):
     time.sleep(3)
     try:
         receipt = w3.eth.getTransactionReceipt(tx_hash)
+
         return (
             dt_factory.events.NFTCreated()
             .processReceipt(receipt)[0]
