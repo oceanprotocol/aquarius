@@ -45,11 +45,6 @@ def run_test(client, base_ddo_url, events_instance, flags):
     assert published_ddo["id"] == did
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
 
-    send_set_metadata_state_tx(_ddo,test_account1)
-    events_instance.process_current_blocks()
-    published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["id"] == did
-
 
 def test_publish_and_update_ddo(client, base_ddo_url, events_object):
     run_test(client, base_ddo_url, events_object, 2)
@@ -281,3 +276,23 @@ def test_order_started(events_object, client, base_ddo_url):
     published_ddo = get_ddo(client, base_ddo_url, did)
     # TODO: currently the graph for v4 is WIP, need to replace this
     assert published_ddo["stats"]["consumes"] == -1
+
+
+def test_metadata_state_update(client, base_ddo_url, events_object):
+
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    send_create_update_tx(
+        "create", _ddo, bytes([2]), test_account1
+    )
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
+
+    send_set_metadata_state_tx(_ddo, test_account1)
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did

@@ -357,7 +357,7 @@ class EventsMonitor(BlockProcessingClass):
         if event_name not in ["MetadataCreated", "MetadataUpdated", "OrderStarted", "MetadataState"]:
             return []
 
-        if event_name == EVENT_METADATA_CREATED:
+        if event_name == "MetadataCreated":
             hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
         elif event_name == "MetadataUpdated":
             hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
