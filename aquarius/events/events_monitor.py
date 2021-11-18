@@ -234,7 +234,10 @@ class EventsMonitor(BlockProcessingClass):
 
             try:
                 event_processor = OrderStartedProcessor(
-                    erc20_contract.caller.getERC721Address(), self._es_instance, to_block, self._chain_id
+                    erc20_contract.caller.getERC721Address(),
+                    self._es_instance,
+                    to_block,
+                    self._chain_id,
                 )
                 event_processor.process()
             except Exception as e:
