@@ -99,8 +99,9 @@ class EventProcessor(ABC):
 
         record["datatokens"] = self.get_tokens_info(record)
 
-        # Initialise stats field
-        record["stats"] = {}
+        record["stats"] = {
+            "consumes": get_number_orders(self.dt_contract.address, self.block)
+        }
 
         return record, block_time
 
@@ -347,7 +348,7 @@ class OrderStartedProcessor:
             return
 
         number_orders = get_number_orders(self.token_address, self.last_sync_block)
-        self.asset["ordersCount"] = number_orders
+        self.asset["stats"]["consumes"] = number_orders
 
         self.es_instance.update(self.asset, self.did)
 

@@ -1,30 +1,35 @@
+import logging
 import time
 
+from aiohttp.client_exceptions import ClientConnectorError
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 
 from aquarius.events.util import get_network_name
 
+logger = logging.getLogger("aquarius")
+
 
 def get_number_orders(token_address, last_sync_block):
-    client = get_client()
-
-    last_block = get_last_block(client)
-    while last_block <= last_sync_block:
-        last_block = get_last_block(client)
-        time.sleep(2)
-
-    did_query = gql(
-        '{ datatokens(where: {id: "' + token_address.lower() + '"}) { orderVolume } }'
-    )
-    result = client.execute(did_query)
-
     try:
+        client = get_client()
+
+        last_block = get_last_block(client)
+        while last_block <= last_sync_block:
+            last_block = get_last_block(client)
+            time.sleep(2)
+
+        did_query = gql(
+            '{ datatokens(where: {id: "' + token_address.lower() + '"}) { orderVolume } }'
+        )
+        result = client.execute(did_query)
+
         number_orders = result["datatokens"][0]["orderVolume"]
-    except (KeyError, IndexError):
-        raise Exception(
+    except (KeyError, IndexError, ClientConnectorError):
+        logger.error(
             "Can not get number of orders for subgraph {get_network_name()} did {did}"
         )
+        return -1
 
     return number_orders
 

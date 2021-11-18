@@ -232,11 +232,9 @@ class EventsMonitor(BlockProcessingClass):
                 abi=ERC20Template.abi, address=event.address
             )
 
-            # TODO: event address seems to be ERC20, yet stats is NFT-level
-            # not sure how to mitigate this for now
             try:
                 event_processor = OrderStartedProcessor(
-                    erc20_contract.address, self._es_instance, to_block, self._chain_id
+                    erc20_contract.caller.getERC721Address(), self._es_instance, to_block, self._chain_id
                 )
                 event_processor.process()
             except Exception as e:
