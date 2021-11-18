@@ -354,6 +354,7 @@ class OrderStartedProcessor:
 
         return self.asset
 
+
 class MetadataStateProcessor(EventProcessor):
     def process(self):
         txid = self.txid

@@ -185,6 +185,7 @@ def test_do_decode_update():
     processor.block = bk_block
     assert processor.check_update(None, old_asset, "") is False
 
+
 def test_metadata_state_update():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)

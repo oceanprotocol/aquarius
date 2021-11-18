@@ -125,10 +125,8 @@ def send_create_update_tx(name, ddo, flags, account):
 
 
 def send_set_metadata_state_tx(ddo, account):
-    did = ddo.id
-    datatoken_address = ddo["dataToken"]
 
-    did = prepare_did(did)
+    datatoken_address = ddo["dataToken"]
 
     web3 = get_web3()
     web3.eth.default_account = account.address

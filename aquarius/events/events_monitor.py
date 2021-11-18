@@ -354,7 +354,12 @@ class EventsMonitor(BlockProcessingClass):
         return object_list
 
     def get_event_logs(self, event_name, from_block, to_block):
-        if event_name not in ["MetadataCreated", "MetadataUpdated", "OrderStarted", "MetadataState"]:
+        if event_name not in [
+            "MetadataCreated",
+            "MetadataUpdated",
+            "OrderStarted",
+            "MetadataState",
+        ]:
             return []
 
         if event_name == "MetadataCreated":

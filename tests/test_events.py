@@ -285,9 +285,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
 
-    send_create_update_tx(
-        "create", _ddo, bytes([2]), test_account1
-    )
+    send_create_update_tx("create", _ddo, bytes([2]), test_account1)
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
