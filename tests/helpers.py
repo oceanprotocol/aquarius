@@ -9,6 +9,7 @@ import os
 import uuid
 
 import requests
+from enum import IntEnum
 from eth_account import Account
 from eth_utils import add_0x_prefix, remove_0x_prefix
 from jsonsempai import magic  # noqa: F401
@@ -29,6 +30,14 @@ WEB3_INSTANCE = Web3(provider)
 test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
 test_account2 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY2", None))
 test_account3 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY3", None))
+
+
+class MetadataStates(IntEnum):
+    ACTIVE = 0
+    END_OF_LIFE = 1
+    DEPRECATED = 2
+    REVOKED = 3
+    ORDERING_DISABLED = 4
 
 
 def get_web3():
@@ -124,7 +133,7 @@ def send_create_update_tx(name, ddo, flags, account):
     return txn_receipt, dt_contract, erc20_address
 
 
-def send_set_metadata_state_tx(ddo, account):
+def send_set_metadata_state_tx(ddo, account, state):
 
     datatoken_address = ddo["dataToken"]
 
@@ -136,7 +145,7 @@ def send_set_metadata_state_tx(ddo, account):
     )
 
     txn_hash = dt_contract.functions.setMetaDataState(
-        2,
+        state,
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 

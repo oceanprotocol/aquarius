@@ -14,7 +14,6 @@ from web3.datastructures import AttributeDict
 
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
-    MetadataStateProcessor,
     MetadataUpdatedProcessor,
 )
 from aquarius.events.util import setup_web3
@@ -69,30 +68,6 @@ event_updated_sample = AttributeDict(
             "0xac74047aa002d2c78e10c21d4f6193cdd28c4562f834ab7dbdd47535943554ff"
         ),
         "blockNumber": 492,
-    }
-)
-
-event_metadate_state_sample = AttributeDict(
-    {
-        "args": AttributeDict(
-            {
-                "updatedBy": "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260",
-                "state": 2,
-                "timestamp": 1637237925,
-                "blockNumber": 204,
-            }
-        ),
-        "event": "MetadataState",
-        "logIndex": 0,
-        "transactionIndex": 0,
-        "transactionHash": HexBytes(
-            "0x277cda2d3c48847fbca446635a6be847ad016cbf2ccb3e0d545ca2b4a902d28f"
-        ),
-        "address": "0x7887b2dB47e9e372Cf543cbd2b57300390AA14E5",
-        "blockHash": HexBytes(
-            "0x67c326882f53a5fd63e60d6e45960c052eaac00891691245da79a09a248c7d7a"
-        ),
-        "blockNumber": 204,
     }
 )
 
@@ -184,12 +159,3 @@ def test_do_decode_update():
 
     processor.block = bk_block
     assert processor.check_update(None, old_asset, "") is False
-
-
-def test_metadata_state_update():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
-    processor = MetadataStateProcessor(
-        event_metadate_state_sample, None, web3, None, None, None, None, None
-    )
-    # TODO finish test

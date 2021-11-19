@@ -13,6 +13,7 @@ from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
 from tests.helpers import (
+    MetadataStates,
     get_ddo,
     get_web3,
     new_ddo,
@@ -290,7 +291,20 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
 
-    send_set_metadata_state_tx(_ddo, test_account1)
-    events_object.process_current_blocks()
+    # MetadataState updated to active should delegate to MetadataCreated processor
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
+    )
+    with patch("aquarius.events.processors.MetadataCreatedProcessor.process") as mock:
+        events_object.process_current_blocks()
+        mock.assert_called()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
+
+    # MetadataState updated to other than active should delete the ddo from elasticsearch
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.DEPRECATED
+    )
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["error"] == f"Asset DID {did} not found in Elasticsearch."

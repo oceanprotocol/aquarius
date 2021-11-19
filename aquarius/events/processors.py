@@ -19,6 +19,7 @@ from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did
 from aquarius.graphql import get_number_orders
+from tests.helpers import MetadataStates
 
 logger = logging.getLogger(__name__)
 
@@ -360,11 +361,11 @@ class MetadataStateProcessor(EventProcessor):
         self.did = make_did(self.event.address, self._chain_id)
 
         try:
-            self.asset = self.es_instance.read(self.did)
+            self.asset = self._es_instance.read(self.did)
         except Exception:
             self.asset = None
 
-        if self.event.args.state == 0:
+        if self.event.args.state == MetadataStates.ACTIVE:
             event_processor = MetadataCreatedProcessor(
                 self.event,
                 self.dt_contract,
