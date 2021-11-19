@@ -9,8 +9,6 @@ import time
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 
-from aquarius.app.es_mapping import es_mapping
-
 _DB_INSTANCE = None
 
 logger = logging.getLogger(__name__)
@@ -57,7 +55,7 @@ class ElasticsearchInstance(object):
                 logging.info("Trying to connect...")
                 time.sleep(5)
 
-            self._es.indices.create(index=index, ignore=400, body=es_mapping)
+            self._es.indices.create(index=index, ignore=400)
 
         except Exception as e:
             logging.info(f"Exception trying to connect... {e}")
