@@ -357,22 +357,12 @@ class OrderStartedProcessor:
 
 class MetadataStateProcessor(EventProcessor):
     def process(self):
-        txid = self.txid
+        self.did = make_did(self.event.address, self._chain_id)
 
-        decryptor_url, *_ = self.dt_contract.caller.getMetaData()
-
-        asset = decrypt_ddo(
-            web3=self._web3,
-            provider_url=decryptor_url,
-            contract_address=self.event.address,
-            chain_id=self._chain_id,
-            txid=txid,
-        )
-
-        if not self.check_document_hash(asset):
-            return False
-
-        self.did = asset["id"]
+        try:
+            self.asset = self.es_instance.read(self.did)
+        except Exception:
+            self.asset = None
 
         if self.event.args.state == 0:
             event_processor = MetadataCreatedProcessor(
@@ -386,5 +376,5 @@ class MetadataStateProcessor(EventProcessor):
                 self._chain_id,
             )
             return event_processor.process()
-        else:
-            self._es_instance.delete(asset["id"])
+        elif self.asset:
+            self._es_instance.delete(self.did)
