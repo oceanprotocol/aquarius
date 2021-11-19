@@ -17,12 +17,17 @@ cd barge
 ```
 
 #### Running Elasticsearch
-There are two ways of running Elasticsearch. The first one is to run it bare-bones. In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
+There are two ways of running Elasticsearch. The first one is to run it bare-bones.
+In a new terminal tab, run the elasticsearch database (required for Aquarius).
+You can also run this in the background, but it helps development to see all output separately.
+
+The following snippet downloads and runs Elasticsearch 7.14.2 for a Linux x86 machine, but this can differ per your setup.
+Make sure you adjust the file names and download links if needed.
 
 ```bash
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.15.2-linux-x86_64.tar.gz
-tar -xzf elasticsearch-7.15.2-linux-x86_64.tar.gz
-./elasticsearch-7.15.2/bin/elasticsearch
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.14.2-linux-x86_64.tar.gz
+tar -xzf elasticsearch-7.14.2-linux-x86_64.tar.gz
+./elasticsearch-7.14.2/bin/elasticsearch
 ```
 
 Alternately, you can run Elasticsearch from docker:
