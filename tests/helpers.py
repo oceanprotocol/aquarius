@@ -10,7 +10,6 @@ import uuid
 
 import requests
 from eth_account import Account
-from eth_utils import add_0x_prefix, remove_0x_prefix
 from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 from web3.datastructures import AttributeDict
@@ -124,8 +123,7 @@ def send_create_update_tx(name, ddo, flags, account):
     return txn_receipt, dt_contract, erc20_address
 
 
-def send_set_metadata_state_tx(ddo, account):
-
+def send_set_metadata_state_tx(ddo, account, state):
     datatoken_address = ddo["dataToken"]
 
     web3 = get_web3()
@@ -135,9 +133,7 @@ def send_set_metadata_state_tx(ddo, account):
         abi=ERC721Template.abi, address=datatoken_address
     )
 
-    txn_hash = dt_contract.functions.setMetaDataState(
-        2,
-    ).transact()
+    txn_hash = dt_contract.functions.setMetaDataState(state).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
     return txn_receipt

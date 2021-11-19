@@ -18,6 +18,7 @@ from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did
+from aquarius.events.constants import MetadataStates
 from aquarius.graphql import get_number_orders
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ class EventProcessor(ABC):
         allowed_publishers,
         purgatory,
         chain_id,
+        decryptor_url=None,
     ):
         """Initialises common Event processing properties."""
         self.event = event
@@ -41,6 +43,7 @@ class EventProcessor(ABC):
         self.sender_address = sender_address
         self.block = event.blockNumber
         self.txid = self.event.transactionHash.hex()
+        self.decryptor_url = decryptor_url
 
         self._es_instance = es_instance
         self._web3 = web3
@@ -163,7 +166,7 @@ class MetadataCreatedProcessor(EventProcessor):
         txid = self.txid
         asset = decrypt_ddo(
             self._web3,
-            self.event.args.decryptorUrl,
+            self.event.args.get("decryptorUrl", self.decryptor_url),
             self.event.address,
             self._chain_id,
             txid,
@@ -359,22 +362,27 @@ class MetadataStateProcessor(EventProcessor):
     def process(self):
         self.did = make_did(self.event.address, self._chain_id)
 
-        try:
-            self.asset = self.es_instance.read(self.did)
-        except Exception:
-            self.asset = None
+        if self.event.args.state != MetadataStates.ACTIVE:
+            try:
+                self.asset = self._es_instance.read(self.did)
+            except Exception:
+                self.asset = None
+            if self.asset and self.asset.get("id") == self.did:
+                self._es_instance.delete(self.did)
+            return True
 
-        if self.event.args.state == 0:
-            event_processor = MetadataCreatedProcessor(
-                self.event,
-                self.dt_contract,
-                self.sender_address,
-                self._es_instance,
-                self._web3,
-                self.allowed_publishers,
-                self.purgatory,
-                self._chain_id,
-            )
-            return event_processor.process()
-        elif self.asset:
-            self._es_instance.delete(self.did)
+        decryptor_url, *_ = self.dt_contract.caller.getMetaData()
+
+        event_processor = MetadataCreatedProcessor(
+            self.event,
+            self.dt_contract,
+            self.sender_address,
+            self._es_instance,
+            self._web3,
+            self.allowed_publishers,
+            self.purgatory,
+            self._chain_id,
+            decryptor_url,
+        )
+
+        return event_processor.process()

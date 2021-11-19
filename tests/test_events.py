@@ -11,6 +11,7 @@ import elasticsearch
 
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
+from aquarius.events.constants import MetadataStates
 from aquarius.myapp import app
 from tests.helpers import (
     get_ddo,
@@ -279,7 +280,6 @@ def test_order_started(events_object, client, base_ddo_url):
 
 
 def test_metadata_state_update(client, base_ddo_url, events_object):
-
     web3 = events_object._web3  # get_web3()
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
@@ -290,7 +290,19 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
 
-    send_set_metadata_state_tx(_ddo, test_account1)
+    # MetadataState updated to other than active should delete the ddo from elasticsearch
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.DEPRECATED
+    )
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
+
+    # MetadataState updated to active should delegate to MetadataCreated processor
+    # and recreate asset
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
+    )
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did

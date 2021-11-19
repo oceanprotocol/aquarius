@@ -20,6 +20,7 @@ from aquarius.events.constants import (
     EVENT_METADATA_CREATED,
     EVENT_METADATA_UPDATED,
     EVENT_METADATA_STATE,
+    EVENT_ORDER_STARTED,
 )
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
@@ -249,7 +250,7 @@ class EventsMonitor(BlockProcessingClass):
         self.store_last_processed_block(to_block)
 
     def handle_order_started(self, from_block, to_block):
-        events = self.get_event_logs("OrderStarted", from_block, to_block)
+        events = self.get_event_logs(EVENT_ORDER_STARTED, from_block, to_block)
 
         for event in events:
             erc20_contract = self._web3.eth.contract(
