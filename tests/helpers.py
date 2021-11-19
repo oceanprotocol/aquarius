@@ -9,6 +9,7 @@ import os
 import uuid
 
 import requests
+from enum import IntEnum
 from eth_account import Account
 from jsonsempai import magic  # noqa: F401
 from web3 import Web3
@@ -28,6 +29,14 @@ WEB3_INSTANCE = Web3(provider)
 test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
 test_account2 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY2", None))
 test_account3 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY3", None))
+
+
+class MetadataStates(IntEnum):
+    ACTIVE = 0
+    END_OF_LIFE = 1
+    DEPRECATED = 2
+    REVOKED = 3
+    ORDERING_DISABLED = 4
 
 
 def get_web3():
