@@ -41,7 +41,7 @@ jobs:
       - name: Run elasticsearch
         uses: elastic/elastic-github-actions/elasticsearch@master
         with:
-          stack-version: 6.6.2
+          stack-version: 7.14.2
       - name: Test with tox and publish code coverage
         uses: paambaati/codeclimate-action@v2.7.5
         env:
