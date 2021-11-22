@@ -5,7 +5,7 @@
   * [Configuration](#configuration)
   * [Extras: Testing &amp; Versioning](#extras-testing--versioning)
   * [Ensuring changes are well propagated](#ensuring-changes-are-well-propagated)
-     
+
 ## Running Aquarius locally, for development and testing
 
 The easiest way is through [Barge](https://github.com/oceanprotocol/barge). Run a Barge instance without Aquarius and with RBAC Server.
@@ -17,23 +17,26 @@ cd barge
 ```
 
 #### Running Elasticsearch
-There are two ways of running Elasticsearch. The first one is to run it bare-bones. In a new terminal tab, run the elasticsearch database (required for Aquarius). You can also run this in the background, but it helps development to see all output separately.
+There are two ways of running Elasticsearch. The first one is to run it bare-bones.
+In a new terminal tab, run the elasticsearch database (required for Aquarius).
+You can also run this in the background, but it helps development to see all output separately.
+
+The following snippet downloads and runs Elasticsearch 7.14.2 for a Linux x86 machine, but this can differ per your setup.
+Make sure you adjust the file names and download links if needed.
 
 ```bash
-export ES_VERSION=6.6.2
-export ES_DOWNLOAD_URL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz
-wget ${ES_DOWNLOAD_URL}
-tar -xzf elasticsearch-${ES_VERSION}.tar.gz
-./elasticsearch-${ES_VERSION}/bin/elasticsearch
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.14.2-linux-x86_64.tar.gz
+tar -xzf elasticsearch-7.14.2-linux-x86_64.tar.gz
+./elasticsearch-7.14.2/bin/elasticsearch
 ```
 
 Alternately, you can run Elasticsearch from docker:
-`docker run --rm -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:6.6.2`
+`docker run --rm -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.14.2`
 
 The arguments have the following meaning:
 - `--rm` Automatically remove the container when it exits
 - `-p 9200:9200 -p 9300:9300` expose ports 9200 and 9300 and bind them.
-- `-e "discovery.type=single-node"` sets the environment variable for Elasticsearch. 
+- `-e "discovery.type=single-node"` sets the environment variable for Elasticsearch.
 If `discovery.type` is set to `single-node`, Elasticsearch forms a single-node cluster. Thus, our node will elect itself master and will not join a cluster with any other node. Since we are not building a multiple-node cluster, we are settings this to `single-node`.
 
 After spinning up Elasticsearch using either method, you can continue with the following Aquarius instructions. In yet another tab, clone this repository:
@@ -125,7 +128,7 @@ The `bumpversion.sh` script helps bump the project version. You can execute the 
 
 ### Ensuring changes are well propagated
 
-Changes to Aquarius have ripple effects to this repo's docker image, and barge. 
+Changes to Aquarius have ripple effects to this repo's docker image, and barge.
 
 When you make changes, you have to make sure that you're not breaking downstream components that use this. Kindly make sure that you consider all ripple effects.
 

@@ -29,7 +29,7 @@ event_sample = AttributeDict(
                 "createdBy": "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260",
                 "flags": b"\x00",
                 "data": "",
-                "decryptorUrl": "http://localhost:8030",
+                "decryptorUrl": "http://172.15.0.4:8030",
             }
         ),
         "event": "MetadataCreated",
@@ -54,7 +54,7 @@ event_updated_sample = AttributeDict(
                 "updatedBy": "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260",
                 "flags": b"\x00",
                 "data": "",
-                "decryptorUrl": "http://localhost:8030",
+                "decryptorUrl": "http://172.15.0.4:8030",
             }
         ),
         "event": "MetadataUpdated",

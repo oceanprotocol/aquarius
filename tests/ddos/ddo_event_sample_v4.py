@@ -25,7 +25,7 @@ ddo_event_sample_v4 = {
             "datatokenAddress": "0x20e91598bb797eEd2C7D4431a274c2997D080f53",
             "name": "dataAssetAccess",
             "description": "dataAssetAccess",
-            "serviceEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://172.15.0.4:8030/",
             "timeout": 0,
             "files": "encrypted files",
         },
@@ -35,7 +35,7 @@ ddo_event_sample_v4 = {
             "name": "dataAssetComputingService",
             "description": "dataAssetComputingService",
             "datatokenAddress": "0x20e91598bb797eEd2C7D4431a274c2997D080f53",
-            "serviceEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://172.15.0.4:8030/",
             "timeout": 3600,
             "files": "encrypted files",
             "compute": {

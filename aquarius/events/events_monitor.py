@@ -313,7 +313,7 @@ class EventsMonitor(BlockProcessingClass):
             }
         }
         page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
-        total = page["hits"]["total"]
+        total = page["hits"]["total"]["value"]
         body["size"] = total
         page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
 

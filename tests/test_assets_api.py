@@ -64,16 +64,23 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     _ddo = json_dict.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
     did = ddo["id"]
-    send_create_update_tx("create", ddo, bytes([1]), test_account1)
+    dt_address = ddo["dataToken"]
+    send_create_update_tx(
+        "create",
+        ddo,
+        bytes([1]),
+        test_account1,
+    )
     events_object.process_current_blocks()
+
     result = run_request_get_data(
         client.post,
         query_url,
         {
             "query": {
                 "query_string": {
-                    "query": _ddo["dataToken"],
-                    "default_field": "dataToken",
+                    "query": dt_address,
+                    "default_field": "nft.address",
                 }
             }
         },
