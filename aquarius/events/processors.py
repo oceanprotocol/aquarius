@@ -18,8 +18,10 @@ from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did
-from aquarius.events.constants import MetadataStates
+from aquarius.events.constants import MetadataStates, AQUARIUS_CUSTOM_FIELDS
 from aquarius.graphql import get_number_orders
+from web3.datastructures import AttributeDict
+from hexbytes import HexBytes
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,6 @@ class EventProcessor(ABC):
         allowed_publishers,
         purgatory,
         chain_id,
-        decryptor_url=None,
     ):
         """Initialises common Event processing properties."""
         self.event = event
@@ -43,7 +44,6 @@ class EventProcessor(ABC):
         self.sender_address = sender_address
         self.block = event.blockNumber
         self.txid = self.event.transactionHash.hex()
-        self.decryptor_url = decryptor_url
 
         self._es_instance = es_instance
         self._web3 = web3
@@ -84,15 +84,16 @@ class EventProcessor(ABC):
         block_info = self._web3.eth.get_block(self.event.blockNumber)
         block_time = datetime.fromtimestamp(block_info["timestamp"]).isoformat()
 
-        record["event"] = {
+        record[AQUARIUS_CUSTOM_FIELDS["EVENT"]] = {
             "tx": self.txid,
             "block": self.block,
             "from": self.sender_address,
             "contract": self.event.address,
             "datetime": block_time,
+            "metadata": self.event.args.metaDataHash.hex(),
         }
 
-        record["nft"] = {
+        record[AQUARIUS_CUSTOM_FIELDS["NFT"]] = {
             "address": self.dt_contract.address,
             "name": self.dt_contract.caller.name(),
             "symbol": self.dt_contract.caller.symbol(),
@@ -100,13 +101,22 @@ class EventProcessor(ABC):
             "owner": self.dt_contract.caller.ownerOf(1),
         }
 
-        record["datatokens"] = self.get_tokens_info(record)
+        record[AQUARIUS_CUSTOM_FIELDS["DATATOKENS"]] = self.get_tokens_info(record)
 
-        record["stats"] = {
+        record[AQUARIUS_CUSTOM_FIELDS["STATS"]] = {
             "consumes": get_number_orders(self.dt_contract.address, self.block)
         }
 
         return record, block_time
+
+    def soft_delete_ddo(self, did: str):
+        """Deletes all fields from ES for a given DDO except for the fields listed in AQUARIUS_CUSTOM_FIELDS
+        """
+        old_asset = self._es_instance.read(did)
+        soft_deleted_asset = {
+            k: copy.deepcopy(old_asset)[k] for k in AQUARIUS_CUSTOM_FIELDS.values()
+        }
+        return self._es_instance.update(soft_deleted_asset, did)
 
     def get_tokens_info(self, record):
         datatokens = []
@@ -166,7 +176,7 @@ class MetadataCreatedProcessor(EventProcessor):
         txid = self.txid
         asset = decrypt_ddo(
             self._web3,
-            self.event.args.get("decryptorUrl", self.decryptor_url),
+            self.event.args.decryptorUrl,
             self.event.address,
             self._chain_id,
             txid,
@@ -199,9 +209,25 @@ class MetadataCreatedProcessor(EventProcessor):
             raise Exception("RBAC permission denied.")
 
         _record = self.make_record(asset)
+
         if _record:
             try:
                 record_str = json.dumps(_record)
+                try:
+                    # If DDO doesn't exist _es_instance.read() will throw an error
+                    # and skip this block
+                    self._es_instance.read(did)
+                    self._es_instance.update(record_str, did)
+                    _record = json.loads(record_str)
+                    name = _record["metadata"]["name"]
+                    created = _record["created"]
+                    logger.info(
+                        f"DDO recreated: did={did}, name={name}, "
+                        f"publisher={sender_address}, recreated={created}, chainId={self._chain_id}"
+                    )
+                    return True
+                except Exception:
+                    pass
                 self._es_instance.write(record_str, did)
                 _record = json.loads(record_str)
                 name = _record["metadata"]["name"]
@@ -368,13 +394,33 @@ class MetadataStateProcessor(EventProcessor):
             except Exception:
                 self.asset = None
             if self.asset and self.asset.get("id") == self.did:
-                self._es_instance.delete(self.did)
+                self.soft_delete_ddo(self.did)
             return True
 
         decryptor_url, *_ = self.dt_contract.caller.getMetaData()
 
+        soft_deleted_ddo = self._es_instance.read(self.did)
+
+        # Reacreate an event with the required params from the data stored of
+        # MetadataCreate/MetadataUpdate events after soft deletion
+        event = AttributeDict(
+            {
+                "args": AttributeDict(
+                    {
+                        "metaDataHash": bytes.fromhex(
+                            soft_deleted_ddo["event"]["metadata"]
+                        ),
+                        "decryptorUrl": decryptor_url,
+                    }
+                ),
+                "transactionHash": HexBytes(soft_deleted_ddo["event"]["tx"]),
+                "address": soft_deleted_ddo["nft"]["address"],
+                "blockNumber": soft_deleted_ddo["event"]["block"],
+            }
+        )
+
         event_processor = MetadataCreatedProcessor(
-            self.event,
+            event,
             self.dt_contract,
             self.sender_address,
             self._es_instance,
@@ -382,7 +428,6 @@ class MetadataStateProcessor(EventProcessor):
             self.allowed_publishers,
             self.purgatory,
             self._chain_id,
-            decryptor_url,
         )
 
         return event_processor.process()

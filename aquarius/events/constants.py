@@ -24,3 +24,11 @@ class MetadataStates(IntEnum):
     DEPRECATED = 2
     REVOKED = 3
     ORDERING_DISABLED = 4
+
+
+AQUARIUS_CUSTOM_FIELDS = {
+    "EVENT": "event",
+    "NFT": "nft",
+    "DATATOKENS": "datatokens",
+    "STATS": "stats",
+}

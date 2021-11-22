@@ -290,13 +290,14 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
 
-    # MetadataState updated to other than active should delete the ddo from elasticsearch
+    # MetadataState updated to other than active should soft delete the ddo from elasticsearch
     send_set_metadata_state_tx(
         ddo=_ddo, account=test_account1, state=MetadataStates.DEPRECATED
     )
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
+    # Check if asset is soft deleted
+    assert "id" not in published_ddo
 
     # MetadataState updated to active should delegate to MetadataCreated processor
     # and recreate asset
