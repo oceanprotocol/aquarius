@@ -110,8 +110,7 @@ class EventProcessor(ABC):
         return record, block_time
 
     def soft_delete_ddo(self, did: str):
-        """Deletes all fields from ES for a given DDO except for the fields listed in AQUARIUS_CUSTOM_FIELDS
-        """
+        """Deletes all fields from ES for a given DDO except for the fields listed in AQUARIUS_CUSTOM_FIELDS"""
         old_asset = self._es_instance.read(did)
         soft_deleted_asset = {
             k: copy.deepcopy(old_asset)[k] for k in AQUARIUS_CUSTOM_FIELDS.values()
