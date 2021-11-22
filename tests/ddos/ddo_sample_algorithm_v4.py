@@ -49,7 +49,7 @@ algorithm_ddo_sample = {
             "name": "dataAssetComputingService",
             "description": "dataAssetComputingService",
             "datatokenAddress": "0x20e91598bb797eEd2C7D4431a274c2997D080f53",
-            "serviceEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://172.15.0.4:8030/",
             "timeout": 3600,
             "compute": {
                 "namespace": "test",

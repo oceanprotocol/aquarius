@@ -63,7 +63,7 @@ def get_ddo(client, base_ddo_url, did):
 
 
 def send_create_update_tx(name, ddo, flags, account):
-    provider_url = "http://localhost:8030"
+    provider_url = "http://172.15.0.4:8030"
     provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
     datatoken_address = ddo["dataToken"]
     popped = dict(ddo)

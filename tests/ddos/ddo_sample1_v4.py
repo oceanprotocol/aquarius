@@ -31,7 +31,7 @@ json_dict = {
             "datatokenAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
             "name": "Download service",
             "description": "Download service",
-            "serviceEndpoint": "http://localhost:8030/",
+            "serviceEndpoint": "http://172.15.0.4:8030/",
             "timeout": 0,
             "files": "encryptedFiles",
         }
