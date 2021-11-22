@@ -5,7 +5,7 @@
 import json
 
 from aquarius.constants import BaseURLs
-from aquarius.events.constants import EVENT_METADATA_CREATED
+from aquarius.events.constants import Events
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.helpers import (
@@ -32,14 +32,7 @@ def add_assets(_events_object, name, total=5):
         ddo = new_ddo(test_account1, get_web3(), f"{name}.{i+block}", json_dict)
         assets.append(ddo)
 
-        txs.append(
-            send_create_update_tx(
-                "create",
-                ddo,
-                bytes([1]),
-                test_account1,
-            )[0]
-        )
+        txs.append(send_create_update_tx("create", ddo, bytes([1]), test_account1)[0])
 
     block = txs[0].blockNumber
     _events_object.store_last_processed_block(block)
@@ -52,19 +45,14 @@ def add_assets(_events_object, name, total=5):
 def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
     block = get_web3().eth.block_number
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", json_dict_no_valid_metadata)
-    _ = send_create_update_tx(
-        "create",
-        ddo,
-        bytes([1]),
-        test_account1,
-    )
+    _ = send_create_update_tx("create", ddo, bytes([1]), test_account1)
     events_object.process_current_blocks()
     try:
         published_ddo = get_ddo(client, base_ddo_url, ddo.id)
         assert not published_ddo, (
             "publish should fail, Aquarius validation "
             "should have failed and skipped the "
-            f"{EVENT_METADATA_CREATED} event."
+            f"{Events.EVENT_METADATA_CREATED.value} event."
         )
     except Exception:
         pass
@@ -76,12 +64,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     _ddo = json_dict.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
     did = ddo["id"]
-    send_create_update_tx(
-        "create",
-        ddo,
-        bytes([1]),
-        test_account1,
-    )
+    send_create_update_tx("create", ddo, bytes([1]), test_account1)
     events_object.process_current_blocks()
     result = run_request_get_data(
         client.post,

@@ -3,19 +3,14 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from enum import IntEnum
+from enum import Enum, IntEnum
 
-"""
-Defines values of variables:
-1. `EVENT_METADATA_CREATED`
-2. `EVENT_METADATA_UPDATED`.
-3. `EVENT_METADATA_STATE`.
-4. `EVENT_ORDER_STARTED`
-"""
-EVENT_METADATA_CREATED = "MetadataCreated"
-EVENT_METADATA_UPDATED = "MetadataUpdated"
-EVENT_METADATA_STATE = "MetadataState"
-EVENT_ORDER_STARTED = "OrderStarted"
+
+class Events(Enum):
+    EVENT_METADATA_CREATED = "MetadataCreated"
+    EVENT_METADATA_UPDATED = "MetadataUpdated"
+    EVENT_METADATA_STATE = "MetadataState"
+    EVENT_ORDER_STARTED = "OrderStarted"
 
 
 class MetadataStates(IntEnum):
@@ -26,9 +21,8 @@ class MetadataStates(IntEnum):
     ORDERING_DISABLED = 4
 
 
-AQUARIUS_CUSTOM_FIELDS = {
-    "EVENT": "event",
-    "NFT": "nft",
-    "DATATOKENS": "datatokens",
-    "STATS": "stats",
-}
+class AquariusCustomDDOFields(Enum):
+    EVENT = "event"
+    NFT = "nft"
+    DATATOKENS = "datatokens"
+    STATS = "stats"

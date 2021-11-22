@@ -18,7 +18,7 @@ from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did
-from aquarius.events.constants import MetadataStates, AQUARIUS_CUSTOM_FIELDS
+from aquarius.events.constants import MetadataStates, AquariusCustomDDOFields
 from aquarius.graphql import get_number_orders
 from web3.datastructures import AttributeDict
 from hexbytes import HexBytes
@@ -84,7 +84,7 @@ class EventProcessor(ABC):
         block_info = self._web3.eth.get_block(self.event.blockNumber)
         block_time = datetime.fromtimestamp(block_info["timestamp"]).isoformat()
 
-        record[AQUARIUS_CUSTOM_FIELDS["EVENT"]] = {
+        record[AquariusCustomDDOFields.EVENT.value] = {
             "tx": self.txid,
             "block": self.block,
             "from": self.sender_address,
@@ -93,7 +93,7 @@ class EventProcessor(ABC):
             "metadata": self.event.args.metaDataHash.hex(),
         }
 
-        record[AQUARIUS_CUSTOM_FIELDS["NFT"]] = {
+        record[AquariusCustomDDOFields.NFT.value] = {
             "address": self.dt_contract.address,
             "name": self.dt_contract.caller.name(),
             "symbol": self.dt_contract.caller.symbol(),
@@ -101,9 +101,9 @@ class EventProcessor(ABC):
             "owner": self.dt_contract.caller.ownerOf(1),
         }
 
-        record[AQUARIUS_CUSTOM_FIELDS["DATATOKENS"]] = self.get_tokens_info(record)
+        record[AquariusCustomDDOFields.DATATOKENS.value] = self.get_tokens_info(record)
 
-        record[AQUARIUS_CUSTOM_FIELDS["STATS"]] = {
+        record[AquariusCustomDDOFields.STATS.value] = {
             "consumes": get_number_orders(self.dt_contract.address, self.block)
         }
 
@@ -113,7 +113,8 @@ class EventProcessor(ABC):
         """Deletes all fields from ES for a given DDO except for the fields listed in AQUARIUS_CUSTOM_FIELDS"""
         old_asset = self._es_instance.read(did)
         soft_deleted_asset = {
-            k: copy.deepcopy(old_asset)[k] for k in AQUARIUS_CUSTOM_FIELDS.values()
+            k: copy.deepcopy(old_asset)[k]
+            for k in [custom_field.value for custom_field in AquariusCustomDDOFields]
         }
         return self._es_instance.update(soft_deleted_asset, did)
 
