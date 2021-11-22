@@ -222,7 +222,7 @@ class MetadataCreatedProcessor(EventProcessor):
                     created = _record["created"]
                     logger.info(
                         f"DDO recreated: did={did}, name={name}, "
-                        f"publisher={sender_address}, recreated={created}, chainId={self._chain_id}"
+                        f"publisher={sender_address}, created={created}, chainId={self._chain_id}"
                     )
                     return True
                 except Exception:
