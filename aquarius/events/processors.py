@@ -214,22 +214,7 @@ class MetadataCreatedProcessor(EventProcessor):
         if _record:
             try:
                 record_str = json.dumps(_record)
-                try:
-                    # If DDO doesn't exist _es_instance.read() will throw an error
-                    # and skip this block
-                    self._es_instance.read(did)
-                    self._es_instance.update(record_str, did)
-                    _record = json.loads(record_str)
-                    name = _record["metadata"]["name"]
-                    created = _record["created"]
-                    logger.info(
-                        f"DDO recreated: did={did}, name={name}, "
-                        f"publisher={sender_address}, created={created}, chainId={self._chain_id}"
-                    )
-                    return True
-                except Exception:
-                    pass
-                self._es_instance.write(record_str, did)
+                self._es_instance.update(record_str, did)
                 _record = json.loads(record_str)
                 name = _record["metadata"]["name"]
                 logger.info(

@@ -11,7 +11,7 @@ import elasticsearch
 
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
-from aquarius.events.constants import MetadataStates
+from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.myapp import app
 from tests.helpers import (
     get_ddo,
@@ -287,8 +287,8 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
 
     send_create_update_tx("create", _ddo, bytes([2]), test_account1)
     events_object.process_current_blocks()
-    published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["id"] == did
+    initial_ddo = get_ddo(client, base_ddo_url, did)
+    assert initial_ddo["id"] == did
 
     # MetadataState updated to other than active should soft delete the ddo from elasticsearch
     send_set_metadata_state_tx(
@@ -298,6 +298,8 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Check if asset is soft deleted
     assert "id" not in published_ddo
+    assert list(published_ddo.keys()) == AquariusCustomDDOFields.get_all_values()
+    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
 
     # MetadataState updated to active should delegate to MetadataCreated processor
     # and recreate asset
@@ -306,4 +308,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     )
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
+    # Asset has been recreated
     assert published_ddo["id"] == did
+    # The event after recreation is kept as it uses the same original creation event
+    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
