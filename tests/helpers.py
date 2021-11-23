@@ -14,7 +14,7 @@ from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 from web3.datastructures import AttributeDict
 
-from aquarius.events.constants import Events
+from aquarius.events.constants import EventTypes
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import deploy_datatoken, make_did
 from artifacts import ERC721Template
@@ -73,9 +73,9 @@ def send_create_update_tx(name, ddo, flags, account):
     web3.eth.default_account = account.address
 
     event_name = (
-        Events.EVENT_METADATA_CREATED.value
+        EventTypes.EVENT_METADATA_CREATED
         if name == "create"
-        else Events.EVENT_METADATA_UPDATED.value
+        else EventTypes.EVENT_METADATA_UPDATED
     )
 
     dt_contract = get_web3().eth.contract(

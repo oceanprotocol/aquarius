@@ -15,13 +15,12 @@ from jsonsempai import magic  # noqa: F401
 from artifacts import ERC20Template
 
 from aquarius.app.auth_util import compare_eth_addresses
+from aquarius.events.constants import EventTypes
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did
 from aquarius.events.constants import MetadataStates, AquariusCustomDDOFields
 from aquarius.graphql import get_number_orders
-from web3.datastructures import AttributeDict
-from hexbytes import HexBytes
 
 logger = logging.getLogger(__name__)
 
@@ -84,16 +83,15 @@ class EventProcessor(ABC):
         block_info = self._web3.eth.get_block(self.event.blockNumber)
         block_time = datetime.fromtimestamp(block_info["timestamp"]).isoformat()
 
-        record[AquariusCustomDDOFields.EVENT.value] = {
+        record[AquariusCustomDDOFields.EVENT] = {
             "tx": self.txid,
             "block": self.block,
             "from": self.sender_address,
             "contract": self.event.address,
             "datetime": block_time,
-            "metadata": self.event.args.metaDataHash.hex(),
         }
 
-        record[AquariusCustomDDOFields.NFT.value] = {
+        record[AquariusCustomDDOFields.NFT] = {
             "address": self.dt_contract.address,
             "name": self.dt_contract.caller.name(),
             "symbol": self.dt_contract.caller.symbol(),
@@ -101,9 +99,9 @@ class EventProcessor(ABC):
             "owner": self.dt_contract.caller.ownerOf(1),
         }
 
-        record[AquariusCustomDDOFields.DATATOKENS.value] = self.get_tokens_info(record)
+        record[AquariusCustomDDOFields.DATATOKENS] = self.get_tokens_info(record)
 
-        record[AquariusCustomDDOFields.STATS.value] = {
+        record[AquariusCustomDDOFields.STATS] = {
             "consumes": get_number_orders(self.dt_contract.address, self.block)
         }
 
@@ -114,7 +112,10 @@ class EventProcessor(ABC):
         old_asset = self._es_instance.read(did)
         soft_deleted_asset = {
             k: copy.deepcopy(old_asset)[k]
-            for k in [custom_field.value for custom_field in AquariusCustomDDOFields]
+            for k in [
+                custom_field
+                for custom_field in AquariusCustomDDOFields.get_all_values()
+            ]
         }
         return self._es_instance.update(soft_deleted_asset, did)
 
@@ -396,27 +397,20 @@ class MetadataStateProcessor(EventProcessor):
                 self.soft_delete_ddo(self.did)
             return True
 
-        decryptor_url, *_ = self.dt_contract.caller.getMetaData()
-
         soft_deleted_ddo = self._es_instance.read(self.did)
 
-        # Reacreate an event with the required params from the data stored of
-        # MetadataCreate/MetadataUpdate events after soft deletion
-        event = AttributeDict(
-            {
-                "args": AttributeDict(
-                    {
-                        "metaDataHash": bytes.fromhex(
-                            soft_deleted_ddo["event"]["metadata"]
-                        ),
-                        "decryptorUrl": decryptor_url,
-                    }
-                ),
-                "transactionHash": HexBytes(soft_deleted_ddo["event"]["tx"]),
-                "address": soft_deleted_ddo["nft"]["address"],
-                "blockNumber": soft_deleted_ddo["event"]["block"],
-            }
+        receipt = self._web3.eth.get_transaction_receipt(
+            soft_deleted_ddo["event"]["tx"]
         )
+
+        create_events = self.dt_contract.events[
+            EventTypes.EVENT_METADATA_CREATED
+        ]().processReceipt(receipt)
+        update_events = self.dt_contract.events[
+            EventTypes.EVENT_METADATA_UPDATED
+        ]().processReceipt(receipt)
+
+        event = create_events[0] if len(create_events) != 0 else update_events[0]
 
         event_processor = MetadataCreatedProcessor(
             event,

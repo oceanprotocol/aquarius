@@ -5,7 +5,7 @@
 import json
 
 from aquarius.constants import BaseURLs
-from aquarius.events.constants import Events
+from aquarius.events.constants import EventTypes
 from tests.ddo_samples_invalid import json_dict_no_valid_metadata
 from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.helpers import (
@@ -52,7 +52,7 @@ def test_post_with_no_valid_ddo(client, base_ddo_url, events_object):
         assert not published_ddo, (
             "publish should fail, Aquarius validation "
             "should have failed and skipped the "
-            f"{Events.EVENT_METADATA_CREATED.value} event."
+            f"{EventTypes.EVENT_METADATA_CREATED} event."
         )
     except Exception:
         pass
@@ -65,12 +65,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
     did = ddo["id"]
     dt_address = ddo["dataToken"]
-    send_create_update_tx(
-        "create",
-        ddo,
-        bytes([1]),
-        test_account1,
-    )
+    send_create_update_tx("create", ddo, bytes([1]), test_account1)
     events_object.process_current_blocks()
 
     result = run_request_get_data(
@@ -78,10 +73,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
         query_url,
         {
             "query": {
-                "query_string": {
-                    "query": dt_address,
-                    "default_field": "nft.address",
-                }
+                "query_string": {"query": dt_address, "default_field": "nft.address"}
             }
         },
     )

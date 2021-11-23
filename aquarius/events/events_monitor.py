@@ -16,7 +16,7 @@ from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value
 from aquarius.block_utils import BlockProcessingClass
-from aquarius.events.constants import Events
+from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataStateProcessor,
@@ -188,9 +188,29 @@ class EventsMonitor(BlockProcessingClass):
             "EVENT_METADATA_STATE": MetadataStateProcessor,
         }
 
-        for event_name in event_processors:
+        self.handle_events_processors(
+            event_processors, processor_args, from_block, to_block
+        )
+
+        self.handle_order_started(from_block, to_block)
+
+        self.store_last_processed_block(to_block)
+
+    def handle_events_processors(
+        self, event_processors_mapping, processor_args, from_block, to_block
+    ):
+        """Process emitted events between two given blocks from a mapping of events
+        and processors.
+
+        Args:
+            event_processors_mapping (Dict[str, EventProcessor]): event names and associated processors
+            processor_args (List[any]): list of processors arguments
+            from_block (int): inital block
+            to_block (int): final block
+        """
+        for event_name in event_processors_mapping:
             for event in self.get_event_logs(
-                Events[event_name].value, from_block, to_block
+                EventTypes.get_value(event_name), from_block, to_block
             ):
                 dt_contract = self._web3.eth.contract(
                     abi=ERC721Template.abi, address=event.address
@@ -199,26 +219,22 @@ class EventsMonitor(BlockProcessingClass):
                     event.transactionHash.hex()
                 )
                 event_object = dt_contract.events[
-                    Events[event_name].value
+                    EventTypes.get_value(event_name)
                 ]().processReceipt(receipt)[0]
                 try:
-                    event_processor = event_processors[event_name](
+                    event_processor = event_processors_mapping[event_name](
                         *([event_object, dt_contract, receipt["from"]] + processor_args)
                     )
                     event_processor.process()
                 except Exception as e:
                     logger.exception(
-                        f"Error processing {Events[event_name].value} event: {e}\n"
+                        f"Error processing {EventTypes.get_value(event_name)} event: {e}\n"
                         f"event={event}"
                     )
 
-        self.handle_order_started(from_block, to_block)
-
-        self.store_last_processed_block(to_block)
-
     def handle_order_started(self, from_block, to_block):
         events = self.get_event_logs(
-            Events.EVENT_ORDER_STARTED.value, from_block, to_block
+            EventTypes.EVENT_ORDER_STARTED, from_block, to_block
         )
 
         for event in events:
@@ -324,14 +340,14 @@ class EventsMonitor(BlockProcessingClass):
         return object_list
 
     def get_event_logs(self, event_name, from_block, to_block):
-        if event_name not in set(event.value for event in Events):
+        if event_name not in EventTypes.get_all_values():
             return []
 
-        if event_name == Events.EVENT_METADATA_CREATED.value:
+        if event_name == EventTypes.EVENT_METADATA_CREATED:
             hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
-        elif event_name == Events.EVENT_METADATA_UPDATED.value:
+        elif event_name == EventTypes.EVENT_METADATA_UPDATED:
             hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
-        elif event_name == Events.EVENT_METADATA_STATE.value:
+        elif event_name == EventTypes.EVENT_METADATA_STATE:
             hash_text = "MetadataState(address,uint8,uint256,uint256)"
         else:
             hash_text = "OrderStarted(address,address,uint256,uint256,uint256,address,address,uint256)"
