@@ -5,14 +5,14 @@
 import json
 from unittest.mock import patch
 
-from jsonsempai import magic  # noqa: F401
-from artifacts import ERC20Template
 import elasticsearch
+from jsonsempai import magic  # noqa: F401
 
+from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
-from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.myapp import app
+from artifacts import ERC20Template
 from tests.helpers import (
     get_ddo,
     get_web3,

@@ -136,12 +136,10 @@ def send_set_metadata_state_tx(ddo, account, state):
     web3 = get_web3()
     web3.eth.default_account = account.address
 
-    dt_contract = get_web3().eth.contract(
-        abi=ERC721Template.abi, address=datatoken_address
-    )
+    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=datatoken_address)
 
     txn_hash = dt_contract.functions.setMetaDataState(state).transact()
-    txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
+    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
 
     return txn_receipt
 

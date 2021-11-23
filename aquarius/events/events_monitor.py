@@ -25,7 +25,7 @@ from aquarius.events.processors import (
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block
-from artifacts import ERC721Template, ERC20Template
+from artifacts import ERC20Template, ERC721Template
 
 logger = logging.getLogger(__name__)
 
@@ -187,50 +187,53 @@ class EventsMonitor(BlockProcessingClass):
             "EVENT_METADATA_UPDATED": MetadataUpdatedProcessor,
             "EVENT_METADATA_STATE": MetadataStateProcessor,
         }
-
-        self.handle_events_processors(
-            event_processors, processor_args, from_block, to_block
-        )
+        for event_name in event_processors:
+            self.handle_regular_event_processor(
+                event_name,
+                event_processors[event_name],
+                processor_args,
+                from_block,
+                to_block,
+            )
 
         self.handle_order_started(from_block, to_block)
 
         self.store_last_processed_block(to_block)
 
-    def handle_events_processors(
-        self, event_processors_mapping, processor_args, from_block, to_block
+    def handle_regular_event_processor(
+        self, event_name, processor, processor_args, from_block, to_block
     ):
-        """Process emitted events between two given blocks from a mapping of events
-        and processors.
+        """Process emitted events between two given blocks for a given event name.
 
         Args:
-            event_processors_mapping (Dict[str, EventProcessor]): event names and associated processors
+            event_name (str): event uppercase constant name
+            processor (EventProcessor): event processor
             processor_args (List[any]): list of processors arguments
             from_block (int): inital block
             to_block (int): final block
         """
-        for event_name in event_processors_mapping:
-            for event in self.get_event_logs(
-                EventTypes.get_value(event_name), from_block, to_block
-            ):
-                dt_contract = self._web3.eth.contract(
-                    abi=ERC721Template.abi, address=event.address
+        for event in self.get_event_logs(
+            EventTypes.get_value(event_name), from_block, to_block
+        ):
+            dt_contract = self._web3.eth.contract(
+                abi=ERC721Template.abi, address=event.address
+            )
+            receipt = self._web3.eth.get_transaction_receipt(
+                event.transactionHash.hex()
+            )
+            event_object = dt_contract.events[
+                EventTypes.get_value(event_name)
+            ]().processReceipt(receipt)[0]
+            try:
+                event_processor = processor(
+                    *([event_object, dt_contract, receipt["from"]] + processor_args)
                 )
-                receipt = self._web3.eth.get_transaction_receipt(
-                    event.transactionHash.hex()
+                event_processor.process()
+            except Exception as e:
+                logger.exception(
+                    f"Error processing {EventTypes.get_value(event_name)} event: {e}\n"
+                    f"event={event}"
                 )
-                event_object = dt_contract.events[
-                    EventTypes.get_value(event_name)
-                ]().processReceipt(receipt)[0]
-                try:
-                    event_processor = event_processors_mapping[event_name](
-                        *([event_object, dt_contract, receipt["from"]] + processor_args)
-                    )
-                    event_processor.process()
-                except Exception as e:
-                    logger.exception(
-                        f"Error processing {EventTypes.get_value(event_name)} event: {e}\n"
-                        f"event={event}"
-                    )
 
     def handle_order_started(self, from_block, to_block):
         events = self.get_event_logs(
