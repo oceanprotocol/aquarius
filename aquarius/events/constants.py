@@ -8,10 +8,10 @@ from enum import IntEnum
 
 class SimpleEnum:
     """This class can be used as a replacement for enum.Enum class.
-        - The attributes are accessible with `ClassName.ATTR`
-        - :func:`get_value` returns the value for a given key
-        - :func:`get_all_keys` returns a list of all the keys
-        - :func:`get_all_values` returns a list of all the values
+    - The attributes are accessible with `ClassName.ATTR`
+    - :func:`get_value` returns the value for a given key
+    - :func:`get_all_keys` returns a list of all the keys
+    - :func:`get_all_values` returns a list of all the values
     """
 
     @classmethod

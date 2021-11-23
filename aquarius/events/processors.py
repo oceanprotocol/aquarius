@@ -396,31 +396,31 @@ class MetadataStateProcessor(EventProcessor):
             if self.asset and self.asset.get("id") == self.did:
                 self.soft_delete_ddo(self.did)
             return True
+        else:
+            soft_deleted_ddo = self._es_instance.read(self.did)
 
-        soft_deleted_ddo = self._es_instance.read(self.did)
+            receipt = self._web3.eth.get_transaction_receipt(
+                soft_deleted_ddo["event"]["tx"]
+            )
 
-        receipt = self._web3.eth.get_transaction_receipt(
-            soft_deleted_ddo["event"]["tx"]
-        )
+            create_events = self.dt_contract.events[
+                EventTypes.EVENT_METADATA_CREATED
+            ]().processReceipt(receipt)
+            update_events = self.dt_contract.events[
+                EventTypes.EVENT_METADATA_UPDATED
+            ]().processReceipt(receipt)
 
-        create_events = self.dt_contract.events[
-            EventTypes.EVENT_METADATA_CREATED
-        ]().processReceipt(receipt)
-        update_events = self.dt_contract.events[
-            EventTypes.EVENT_METADATA_UPDATED
-        ]().processReceipt(receipt)
+            event = create_events[0] if len(create_events) != 0 else update_events[0]
 
-        event = create_events[0] if len(create_events) != 0 else update_events[0]
+            event_processor = MetadataCreatedProcessor(
+                event,
+                self.dt_contract,
+                self.sender_address,
+                self._es_instance,
+                self._web3,
+                self.allowed_publishers,
+                self.purgatory,
+                self._chain_id,
+            )
 
-        event_processor = MetadataCreatedProcessor(
-            event,
-            self.dt_contract,
-            self.sender_address,
-            self._es_instance,
-            self._web3,
-            self.allowed_publishers,
-            self.purgatory,
-            self._chain_id,
-        )
-
-        return event_processor.process()
+            return event_processor.process()
