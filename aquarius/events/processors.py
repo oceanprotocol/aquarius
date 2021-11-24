@@ -122,6 +122,13 @@ class EventProcessor(ABC):
         }
         return self._es_instance.update(soft_deleted_asset, did)
 
+    def update_aqua_ntf_state_data(self, new_state: str, did: str):
+        """Updates NFT state field from the aquarius custom fields data listed in AquariusCustomDDOFields for a given
+        DID"""
+        asset_to_update = self._es_instance.read(did)
+        asset_to_update[AquariusCustomDDOFields.NFT]["state"] = new_state
+        return self._es_instance.update(asset_to_update, did)
+
     def get_tokens_info(self, record):
         datatokens = []
         for service in record.get("services"):
@@ -380,6 +387,7 @@ class MetadataStateProcessor(EventProcessor):
             try:
                 self._es_instance.read(self.did)
                 self.soft_delete_ddo(self.did)
+                self.update_aqua_ntf_state_data(self.event.args.state, self.did)
             except Exception:
                 pass
             return

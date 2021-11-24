@@ -299,7 +299,13 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     # Check if asset is soft deleted
     assert "id" not in published_ddo
     assert list(published_ddo.keys()) == AquariusCustomDDOFields.get_all_values()
-    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
+    assert (
+        published_ddo[AquariusCustomDDOFields.EVENT]["tx"]
+        == initial_ddo[AquariusCustomDDOFields.EVENT]["tx"]
+    )
+    assert (
+        published_ddo[AquariusCustomDDOFields.NFT]["state"] == MetadataStates.DEPRECATED
+    )
 
     # MetadataState updated to active should delegate to MetadataCreated processor
     # and recreate asset
@@ -312,3 +318,5 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     assert published_ddo["id"] == did
     # The event after recreation is kept as it uses the same original creation event
     assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
+    # The NFT state is active
+    assert published_ddo[AquariusCustomDDOFields.NFT]["state"] == MetadataStates.ACTIVE
