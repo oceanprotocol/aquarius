@@ -10,12 +10,11 @@ import uuid
 
 import requests
 from eth_account import Account
-from eth_utils import add_0x_prefix, remove_0x_prefix
 from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 from web3.datastructures import AttributeDict
 
-from aquarius.events.constants import EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED
+from aquarius.events.constants import EventTypes
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import deploy_datatoken, make_did
 from artifacts import ERC721Template
@@ -73,7 +72,11 @@ def send_create_update_tx(name, ddo, flags, account):
     web3 = get_web3()
     web3.eth.default_account = account.address
 
-    event_name = EVENT_METADATA_CREATED if name == "create" else EVENT_METADATA_UPDATED
+    event_name = (
+        EventTypes.EVENT_METADATA_CREATED
+        if name == "create"
+        else EventTypes.EVENT_METADATA_UPDATED
+    )
 
     dt_contract = get_web3().eth.contract(
         abi=ERC721Template.abi, address=datatoken_address
@@ -125,6 +128,20 @@ def send_create_update_tx(name, ddo, flags, account):
     _ = getattr(dt_contract.events, event_name)().processReceipt(txn_receipt)
 
     return txn_receipt, dt_contract, erc20_address
+
+
+def send_set_metadata_state_tx(ddo, account, state):
+    datatoken_address = ddo["dataToken"]
+
+    web3 = get_web3()
+    web3.eth.default_account = account.address
+
+    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=datatoken_address)
+
+    txn_hash = dt_contract.functions.setMetaDataState(state).transact()
+    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
+
+    return txn_receipt
 
 
 def run_request_get_data(client_method, url, data=None):

@@ -5,18 +5,20 @@
 import json
 from unittest.mock import patch
 
-from jsonsempai import magic  # noqa: F401
-from artifacts import ERC20Template
 import elasticsearch
+from jsonsempai import magic  # noqa: F401
 
+from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
+from artifacts import ERC20Template
 from tests.helpers import (
     get_ddo,
     get_web3,
     new_ddo,
     send_create_update_tx,
+    send_set_metadata_state_tx,
     test_account1,
     test_account3,
 )
@@ -275,3 +277,38 @@ def test_order_started(events_object, client, base_ddo_url):
     published_ddo = get_ddo(client, base_ddo_url, did)
     # TODO: currently the graph for v4 is WIP, need to replace this
     assert published_ddo["stats"]["consumes"] == -1
+
+
+def test_metadata_state_update(client, base_ddo_url, events_object):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    events_object.process_current_blocks()
+    initial_ddo = get_ddo(client, base_ddo_url, did)
+    assert initial_ddo["id"] == did
+
+    # MetadataState updated to other than active should soft delete the ddo from elasticsearch
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.DEPRECATED
+    )
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    # Check if asset is soft deleted
+    assert "id" not in published_ddo
+    assert list(published_ddo.keys()) == AquariusCustomDDOFields.get_all_values()
+    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
+
+    # MetadataState updated to active should delegate to MetadataCreated processor
+    # and recreate asset
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
+    )
+    events_object.process_current_blocks()
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    # Asset has been recreated
+    assert published_ddo["id"] == did
+    # The event after recreation is kept as it uses the same original creation event
+    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]

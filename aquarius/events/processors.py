@@ -3,22 +3,27 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import copy
-from datetime import datetime
 import json
 import logging
 import os
 from abc import ABC
+from datetime import datetime
 from hashlib import sha256
 
 import requests
 from jsonsempai import magic  # noqa: F401
-from artifacts import ERC20Template
 
 from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
+from aquarius.events.constants import (
+    AquariusCustomDDOFields,
+    EventTypes,
+    MetadataStates,
+)
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did
 from aquarius.graphql import get_number_orders
+from artifacts import ERC20Template
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +86,7 @@ class EventProcessor(ABC):
         block_info = self._web3.eth.get_block(self.event.blockNumber)
         block_time = datetime.fromtimestamp(block_info["timestamp"]).isoformat()
 
-        record["event"] = {
+        record[AquariusCustomDDOFields.EVENT] = {
             "tx": self.txid,
             "block": self.block,
             "from": self.sender_address,
@@ -89,7 +94,7 @@ class EventProcessor(ABC):
             "datetime": block_time,
         }
 
-        record["nft"] = {
+        record[AquariusCustomDDOFields.NFT] = {
             "address": self.dt_contract.address,
             "name": self.dt_contract.caller.name(),
             "symbol": self.dt_contract.caller.symbol(),
@@ -97,13 +102,25 @@ class EventProcessor(ABC):
             "owner": self.dt_contract.caller.ownerOf(1),
         }
 
-        record["datatokens"] = self.get_tokens_info(record)
+        record[AquariusCustomDDOFields.DATATOKENS] = self.get_tokens_info(record)
 
-        record["stats"] = {
+        record[AquariusCustomDDOFields.STATS] = {
             "consumes": get_number_orders(self.dt_contract.address, self.block)
         }
 
         return record, block_time
+
+    def soft_delete_ddo(self, did: str):
+        """Deletes all fields from ES for a given DDO except for the fields listed in AquariusCustomDDOFields"""
+        old_asset = self._es_instance.read(did)
+        soft_deleted_asset = {
+            k: copy.deepcopy(old_asset)[k]
+            for k in [
+                custom_field
+                for custom_field in AquariusCustomDDOFields.get_all_values()
+            ]
+        }
+        return self._es_instance.update(soft_deleted_asset, did)
 
     def get_tokens_info(self, record):
         datatokens = []
@@ -196,10 +213,11 @@ class MetadataCreatedProcessor(EventProcessor):
             raise Exception("RBAC permission denied.")
 
         _record = self.make_record(asset)
+
         if _record:
             try:
                 record_str = json.dumps(_record)
-                self._es_instance.write(record_str, did)
+                self._es_instance.update(record_str, did)
                 _record = json.loads(record_str)
                 name = _record["metadata"]["name"]
                 logger.info(
@@ -352,3 +370,48 @@ class OrderStartedProcessor:
         self.es_instance.update(self.asset, self.did)
 
         return self.asset
+
+
+class MetadataStateProcessor(EventProcessor):
+    def process(self):
+        self.did = make_did(self.event.address, self._chain_id)
+
+        if self.event.args.state != MetadataStates.ACTIVE:
+            try:
+                self._es_instance.read(self.did)
+                self.soft_delete_ddo(self.did)
+            except Exception:
+                pass
+            return
+
+        soft_deleted_ddo = self._es_instance.read(self.did)
+
+        receipt = self._web3.eth.get_transaction_receipt(
+            soft_deleted_ddo["event"]["tx"]
+        )
+
+        create_events = self.dt_contract.events[
+            EventTypes.EVENT_METADATA_CREATED
+        ]().processReceipt(receipt)
+        update_events = self.dt_contract.events[
+            EventTypes.EVENT_METADATA_UPDATED
+        ]().processReceipt(receipt)
+
+        if not create_events and not update_events:
+            logger.error("create/update ddo event not found")
+            return False
+
+        event = create_events[0] if create_events else update_events[0]
+
+        event_processor = MetadataCreatedProcessor(
+            event,
+            self.dt_contract,
+            self.sender_address,
+            self._es_instance,
+            self._web3,
+            self.allowed_publishers,
+            self.purgatory,
+            self._chain_id,
+        )
+
+        return event_processor.process()
