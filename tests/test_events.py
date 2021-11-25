@@ -6,6 +6,7 @@ import json
 from unittest.mock import patch
 
 import elasticsearch
+import time
 from jsonsempai import magic  # noqa: F401
 
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
@@ -299,7 +300,13 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     # Check if asset is soft deleted
     assert "id" not in published_ddo
     assert list(published_ddo.keys()) == AquariusCustomDDOFields.get_all_values()
-    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
+    assert (
+        published_ddo[AquariusCustomDDOFields.EVENT]["tx"]
+        == initial_ddo[AquariusCustomDDOFields.EVENT]["tx"]
+    )
+    assert (
+        published_ddo[AquariusCustomDDOFields.NFT]["state"] == MetadataStates.DEPRECATED
+    )
 
     # MetadataState updated to active should delegate to MetadataCreated processor
     # and recreate asset
@@ -307,8 +314,11 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
     )
     events_object.process_current_blocks()
+    time.sleep(5)
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Asset has been recreated
     assert published_ddo["id"] == did
     # The event after recreation is kept as it uses the same original creation event
     assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
+    # The NFT state is active
+    assert published_ddo[AquariusCustomDDOFields.NFT]["state"] == MetadataStates.ACTIVE
