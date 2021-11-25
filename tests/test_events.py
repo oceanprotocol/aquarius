@@ -296,6 +296,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         ddo=_ddo, account=test_account1, state=MetadataStates.DEPRECATED
     )
     events_object.process_current_blocks()
+    time.sleep(5)
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Check if asset is soft deleted
     assert "id" not in published_ddo
