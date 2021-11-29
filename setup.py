@@ -58,7 +58,7 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==6.1.2",
     "mccabe==0.6.1",
-    "pylint==2.11.1",
+    "pylint==2.12.1",
     "pytest",
     "tox",
     "pytest-env",
