@@ -26,7 +26,7 @@ install_requirements = [
     "Jinja2>=2.10.1",
     "requests>=2.21.0",
     "gunicorn==20.1.0",
-    "elasticsearch==7.15.1",
+    "elasticsearch==7.15.2",
     "PyYAML==6.0",
     "pytz==2021.3",
     # temporarily removed
@@ -44,8 +44,8 @@ setup_requirements = ["pytest-runner==5.3.1"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
-    "pkginfo==1.7.1",
-    "twine==3.4.2",
+    "pkginfo==1.8.1",
+    "twine==3.6.0",
     "flake8",
     "isort",
     "black",
@@ -58,9 +58,9 @@ dev_requirements = [
 test_requirements = [
     "Flask==2.0.2",
     "codacy-coverage==1.3.11",
-    "coverage==6.0.2",
+    "coverage==6.2",
     "mccabe==0.6.1",
-    "pylint==2.11.1",
+    "pylint==2.12.1",
     "pytest",
     "tox",
     "pytest-env",
