@@ -74,7 +74,7 @@ def deploy_datatoken(w3, account, name, symbol):
 
     built_tx = dt_factory.functions.deployERC721Contract(
         name, symbol, 1, "0x0000000000000000000000000000000000000000", ""
-    ).buildTransaction({"from": account.address})
+    ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
     raw_tx = sign_tx(w3, built_tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(raw_tx)

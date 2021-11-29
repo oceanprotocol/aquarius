@@ -31,7 +31,7 @@ install_requirements = [
     "pytz==2021.3",
     # temporarily removed
     # "ocean-contracts==0.6.9",
-    "web3==5.24.0",
+    "web3==5.25.0",
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
