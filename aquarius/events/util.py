@@ -74,7 +74,7 @@ def deploy_datatoken(w3, account, name, symbol):
 
     built_tx = dt_factory.functions.deployERC721Contract(
         name, symbol, 1, "0x0000000000000000000000000000000000000000", ""
-    ).buildTransaction({"from": account.address})
+    ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
     raw_tx = sign_tx(w3, built_tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(raw_tx)
@@ -118,16 +118,18 @@ def get_address_file():
 
 def get_metadata_start_block():
     """Returns the block number to use as start"""
-    # TODO
-    return 0
     block_number = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
     if not block_number:
         address_file = get_address_file()
         with open(address_file) as f:
             address_json = json.load(f)
         network = get_network_name()
+        # TODO: this is still a dependency from barge,
+        # the key will probably have a different name so it needs update
         if "startBlock" in address_json[network]:
             block_number = address_json[network]["startBlock"]
+        else:
+            block_number = 0
 
     return block_number
 
