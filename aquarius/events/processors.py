@@ -138,7 +138,7 @@ class EventProcessor(ABC):
 
             datatokens.append(
                 {
-                    "adddress": service["datatokenAddress"],
+                    "address": service["datatokenAddress"],
                     "name": token_contract.caller.name(),
                     "symbol": token_contract.caller.symbol(),
                     "serviceId": service["id"],
