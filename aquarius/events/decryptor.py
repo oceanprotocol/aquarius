@@ -12,7 +12,7 @@ from eth_account.messages import encode_defunct
 
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid):
     aquarius_account = Account.from_key(os.environ.get("PRIVATE_KEY"))
-    nonce = datetime.now().timestamp()
+    nonce = str(datetime.now().timestamp())
     signature = aquarius_account.sign_message(
         encode_defunct(text=f"{txid}{aquarius_account.address}{chain_id}{nonce}")
     ).signature.hex()
