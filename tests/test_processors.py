@@ -107,18 +107,6 @@ def test_is_publisher_allowed():
     assert processor.is_publisher_allowed(processor.sender_address) is True
 
 
-def test_check_document_hash():
-    original_dict = {"some_json": "for testing"}
-    original_string = json.dumps(original_dict)
-    hash_result = sha256(original_string.encode("utf-8")).hexdigest()
-    event_sample.args.__dict__["metaDataHash"] = Web3.toBytes(hexstr=hash_result)
-
-    processor = MetadataCreatedProcessor(
-        event_sample, None, None, None, None, None, None, None
-    )
-    assert processor.check_document_hash(original_dict) is True
-
-
 def test_process_fallback(monkeypatch, client, base_ddo_url, events_object):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
