@@ -39,6 +39,7 @@ def run_test(client, base_ddo_url, events_instance, flags):
     assert published_ddo["id"] == did
     for service in published_ddo["services"]:
         assert service["datatokenAddress"] == erc20_address
+        assert service["name"] == "dataAssetAccess"
 
     _ddo["metadata"]["name"] = "Updated ddo by event"
     send_create_update_tx("update", _ddo, bytes([flags]), test_account1)

@@ -14,7 +14,8 @@ from hashlib import sha256
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
     pk = os.environ.get("PRIVATE_KEY", None)
     if pk is None:
-        raise Exception(f"Missing Aquarius PRIVATE_KEY")
+        raise Exception("Missing Aquarius PRIVATE_KEY")
+
     aquarius_account = Account.from_key(pk)
     nonce = str(datetime.now().timestamp())
     signature = aquarius_account.sign_message(

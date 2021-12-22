@@ -88,9 +88,9 @@ class EventProcessor(ABC):
 
         record[AquariusCustomDDOFields.NFT] = {
             "address": self.dt_contract.address,
-            "name": self.get_token_name(self.dt_contract),
-            "symbol": self.get_token_symbol(self.dt_contract),
-            "state": self.get_nft_metaDataState(),
+            "name": self._get_contract_attribute(self.dt_contract, "name"),
+            "symbol": self._get_contract_attribute(self.dt_contract, "symbol"),
+            "state": self._get_contract_attribute(self.dt_contract, "metaDataState"),
             "owner": self.get_nft_owner(),
         }
 
@@ -131,38 +131,20 @@ class EventProcessor(ABC):
             datatokens.append(
                 {
                     "address": service["datatokenAddress"],
-                    "name": self.get_token_name(token_contract),
-                    "symbol": self.get_token_symbol(token_contract),
+                    "name": self._get_contract_attribute(token_contract, "name"),
+                    "symbol": self._get_contract_attribute(token_contract, "symbol"),
                     "serviceId": service["id"],
                 }
             )
 
         return datatokens
 
-    def get_token_name(self, contract):
+    def _get_contract_attribute(self, contract, attr_name):
         data = ""
         try:
-            data = contract.caller.name()
+            data = getattr(contract.caller, attr_name)()
         except Exception as e:
-            logger.warn(f"Cannot get token name: {e}")
-            pass
-        return data
-
-    def get_token_symbol(self, contract):
-        data = ""
-        try:
-            data = contract.caller.symbol()
-        except Exception as e:
-            logger.warn(f"Cannot get token symbol: {e}")
-            pass
-        return data
-
-    def get_nft_metaDataState(self):
-        data = ""
-        try:
-            data = self.dt_contract.caller.metaDataState()
-        except Exception as e:
-            logger.warn(f"Cannot get NFT metaDataState: {e}")
+            logger.warn(f"Cannot get token {attr_name}: {e}")
             pass
         return data
 
