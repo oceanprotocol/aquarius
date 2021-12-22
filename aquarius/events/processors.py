@@ -8,12 +8,10 @@ import logging
 import os
 from abc import ABC
 from datetime import datetime
-from hashlib import sha256
 
 import requests
 from jsonsempai import magic  # noqa: F401
 
-from aquarius.app.auth_util import compare_eth_addresses
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.constants import (
     AquariusCustomDDOFields,
@@ -74,12 +72,6 @@ class EventProcessor(ABC):
         except Exception:
             return False
 
-    def check_document_hash(self, asset):
-        document_hash = self.event.args.metaDataHash
-        return (
-            sha256(json.dumps(asset).encode("utf-8")).hexdigest() == document_hash.hex()
-        )
-
     def add_aqua_data(self, record):
         """Adds keys that are specific to Aquarius, on top of the DDO structure:
         event, nft, datatokens."""
@@ -96,10 +88,10 @@ class EventProcessor(ABC):
 
         record[AquariusCustomDDOFields.NFT] = {
             "address": self.dt_contract.address,
-            "name": self.dt_contract.caller.name(),
-            "symbol": self.dt_contract.caller.symbol(),
-            "state": self.dt_contract.caller.metaDataState(),
-            "owner": self.dt_contract.caller.ownerOf(1),
+            "name": self.get_token_name(self.dt_contract),
+            "symbol": self.get_token_symbol(self.dt_contract),
+            "state": self.get_nft_metaDataState(),
+            "owner": self.get_nft_owner(),
         }
 
         record[AquariusCustomDDOFields.DATATOKENS] = self.get_tokens_info(record)
@@ -139,13 +131,49 @@ class EventProcessor(ABC):
             datatokens.append(
                 {
                     "address": service["datatokenAddress"],
-                    "name": token_contract.caller.name(),
-                    "symbol": token_contract.caller.symbol(),
+                    "name": self.get_token_name(token_contract),
+                    "symbol": self.get_token_symbol(token_contract),
                     "serviceId": service["id"],
                 }
             )
 
         return datatokens
+
+    def get_token_name(self, contract):
+        data = ""
+        try:
+            data = contract.caller.name()
+        except Exception as e:
+            logger.warn(f"Cannot get token name: {e}")
+            pass
+        return data
+
+    def get_token_symbol(self, contract):
+        data = ""
+        try:
+            data = contract.caller.symbol()
+        except Exception as e:
+            logger.warn(f"Cannot get token symbol: {e}")
+            pass
+        return data
+
+    def get_nft_metaDataState(self):
+        data = ""
+        try:
+            data = self.dt_contract.caller.metaDataState()
+        except Exception as e:
+            logger.warn(f"Cannot get NFT metaDataState: {e}")
+            pass
+        return data
+
+    def get_nft_owner(self):
+        data = ""
+        try:
+            data = self.dt_contract.caller.ownerOf(1)
+        except Exception as e:
+            logger.warn(f"Cannot get NFT ownerOf: {e}")
+            pass
+        return data
 
 
 class MetadataCreatedProcessor(EventProcessor):
@@ -191,10 +219,10 @@ class MetadataCreatedProcessor(EventProcessor):
             self.event.address,
             self._chain_id,
             txid,
+            self.event.args.metaDataHash,
         )
-
-        if not self.check_document_hash(asset):
-            return False
+        if not asset:
+            raise Exception("Decrypt ddo failed")
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
@@ -275,10 +303,11 @@ class MetadataUpdatedProcessor(EventProcessor):
             self.event.address,
             self._chain_id,
             txid,
+            self.event.args.metaDataHash,
         )
 
-        if not self.check_document_hash(asset):
-            return False
+        if not asset:
+            raise Exception("Decrypt ddo failed")
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
@@ -344,12 +373,6 @@ class MetadataUpdatedProcessor(EventProcessor):
             logger.warning(
                 f"asset was updated later (block: {ddo_block}) vs transaction block: {self.block}"
             )
-            return False
-
-        if not compare_eth_addresses(
-            old_asset["publicKey"][0]["owner"], sender_address, logger
-        ):
-            logger.warning("Transaction sender must mach ddo owner")
             return False
 
         return True
