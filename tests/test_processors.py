@@ -144,6 +144,3 @@ def test_do_decode_update():
         "publicKey": [{"owner": "some_address"}],
     }
     assert processor.check_update(None, old_asset, "") is False
-
-    processor.block = bk_block
-    assert processor.check_update(None, old_asset, "") is False
