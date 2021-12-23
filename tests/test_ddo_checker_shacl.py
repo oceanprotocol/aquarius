@@ -50,7 +50,7 @@ def test_sample_schema():
     assert not conforms
     errors = parse_report_to_errors(results_graph)
     assert "id" in errors
-    assert errors["id"] == "Less than 1 value on schema:id"
+    assert "Less than 1 value on schema" in errors["id"]
 
     data = json.dumps(
         {

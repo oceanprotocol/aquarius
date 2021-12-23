@@ -79,7 +79,5 @@ def test_validate_error_remote(client, base_ddo_url, monkeypatch):
         data={"@context": ["test"], "services": "bla", "version": "4.0.0"},
     )
     assert rv.status_code == 200
-    assert (
-        rv.json["errors"]["services"]
-        == "Value does not conform to Shape schema:ServiceShape"
-    )
+    assert "Value does not conform to Shape schema" in rv.json["errors"]["services"]
+    assert "ServiceShape" in rv.json["errors"]["services"]
