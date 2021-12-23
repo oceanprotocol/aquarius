@@ -29,7 +29,7 @@ def get_number_orders(token_address, last_sync_block):
         number_orders = result["datatokens"][0]["orderVolume"]
     except (KeyError, IndexError, ClientConnectorError):
         logger.error(
-            "Can not get number of orders for subgraph {get_network_name()} did {did}"
+            f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
         )
         return -1
 
