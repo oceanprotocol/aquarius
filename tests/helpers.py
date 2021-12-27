@@ -121,7 +121,7 @@ def send_create_update_tx(name, ddo, flags, account):
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
     txn_hash = dt_contract.functions.setMetaData(
-        0, provider_url, provider_address, flags, encrypted_data, dataHash
+        0, provider_url, provider_address, flags, encrypted_data, dataHash, []
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
