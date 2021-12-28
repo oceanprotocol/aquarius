@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import json
 from tests.helpers import run_request
 from unittest.mock import patch
 
@@ -18,7 +19,7 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
     post = run_request(
         client_with_no_data.post,
         base_ddo_url + "/validate",
-        data=json_valid_copy,
+        data=json.dumps(json_valid_copy),
         headers={"Content-Type": "application/octet-stream"},
     )
     assert post.hash != b""
@@ -31,7 +32,7 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
     post = run_request(
         client_with_no_data.post,
         base_ddo_url + "/validate",
-        data=json_valid_copy,
+        data=json.dumps(json_valid_copy),
         headers={"Content-Type": "application/octet-stream"},
     )
     assert post.hash != b""
@@ -49,7 +50,7 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
         post = run_request(
             client_with_no_data.post,
             base_ddo_url + "/validate",
-            data=json_valid_copy,
+            data=json.dumps(json_valid_copy),
             headers={"Content-Type": "application/octet-stream"},
         )
         assert post.status_code == 400
@@ -72,7 +73,7 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
         rv = run_request(
             client.post,
             base_ddo_url + "/validate",
-            data={"service": [], "test": "test", "version": "4.0.0"},
+            data=json.dumps({"service": [], "test": "test", "version": "4.0.0"}),
             headers={"Content-Type": "application/octet-stream"},
         )
         assert rv.status_code == 500
@@ -83,7 +84,7 @@ def test_validate_error_remote(client, base_ddo_url, monkeypatch):
     rv = run_request(
         client.post,
         base_ddo_url + "/validate",
-        data={"@context": ["test"], "services": "bla", "version": "4.0.0"},
+        data=json.dumps({"@context": ["test"], "services": "bla", "version": "4.0.0"}),
         headers={"Content-Type": "application/octet-stream"},
     )
     assert rv.status_code == 400
