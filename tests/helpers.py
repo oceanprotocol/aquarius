@@ -44,8 +44,7 @@ def new_ddo(account, web3, name, ddo=None):
     chain_id = web3.eth.chain_id
     _ddo["id"] = make_did(dt_address, chain_id)
     _ddo["chainId"] = chain_id
-    # just for test purposes, referenced only in send_create_update_tx
-    _ddo["dataToken"] = dt_address
+    _ddo["nftAddress"] = dt_address
     return AttributeDict(_ddo)
 
 
@@ -64,10 +63,7 @@ def get_ddo(client, base_ddo_url, did):
 def send_create_update_tx(name, ddo, flags, account):
     provider_url = "http://172.15.0.4:8030"
     provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
-    datatoken_address = ddo["dataToken"]
-    popped = dict(ddo)
-    popped.pop("dataToken")
-    ddo = AttributeDict(popped)
+    datatoken_address = ddo["nftAddress"]
 
     web3 = get_web3()
     web3.eth.default_account = account.address

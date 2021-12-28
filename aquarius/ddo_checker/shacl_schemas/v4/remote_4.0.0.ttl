@@ -28,6 +28,12 @@ schema:DDOShape
         sh:maxCount 1 ;
     ] ;
     sh:property [
+        sh:path schema:nftAddress;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
         sh:path schema:metadata ;
         sh:node schema:MetadataShape ;
         sh:minCount 1;

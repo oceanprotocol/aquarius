@@ -64,7 +64,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     _ddo = json_dict.copy()
     ddo = new_ddo(test_account1, get_web3(), f"dt.{block}", _ddo)
     did = ddo["id"]
-    dt_address = ddo["dataToken"]
+    dt_address = ddo["nftAddress"]
     send_create_update_tx("create", ddo, bytes([1]), test_account1)
     events_object.process_current_blocks()
 

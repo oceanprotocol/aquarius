@@ -178,7 +178,9 @@ class MetadataCreatedProcessor(EventProcessor):
             logger.error("DDO has no version.")
             return False
 
-        valid_remote, errors = validate_dict(_record)
+        valid_remote, errors = validate_dict(
+            _record, self._chain_id, self.dt_contract.address
+        )
 
         if not valid_remote:
             logger.error(
@@ -261,7 +263,9 @@ class MetadataUpdatedProcessor(EventProcessor):
             logger.error("DDO has no version.")
             return False
 
-        valid_remote, errors = validate_dict(_record)
+        valid_remote, errors = validate_dict(
+            _record, self._chain_id, self.dt_contract.address
+        )
 
         if not valid_remote:
             logger.error(f"ddo update has validation errors: {errors}")
