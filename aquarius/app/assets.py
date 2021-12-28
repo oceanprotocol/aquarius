@@ -326,7 +326,9 @@ def validate_remote():
         if not version:
             return jsonify([{"message": "no version provided for DDO."}])
 
-        valid, errors = validate_dict(data)
+        valid, errors = validate_dict(
+            data, data.get("chainId", ""), data.get("nftAddress", "")
+        )
 
         if valid:
             return jsonify(True)
