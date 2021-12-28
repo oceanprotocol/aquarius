@@ -88,7 +88,7 @@ def validate_dict(dict_orig, chain_id, nft_address):
     if not nft_address:
         extra_errors["nftAddress"] = "nftAddress is missing or invalid."
 
-    if not make_did(str(chain_id), nft_address) == dict_orig.get("id"):
+    if not make_did(nft_address, str(chain_id)) == dict_orig.get("id"):
         extra_errors["id"] = "did is not valid for chain Id and nft address"
 
     # @context key is reserved in JSON-LD format

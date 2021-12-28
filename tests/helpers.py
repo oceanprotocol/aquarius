@@ -127,7 +127,7 @@ def send_create_update_tx(name, ddo, flags, account):
 
 
 def send_set_metadata_state_tx(ddo, account, state):
-    datatoken_address = ddo["dataToken"]
+    datatoken_address = ddo["nftAddress"]
 
     web3 = get_web3()
     web3.eth.default_account = account.address

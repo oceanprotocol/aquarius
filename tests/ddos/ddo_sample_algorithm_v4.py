@@ -4,10 +4,10 @@
 #
 algorithm_ddo_sample = {
     "@context": ["https://w3id.org/did/v1"],
-    "id": "did:op:0de711db3e0d534b92e827af56d27d172bb22627a135304066562dc6a3528ac1",
+    "id": "did:op:af051054d397c9d7f79dcca7391ba9f93941e99845ecf1ae132a3d203e450009",
     "version": "4.0.0",
     "chainId": 1337,
-    "nftAddress": "0xabc",
+    "nftAddress": "0xabcd",
     "proof": {
         "created": "2019-02-08T08:13:41Z",
         "creator": "0x37BB53e3d293494DE59fBe1FF78500423dcFd43B",

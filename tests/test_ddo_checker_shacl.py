@@ -74,7 +74,7 @@ def test_remote_ddo_passes():
     assert valid
 
     valid, _ = validate_dict(
-        algorithm_ddo_sample, json_dict["chainId"], json_dict["nftAddress"]
+        algorithm_ddo_sample, algorithm_ddo_sample["chainId"], algorithm_ddo_sample["nftAddress"]
     )
     assert valid
 
