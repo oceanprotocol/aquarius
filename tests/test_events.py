@@ -218,11 +218,11 @@ def test_process_block_range(client, base_ddo_url, events_object):
 
 
 def test_get_last_processed_block(events_object):
+    start_block = events_object._start_block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        assert events_object.get_last_processed_block() == 0
+        assert events_object.get_last_processed_block() == start_block
 
-    start_block = events_object._start_block
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.return_value = {"last_block": intended_block}
