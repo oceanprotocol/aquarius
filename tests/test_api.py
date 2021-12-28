@@ -34,8 +34,6 @@ def test_invalid_requests(client_with_no_data, base_ddo_url, query_url):
     assert response.status == "400 BAD REQUEST"
 
     response = run_request(
-        client_with_no_data.post,
-        base_ddo_url + "/validate-remote",
-        "not a dict request",
+        client_with_no_data.post, base_ddo_url + "/validate", "not a dict request"
     )
     assert response.status == "400 BAD REQUEST"
