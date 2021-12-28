@@ -336,8 +336,9 @@ def validate_remote():
         wallet = Account.from_key(private_key=pk)
         values["publicKey"] = wallet.address
         keys_pk = keys.PrivateKey(wallet.key)
-        values["hash"] = sha256(raw).digest()
-        signed = keys.ecdsa_sign(message_hash=values["hash"], private_key=keys_pk)
+        hashed_raw = sha256(raw)
+        values["hash"] = hashed_raw.hexdigest()
+        signed = keys.ecdsa_sign(message_hash=hashed_raw.digest(), private_key=keys_pk)
         values["v"] = (signed.v + 27) if signed.v <= 1 else signed.v
         values["r"] = (Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),)
         values["s"] = (Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),)

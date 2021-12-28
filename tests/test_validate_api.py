@@ -21,7 +21,7 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
         data=json.dumps(json_valid_copy),
     )
     data = post.get_json()
-    assert data.hash != b""
+    assert data["hash"] != b""
 
     # still valid if only one of "allow" and "deny are present
     json_valid_copy["credentials"] = {
@@ -34,7 +34,7 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
         data=json.dumps(json_valid_copy),
     )
     data = post.get_json()
-    assert data.hash != b""
+    assert data["hash"] != b""
 
     invalid_credentials = [
         {"allow": [{"type": "address", "value": ["0x123", "0x456A"]}]},
