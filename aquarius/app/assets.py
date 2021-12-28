@@ -3,17 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import elasticsearch
+from flask import Blueprint, jsonify, request
 import json
 import logging
-
-from flask import Blueprint, jsonify, request
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import sanitize_record, get_signature_vrs
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-
 
 setup_logging()
 assets = Blueprint("assets", __name__)
