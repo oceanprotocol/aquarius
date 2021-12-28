@@ -5,10 +5,8 @@
 
 import elasticsearch
 import json
-import os
 import time
 from jsonsempai import magic  # noqa: F401
-from eth_account.account import Account
 from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
 from unittest.mock import patch
@@ -17,6 +15,7 @@ from web3.main import Web3
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
+from aquarius.app.util import get_aquarius_wallet
 from aquarius.myapp import app
 from artifacts import ERC20Template
 from tests.helpers import (
@@ -273,8 +272,7 @@ def test_order_started(events_object, client, base_ddo_url):
         test_account3.address, web3.toWei(10, "ether")
     ).transact({"from": test_account1.address})
     # mock provider fees
-    pk = os.environ.get("PRIVATE_KEY", None)
-    provider_wallet = Account.from_key(private_key=pk)
+    provider_wallet = get_aquarius_wallet()
     provider_fee_amount = 0
     provider_data = json.dumps({"timeout": 0}, separators=(",", ":"))
     provider_fee_address = provider_wallet.address

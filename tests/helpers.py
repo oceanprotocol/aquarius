@@ -162,10 +162,6 @@ def run_request(client_method, url, data=None):
 
 def run_request_octet(client_method, url, data=None):
     if data is None:
-        _response = client_method(url, content_type="application/octet-stream")
-    else:
-        _response = client_method(
-            url, data=data, content_type="application/octet-stream"
-        )
+        return client_method(url, content_type="application/octet-stream")
 
-    return _response
+    return client_method(url, data=data, content_type="application/octet-stream")

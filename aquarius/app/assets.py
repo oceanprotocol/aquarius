@@ -5,23 +5,16 @@
 import elasticsearch
 import json
 import logging
-import os
 
-from eth_account.account import Account
-from eth_keys import KeyAPI
-from eth_keys.backends import NativeECCBackend
 from flask import Blueprint, jsonify, request
-from hashlib import sha256
-from web3.main import Web3
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import sanitize_record
+from aquarius.app.util import sanitize_record, get_signature_vrs
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 
 
-keys = KeyAPI(NativeECCBackend)
 setup_logging()
 assets = Blueprint("assets", __name__)
 
@@ -329,19 +322,8 @@ def validate_remote():
             400,
         )
 
-    pk = os.environ.get("PRIVATE_KEY", None)
-    values = {"hash": "", "publicKey": "", "r": "", "s": "", "v": ""}
-    if pk:
-        raw = request.get_data()
-        wallet = Account.from_key(private_key=pk)
-        values["publicKey"] = wallet.address
-        keys_pk = keys.PrivateKey(wallet.key)
-        hashed_raw = sha256(raw)
-        values["hash"] = hashed_raw.hexdigest()
-        signed = keys.ecdsa_sign(message_hash=hashed_raw.digest(), private_key=keys_pk)
-        values["v"] = (signed.v + 27) if signed.v <= 1 else signed.v
-        values["r"] = (Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),)
-        values["s"] = (Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),)
+    raw = request.get_data()
+
     try:
         data = json.loads(raw.decode("utf-8"))
         if not isinstance(data, dict):
@@ -361,7 +343,7 @@ def validate_remote():
         )
 
         if valid:
-            return jsonify(values)
+            return jsonify(get_signature_vrs(raw))
 
         return (jsonify(errors=errors), 400)
     except json.decoder.JSONDecodeError as e:
