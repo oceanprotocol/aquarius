@@ -70,19 +70,41 @@ def test_sample_schema():
 
 
 def test_remote_ddo_passes():
-    valid, _ = validate_dict(json_dict)
+    valid, _ = validate_dict(json_dict, json_dict["chainId"], json_dict["nftAddress"])
     assert valid
 
-    valid, errors = validate_dict(algorithm_ddo_sample)
+    valid, _ = validate_dict(
+        algorithm_ddo_sample,
+        algorithm_ddo_sample["chainId"],
+        algorithm_ddo_sample["nftAddress"],
+    )
     assert valid
 
 
 def test_remote_ddo_fails():
+    _copy = copy.deepcopy(json_dict)
+    valid, errors = validate_dict(_copy, "", "")
+    assert not valid
+    assert errors["chainId"] == "chainId is missing or invalid."
+    assert errors["nftAddress"] == "nftAddress is missing or invalid."
+
+    _copy = copy.deepcopy(json_dict)
+    valid, errors = validate_dict(_copy, 1234, json_dict["nftAddress"])
+    assert not valid
+    assert errors["id"] == "did is not valid for chain Id and nft address"
+
+    _copy = copy.deepcopy(json_dict)
+    valid, errors = validate_dict(_copy, json_dict["chainId"], "0xabcd")
+    assert not valid
+    assert errors["id"] == "did is not valid for chain Id and nft address"
+
     for required_prop in ["id", "version"]:
         _copy = copy.deepcopy(json_dict)
         _copy.pop(required_prop)
 
-        valid, errors = validate_dict(_copy)
+        valid, errors = validate_dict(
+            _copy, json_dict["chainId"], json_dict["nftAddress"]
+        )
         assert not valid
         assert required_prop in errors
 
@@ -90,12 +112,12 @@ def test_remote_ddo_fails():
     _copy["version"] = "something not semver"
 
     with pytest.raises(AssertionError):
-        validate_dict(_copy)
+        validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
 
     # services invalid
     _copy = copy.deepcopy(json_dict)
     _copy["services"][0].pop("files")
-    valid, errors = validate_dict(_copy)
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
     assert "services" in errors
 
@@ -103,14 +125,16 @@ def test_remote_ddo_fails():
         _copy = copy.deepcopy(json_dict)
         _copy["services"][0].pop(required_prop)
 
-        valid, errors = validate_dict(_copy)
+        valid, errors = validate_dict(
+            _copy, json_dict["chainId"], json_dict["nftAddress"]
+        )
         assert not valid
         assert "services" in errors
 
     _copy = copy.deepcopy(json_dict)
     _copy["services"][0]["timeout"] = "not an integer"
 
-    valid, errors = validate_dict(_copy)
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
     assert "services" in errors
 
@@ -120,27 +144,27 @@ def test_remote_ddo_metadata_fails():
         _copy = copy.deepcopy(json_dict)
         _copy["metadata"].pop(required_prop)
 
-        valid, _ = validate_dict(_copy)
+        valid, _ = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
         assert not valid
 
     _copy = copy.deepcopy(json_dict)
     _copy["metadata"]["created"] = "not iso format"
-    valid, errors = validate_dict(_copy)
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
     assert errors["metadata"] == "created is not in iso format."
 
     _copy = copy.deepcopy(json_dict)
     _copy["metadata"]["links"] = 14  # not a link or string list
-    valid, _ = validate_dict(_copy)
+    valid, _ = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
 
     _copy = copy.deepcopy(json_dict)
     _copy["metadata"]["tags"] = 14  # not a string or string list
-    valid, _ = validate_dict(_copy)
+    valid, _ = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
 
     _copy = copy.deepcopy(algorithm_ddo_sample)
     _copy["metadata"]["algorithm"]["container"] = None
 
-    valid, errors = validate_dict(_copy)
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
