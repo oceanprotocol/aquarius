@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import json
-from tests.helpers import run_request
+from tests.helpers import run_request_octet
 from unittest.mock import patch
 
 from tests.ddos.ddo_sample1_v4 import json_dict
@@ -15,27 +15,26 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
         "allow": [{"type": "address", "values": ["0x123", "0x456A"]}],
         "deny": [{"type": "address", "values": ["0x2222", "0x333"]}],
     }
-
-    post = run_request(
+    post = run_request_octet(
         client_with_no_data.post,
         base_ddo_url + "/validate",
         data=json.dumps(json_valid_copy),
-        headers={"Content-Type": "application/octet-stream"},
     )
-    assert post.hash != b""
+    data = post.get_json()
+    assert data.hash != b""
 
     # still valid if only one of "allow" and "deny are present
     json_valid_copy["credentials"] = {
         "deny": [{"type": "address", "values": ["0x2222", "0x333"]}]
     }
 
-    post = run_request(
+    post = run_request_octet(
         client_with_no_data.post,
         base_ddo_url + "/validate",
         data=json.dumps(json_valid_copy),
-        headers={"Content-Type": "application/octet-stream"},
     )
-    assert post.hash != b""
+    data = post.get_json()
+    assert data.hash != b""
 
     invalid_credentials = [
         {"allow": [{"type": "address", "value": ["0x123", "0x456A"]}]},
@@ -47,46 +46,43 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
     for invalid_credential in invalid_credentials:
         json_valid_copy["credentials"] = invalid_credential
 
-        post = run_request(
+        post = run_request_octet(
             client_with_no_data.post,
             base_ddo_url + "/validate",
             data=json.dumps(json_valid_copy),
-            headers={"Content-Type": "application/octet-stream"},
         )
         assert post.status_code == 400
 
 
 def test_validate_remote_noversion(client_with_no_data, base_ddo_url):
-    post = run_request(
-        client_with_no_data.post,
-        base_ddo_url + "/validate",
-        data={},
-        headers={"Content-Type": "application/octet-stream"},
+    post = run_request_octet(
+        client_with_no_data.post, base_ddo_url + "/validate", data=json.dumps({})
     )
+    data = post.get_json()
     assert post.status_code == 400
-    assert post.json[0]["message"] == "no version provided for DDO."
+    assert data[0]["message"] == "no version provided for DDO."
 
 
 def test_validate_error(client, base_ddo_url, monkeypatch):
     with patch("aquarius.app.assets.validate_dict") as mock:
         mock.side_effect = Exception("Boom!")
-        rv = run_request(
+        rv = run_request_octet(
             client.post,
             base_ddo_url + "/validate",
             data=json.dumps({"service": [], "test": "test", "version": "4.0.0"}),
-            headers={"Content-Type": "application/octet-stream"},
         )
+        data = rv.get_json()
         assert rv.status_code == 500
-        assert rv.json["error"] == "Encountered error when validating asset: Boom!."
+        assert data["error"] == "Encountered error when validating asset: Boom!."
 
 
 def test_validate_error_remote(client, base_ddo_url, monkeypatch):
-    rv = run_request(
+    rv = run_request_octet(
         client.post,
         base_ddo_url + "/validate",
         data=json.dumps({"@context": ["test"], "services": "bla", "version": "4.0.0"}),
-        headers={"Content-Type": "application/octet-stream"},
     )
+    data = rv.get_json()
     assert rv.status_code == 400
-    assert "Value does not conform to Shape schema" in rv.json["errors"]["services"]
-    assert "ServiceShape" in rv.json["errors"]["services"]
+    assert "Value does not conform to Shape schema" in data["errors"]["services"]
+    assert "ServiceShape" in data["errors"]["services"]

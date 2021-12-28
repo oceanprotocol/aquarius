@@ -153,12 +153,23 @@ def run_request_get_data(client_method, url, data=None):
     return None
 
 
-def run_request(client_method, url, data=None, headers=None):
+def run_request(client_method, url, data=None):
     if data is None:
-        _response = client_method(url, content_type="application/json", headers=headers)
+        _response = client_method(url, content_type="application/json")
     else:
         _response = client_method(
-            url, data=json.dumps(data), content_type="application/json", headers=headers
+            url, data=json.dumps(data), content_type="application/json"
+        )
+
+    return _response
+
+
+def run_request_octet(client_method, url, data=None):
+    if data is None:
+        _response = client_method(url, content_type="application/octet-stream")
+    else:
+        _response = client_method(
+            url, data=data, content_type="application/octet-stream"
         )
 
     return _response

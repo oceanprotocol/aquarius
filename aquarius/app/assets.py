@@ -337,12 +337,12 @@ def validate_remote():
         values["publicKey"] = wallet.address
         keys_pk = keys.PrivateKey(wallet.key)
         values["hash"] = sha256(raw).digest()
-        signed = (keys.ecdsa_sign(message_hash=values["hash"], private_key=keys_pk),)
-        values["v"] = ((signed.v + 27) if signed.v <= 1 else signed.v,)
+        signed = keys.ecdsa_sign(message_hash=values["hash"], private_key=keys_pk)
+        values["v"] = (signed.v + 27) if signed.v <= 1 else signed.v
         values["r"] = (Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),)
         values["s"] = (Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),)
     try:
-        data = json.loads(raw)
+        data = json.loads(raw.decode("utf-8"))
         if not isinstance(data, dict):
             return (
                 jsonify(
@@ -351,7 +351,7 @@ def validate_remote():
                 400,
             )
 
-        version = data.get("version")
+        version = data.get("version", None)
         if not version:
             return (jsonify([{"message": "no version provided for DDO."}]), 400)
 
@@ -361,6 +361,9 @@ def validate_remote():
             return jsonify(values)
 
         return (jsonify(errors=errors), 400)
+    except json.decoder.JSONDecodeError as e:
+        logger.error(f"json validate error: {str(e)}.")
+        return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 400
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500
