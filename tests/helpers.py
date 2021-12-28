@@ -153,12 +153,12 @@ def run_request_get_data(client_method, url, data=None):
     return None
 
 
-def run_request(client_method, url, data=None):
+def run_request(client_method, url, data=None, headers=None):
     if data is None:
-        _response = client_method(url, content_type="application/json")
+        _response = client_method(url, content_type="application/json", headers=headers)
     else:
         _response = client_method(
-            url, data=json.dumps(data), content_type="application/json"
+            url, data=json.dumps(data), content_type="application/json", headers=headers
         )
 
     return _response

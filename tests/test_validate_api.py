@@ -17,10 +17,11 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
 
     post = run_request(
         client_with_no_data.post,
-        base_ddo_url + "/validate-remote",
+        base_ddo_url + "/validate",
         data=json_valid_copy,
+        headers={"Content-Type": "application/octet-stream"},
     )
-    assert post.data == b"true\n"
+    assert post.hash != b""
 
     # still valid if only one of "allow" and "deny are present
     json_valid_copy["credentials"] = {
@@ -29,10 +30,11 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
 
     post = run_request(
         client_with_no_data.post,
-        base_ddo_url + "/validate-remote",
+        base_ddo_url + "/validate",
         data=json_valid_copy,
+        headers={"Content-Type": "application/octet-stream"},
     )
-    assert post.data == b"true\n"
+    assert post.hash != b""
 
     invalid_credentials = [
         {"allow": [{"type": "address", "value": ["0x123", "0x456A"]}]},
@@ -46,17 +48,21 @@ def test_validate_credentials(client_with_no_data, base_ddo_url):
 
         post = run_request(
             client_with_no_data.post,
-            base_ddo_url + "/validate-remote",
+            base_ddo_url + "/validate",
             data=json_valid_copy,
+            headers={"Content-Type": "application/octet-stream"},
         )
-        assert post.data != b"true\n"
+        assert post.status_code == 400
 
 
 def test_validate_remote_noversion(client_with_no_data, base_ddo_url):
     post = run_request(
-        client_with_no_data.post, base_ddo_url + "/validate-remote", data={}
+        client_with_no_data.post,
+        base_ddo_url + "/validate",
+        data={},
+        headers={"Content-Type": "application/octet-stream"},
     )
-    assert post.status_code == 200
+    assert post.status_code == 400
     assert post.json[0]["message"] == "no version provided for DDO."
 
 
@@ -65,8 +71,9 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
         mock.side_effect = Exception("Boom!")
         rv = run_request(
             client.post,
-            base_ddo_url + "/validate-remote",
+            base_ddo_url + "/validate",
             data={"service": [], "test": "test", "version": "4.0.0"},
+            headers={"Content-Type": "application/octet-stream"},
         )
         assert rv.status_code == 500
         assert rv.json["error"] == "Encountered error when validating asset: Boom!."
@@ -75,9 +82,10 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
 def test_validate_error_remote(client, base_ddo_url, monkeypatch):
     rv = run_request(
         client.post,
-        base_ddo_url + "/validate-remote",
+        base_ddo_url + "/validate",
         data={"@context": ["test"], "services": "bla", "version": "4.0.0"},
+        headers={"Content-Type": "application/octet-stream"},
     )
-    assert rv.status_code == 200
+    assert rv.status_code == 400
     assert "Value does not conform to Shape schema" in rv.json["errors"]["services"]
     assert "ServiceShape" in rv.json["errors"]["services"]

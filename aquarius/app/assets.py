@@ -4,17 +4,24 @@
 #
 import json
 import logging
+import os
+from hashlib import sha256
 
 import elasticsearch
+from eth_account.account import Account
+from eth_keys import KeyAPI
+from eth_keys.backends import NativeECCBackend
 from flask import Blueprint, jsonify, request
-from aquarius.ddo_checker.shacl_checker import validate_dict
+from web3.main import Web3
+
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import (
-    sanitize_record,
-)
+from aquarius.app.util import sanitize_record
+from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 
+
+keys = KeyAPI(NativeECCBackend)
 setup_logging()
 assets = Blueprint("assets", __name__)
 
@@ -287,14 +294,14 @@ def query_ddo():
         return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
 
 
-@assets.route("/ddo/validate-remote", methods=["POST"])
+@assets.route("/ddo/validate", methods=["POST"])
 def validate_remote():
     """Validate DDO content.
     ---
     tags:
       - ddo
     consumes:
-      - application/json
+      - application/octet-stream
     parameters:
       - in: body
         name: body
@@ -305,15 +312,37 @@ def validate_remote():
     responses:
       200:
         description: successfully request.
-        example:
-          application/json: true
       400:
         description: Invalid DDO format
       500:
         description: Error
     """
+    if request.content_type != "application/octet-stream":
+        return (
+            jsonify(
+                [
+                    {
+                        "message": "Invalid request content type: should be application/octet-stream"
+                    }
+                ]
+            ),
+            400,
+        )
+
+    pk = os.environ.get("PRIVATE_KEY", None)
+    values = {"hash": "", "publicKey": "", "r": "", "s": "", "v": ""}
+    if pk:
+        raw = request.get_data()
+        wallet = Account.from_key(private_key=pk)
+        values["publicKey"] = wallet.address
+        keys_pk = keys.PrivateKey(wallet.key)
+        values["hash"] = sha256(raw).digest()
+        signed = (keys.ecdsa_sign(message_hash=values["hash"], private_key=keys_pk),)
+        values["v"] = ((signed.v + 27) if signed.v <= 1 else signed.v,)
+        values["r"] = (Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),)
+        values["s"] = (Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),)
     try:
-        data = request.json
+        data = json.loads(raw)
         if not isinstance(data, dict):
             return (
                 jsonify(
@@ -324,14 +353,14 @@ def validate_remote():
 
         version = data.get("version")
         if not version:
-            return jsonify([{"message": "no version provided for DDO."}])
+            return (jsonify([{"message": "no version provided for DDO."}]), 400)
 
         valid, errors = validate_dict(data)
 
         if valid:
-            return jsonify(True)
+            return jsonify(values)
 
-        return jsonify(errors=errors)
+        return (jsonify(errors=errors), 400)
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500
