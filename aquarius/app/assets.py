@@ -2,16 +2,16 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import elasticsearch
 import json
 import logging
 import os
+from hashlib import sha256
 
+import elasticsearch
 from eth_account.account import Account
 from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
 from flask import Blueprint, jsonify, request
-from hashlib import sha256
 from web3.main import Web3
 
 from aquarius.app.es_instance import ElasticsearchInstance
@@ -19,7 +19,6 @@ from aquarius.app.util import sanitize_record
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.log import setup_logging
 from aquarius.myapp import app
-
 
 keys = KeyAPI(NativeECCBackend)
 setup_logging()
