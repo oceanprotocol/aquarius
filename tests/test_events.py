@@ -2,16 +2,20 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import json
-from unittest.mock import patch
 
 import elasticsearch
+import json
 import time
 from jsonsempai import magic  # noqa: F401
+from eth_keys import KeyAPI
+from eth_keys.backends import NativeECCBackend
+from unittest.mock import patch
+from web3.main import Web3
 
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
+from aquarius.app.util import get_aquarius_wallet
 from aquarius.myapp import app
 from artifacts import ERC20Template
 from tests.helpers import (
@@ -23,6 +27,8 @@ from tests.helpers import (
     test_account1,
     test_account3,
 )
+
+keys = KeyAPI(NativeECCBackend)
 
 
 def run_test(client, base_ddo_url, events_instance, flags):
@@ -218,11 +224,11 @@ def test_process_block_range(client, base_ddo_url, events_object):
 
 
 def test_get_last_processed_block(events_object):
+    start_block = events_object._start_block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        assert events_object.get_last_processed_block() == 0
+        assert events_object.get_last_processed_block() == start_block
 
-    start_block = events_object._start_block
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.return_value = {"last_block": intended_block}
@@ -265,13 +271,43 @@ def test_order_started(events_object, client, base_ddo_url):
     token_contract.functions.mint(
         test_account3.address, web3.toWei(10, "ether")
     ).transact({"from": test_account1.address})
+    # mock provider fees
+    provider_wallet = get_aquarius_wallet()
+    provider_fee_amount = 0
+    provider_data = json.dumps({"timeout": 0}, separators=(",", ":"))
+    provider_fee_address = provider_wallet.address
+    provider_fee_token = "0x0000000000000000000000000000000000000000"
+    message = Web3.solidityKeccak(
+        ["bytes", "address", "address", "uint256"],
+        [
+            Web3.toHex(Web3.toBytes(text=provider_data)),
+            provider_fee_address,
+            provider_fee_token,
+            provider_fee_amount,
+        ],
+    )
+    pk = keys.PrivateKey(provider_wallet.key)
+    signed = keys.ecdsa_sign(message_hash=message, private_key=pk)
+    provider_fee = {
+        "providerFeeAddress": provider_fee_address,
+        "providerFeeToken": provider_fee_token,
+        "providerFeeAmount": provider_fee_amount,
+        "providerData": Web3.toHex(Web3.toBytes(text=provider_data)),
+        # make it compatible with last openzepellin https://github.com/OpenZeppelin/openzeppelin-contracts/pull/1622
+        "v": signed.v + 27,
+        "r": Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),
+        "s": Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),
+    }
     txn = token_contract.functions.startOrder(
         test_account3.address,
-        web3.toWei(1, "ether"),
         1,
-        "0x0000000000000000000000000000000000000000",
-        "0x0000000000000000000000000000000000000000",
-        0,
+        provider_fee["providerFeeAddress"],
+        provider_fee["providerFeeToken"],
+        provider_fee["providerFeeAmount"],
+        provider_fee["v"],
+        provider_fee["r"],
+        provider_fee["s"],
+        provider_fee["providerData"],
     ).transact({"from": test_account3.address})
     web3.eth.wait_for_transaction_receipt(txn)
     events_object.process_current_blocks()

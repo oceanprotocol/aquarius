@@ -27,7 +27,6 @@ jobs:
       - name: Run Barge
         working-directory: ${{ github.workspace }}/barge
         run: |
-          export PROVIDER_VERSION=encrypt_decrypt
           bash -x start_ocean.sh --no-aquarius --no-dashboard --with-rbac 2>&1 > start_ocean.log &
           for i in $(seq 1 50); do
             sleep 5

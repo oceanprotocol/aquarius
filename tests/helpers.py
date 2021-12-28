@@ -44,8 +44,7 @@ def new_ddo(account, web3, name, ddo=None):
     chain_id = web3.eth.chain_id
     _ddo["id"] = make_did(dt_address, chain_id)
     _ddo["chainId"] = chain_id
-    # just for test purposes, referenced only in send_create_update_tx
-    _ddo["dataToken"] = dt_address
+    _ddo["nftAddress"] = dt_address
     return AttributeDict(_ddo)
 
 
@@ -64,10 +63,7 @@ def get_ddo(client, base_ddo_url, did):
 def send_create_update_tx(name, ddo, flags, account):
     provider_url = "http://172.15.0.4:8030"
     provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"
-    datatoken_address = ddo["dataToken"]
-    popped = dict(ddo)
-    popped.pop("dataToken")
-    ddo = AttributeDict(popped)
+    datatoken_address = ddo["nftAddress"]
 
     web3 = get_web3()
     web3.eth.default_account = account.address
@@ -121,7 +117,7 @@ def send_create_update_tx(name, ddo, flags, account):
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
     txn_hash = dt_contract.functions.setMetaData(
-        0, provider_url, provider_address, flags, encrypted_data, dataHash
+        0, provider_url, provider_address, flags, encrypted_data, dataHash, []
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
@@ -131,7 +127,7 @@ def send_create_update_tx(name, ddo, flags, account):
 
 
 def send_set_metadata_state_tx(ddo, account, state):
-    datatoken_address = ddo["dataToken"]
+    datatoken_address = ddo["nftAddress"]
 
     web3 = get_web3()
     web3.eth.default_account = account.address
@@ -162,3 +158,10 @@ def run_request(client_method, url, data=None):
         )
 
     return _response
+
+
+def run_request_octet(client_method, url, data=None):
+    if data is None:
+        return client_method(url, content_type="application/octet-stream")
+
+    return client_method(url, data=data, content_type="application/octet-stream")

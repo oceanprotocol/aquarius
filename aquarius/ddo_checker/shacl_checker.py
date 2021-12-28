@@ -10,6 +10,8 @@ from pathlib import Path
 import pkg_resources
 from pyshacl import validate
 
+from aquarius.events.util import make_did
+
 
 def get_schema(version="4.0.0"):
     """Gets the schema file corresponding to the version."""
@@ -59,7 +61,7 @@ def is_iso_format(date_string):
     return True
 
 
-def validate_dict(dict_orig):
+def validate_dict(dict_orig, chain_id, nft_address):
     """Performs shacl validation on a dict. Returns a tuple of conforms, error messages."""
     dictionary = copy.deepcopy(dict_orig)
     dictionary["@type"] = "DDO"
@@ -79,6 +81,15 @@ def validate_dict(dict_orig):
 
         if not is_iso_format(dict_orig["metadata"][attr]):
             extra_errors["metadata"] = attr + " is not in iso format."
+
+    if not chain_id:
+        extra_errors["chainId"] = "chainId is missing or invalid."
+
+    if not nft_address:
+        extra_errors["nftAddress"] = "nftAddress is missing or invalid."
+
+    if not make_did(nft_address, str(chain_id)) == dict_orig.get("id"):
+        extra_errors["id"] = "did is not valid for chain Id and nft address"
 
     # @context key is reserved in JSON-LD format
     dictionary["@context"] = {"@vocab": "http://schema.org/"}

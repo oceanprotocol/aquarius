@@ -2,16 +2,14 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import elasticsearch
+from flask import Blueprint, jsonify, request
 import json
 import logging
 
-import elasticsearch
-from flask import Blueprint, jsonify, request
-from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import (
-    sanitize_record,
-)
+from aquarius.app.util import sanitize_record, get_signature_vrs
+from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 
@@ -287,14 +285,14 @@ def query_ddo():
         return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
 
 
-@assets.route("/ddo/validate-remote", methods=["POST"])
+@assets.route("/ddo/validate", methods=["POST"])
 def validate_remote():
     """Validate DDO content.
     ---
     tags:
       - ddo
     consumes:
-      - application/json
+      - application/octet-stream
     parameters:
       - in: body
         name: body
@@ -305,15 +303,27 @@ def validate_remote():
     responses:
       200:
         description: successfully request.
-        example:
-          application/json: true
       400:
         description: Invalid DDO format
       500:
         description: Error
     """
+    if request.content_type != "application/octet-stream":
+        return (
+            jsonify(
+                [
+                    {
+                        "message": "Invalid request content type: should be application/octet-stream"
+                    }
+                ]
+            ),
+            400,
+        )
+
+    raw = request.get_data()
+
     try:
-        data = request.json
+        data = json.loads(raw.decode("utf-8"))
         if not isinstance(data, dict):
             return (
                 jsonify(
@@ -322,16 +332,21 @@ def validate_remote():
                 400,
             )
 
-        version = data.get("version")
+        version = data.get("version", None)
         if not version:
-            return jsonify([{"message": "no version provided for DDO."}])
+            return (jsonify([{"message": "no version provided for DDO."}]), 400)
 
-        valid, errors = validate_dict(data)
+        valid, errors = validate_dict(
+            data, data.get("chainId", ""), data.get("nftAddress", "")
+        )
 
         if valid:
-            return jsonify(True)
+            return jsonify(get_signature_vrs(raw))
 
-        return jsonify(errors=errors)
+        return (jsonify(errors=errors), 400)
+    except json.decoder.JSONDecodeError as e:
+        logger.error(f"json validate error: {str(e)}.")
+        return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 400
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500

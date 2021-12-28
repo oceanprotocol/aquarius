@@ -4,9 +4,10 @@
 #
 json_dict = {
     "@context": ["https://w3id.org/did/v1"],
-    "id": "did:op:0c184915b07b44c888d468be85a9b28253e80070e5294b1aaed81c2f0264e430",
+    "id": "did:op:56c3d0ac76c02cc5cec98993be2b23c8a681800c08f2ff77d40c895907517280",
     "version": "4.0.0",
     "chainId": 1337,
+    "nftAddress": "0xabc",
     "metadata": {
         "created": "2000-10-31T01:30:00.000-05:00Z",
         "updated": "2000-10-31T01:30:00.000-05:00",

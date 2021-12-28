@@ -347,9 +347,9 @@ class EventsMonitor(BlockProcessingClass):
             return []
 
         if event_name == EventTypes.EVENT_METADATA_CREATED:
-            hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
+            hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
         elif event_name == EventTypes.EVENT_METADATA_UPDATED:
-            hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes,uint256,uint256)"
+            hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
         elif event_name == EventTypes.EVENT_METADATA_STATE:
             hash_text = "MetadataState(address,uint8,uint256,uint256)"
         else:
