@@ -337,7 +337,12 @@ def validate_remote():
         keys_pk = keys.PrivateKey(wallet.key)
         hashed_raw = sha256(raw)
         values["hash"] = hashed_raw.hexdigest()
-        signed = keys.ecdsa_sign(message_hash=hashed_raw.digest(), private_key=keys_pk)
+        prefix = "\x19Ethereum Signed Message:\n32"
+        message = Web3.solidityKeccak(
+            ["bytes", "bytes"],
+            [Web3.toBytes(text=prefix), Web3.toBytes(hashed_raw.digest())],
+        )
+        signed = keys.ecdsa_sign(message_hash=message, private_key=keys_pk)
         values["v"] = (signed.v + 27) if signed.v <= 1 else signed.v
         values["r"] = (Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),)
         values["s"] = (Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),)

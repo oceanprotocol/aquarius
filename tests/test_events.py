@@ -289,7 +289,11 @@ def test_order_started(events_object, client, base_ddo_url):
         ],
     )
     pk = keys.PrivateKey(provider_wallet.key)
-    signed = keys.ecdsa_sign(message_hash=message, private_key=pk)
+    prefix = "\x19Ethereum Signed Message:\n32"
+    messageHash = Web3.solidityKeccak(
+        ["bytes", "bytes"], [Web3.toBytes(text=prefix), Web3.toBytes(message)]
+    )
+    signed = keys.ecdsa_sign(message_hash=messageHash, private_key=pk)
     provider_fee = {
         "providerFeeAddress": provider_fee_address,
         "providerFeeToken": provider_fee_token,
