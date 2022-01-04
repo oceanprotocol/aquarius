@@ -277,7 +277,7 @@ def test_order_started(events_object, client, base_ddo_url):
     provider_data = json.dumps({"timeout": 0}, separators=(",", ":"))
     provider_fee_address = provider_wallet.address
     provider_fee_token = "0x0000000000000000000000000000000000000000"
-    message = Web3.solidityKeccak(
+    message_hash = Web3.solidityKeccak(
         ["bytes", "address", "address", "uint256"],
         [
             Web3.toHex(Web3.toBytes(text=provider_data)),
@@ -288,10 +288,10 @@ def test_order_started(events_object, client, base_ddo_url):
     )
     pk = keys.PrivateKey(provider_wallet.key)
     prefix = "\x19Ethereum Signed Message:\n32"
-    messageHash = Web3.solidityKeccak(
-        ["bytes", "bytes"], [Web3.toBytes(text=prefix), Web3.toBytes(message)]
+    signable_hash = Web3.solidityKeccak(
+        ["bytes", "bytes"], [Web3.toBytes(text=prefix), Web3.toBytes(message_hash)]
     )
-    signed = keys.ecdsa_sign(message_hash=messageHash, private_key=pk)
+    signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=pk)
 
     provider_fee = {
         "providerFeeAddress": provider_fee_address,
@@ -299,7 +299,7 @@ def test_order_started(events_object, client, base_ddo_url):
         "providerFeeAmount": provider_fee_amount,
         "providerData": Web3.toHex(Web3.toBytes(text=provider_data)),
         # make it compatible with last openzepellin https://github.com/OpenZeppelin/openzeppelin-contracts/pull/1622
-        "v": signed.v + 27,
+        "v": (signed.v + 27) if signed.v <= 1 else signed.v,
         "r": Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),
         "s": Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),
     }
