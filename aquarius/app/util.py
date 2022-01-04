@@ -59,12 +59,15 @@ def get_signature_vrs(raw):
         wallet = get_aquarius_wallet()
 
         keys_pk = keys.PrivateKey(wallet.key)
-        signed = keys.ecdsa_sign(message_hash=hashed_raw.digest(), private_key=keys_pk)
 
-        values = {
-            "hash": hashed_raw.hexdigest(),
-            "publicKey": wallet.address,
-        }
+        prefix = "\x19Ethereum Signed Message:\n32"
+        signable_hash = Web3.solidityKeccak(
+            ["bytes", "bytes"],
+            [Web3.toBytes(text=prefix), Web3.toBytes(hashed_raw.digest())],
+        )
+        signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=keys_pk)
+
+        values = {"hash": "0x" + hashed_raw.hexdigest(), "publicKey": wallet.address}
 
         values["v"] = (signed.v + 27) if signed.v <= 1 else signed.v
         values["r"] = (Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),)
