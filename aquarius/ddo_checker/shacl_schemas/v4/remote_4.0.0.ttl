@@ -244,41 +244,6 @@ schema:ServiceShape
 schema:ComputeShape
     sh:targetClass schema:Compute ;
     sh:property [
-        sh:path schema:namespace ;
-        sh:datatype xsd:string ;
-        sh:pattern "^(.*)$" ;
-        sh:minCount 1;
-        sh:maxCount 1;
-    ] ;
-    sh:property [
-        sh:path schema:cpus ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1;
-    ] ;
-    sh:property [
-        sh:path schema:gpus ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1;
-    ] ;
-    sh:property [
-        sh:path schema:gpuType ;
-        sh:datatype xsd:string ;
-        sh:pattern "^(.*)$" ;
-        sh:maxCount 1;
-    ] ;
-    sh:property [
-        sh:path schema:memory ;
-        sh:datatype xsd:string ;
-        sh:pattern "^(.*)$" ;
-        sh:maxCount 1;
-    ] ;
-    sh:property [
-        sh:path schema:volumeSize;
-        sh:datatype xsd:string ;
-        sh:pattern "^(.*)$" ;
-        sh:maxCount 1;
-    ] ;
-    sh:property [
         sh:path schema:allowRawAlgorithm ;
         sh:datatype xsd:boolean ;
         sh:minCount 1;
