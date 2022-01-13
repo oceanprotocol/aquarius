@@ -89,7 +89,7 @@ def get_ddo(did):
                       }
                   }
               ],
-              "dataToken": "0x00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
+              "datatoken": "0x00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
               "created": "2021-04-02T18:00:01Z",
               "proof": {
                   "created": "2021-04-02T17:59:33Z",
@@ -97,7 +97,7 @@ def get_ddo(did):
                   "type": "AddressHash",
                   "signatureValue": "0xd23d2f28fcf152347e5b5f1064422ba0288dd608f0ea6cf433a3717fb735a92d"
               },
-              "dataTokenInfo": {
+              "datatokenInfo": {
                   "address": "0x00018b5b84eA05930f9D0dB8FFbb3B93EF86983b",
                   "name": "Parsimonious Plankton Token",
                   "symbol": "PARPLA-59",
