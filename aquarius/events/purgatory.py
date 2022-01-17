@@ -40,12 +40,16 @@ class Purgatory:
         )
         return set()
 
-    def update_asset_purgatory_status(self, asset, purgatory="true"):
+    def update_asset_purgatory_status(self, asset, purgatory="true", reason=""):
         """
-        Updates the field `isInPurgatory`of field `stats` in `asset` object.
+        Updates the fields `state` and `reason` of field `purgatory` in `asset` object.
         """
         did = asset["id"]
-        asset["stats"]["isInPurgatory"] = purgatory
+        if "purgatory" not in asset:
+            asset["purgatory"] = {}
+
+        asset["purgatory"]["state"] = purgatory
+        asset["purgatory"]["reason"] = reason
         logger.info(f"PURGATORY: updating asset {did} with value {purgatory}.")
         try:
             self._es_instance.update(json.dumps(asset), did)
@@ -109,7 +113,7 @@ class Purgatory:
         for acc_id, reason in new_accounts_forgiven:
             assets = self.get_assets_authored_by(acc_id)
             for asset in assets:
-                self.update_asset_purgatory_status(asset, "false")
+                self.update_asset_purgatory_status(asset, "false", reason)
             self.reference_account_list.remove((acc_id, reason))
 
         for did, reason in new_ids_for_purgatory:
@@ -123,7 +127,7 @@ class Purgatory:
         for did, reason in new_ids_forgiven:
             try:
                 asset = self._es_instance.read(did)
-                self.update_asset_purgatory_status(asset, "false")
+                self.update_asset_purgatory_status(asset, "false", reason)
                 self.reference_asset_list.remove((did, reason))
             except elasticsearch.exceptions.NotFoundError:
                 continue

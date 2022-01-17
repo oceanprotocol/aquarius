@@ -188,10 +188,11 @@ class MetadataCreatedProcessor(EventProcessor):
             )
             return False
 
+        _record["purgatory"] = {}
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["stats"]["isInPurgatory"] = "true"
+            _record["purgatory"]["state"] = "true"
         else:
-            _record["stats"]["isInPurgatory"] = "false"
+            _record["purgatory"]["state"] = "false"
 
         return _record
 
@@ -272,12 +273,13 @@ class MetadataUpdatedProcessor(EventProcessor):
             return False
 
         # check purgatory only if asset is valid
+        old_purgatory = old_asset.get("purgatory", {})
+        _record["purgatory"] = old_purgatory
+
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["stats"]["isInPurgatory"] = "true"
+            _record["purgatory"]["state"] = "true"
         else:
-            _record["stats"]["isInPurgatory"] = old_asset.get("stats", "false").get(
-                "isInPurgatory", "false"
-            )
+            _record["purgatory"]["state"] = old_purgatory.get("state", "false")
 
         return _record
 
