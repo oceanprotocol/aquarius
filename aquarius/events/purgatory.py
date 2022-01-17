@@ -45,6 +45,9 @@ class Purgatory:
         Updates the fields `state` and `reason` of field `purgatory` in `asset` object.
         """
         did = asset["id"]
+        if "purgatory" not in asset:
+            asset["purgatory"] = {}
+
         asset["purgatory"]["state"] = purgatory
         asset["purgatory"]["reason"] = reason
         logger.info(f"PURGATORY: updating asset {did} with value {purgatory}.")
