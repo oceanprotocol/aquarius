@@ -58,6 +58,7 @@ Aquarius is a simple, lightweight scanner and API. It is built using Python, usi
 - `POST api/v1/aquarius/assets/ddo/encrypt` and `POST api/v1/aquarius/assets/ddo/encryptashex`: encrypts the asset using the `EVENTS_ECIES_PRIVATE_KEY` env var. Unencrypted assets can be read by any Aquarius instance, but if you are running a private Aquarius, this makes your assets private.
 - `GET api/v1/aquarius/chains/list`: lists all chains indexed by the Aquarius version
 - `GET api/v1/aquarius/chains/status/<chain_id>`: shows the status of the chain corresponding to the given `chain_id`
+- `GET api/v1/aquarius/assets/sitemap`: outputs an XML sitemap used by the [market](https://github.com/oceanprotocol/market)
 
 ### The EventsMonitor
 

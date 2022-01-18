@@ -5,6 +5,7 @@
 import elasticsearch
 import json
 import logging
+import html
 
 from flask import Blueprint, jsonify, request, Response
 from aquarius.ddo_checker.ddo_checker import (
@@ -507,3 +508,85 @@ def encrypt_ddo_as_hex():
             jsonify(error=f"Encountered error when encrypting asset as hex: {str(e)}."),
             500,
         )
+
+@assets.route("/sitemap", methods=["GET"])
+def sitemap():
+    """Runs a static native ES query, returns results as XML sitemap
+    ---
+    tags:
+      - ddo
+    parameters:
+      - name: base
+        description: base URL of the market
+        required: false
+        type: string
+    responses:
+      200:
+        description: successful action
+      500:
+        description: elasticsearch exception
+    """
+
+    query = {
+        "size": 9999,
+        "query":
+        {
+            "query_string":
+            {
+                "query": "(chainId:1 OR chainId:137 OR chainId:56 OR chainId:1285 OR chainId:246) -isInPurgatory:true"
+            }
+        },
+        "_source":
+        [
+            "id",
+            "created"
+        ],
+        "sort":
+        {
+            "created": "desc"
+        }
+    }
+
+    base = request.args.get("base") if request.args.get("base") else "https://market.oceanprotocol.com"
+    base = base.strip("/")
+    base = html.escape(base)
+
+    # https://www.sitemaps.org/protocol.html
+    xml_header = """<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">"""
+    # static pages
+    xml_header = xml_header + "<url><loc>" + base + "/</loc><changefreq>hourly</changefreq><priority>1.0</priority></url>"
+    xml_header = xml_header + "<url><loc>" + base + "/publish</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>"
+    xml_header = xml_header + "<url><loc>" + base + "/terms</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>"
+    xml_header = xml_header + "<url><loc>" + base + "/privacy/en</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>"
+    xml_header = xml_header + "<url><loc>" + base + "/privacy/fr</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>"
+    xml_header = xml_header + "<url><loc>" + base + "/privacy/es</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>"
+
+    xml_footer = """</urlset>"""
+    xml = ""
+
+    try:
+        results = es_instance.es.search(query)
+        hits = results.get("hits").get("hits")
+
+        for i in hits:
+          url = base + "/asset/" + i.get("_source").get("id")
+          created = i.get("_source").get("created")
+          xml = xml + "<url><loc>" + url + "</loc><lastmod>" + created + "</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>"
+
+        resp = Response(xml_header + xml + xml_footer)
+        resp.headers['Content-Type'] = 'application/xml'
+        return resp
+
+    except elasticsearch.exceptions.TransportError as e:
+        error = e.error if isinstance(e.error, str) else str(e.error)
+        info = e.info if isinstance(e.info, dict) else ""
+        logger.info(
+            f"Received elasticsearch TransportError: {error}, more info: {info}."
+        )
+        return (
+            jsonify(error=error, info=info),
+            e.status_code,
+        )
+    except Exception as e:
+        logger.error(f"Received elasticsearch Error: {str(e)}.")
+        return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
