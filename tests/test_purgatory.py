@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
 from requests.models import Response
-from web3 import Web3
 
 from aquarius.events.purgatory import Purgatory
 from tests.helpers import (
@@ -68,18 +67,21 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
 
     purgatory = PurgatoryForTesting(events_object._es_instance)
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "false"
+    assert not published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
     purgatory.current_test_asset_list = {(did, "test_reason")}
     purgatory.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "true"
+    assert published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
     # remove did from purgatory, but before 1h passed (won't have an effect)
     purgatory.current_test_asset_list = set()
     purgatory.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "true"
+    assert published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
     # simulate the passage of time (1 hour until next purgatory update)
     in_one_hour = datetime.now() + timedelta(hours=1)
@@ -90,7 +92,8 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     purgatory.update_lists()
     freezer.stop()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "false"
+    assert not published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
 
 def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatch):
@@ -106,19 +109,22 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
 
     purgatory = PurgatoryForTesting(events_object._es_instance)
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "false"
+    assert not published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
     acc_id = events_object._es_instance.read(did)["event"]["from"]
     purgatory.current_test_account_list = {(acc_id, "test_reason")}
     purgatory.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "true"
+    assert published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
     # remove account from purgatory, but before 1h passed (won't have an effect)
     purgatory.current_test_account_list = set()
     purgatory.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "true"
+    assert published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
     # simulate the passage of time (1 hour until next purgatory update)
     in_one_hour = datetime.now() + timedelta(hours=1)
@@ -129,7 +135,8 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     purgatory.update_lists()
     freezer.stop()
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["purgatory"]["state"] == "false"
+    assert not published_ddo["purgatory"]["state"]
+    isinstance(published_ddo["purgatory"]["state"], bool)
 
 
 def test_purgatory_retrieve_new_list(events_object):

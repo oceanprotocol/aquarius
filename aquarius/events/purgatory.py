@@ -40,7 +40,7 @@ class Purgatory:
         )
         return set()
 
-    def update_asset_purgatory_status(self, asset, purgatory="true", reason=""):
+    def update_asset_purgatory_status(self, asset, purgatory=True, reason=""):
         """
         Updates the fields `state` and `reason` of field `purgatory` in `asset` object.
         """
@@ -113,7 +113,7 @@ class Purgatory:
         for acc_id, reason in new_accounts_forgiven:
             assets = self.get_assets_authored_by(acc_id)
             for asset in assets:
-                self.update_asset_purgatory_status(asset, "false", reason)
+                self.update_asset_purgatory_status(asset, False, reason)
             self.reference_account_list.remove((acc_id, reason))
 
         for did, reason in new_ids_for_purgatory:
@@ -127,7 +127,7 @@ class Purgatory:
         for did, reason in new_ids_forgiven:
             try:
                 asset = self._es_instance.read(did)
-                self.update_asset_purgatory_status(asset, "false", reason)
+                self.update_asset_purgatory_status(asset, False, reason)
                 self.reference_asset_list.remove((did, reason))
             except elasticsearch.exceptions.NotFoundError:
                 continue
