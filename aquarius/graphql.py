@@ -27,7 +27,7 @@ def get_number_orders(token_address, last_sync_block):
         result = client.execute(did_query)
 
         number_orders = result["datatokens"][0]["orderVolume"]
-    except (KeyError, IndexError, ClientConnectorError):
+    except (KeyError, IndexError, TypeError, ClientConnectorError):
         logger.error(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
         )
@@ -57,6 +57,8 @@ def get_last_block(client):
         result = client.execute(last_block_query)
         last_block = result["_meta"]["block"]["number"]
     except (KeyError, IndexError):
-        raise Exception("Can not get last block name for subgraph {get_network_name()}")
+        raise IndexError(
+            "Can not get last block name for subgraph {get_network_name()}"
+        )
 
     return last_block

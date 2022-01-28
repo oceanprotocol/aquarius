@@ -353,7 +353,9 @@ class EventsMonitor(BlockProcessingClass):
         elif event_name == EventTypes.EVENT_METADATA_STATE:
             hash_text = "MetadataState(address,uint8,uint256,uint256)"
         else:
-            hash_text = "OrderStarted(address,address,uint256,uint256,uint256,address,address,uint256)"
+            hash_text = (
+                "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
+            )
 
         event_signature_hash = self._web3.keccak(text=hash_text).hex()
 

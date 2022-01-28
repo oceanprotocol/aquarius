@@ -278,12 +278,13 @@ def test_order_started(events_object, client, base_ddo_url):
     provider_fee_address = provider_wallet.address
     provider_fee_token = "0x0000000000000000000000000000000000000000"
     message_hash = Web3.solidityKeccak(
-        ["bytes", "address", "address", "uint256"],
+        ["bytes", "address", "address", "uint256", "uint256"],
         [
             Web3.toHex(Web3.toBytes(text=provider_data)),
             provider_fee_address,
             provider_fee_token,
             provider_fee_amount,
+            0,
         ],
     )
     pk = keys.PrivateKey(provider_wallet.key)
@@ -302,24 +303,32 @@ def test_order_started(events_object, client, base_ddo_url):
         "v": (signed.v + 27) if signed.v <= 1 else signed.v,
         "r": Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),
         "s": Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),
+        "validUntil": 0,
     }
     txn = token_contract.functions.startOrder(
         test_account3.address,
         1,
-        provider_fee["providerFeeAddress"],
-        provider_fee["providerFeeToken"],
-        provider_fee["providerFeeAmount"],
-        provider_fee["v"],
-        provider_fee["r"],
-        provider_fee["s"],
-        provider_fee["providerData"],
+        (
+            provider_fee["providerFeeAddress"],
+            provider_fee["providerFeeToken"],
+            provider_fee["providerFeeAmount"],
+            provider_fee["v"],
+            provider_fee["r"],
+            provider_fee["s"],
+            provider_fee["validUntil"],
+            provider_fee["providerData"],
+        ),
     ).transact({"from": test_account3.address})
     web3.eth.wait_for_transaction_receipt(txn)
-    events_object.process_current_blocks()
+    with patch("aquarius.events.processors.get_number_orders") as mock:
+        # TODO: currently the graph for v4 is WIP, we SHOULD keep the mock
+        # to make sure the events are detected and the code is reached,
+        # but we need to add an integration test for graphql too
+        mock.return_value = 5
+        events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    # TODO: currently the graph for v4 is WIP, need to replace this
-    assert published_ddo["stats"]["consumes"] == -1
+    assert published_ddo["stats"]["consumes"] == 5
 
 
 def test_metadata_state_update(client, base_ddo_url, events_object):

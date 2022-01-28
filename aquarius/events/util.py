@@ -90,7 +90,7 @@ def deploy_datatoken(w3, account, name, symbol):
         )
     except Exception:
         print(f"tx not found: {tx_hash.hex()}")
-        raise
+        raise Exception(f"tx not found: {tx_hash.hex()}")
 
 
 def get_dt_factory(web3):
@@ -124,12 +124,11 @@ def get_metadata_start_block():
         with open(address_file) as f:
             address_json = json.load(f)
         network = get_network_name()
-        # TODO: this is still a dependency from barge,
-        # the key will probably have a different name so it needs update
-        if "startBlock" in address_json[network]:
-            block_number = address_json[network]["startBlock"]
-        else:
-            block_number = 0
+        block_number = (
+            address_json[network]["startBlock"]
+            if "startBlock" in address_json[network]
+            else 0
+        )
 
     return block_number
 

@@ -311,11 +311,7 @@ def validate_remote():
     if request.content_type != "application/octet-stream":
         return (
             jsonify(
-                [
-                    {
-                        "message": "Invalid request content type: should be application/octet-stream"
-                    }
-                ]
+                error="Invalid request content type: should be application/octet-stream"
             ),
             400,
         )
@@ -323,8 +319,9 @@ def validate_remote():
     raw = request.get_data()
 
     try:
-        data = json.loads(raw.decode("utf-8"))
-        if not isinstance(data, dict):
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except json.decoder.JSONDecodeError:
             return (
                 jsonify(
                     error="Invalid payload. The request could not be converted into a dict."
@@ -344,9 +341,6 @@ def validate_remote():
             return jsonify(get_signature_vrs(raw))
 
         return (jsonify(errors=errors), 400)
-    except json.decoder.JSONDecodeError as e:
-        logger.error(f"json validate error: {str(e)}.")
-        return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 400
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500

@@ -6,7 +6,7 @@ import json
 from unittest.mock import patch
 
 from tests.ddos.ddo_sample1_v4 import json_dict
-from tests.helpers import run_request_octet
+from tests.helpers import run_request_octet, run_request
 
 
 def test_validate_credentials(client_with_no_data, base_ddo_url):
@@ -86,3 +86,21 @@ def test_validate_error_remote(client, base_ddo_url, monkeypatch):
     assert rv.status_code == 400
     assert "Value does not conform to Shape schema" in data["errors"]["services"]
     assert "ServiceShape" in data["errors"]["services"]
+
+
+def test_non_octet_non_dict(client, base_ddo_url, monkeypatch):
+    rv = run_request(client.post, base_ddo_url + "/validate")
+    data = rv.get_json()
+    assert rv.status_code == 400
+    assert (
+        data["error"]
+        == "Invalid request content type: should be application/octet-stream"
+    )
+
+    rv = run_request_octet(client.post, base_ddo_url + "/validate", data="not a dict")
+    data = rv.get_json()
+    assert rv.status_code == 400
+    assert (
+        data["error"]
+        == "Invalid payload. The request could not be converted into a dict."
+    )
