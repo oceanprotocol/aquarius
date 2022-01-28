@@ -278,12 +278,13 @@ def test_order_started(events_object, client, base_ddo_url):
     provider_fee_address = provider_wallet.address
     provider_fee_token = "0x0000000000000000000000000000000000000000"
     message_hash = Web3.solidityKeccak(
-        ["bytes", "address", "address", "uint256"],
+        ["bytes", "address", "address", "uint256", "uint256"],
         [
             Web3.toHex(Web3.toBytes(text=provider_data)),
             provider_fee_address,
             provider_fee_token,
             provider_fee_amount,
+            0,
         ],
     )
     pk = keys.PrivateKey(provider_wallet.key)
@@ -302,17 +303,21 @@ def test_order_started(events_object, client, base_ddo_url):
         "v": (signed.v + 27) if signed.v <= 1 else signed.v,
         "r": Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),
         "s": Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),
+        "validUntil": 0,
     }
     txn = token_contract.functions.startOrder(
         test_account3.address,
         1,
-        provider_fee["providerFeeAddress"],
-        provider_fee["providerFeeToken"],
-        provider_fee["providerFeeAmount"],
-        provider_fee["v"],
-        provider_fee["r"],
-        provider_fee["s"],
-        provider_fee["providerData"],
+        (
+            provider_fee["providerFeeAddress"],
+            provider_fee["providerFeeToken"],
+            provider_fee["providerFeeAmount"],
+            provider_fee["v"],
+            provider_fee["r"],
+            provider_fee["s"],
+            provider_fee["validUntil"],
+            provider_fee["providerData"],
+        ),
     ).transact({"from": test_account3.address})
     web3.eth.wait_for_transaction_receipt(txn)
     events_object.process_current_blocks()
