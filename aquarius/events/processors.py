@@ -190,9 +190,9 @@ class MetadataCreatedProcessor(EventProcessor):
 
         _record["purgatory"] = {}
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["purgatory"]["state"] = "true"
+            _record["purgatory"]["state"] = True
         else:
-            _record["purgatory"]["state"] = "false"
+            _record["purgatory"]["state"] = False
 
         return _record
 
@@ -277,9 +277,9 @@ class MetadataUpdatedProcessor(EventProcessor):
         _record["purgatory"] = old_purgatory
 
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
-            _record["purgatory"]["state"] = "true"
+            _record["purgatory"]["state"] = True
         else:
-            _record["purgatory"]["state"] = old_purgatory.get("state", "false")
+            _record["purgatory"]["state"] = old_purgatory.get("state", False)
 
         return _record
 
