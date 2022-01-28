@@ -68,3 +68,17 @@ def test_get():
     with patch("aquarius.app.es_instance.ElasticsearchInstance.read") as mock:
         mock.return_value = None
         assert es_instance.get(1) is None
+
+
+def test_is_listed():
+    mock_asset = {"missing status": "test"}
+    assert es_instance.is_listed(mock_asset) is True
+
+    mock_asset = {"status": {}}
+    assert es_instance.is_listed(mock_asset) is True
+
+    mock_asset = {"status": {"isListed": True}}
+    assert es_instance.is_listed(mock_asset) is True
+
+    mock_asset = {"status": {"isListed": False}}
+    assert es_instance.is_listed(mock_asset) is False

@@ -11,7 +11,14 @@ from unittest.mock import patch
 import pytest
 
 from aquarius.app.auth_util import compare_eth_addresses
-from aquarius.app.util import datetime_converter, get_bool_env_value, sanitize_record
+from aquarius.app.util import (
+    datetime_converter,
+    get_bool_env_value,
+    sanitize_record,
+    get_aquarius_wallet,
+    AquariusPrivateKeyException,
+    get_signature_vrs,
+)
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import get_network_name, setup_web3
@@ -170,3 +177,17 @@ def test_setup_logging(monkeypatch):
     setup_logging()
 
     setup_logging("some_madeup_path")
+
+
+def test_wallet_missing(monkeypatch):
+    monkeypatch.delenv("PRIVATE_KEY")
+    with pytest.raises(AquariusPrivateKeyException):
+        get_aquarius_wallet()
+
+    assert get_signature_vrs("".encode("utf-8")) == {
+        "hash": "",
+        "publicKey": "",
+        "r": "",
+        "s": "",
+        "v": "",
+    }

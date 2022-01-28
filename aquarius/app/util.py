@@ -36,11 +36,6 @@ def datetime_converter(o):
         return o.isoformat()
 
 
-def get_timestamp():
-    """Return the current system timestamp."""
-    return f"{datetime.utcnow().replace(microsecond=0).isoformat()}Z"
-
-
 class AquariusPrivateKeyException(Exception):
     pass
 

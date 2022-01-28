@@ -83,6 +83,12 @@ def test_remote_ddo_passes():
 
 def test_remote_ddo_fails():
     _copy = copy.deepcopy(json_dict)
+    _copy.pop("@context")
+    valid, errors = validate_dict(_copy, "", "")
+    assert not valid
+    assert errors["@context"] == "Context is missing or invalid."
+
+    _copy = copy.deepcopy(json_dict)
     valid, errors = validate_dict(_copy, "", "")
     assert not valid
     assert errors["chainId"] == "chainId is missing or invalid."

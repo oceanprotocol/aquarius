@@ -10,24 +10,20 @@ from requests.models import Response
 from aquarius.events.decryptor import decrypt_ddo
 
 
-def test_decryptor_nonce_exception():
-    with pytest.raises(Exception):
-        with patch("requests.get") as mock:
+def test_decryptor_request_exception():
+    with pytest.raises(Exception, match="Provider exception on decrypt"):
+        with patch("requests.post") as mock:
             the_response = Mock(spec=Response)
             the_response.status_code = 400
             mock.return_value = the_response
-            decrypt_ddo(None, "provider_url", None, None, None)
+            decrypt_ddo(None, "provider_url", None, None, None, "test_hash")
 
-
-def test_decryptor_request_exception():
-    with pytest.raises(Exception):
-        with patch("requests.get") as mock_get:
-            the_get_response = Mock(spec=Response)
-            the_get_response.status_code = 200
-            the_get_response.json.return_value = {"nonce": "13"}
-            mock_get.return_value = the_get_response
-            with patch("requests.post") as mock:
-                the_response = Mock(spec=Response)
-                the_response.status_code = 400
-                mock.return_value = the_response
-                decrypt_ddo(None, "provider_url", None, None, None)
+    with pytest.raises(Exception, match="Hash check failed"):
+        with patch("requests.post") as mock:
+            the_response = Mock(spec=Response)
+            the_response.status_code = 201
+            the_response.text = "some other test"
+            mock.return_value = the_response
+            decrypt_ddo(
+                None, "provider_url", None, None, None, "test_hash".encode("utf-8")
+            )
