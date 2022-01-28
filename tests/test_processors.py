@@ -15,6 +15,7 @@ from web3.datastructures import AttributeDict
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
+    OrderStartedProcessor,
 )
 from aquarius.events.util import setup_web3, deploy_datatoken
 from aquarius.myapp import app
@@ -195,3 +196,40 @@ def test_missing_attributes():
         mock.return_value = None
         with pytest.raises(Exception, match="Decrypt ddo failed"):
             processor.process()
+
+
+def test_order_started_processor():
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    web3 = setup_web3(config_file)
+
+    test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
+    dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
+
+    es_instance = Mock()
+    es_instance.read.return_value = {"sample_asset": "mock", "stats": {"consumes": 0}}
+    es_instance.update.return_value = None
+
+    processor = OrderStartedProcessor(dt_address, es_instance, 0, 0)
+    with patch("aquarius.events.processors.get_number_orders") as no_mock:
+        no_mock.return_value = 3
+        updated_asset = processor.process()
+
+    assert es_instance.update.called_once()
+    assert updated_asset["stats"]["consumes"] == 3
+
+
+def test_order_started_processor_no_asset():
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    web3 = setup_web3(config_file)
+
+    test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
+    dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
+
+    es_instance = Mock()
+    es_instance.read.return_value = None
+
+    processor = OrderStartedProcessor(dt_address, es_instance, 0, 0)
+    updated_asset = processor.process()
+
+    assert not es_instance.update.called
+    assert updated_asset is None

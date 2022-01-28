@@ -320,11 +320,15 @@ def test_order_started(events_object, client, base_ddo_url):
         ),
     ).transact({"from": test_account3.address})
     web3.eth.wait_for_transaction_receipt(txn)
-    events_object.process_current_blocks()
+    with patch("aquarius.events.processors.get_number_orders") as mock:
+        # TODO: currently the graph for v4 is WIP, we SHOULD keep the mock
+        # to make sure the events are detected and the code is reached,
+        # but we need to add an integration test for graphql too
+        mock.return_value = 5
+        events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    # TODO: currently the graph for v4 is WIP, need to replace this
-    assert published_ddo["stats"]["consumes"] == -1
+    assert published_ddo["stats"]["consumes"] == 5
 
 
 def test_metadata_state_update(client, base_ddo_url, events_object):
