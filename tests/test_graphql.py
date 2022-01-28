@@ -47,4 +47,7 @@ def test_get_transport():
         mock.return_value = "network"
         transport = get_transport()
 
-    assert transport.url == 'http://subgraph.network.oceanprotocol.com/subgraphs/name/oceanprotocol/ocean-subgraph'
+    assert (
+        transport.url
+        == "http://subgraph.network.oceanprotocol.com/subgraphs/name/oceanprotocol/ocean-subgraph"
+    )

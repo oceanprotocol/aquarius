@@ -57,6 +57,8 @@ def get_last_block(client):
         result = client.execute(last_block_query)
         last_block = result["_meta"]["block"]["number"]
     except (KeyError, IndexError):
-        raise IndexError("Can not get last block name for subgraph {get_network_name()}")
+        raise IndexError(
+            "Can not get last block name for subgraph {get_network_name()}"
+        )
 
     return last_block
