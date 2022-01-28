@@ -2,23 +2,22 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import copy
-import json
-from hashlib import sha256
-from unittest.mock import patch
+from unittest.mock import patch, Mock
+from jsonsempai import magic  # noqa: F401
 
+from artifacts import ERC721Template
+from eth_account import Account
+import os
 import pytest
 from hexbytes import HexBytes
-from web3 import Web3
 from web3.datastructures import AttributeDict
 
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
 )
-from aquarius.events.util import setup_web3
+from aquarius.events.util import setup_web3, deploy_datatoken
 from aquarius.myapp import app
-from tests.ddos.ddo_event_sample_v4 import ddo_event_sample_v4
 from tests.helpers import get_ddo, new_ddo, send_create_update_tx, test_account1
 
 event_sample = AttributeDict(
@@ -137,10 +136,62 @@ def test_do_decode_update():
         event_updated_sample, None, web3, None, None, None, None, None
     )
 
-    bk_block = processor.block
     processor.block = 0
     old_asset = {
         "event": {"block": 100, "tx": "placeholder"},
         "publicKey": [{"owner": "some_address"}],
     }
     assert processor.check_update(None, old_asset, "") is False
+
+
+def test_missing_attributes():
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    web3 = setup_web3(config_file)
+
+    test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
+    dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
+    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
+
+    processor = MetadataCreatedProcessor(
+        event_sample, None, None, None, None, None, None, None
+    )
+
+    assert processor._get_contract_attribute(dt_contract, "non_existent") == ""
+    assert processor._get_contract_attribute(dt_contract, "symbol") == "TT1Symbol"
+
+    processor.dt_contract = Mock(spec=ERC721Template)
+    processor.caller = Mock()
+    processor.caller.ownerOf.side_effect = Exception()
+    assert processor.get_nft_owner() == ""
+
+    processor.event = Mock()
+    processor.event.args.decryptorUrl = ""
+    processor.event.args.metaDataHash = ""
+    processor.event.args.address = ""
+
+    with patch("aquarius.events.processors.decrypt_ddo") as mock:
+        mock.return_value = None
+        with pytest.raises(Exception, match="Decrypt ddo failed"):
+            processor.process()
+
+    processor = MetadataUpdatedProcessor(
+        event_sample, None, None, None, None, None, None, None
+    )
+
+    assert processor._get_contract_attribute(dt_contract, "non_existent") == ""
+    assert processor._get_contract_attribute(dt_contract, "symbol") == "TT1Symbol"
+
+    processor.dt_contract = Mock(spec=ERC721Template)
+    processor.caller = Mock()
+    processor.caller.ownerOf.side_effect = Exception()
+    assert processor.get_nft_owner() == ""
+
+    processor.event = Mock()
+    processor.event.args.decryptorUrl = ""
+    processor.event.args.metaDataHash = ""
+    processor.event.args.address = ""
+
+    with patch("aquarius.events.processors.decrypt_ddo") as mock:
+        mock.return_value = None
+        with pytest.raises(Exception, match="Decrypt ddo failed"):
+            processor.process()
