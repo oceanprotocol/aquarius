@@ -73,7 +73,11 @@ def deploy_datatoken(w3, account, name, symbol):
     dt_factory = get_dt_factory(w3)
 
     built_tx = dt_factory.functions.deployERC721Contract(
-        name, symbol, 1, "0x0000000000000000000000000000000000000000", ""
+        name,
+        symbol,
+        1,
+        "0x0000000000000000000000000000000000000000",
+        "http://oceanprotocol.com/nft",
     ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
     raw_tx = sign_tx(w3, built_tx, account.key)

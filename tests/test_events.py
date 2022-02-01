@@ -17,7 +17,7 @@ from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.app.util import get_aquarius_wallet
 from aquarius.myapp import app
-from artifacts import ERC20Template
+from artifacts import ERC20Template, ERC721Template
 from tests.helpers import (
     get_ddo,
     get_web3,
@@ -374,3 +374,31 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
     # The NFT state is active
     assert published_ddo[AquariusCustomDDOFields.NFT]["state"] == MetadataStates.ACTIVE
+
+
+def test_token_uri_update(client, base_ddo_url, events_object):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    events_object.process_current_blocks()
+    initial_ddo = get_ddo(client, base_ddo_url, did)
+    assert initial_ddo["id"] == did
+    assert initial_ddo["nft"]["tokenURI"] == "http://oceanprotocol.com/nft"
+
+    nft_contract = web3.eth.contract(
+        abi=ERC721Template.abi, address=initial_ddo["nftAddress"]
+    )
+
+    web3.eth.default_account = test_account1.address
+    txn_hash = nft_contract.functions.setTokenURI(
+        1, "http://something-else.com"
+    ).transact()
+    _ = web3.eth.wait_for_transaction_receipt(txn_hash)
+
+    events_object.process_current_blocks()
+    updated_ddo = get_ddo(client, base_ddo_url, did)
+    assert updated_ddo["id"] == did
+    assert updated_ddo["nft"]["tokenURI"] == "http://something-else.com"

@@ -22,6 +22,7 @@ from aquarius.events.processors import (
     MetadataStateProcessor,
     MetadataUpdatedProcessor,
     OrderStartedProcessor,
+    TokenURIUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block
@@ -197,6 +198,7 @@ class EventsMonitor(BlockProcessingClass):
             )
 
         self.handle_order_started(from_block, to_block)
+        self.handle_token_uri_update(from_block, to_block)
 
         self.store_last_processed_block(to_block)
 
@@ -256,6 +258,25 @@ class EventsMonitor(BlockProcessingClass):
             except Exception as e:
                 logger.error(
                     f"Error processing order started event: {e}\n" f"event={event}"
+                )
+
+    def handle_token_uri_update(self, from_block, to_block):
+        events = self.get_event_logs(
+            EventTypes.EVENT_TOKEN_URI_UPDATE, from_block, to_block
+        )
+
+        for event in events:
+            try:
+                event_processor = TokenURIUpdatedProcessor(
+                    event,
+                    self._web3,
+                    self._es_instance,
+                    self._chain_id,
+                )
+                event_processor.process()
+            except Exception as e:
+                logger.error(
+                    f"Error processing token update event: {e}\n" f"event={event}"
                 )
 
     def get_last_processed_block(self):
@@ -352,6 +373,8 @@ class EventsMonitor(BlockProcessingClass):
             hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
         elif event_name == EventTypes.EVENT_METADATA_STATE:
             hash_text = "MetadataState(address,uint8,uint256,uint256)"
+        elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
+            hash_text = "TokenURIUpdate(address,string,uint256,uint256,uint256)"
         else:
             hash_text = (
                 "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
