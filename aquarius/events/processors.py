@@ -19,9 +19,9 @@ from aquarius.events.constants import (
     MetadataStates,
 )
 from aquarius.events.decryptor import decrypt_ddo
-from aquarius.events.util import make_did
+from aquarius.events.util import make_did, get_dt_factory
 from aquarius.graphql import get_number_orders
-from artifacts import ERC20Template
+from artifacts import ERC20Template, ERC721Template
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +91,7 @@ class EventProcessor(ABC):
             "name": self._get_contract_attribute(self.dt_contract, "name"),
             "symbol": self._get_contract_attribute(self.dt_contract, "symbol"),
             "state": self._get_contract_attribute(self.dt_contract, "metaDataState"),
+            "tokenURI": self._get_contract_attribute(self.dt_contract, "tokenURI", [1]),
             "owner": self.get_nft_owner(),
         }
 
@@ -139,10 +140,11 @@ class EventProcessor(ABC):
 
         return datatokens
 
-    def _get_contract_attribute(self, contract, attr_name):
+    def _get_contract_attribute(self, contract, attr_name, args=None):
         data = ""
+        args = args if args else []
         try:
-            data = getattr(contract.caller, attr_name)()
+            data = getattr(contract.caller, attr_name)(*args)
         except Exception as e:
             logger.warn(f"Cannot get token {attr_name}: {e}")
             pass
@@ -198,6 +200,12 @@ class MetadataCreatedProcessor(EventProcessor):
 
     def process(self):
         txid = self.txid
+
+        dt_factory = get_dt_factory(self._web3, self._chain_id)
+        if dt_factory.caller.erc721List(self.event.address) != self.event.address:
+            logger.error("token not deployed by our factory")
+            return
+
         asset = decrypt_ddo(
             self._web3,
             self.event.args.decryptorUrl,
@@ -285,6 +293,11 @@ class MetadataUpdatedProcessor(EventProcessor):
 
     def process(self):
         txid = self.txid
+
+        dt_factory = get_dt_factory(self._web3, self._chain_id)
+        if dt_factory.caller.erc721List(self.event.address) != self.event.address:
+            logger.error("token not deployed by our factory")
+
         asset = decrypt_ddo(
             self._web3,
             self.event.args.decryptorUrl,
@@ -385,6 +398,47 @@ class OrderStartedProcessor:
         number_orders = get_number_orders(self.token_address, self.last_sync_block)
         self.asset["stats"]["consumes"] = number_orders
 
+        self.es_instance.update(self.asset, self.did)
+
+        return self.asset
+
+
+class TokenURIUpdatedProcessor:
+    def __init__(self, event, web3, es_instance, chain_id):
+        self.did = make_did(event.address, chain_id)
+        self.es_instance = es_instance
+        self.event = event
+        self.web3 = web3
+
+        try:
+            self.asset = self.es_instance.read(self.did)
+        except Exception:
+            self.asset = None
+
+    def process(self):
+        if not self.asset:
+            return
+
+        erc721_contract = self.web3.eth.contract(
+            abi=ERC721Template.abi, address=self.event.address
+        )
+
+        receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)
+        event_decoded = erc721_contract.events.TokenURIUpdate().processReceipt(receipt)[
+            0
+        ]
+
+        if self.asset["event"]["tx"] == event_decoded.transactionHash.hex():
+            logger.warning("old asset has the same txid, no need to update")
+
+            return False
+
+        if int(event_decoded.blockNumber) <= int(self.asset["event"]["block"]):
+            logger.warning("asset was updated later")
+
+            return False
+
+        self.asset["nft"]["tokenURI"] = event_decoded.args.tokenURI
         self.es_instance.update(self.asset, self.did)
 
         return self.asset

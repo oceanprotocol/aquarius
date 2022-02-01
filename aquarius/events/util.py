@@ -73,7 +73,11 @@ def deploy_datatoken(w3, account, name, symbol):
     dt_factory = get_dt_factory(w3)
 
     built_tx = dt_factory.functions.deployERC721Contract(
-        name, symbol, 1, "0x0000000000000000000000000000000000000000", ""
+        name,
+        symbol,
+        1,
+        "0x0000000000000000000000000000000000000000",
+        "http://oceanprotocol.com/nft",
     ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
     raw_tx = sign_tx(w3, built_tx, account.key)
@@ -93,12 +97,23 @@ def deploy_datatoken(w3, account, name, symbol):
         raise Exception(f"tx not found: {tx_hash.hex()}")
 
 
-def get_dt_factory(web3):
+def get_dt_factory(web3, chain_id=None):
+    chain_id = chain_id if chain_id else web3.eth.chain_id
     address_file = get_address_file()
+
     with open(address_file) as f:
         address_json = json.load(f)
-    network = get_network_name()
-    address = address_json[network]["ERC721Factory"]
+
+    correspondence = {
+        elem["chainId"]: elem["ERC721Factory"]
+        for elem in address_json.values()
+        if "chainId" in elem and "ERC721Factory" in elem
+    }
+
+    if chain_id not in correspondence:
+        raise Exception("No ERC721Factory factory configured for chain id")
+
+    address = correspondence[chain_id]
     abi = ERC721Factory.abi
 
     return web3.eth.contract(address=address, abi=abi)

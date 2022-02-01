@@ -153,6 +153,10 @@ def test_missing_attributes():
     dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
     dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
 
+    dt_factory = Mock()
+    dt_factory.caller = Mock()
+    dt_factory.caller.erc721List.return_value = ""
+
     processor = MetadataCreatedProcessor(
         event_sample, None, None, None, None, None, None, None
     )
@@ -169,11 +173,14 @@ def test_missing_attributes():
     processor.event.args.decryptorUrl = ""
     processor.event.args.metaDataHash = ""
     processor.event.args.address = ""
+    processor.event.address = ""
 
     with patch("aquarius.events.processors.decrypt_ddo") as mock:
         mock.return_value = None
-        with pytest.raises(Exception, match="Decrypt ddo failed"):
-            processor.process()
+        with patch("aquarius.events.processors.get_dt_factory") as mock2:
+            mock2.return_value = dt_factory
+            with pytest.raises(Exception, match="Decrypt ddo failed"):
+                processor.process()
 
     processor = MetadataUpdatedProcessor(
         event_sample, None, None, None, None, None, None, None
@@ -194,8 +201,24 @@ def test_missing_attributes():
 
     with patch("aquarius.events.processors.decrypt_ddo") as mock:
         mock.return_value = None
-        with pytest.raises(Exception, match="Decrypt ddo failed"):
-            processor.process()
+        with patch("aquarius.events.processors.get_dt_factory") as mock2:
+            mock2.return_value = dt_factory
+            with pytest.raises(Exception, match="Decrypt ddo failed"):
+                processor.process()
+
+
+def test_drop_non_factory():
+    dt_factory = Mock()
+    dt_factory.caller = Mock()
+    dt_factory.caller.erc721List.return_value = "not the address"
+
+    processor = MetadataCreatedProcessor(
+        event_sample, None, None, None, None, None, None, None
+    )
+
+    with patch("aquarius.events.processors.get_dt_factory") as mock2:
+        mock2.return_value = dt_factory
+        assert not processor.process()
 
 
 def test_order_started_processor():
