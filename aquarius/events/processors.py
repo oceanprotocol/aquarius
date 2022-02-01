@@ -201,9 +201,9 @@ class MetadataCreatedProcessor(EventProcessor):
     def process(self):
         txid = self.txid
 
-        dt_factory = get_dt_factory(self._web3)
+        dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(self.event.address) != self.event.address:
-            logger.info("token not deployed by our factory")
+            logger.error("token not deployed by our factory")
             return
 
         asset = decrypt_ddo(
@@ -294,9 +294,9 @@ class MetadataUpdatedProcessor(EventProcessor):
     def process(self):
         txid = self.txid
 
-        dt_factory = get_dt_factory(self._web3)
+        dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(self.event.address) != self.event.address:
-            logger.info("token not deployed by our factory")
+            logger.error("token not deployed by our factory")
 
         asset = decrypt_ddo(
             self._web3,
