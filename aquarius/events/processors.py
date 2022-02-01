@@ -19,7 +19,7 @@ from aquarius.events.constants import (
     MetadataStates,
 )
 from aquarius.events.decryptor import decrypt_ddo
-from aquarius.events.util import make_did
+from aquarius.events.util import make_did, get_dt_factory
 from aquarius.graphql import get_number_orders
 from artifacts import ERC20Template, ERC721Template
 
@@ -200,6 +200,15 @@ class MetadataCreatedProcessor(EventProcessor):
 
     def process(self):
         txid = self.txid
+
+        dt_factory = get_dt_factory(self._web3)
+        if (
+            dt_factory.caller.erc721List(self.event.address)
+            == "0x0000000000000000000000000000000000000000"
+        ):
+            logger.info("token not deployed by our factory")
+            return
+
         asset = decrypt_ddo(
             self._web3,
             self.event.args.decryptorUrl,
@@ -287,6 +296,14 @@ class MetadataUpdatedProcessor(EventProcessor):
 
     def process(self):
         txid = self.txid
+
+        dt_factory = get_dt_factory(self._web3)
+        if (
+            dt_factory.caller.erc721List(self.event.address)
+            == "0x0000000000000000000000000000000000000000"
+        ):
+            logger.info("token not deployed by our factory")
+
         asset = decrypt_ddo(
             self._web3,
             self.event.args.decryptorUrl,
