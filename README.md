@@ -4,7 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-[![Aquarius tests](https://github.com/oceanprotocol/aquarius/actions/workflows/tox.yml/badge.svg)](https://github.com/oceanprotocol/aquarius/actions/workflows/tox.yml)
+[![Aquarius tests](https://github.com/oceanprotocol/aquarius/actions/workflows/pytest.yml/badge.svg)](https://github.com/oceanprotocol/aquarius/actions/workflows/pytest.yml)
 [![black](https://github.com/oceanprotocol/aquarius/actions/workflows/black.yml/badge.svg)](https://github.com/oceanprotocol/aquarius/actions/workflows/black.yml)
 [![Docker Build Status](https://img.shields.io/docker/cloud/build/oceanprotocol/aquarius.svg)](https://hub.docker.com/r/oceanprotocol/aquarius/)
 [![Maintainability](https://api.codeclimate.com/v1/badges/411b97f9749f9dcac801/maintainability)](https://codeclimate.com/github/oceanprotocol/aquarius/maintainability)

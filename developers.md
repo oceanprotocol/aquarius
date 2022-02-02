@@ -119,10 +119,10 @@ aquarius.url = http://localhost:5000
 
 ## Extras: Testing & Versioning
 
-Automatic tests are set up via Travis, executing `tox`. Our tests use the pytest framework.
+Automatic tests are set up via GitHub Actions. Our tests use the pytest framework.
 
-If you want to run a test individually, without using tox, run `pytest test_file_path.py::test_specific_test`.
-In this case, if some environment variables are not set, pytest will default to those defined in `pytest.ini` (defined in the project root directory). These variables are the same as the ones tox.ini defines.
+If you want to run a test individually, run `pytest test_file_path.py::test_specific_test`.
+In this case, if some environment variables are not set, pytest will default to those defined in `pytest.ini` (defined in the project root directory).
 
 The `bumpversion.sh` script helps bump the project version. You can execute the script using `{major|minor|patch}` as first argument, to bump the version accordingly.
 

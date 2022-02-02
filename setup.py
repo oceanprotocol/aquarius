@@ -61,7 +61,6 @@ test_requirements = [
     "mccabe==0.6.1",
     "pylint==2.12.1",
     "pytest",
-    "tox",
     "pytest-env",
     "freezegun==1.1.0",
 ]
