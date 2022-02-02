@@ -29,7 +29,7 @@ es_mapping = """
             }
           }
         },
-        "dataTokenInfo": {
+        "datatokenInfo": {
           "properties": {
             "address": {
               "type": "keyword"
@@ -147,7 +147,7 @@ es_mapping = """
         "updated": {
           "type": "date"
         },
-        "dataToken": {
+        "datatoken": {
           "type": "text",
           "fields": {
             "keyword": {
