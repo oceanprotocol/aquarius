@@ -21,7 +21,6 @@ RUN python3.8 -m pip install -U pip==20.2.2
 RUN pip install setuptools
 RUN pip install wheel
 RUN pip install .
-RUN mkdir /usr/local/lib/python3.8/dist-packages/artifacts && find ./artifacts -name '*.json' -exec cp -pr '{}' '/usr/local/lib/python3.8/dist-packages/artifacts' ';'
 
 
 # config.ini configuration file variables
