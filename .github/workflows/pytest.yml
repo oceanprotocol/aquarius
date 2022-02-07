@@ -54,7 +54,7 @@ jobs:
   dockerbuild:
     runs-on: ubuntu-latest
     needs: [build]
-    if: ${{ success() }}
+    if: ${{ success() && github.event_name == 'push'}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
