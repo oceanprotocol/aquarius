@@ -48,3 +48,13 @@ jobs:
         with:
           coverageCommand: tox
           debug: true
+  
+  dockerbuild:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: ${{ success() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: docker build -t "testimage:latest" .
