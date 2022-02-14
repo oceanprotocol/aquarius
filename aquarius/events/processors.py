@@ -98,7 +98,7 @@ class EventProcessor(ABC):
         record[AquariusCustomDDOFields.DATATOKENS] = self.get_tokens_info(record)
 
         record[AquariusCustomDDOFields.STATS] = {
-            "consumes": get_number_orders(self.dt_contract.address, self.block)
+            "orders": get_number_orders(self.dt_contract.address, self.block)
         }
 
         return record, block_time
@@ -396,7 +396,7 @@ class OrderStartedProcessor:
             return
 
         number_orders = get_number_orders(self.token_address, self.last_sync_block)
-        self.asset["stats"]["consumes"] = number_orders
+        self.asset["stats"]["orders"] = number_orders
 
         self.es_instance.update(self.asset, self.did)
 

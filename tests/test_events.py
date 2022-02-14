@@ -328,7 +328,7 @@ def test_order_started(events_object, client, base_ddo_url):
         events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["stats"]["consumes"] == 5
+    assert published_ddo["stats"]["orders"] == 5
 
 
 def test_metadata_state_update(client, base_ddo_url, events_object):
