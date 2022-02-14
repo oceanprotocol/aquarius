@@ -20,13 +20,13 @@ def get_number_orders(token_address, last_sync_block):
             time.sleep(2)
 
         did_query = gql(
-            '{ datatokens(where: {id: "'
+            '{ tokens(where: {id: "'
             + token_address.lower()
-            + '"}) { orderVolume } }'
+            + '"}) { orderCount } }'
         )
         result = client.execute(did_query)
 
-        number_orders = result["datatokens"][0]["orderVolume"]
+        number_orders = result["tokens"][0]["orderCount"]
     except (KeyError, IndexError, TypeError, ClientConnectorError):
         logger.error(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
