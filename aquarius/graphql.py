@@ -20,9 +20,7 @@ def get_number_orders(token_address, last_sync_block):
             time.sleep(2)
 
         did_query = gql(
-            '{ tokens(where: {id: "'
-            + token_address.lower()
-            + '"}) { orderCount } }'
+            '{ tokens(where: {id: "' + token_address.lower() + '"}) { orderCount } }'
         )
         result = client.execute(did_query)
 
