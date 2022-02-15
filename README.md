@@ -50,13 +50,7 @@ Aquarius is a simple, lightweight scanner and API. It is built using Python, usi
 
 ### The Aquarius API
 
-- `GET api/aquarius/assets/ddo/<did>`: retrieve asset contents for the given DID
-- `GET api/aquarius/assets/metadata/<did>`: retrieve metadata associated to the given DID
-- `POST api/aquarius/assets/names/`: takes in a list of DIDs of the format `["did:op:123455644356", "did:op:533443322223344"]` and returns a dictionary of correspondence between the given DIDs and the asset name
-- `POST api/aquarius/assets/query`: takes in a native Elasticsearch query, passes it over to Elasticsearch and returns the unformatted results, as given by the Elasticsearch instance. Please note that Elasticsearch imposes a limitation of 10K results. If you get a Transport Error indicating such a problem, try to refine your search.
-- `POST api/aquarius/assets/ddo/validate`: accepts a DDO sample and validate it. It will also sign the hash, for future use. Please use these endpoints to validate your OCEAN DDOs.
-- `GET api/aquarius/chains/list`: lists all chains indexed by the Aquarius version
-- `GET api/aquarius/chains/status/<chain_id>`: shows the status of the chain corresponding to the given `chain_id`
+Aquarius provides REST api to fetch the data from off-chain datastore. Please rerfer [API.md](API.md) file.
 
 ### The EventsMonitor
 
