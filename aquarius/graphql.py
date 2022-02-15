@@ -15,7 +15,7 @@ def get_number_orders(token_address, last_sync_block):
         client = get_client()
 
         last_block = get_last_block(client)
-        while last_block <= last_sync_block:
+        while last_block < last_sync_block:
             last_block = get_last_block(client)
             time.sleep(2)
 

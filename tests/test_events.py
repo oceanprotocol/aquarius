@@ -266,6 +266,7 @@ def test_order_started(events_object, client, base_ddo_url):
     _, dt_contract, erc20_address = send_create_update_tx(
         "create", _ddo, bytes([2]), test_account1
     )
+    events_object.process_current_blocks()
     token_contract = web3.eth.contract(abi=ERC20Template.abi, address=erc20_address)
 
     token_contract.functions.mint(
