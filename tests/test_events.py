@@ -318,6 +318,11 @@ def test_order_started(events_object, client, base_ddo_url):
             provider_fee["validUntil"],
             provider_fee["providerData"],
         ),
+        (
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            0,
+        ),
     ).transact({"from": test_account3.address})
     web3.eth.wait_for_transaction_receipt(txn)
     events_object.process_current_blocks()
