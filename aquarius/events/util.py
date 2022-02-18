@@ -167,6 +167,7 @@ def setup_web3(config_file, _logger=None):
     if (
         get_bool_env_value("USE_POA_MIDDLEWARE", 0)
         or get_network_name().lower() == "rinkeby"
+        or get_network_name().lower() == "mumbai"
     ):
         from web3.middleware import geth_poa_middleware
 
