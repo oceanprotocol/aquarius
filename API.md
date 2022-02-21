@@ -69,7 +69,6 @@
 
 ### **POST** `/api/aquarius/assets/names`
 
-
 - Description
 
     Get names of assets as specified in the payload.
@@ -107,9 +106,129 @@
             }
             ```
 
-### POST `/api/aquarius/assets/query`
+### **POST** `/api/aquarius/assets/query`
 
-### POST `/api/aquarius/assets/ddo/validate`
+- Description
+
+    Run a native ES query. Body must be a valid json object.
+
+- Example
+
+    ```bash
+    curl --location --request POST 'https://aquarius.oceanprotocol.com/api/v1/aquarius/assets/query' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "query": {
+            "match_all": {}
+        }
+    }'
+    ```
+
+- Responses
+    - 200
+        - content-type: json
+    - 500
+        - description: elasticsearch exception
+
+### **POST** `/api/aquarius/assets/ddo/validate`
+
+- Description
+
+    Validate DDO content. Cosumes `application/octet-stream`
+
+- Example 
+   
+    ```bash
+    curl --location --request POST 'https://aquarius.oceanprotocol.com/api/v1/aquarius/assets/ddo/validate' \
+    --header 'Content-Type: application/json' \
+    --data-raw '<json_body>'
+    ```
+
+    <details>
+        <summary><b><u>Valid json_body</u></b></summary>
+
+        
+        {
+        "main": {
+
+            "name": "10 Monkey Species Small",
+            "dateCreated": 
+            "2012-02-01T10:55:11Z",
+            "author": "Mario",
+            "license": "CC0: Public Domain",
+            "files": [
+                {
+                    "index": 0,
+                    "contentType": "application/zip",
+                    "encoding": "UTF-8",
+                    "compression": "zip",
+                    "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
+                    "checksumType": "MD5",
+                    "contentLength": "12057507",
+                    "url": "https://s3.amazonaws.com/assets/training.zip"
+                },
+                {
+                    "index": 1,
+                    "contentType": "text/txt",
+                    "encoding": "UTF-8",
+                    "compression": "none",
+                    "checksum": "354d19c0733c47ef3a6cce5b633116b0",
+                    "checksumType": "MD5",
+                    "contentLength": "928",
+                    "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
+                },
+                {
+                    "index": 2,
+                    "contentType": "application/zip",
+                    "url": "https://s3.amazonaws.com/datacommons/validation.zip"
+                }
+            ],
+            "type": "dataset"
+        },
+        "additionalInformation": {
+            "description": "EXAMPLE ONLY ",
+            "categories": ["image"],
+            "tags": ["image data", "classification", "animals"],
+            "workExample": "image path, id, label",
+            "links": [
+                {
+                    "name": "example model",
+                    "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
+                },
+                {
+                    "name": "example code",
+                    "type": "example code",
+                    "url": "https://github.com/slothkong/CNN_classification_10_monkey_species"
+                },
+                {
+                    "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
+                    "name": "n5151.jpg",
+                    "type": "discovery"
+                },
+                {
+                    "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
+                    "name": "sample.zip",
+                    "type": "sample"
+                }
+            ],
+            "copyrightHolder": "Unknown",
+            "inLanguage": "en"
+        }   
+        
+    </details>
+
+- Responses:
+    - 200
+
+        - description: successfully request.
+    
+    - 400
+
+        - description: Invalid DDO format
+    
+    - 500
+    
+        - description: Error
 
 ## Chains
 
