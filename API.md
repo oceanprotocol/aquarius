@@ -17,7 +17,7 @@
 - Example
 
     ```bash
-    curl --location --request GET 'https://aquarius.oceanprotocol.com/api/v1/aquarius/assets/ddo/did:op:CbD7aeecB5DFbABaB9126B5Cf1262dCFBA178479'
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/assets/ddo/did:op:CbD7aeecB5DFbABaB9126B5Cf1262dCFBA178479'
     ```
 
 - Responses
@@ -50,7 +50,7 @@
 - Example
 
     ```bash
-    curl --location --request GET 'https://aquarius.oceanprotocol.com/api/v1/aquarius/assets/metadata/did:op:CbD7aeecB5DFbABaB9126B5Cf1262dCFBA178479'
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/assets/metadata/did:op:CbD7aeecB5DFbABaB9126B5Cf1262dCFBA178479'
     ```
 - Responses
     - 200
@@ -82,7 +82,7 @@
 - Example
 
     ```bash
-    curl --location --request POST 'https://aquarius.oceanprotocol.com/api/v1/aquarius/assets/names' \
+    curl --location --request POST 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/assets/names' \
     --header 'Content-Type: application/json' \
     --data-raw '{
         "didList" : ["did:op:CbD7aeecB5DFbABaB9126B5Cf1262dCFBA178479"]
@@ -115,7 +115,7 @@
 - Example
 
     ```bash
-    curl --location --request POST 'https://aquarius.oceanprotocol.com/api/v1/aquarius/assets/query' \
+    curl --location --request POST 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/assets/query' \
     --header 'Content-Type: application/json' \
     --data-raw '{
         "query": {
@@ -139,7 +139,7 @@
 - Example 
    
     ```bash
-    curl --location --request POST 'https://aquarius.oceanprotocol.com/api/v1/aquarius/assets/ddo/validate' \
+    curl --location --request POST 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/assets/ddo/validate' \
     --header 'Content-Type: application/json' \
     --data-raw '<json_body>'
     ```
@@ -234,9 +234,104 @@
 
 ### **GET** `/api/aquarius/chains/list`
 
+- Description
+
+    Get chains list
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/chains/list'
+    ```
+    
+- Response
+    - 200
+        
+        - Description: Successful request
+        - Body
+            ```JSON
+            {   "246": true, "3": true, "137": true, 
+                "2021000": true, "4": true, "1": true,
+                "56": true, "80001": true, "1287": true
+            }
+            ```
+
 ### **GET** `/api/aquarius/chains/status/{chain_id}`
 
+- Description
+
+    Get index status for a specific chain_id
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/chains/status/137'
+    ```
+    
+- Response
+    - 200
+
+        - Description: Successful request
+        - Body
+            ```JSON
+            {"last_block": 25198729}
+            ```
 
 ## Others
 
-/health
+
+### **GET** `/`
+
+- Description
+
+    Get version, plugin, and software information.
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/'
+    ```
+    
+- Response
+    - 200
+        - Description: Successful request
+        - Body
+            ```JSON
+            {
+                "plugin": "elasticsearch",
+                "software": "Aquarius",
+                "version": "3.1.2"
+            }
+            ```
+
+### **GET** `/health`
+
+- Description
+
+    Get health status
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/health'
+    ```
+    
+- Response
+    - 200
+        - Description: Successful request
+        - Body
+            ```text
+            Elasticsearch connected
+            ```
+
+### **GET** /spec
+
+- Description
+
+    Get swagger spec
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/spec'
+    ```
+    
+- Response
+    - 200
+        - Description: Successful request
+           
