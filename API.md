@@ -143,9 +143,9 @@
     --header 'Content-Type: application/json' \
     --data-raw '<json_body>'
     ```
+- Valid body
 
-    <details>
-        <summary><b><u>Valid json_body</u></b></summary>
+    ```JSON
         {
             "@context": ["https://w3id.org/did/v1"],
             "id": "did:op:56c3d0ac76c02cc5cec98993be2b23c8a681800c08f2ff77d40c895907517280",
@@ -182,7 +182,7 @@
                 }
             ]
         }
-    </details>
+    ```
 
 - Responses:
     - 200
@@ -302,3 +302,6 @@
     - 200
         - Description: Successful request
            
+### Postman documentation
+
+Click [here](https://documenter.getpostman.com/view/2151723/UVkmQc7r){:target="_blank"} to explore the documentation and more examples in postman.
