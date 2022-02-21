@@ -146,75 +146,42 @@
 
     <details>
         <summary><b><u>Valid json_body</u></b></summary>
-
-        
         {
-        "main": {
-
-            "name": "10 Monkey Species Small",
-            "dateCreated": 
-            "2012-02-01T10:55:11Z",
-            "author": "Mario",
-            "license": "CC0: Public Domain",
-            "files": [
+            "@context": ["https://w3id.org/did/v1"],
+            "id": "did:op:56c3d0ac76c02cc5cec98993be2b23c8a681800c08f2ff77d40c895907517280",
+            "version": "4.0.0",
+            "chainId": 1337,
+            "nftAddress": "0xabc",
+            "metadata": {
+                "created": "2000-10-31T01:30:00.000-05:00Z",
+                "updated": "2000-10-31T01:30:00.000-05:00",
+                "name": "Ocean protocol white paper",
+                "type": "dataset",
+                "description": "Ocean protocol white paper -- description",
+                "author": "Ocean Protocol Foundation Ltd.",
+                "license": "CC-BY",
+                "contentLanguage": "en-US",
+                "tags": ["white-papers"],
+                "additionalInformation": {"test-key": "test-value"},
+                "links": [
+                    "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-daily/",
+                    "http://data.ceda.ac.uk/badc/ukcp09/data/gridded-land-obs/gridded-land-obs-averages-25km/",
+                    "http://data.ceda.ac.uk/badc/ukcp09/"
+                ]
+            },
+            "services": [
                 {
-                    "index": 0,
-                    "contentType": "application/zip",
-                    "encoding": "UTF-8",
-                    "compression": "zip",
-                    "checksum": "2bf9d229d110d1976cdf85e9f3256c7f",
-                    "checksumType": "MD5",
-                    "contentLength": "12057507",
-                    "url": "https://s3.amazonaws.com/assets/training.zip"
-                },
-                {
-                    "index": 1,
-                    "contentType": "text/txt",
-                    "encoding": "UTF-8",
-                    "compression": "none",
-                    "checksum": "354d19c0733c47ef3a6cce5b633116b0",
-                    "checksumType": "MD5",
-                    "contentLength": "928",
-                    "url": "https://s3.amazonaws.com/datacommons/monkey_labels.txt"
-                },
-                {
-                    "index": 2,
-                    "contentType": "application/zip",
-                    "url": "https://s3.amazonaws.com/datacommons/validation.zip"
+                    "id": "test",
+                    "type": "access",
+                    "datatokenAddress": "0xC7EC1970B09224B317c52d92f37F5e1E4fF6B687",
+                    "name": "Download service",
+                    "description": "Download service",
+                    "serviceEndpoint": "http://172.15.0.4:8030/",
+                    "timeout": 0,
+                    "files": "encryptedFiles"
                 }
-            ],
-            "type": "dataset"
-        },
-        "additionalInformation": {
-            "description": "EXAMPLE ONLY ",
-            "categories": ["image"],
-            "tags": ["image data", "classification", "animals"],
-            "workExample": "image path, id, label",
-            "links": [
-                {
-                    "name": "example model",
-                    "url": "https://drive.google.com/open?id=1uuz50RGiAW8YxRcWeQVgQglZpyAebgSM"
-                },
-                {
-                    "name": "example code",
-                    "type": "example code",
-                    "url": "https://github.com/slothkong/CNN_classification_10_monkey_species"
-                },
-                {
-                    "url": "https://s3.amazonaws.com/datacommons/links/discovery/n5151.jpg",
-                    "name": "n5151.jpg",
-                    "type": "discovery"
-                },
-                {
-                    "url": "https://s3.amazonaws.com/datacommons/links/sample/sample.zip",
-                    "name": "sample.zip",
-                    "type": "sample"
-                }
-            ],
-            "copyrightHolder": "Unknown",
-            "inLanguage": "en"
-        }   
-        
+            ]
+        }
     </details>
 
 - Responses:
