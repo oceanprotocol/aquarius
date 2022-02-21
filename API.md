@@ -304,4 +304,4 @@
            
 ### Postman documentation
 
-Click [here](https://documenter.getpostman.com/view/2151723/UVkmQc7r){:target="_blank"} to explore the documentation and more examples in postman.
+Click <a href="https://documenter.getpostman.com/view/2151723/UVkmQc7r" target="_blank">here</a> to explore the documentation and more examples in postman.
