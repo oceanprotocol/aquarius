@@ -24,7 +24,7 @@ def get_number_orders(token_address, last_sync_block):
         )
         result = client.execute(did_query)
 
-        number_orders = result["nft"][0]["orderCount"]
+        number_orders = int(result["nft"]["orderCount"])
     except (KeyError, IndexError, TypeError, ClientConnectorError):
         logger.error(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
