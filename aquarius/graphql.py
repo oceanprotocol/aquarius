@@ -19,9 +19,7 @@ def get_number_orders(token_address, last_sync_block):
             last_block = get_last_block(client)
             time.sleep(2)
 
-        did_query = gql(
-            '{ nft(id: "' + token_address.lower() + '") { orderCount } }'
-        )
+        did_query = gql('{ nft(id: "' + token_address.lower() + '") { orderCount } }')
         result = client.execute(did_query)
 
         number_orders = int(result["nft"]["orderCount"])
