@@ -19,7 +19,7 @@ with open("CHANGELOG.md") as history_file:
 
 install_requirements = [
     "coloredlogs==15.0.1",
-    "Flask==2.0.2",
+    "Flask==2.0.3",
     "Flask-Cors==3.0.10",
     "flask-swagger==0.2.14",
     "flask-swagger-ui==3.36.0",
@@ -55,9 +55,9 @@ dev_requirements = [
 ]
 
 test_requirements = [
-    "Flask==2.0.2",
+    "Flask==2.0.3",
     "codacy-coverage==1.3.11",
-    "coverage==6.3.1",
+    "coverage==6.3.2",
     "mccabe==0.6.1",
     "pylint==2.12.1",
     "pytest",
