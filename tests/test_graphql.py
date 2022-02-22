@@ -11,7 +11,7 @@ from aquarius.graphql import get_number_orders, get_last_block, get_transport
 
 def test_get_number_orders():
     client = Mock()
-    client.execute.return_value = {"datatokens": [{"orderVolume": 14}]}
+    client.execute.return_value = {"nft": {"orderCount": 14}}
     last_sync_block = 10
     with patch("aquarius.graphql.get_client") as client_mock:
         client_mock.return_value = client

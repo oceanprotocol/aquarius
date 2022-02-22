@@ -229,7 +229,7 @@ def test_order_started_processor():
     dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
 
     es_instance = Mock()
-    es_instance.read.return_value = {"sample_asset": "mock", "stats": {"consumes": 0}}
+    es_instance.read.return_value = {"sample_asset": "mock", "stats": {"orders": 0}}
     es_instance.update.return_value = None
 
     processor = OrderStartedProcessor(dt_address, es_instance, 0, 0)
@@ -238,7 +238,7 @@ def test_order_started_processor():
         updated_asset = processor.process()
 
     assert es_instance.update.called_once()
-    assert updated_asset["stats"]["consumes"] == 3
+    assert updated_asset["stats"]["orders"] == 3
 
 
 def test_order_started_processor_no_asset():

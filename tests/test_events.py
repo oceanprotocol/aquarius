@@ -266,6 +266,7 @@ def test_order_started(events_object, client, base_ddo_url):
     _, dt_contract, erc20_address = send_create_update_tx(
         "create", _ddo, bytes([2]), test_account1
     )
+    events_object.process_current_blocks()
     token_contract = web3.eth.contract(abi=ERC20Template.abi, address=erc20_address)
 
     token_contract.functions.mint(
@@ -325,15 +326,10 @@ def test_order_started(events_object, client, base_ddo_url):
         ),
     ).transact({"from": test_account3.address})
     web3.eth.wait_for_transaction_receipt(txn)
-    with patch("aquarius.events.processors.get_number_orders") as mock:
-        # TODO: currently the graph for v4 is WIP, we SHOULD keep the mock
-        # to make sure the events are detected and the code is reached,
-        # but we need to add an integration test for graphql too
-        mock.return_value = 5
-        events_object.process_current_blocks()
+    events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["stats"]["consumes"] == 5
+    assert published_ddo["stats"]["orders"] == 1
 
 
 def test_metadata_state_update(client, base_ddo_url, events_object):
