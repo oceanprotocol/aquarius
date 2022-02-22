@@ -4,6 +4,7 @@
 #
 import logging
 import os
+import sys
 import time
 
 from elasticsearch import Elasticsearch
@@ -51,12 +52,23 @@ class ElasticsearchInstance(object):
                 client_key=client_cert,
                 maxsize=1000,
             )
+
+            waiting_for_es = 0
             while self._es.ping() is False:
+                wait_seconds = 5
+                timeout = 10
                 logging.info("Trying to connect...")
-                time.sleep(5)
+                waiting_for_es += wait_seconds
+                if "pytest" in sys.modules and waiting_for_es >= timeout:
+                    # Only if pytest is running we raise an exception
+                    raise TimeoutError(
+                        "Elasticsearch is not responding, is it running?"
+                    )
+                time.sleep(wait_seconds)
 
             self._es.indices.create(index=index, ignore=400)
-
+        except TimeoutError:
+            raise
         except Exception as e:
             logging.info(f"Exception trying to connect... {e}")
 

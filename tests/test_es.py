@@ -82,3 +82,12 @@ def test_is_listed():
 
     mock_asset = {"status": {"isListed": False}}
     assert es_instance.is_listed(mock_asset) is False
+
+
+def test_es_instance_timeout():
+    with pytest.raises(
+        TimeoutError, match="Elasticsearch is not responding, is it running?"
+    ):
+        with patch("aquarius.app.es_instance.Elasticsearch.ping") as mock:
+            mock.return_value = False
+            ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
