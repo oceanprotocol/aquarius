@@ -108,3 +108,4 @@ config_local.ini
 
 # local installations
 elasticsearch*
+.vscode
