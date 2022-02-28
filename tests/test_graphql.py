@@ -49,5 +49,5 @@ def test_get_transport():
 
     assert (
         transport.url
-        == "http://subgraph.network.oceanprotocol.com/subgraphs/name/oceanprotocol/ocean-subgraph"
+        == "http://v4.subgraph.network.oceanprotocol.com/subgraphs/name/oceanprotocol/ocean-subgraph"
     )

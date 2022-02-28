@@ -1,13 +1,14 @@
 import logging
 import time
 
-from aiohttp.client_exceptions import ClientConnectorError
-from gql import gql, Client
+from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.aiohttp import log as aiohttp_logger
 
 from aquarius.events.util import get_network_name
 
 logger = logging.getLogger("aquarius")
+aiohttp_logger.setLevel(logging.WARNING)
 
 
 def get_number_orders(token_address, last_sync_block):
@@ -22,14 +23,12 @@ def get_number_orders(token_address, last_sync_block):
         did_query = gql('{ nft(id: "' + token_address.lower() + '") { orderCount } }')
         result = client.execute(did_query)
 
-        number_orders = int(result["nft"]["orderCount"])
-    except (KeyError, IndexError, TypeError, ClientConnectorError):
+        return int(result["nft"]["orderCount"])
+    except Exception:
         logger.error(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
         )
         return -1
-
-    return number_orders
 
 
 def get_transport():
@@ -37,7 +36,7 @@ def get_transport():
     if network_name == "development":
         prefix = "http://localhost:9000"
     else:
-        prefix = f"http://subgraph.{network_name}.oceanprotocol.com"
+        prefix = f"http://v4.subgraph.{network_name}.oceanprotocol.com"
 
     return AIOHTTPTransport(url=f"{prefix}/subgraphs/name/oceanprotocol/ocean-subgraph")
 
