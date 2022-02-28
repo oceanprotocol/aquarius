@@ -8,10 +8,16 @@ import json
 import logging
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import sanitize_record, get_signature_vrs
+from aquarius.app.util import sanitize_record, get_signature_vrs, get_allowed_publishers
 from aquarius.ddo_checker.shacl_checker import validate_dict
+from aquarius.events.processors import (
+    MetadataCreatedProcessor,
+    MetadataUpdatedProcessor,
+)
+from aquarius.events.util import setup_web3
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from artifacts import ERC721Template
 
 setup_logging()
 assets = Blueprint("assets", __name__)
@@ -344,3 +350,37 @@ def validate_remote():
     except Exception as e:
         logger.error(f"validate_remote failed: {str(e)}.")
         return jsonify(error=f"Encountered error when validating asset: {str(e)}."), 500
+
+
+@assets.route("/triggerCaching", methods=["POST"])
+def trigger_caching():
+    # TODO: docstring AND Readme.md docs, wrap with exception
+    data = request.args if request.args else request.json
+    tx_id = data.get("transactionId")
+
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    web3 = setup_web3(config_file)
+    tx_receipt = web3.eth.wait_for_transaction_receipt(tx_id)
+    dt_address = tx_receipt.logs[0].address
+    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
+    created_event = dt_contract.events.MetadataCreated().processReceipt(tx_receipt)
+    updated_event = dt_contract.events.MetadataUpdated().processReceipt(tx_receipt)
+
+    if not created_event and not updated_event:
+        return (jsonify(errors="No metadata created/updated event found in tx."), 400)
+
+    es_instance = ElasticsearchInstance(config_file)
+    allowed_publishers = get_allowed_publishers()
+    processor_args = [
+        es_instance,
+        web3,
+        allowed_publishers,
+        None,  # events_monitor purgatory will kick in
+        web3.eth.chain_id,
+    ]
+
+    if created_event:
+        event_processor = MetadataCreatedProcessor(
+            *([created_event[0], dt_contract, tx_receipt["from"]] + processor_args)
+        )
+        event_processor.process()

@@ -22,6 +22,7 @@ from tests.helpers import (
     get_ddo,
     get_web3,
     new_ddo,
+    run_request,
     send_create_update_tx,
     send_set_metadata_state_tx,
     test_account1,
@@ -403,3 +404,33 @@ def test_token_uri_update(client, base_ddo_url, events_object):
     updated_ddo = get_ddo(client, base_ddo_url, did)
     assert updated_ddo["id"] == did
     assert updated_ddo["nft"]["tokenURI"] == "http://something-else.com"
+
+
+def test_trigger_caching(client, base_ddo_url, events_object):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    txn_receipt, _, erc20_address = send_create_update_tx(
+        "create", _ddo, bytes([2]), test_account1
+    )
+    tx_id = txn_receipt["transactionHash"].hex()
+
+    run_request(
+        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    )
+    # TODO add response and assert contents
+
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
+    for service in published_ddo["services"]:
+        assert service["datatokenAddress"] == erc20_address
+        assert service["name"] in ["dataAssetAccess", "dataAssetComputingService"]
+
+    # _ddo["metadata"]["name"] = "Updated ddo by event"
+    # send_create_update_tx("update", _ddo, bytes([2]), test_account1)
+    # events_instance.process_current_blocks()
+    # published_ddo = get_ddo(client, base_ddo_url, did)
+    # assert published_ddo["id"] == did
+    # assert published_ddo["metadata"]["name"] == "Updated ddo by event"
