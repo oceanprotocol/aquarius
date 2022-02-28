@@ -356,7 +356,27 @@ def validate_remote():
 
 @assets.route("/triggerCaching", methods=["POST"])
 def trigger_caching():
-    # TODO: docstring AND Readme.md docs
+    """Triggers manual caching of a specific transaction (MetadataCreated or MetadataUpdated event)
+    ---
+    tags:
+      - name
+    consumes:
+      - application/json
+    parameters:
+      - name: transactionId
+        required: true
+        description: transaction id containing MetadataCreated or MetadataUpdated event
+      - name: logIndex
+        required: false
+        description: zero-based index in log if transaction contains more events
+    responses:
+      200:
+        description: successful operation.
+      400:
+        description: bad request. Log index not found or event not found.
+      500:
+        description: server error/exception
+    """
     try:
         data = request.args if request.args else request.json
         tx_id = data.get("transactionId")
