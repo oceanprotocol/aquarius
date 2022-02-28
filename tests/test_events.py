@@ -417,6 +417,13 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     )
     tx_id = txn_receipt["transactionHash"].hex()
 
+    with patch("aquarius.app.es_instance.ElasticsearchInstance.get") as mock:
+        mock.side_effect = Exception("Boom!")
+        response = run_request_get_data(
+            client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+        )
+        assert response["error"] == "Encountered error when triggering caching: Boom!."
+
     response = run_request_get_data(
         client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
     )
@@ -429,7 +436,9 @@ def test_trigger_caching(client, base_ddo_url, events_object):
         assert service["name"] in ["dataAssetAccess", "dataAssetComputingService"]
 
     _ddo["metadata"]["name"] = "Updated ddo by event"
-    txn_receipt, _, _ = send_create_update_tx("update", _ddo, bytes([2]), test_account1)
+    txn_receipt, dt_contract, _ = send_create_update_tx(
+        "update", _ddo, bytes([2]), test_account1
+    )
     tx_id = txn_receipt["transactionHash"].hex()
 
     response = run_request_get_data(
@@ -440,3 +449,22 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
 
     assert response["metadata"]["name"] == "Updated ddo by event"
+
+    # index out of range
+    response = run_request_get_data(
+        client.post,
+        "api/aquarius/assets/triggerCaching",
+        {"transactionId": tx_id, "logIndex": 1},
+    )
+    assert response["error"] == "Log index 1 not found"
+
+    # can not find event created, nor event updated
+    txn_hash = dt_contract.functions.setTokenURI(
+        1, "http://something-else.com"
+    ).transact()
+    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
+    tx_id = txn_receipt["transactionHash"].hex()
+    response = run_request_get_data(
+        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    )
+    assert response["error"] == "No metadata created/updated event found in tx."

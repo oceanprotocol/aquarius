@@ -6,6 +6,7 @@ import elasticsearch
 from flask import Blueprint, jsonify, request
 import json
 import logging
+import os
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import sanitize_record, get_signature_vrs, get_allowed_publishers
@@ -17,6 +18,7 @@ from aquarius.events.processors import (
 from aquarius.events.util import setup_web3, make_did
 from aquarius.log import setup_logging
 from aquarius.myapp import app
+from aquarius.events.purgatory import Purgatory
 from artifacts import ERC721Template
 
 setup_logging()
@@ -354,39 +356,57 @@ def validate_remote():
 
 @assets.route("/triggerCaching", methods=["POST"])
 def trigger_caching():
-    # TODO: docstring AND Readme.md docs, wrap with exception
-    data = request.args if request.args else request.json
-    tx_id = data.get("transactionId")
+    # TODO: docstring AND Readme.md docs
+    try:
+        data = request.args if request.args else request.json
+        tx_id = data.get("transactionId")
+        log_index = int(data.get("logIndex", 0))
 
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
-    tx_receipt = web3.eth.wait_for_transaction_receipt(tx_id)
-    # TODO: possibly more logs, so get log index too
-    dt_address = tx_receipt.logs[0].address
-    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
-    created_event = dt_contract.events.MetadataCreated().processReceipt(tx_receipt)
-    updated_event = dt_contract.events.MetadataUpdated().processReceipt(tx_receipt)
+        config_file = app.config["AQUARIUS_CONFIG_FILE"]
+        web3 = setup_web3(config_file)
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_id)
 
-    if not created_event and not updated_event:
-        return (jsonify(errors="No metadata created/updated event found in tx."), 400)
+        if len(tx_receipt.logs) <= log_index or log_index < 0:
+            return jsonify(error=f"Log index {log_index} not found"), 400
 
-    es_instance = ElasticsearchInstance(config_file)
-    allowed_publishers = get_allowed_publishers()
-    chain_id = web3.eth.chain_id
-    processor_args = [
-        es_instance,
-        web3,
-        allowed_publishers,
-        None,  # TODO: purgatory
-        chain_id,
-    ]
+        dt_address = tx_receipt.logs[log_index].address
+        dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
+        created_event = dt_contract.events.MetadataCreated().processReceipt(tx_receipt)
+        updated_event = dt_contract.events.MetadataUpdated().processReceipt(tx_receipt)
 
-    processor = MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
-    event_to_process = created_event[0] if created_event else updated_event[0]
-    event_processor = processor(
-        *([event_to_process, dt_contract, tx_receipt["from"]] + processor_args)
-    )
-    event_processor.process()
-    did = make_did(dt_address, chain_id)
+        if not created_event and not updated_event:
+            return jsonify(error="No metadata created/updated event found in tx."), 400
 
-    return sanitize_record(es_instance.get(did)), 200
+        es_instance = ElasticsearchInstance(config_file)
+        allowed_publishers = get_allowed_publishers()
+        purgatory = (
+            Purgatory(es_instance)
+            if (os.getenv("ASSET_PURGATORY_URL") or os.getenv("ACCOUNT_PURGATORY_URL"))
+            else None
+        )
+        chain_id = web3.eth.chain_id
+        processor_args = [
+            es_instance,
+            web3,
+            allowed_publishers,
+            purgatory,
+            chain_id,
+        ]
+
+        processor = (
+            MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
+        )
+        event_to_process = created_event[0] if created_event else updated_event[0]
+        event_processor = processor(
+            *([event_to_process, dt_contract, tx_receipt["from"]] + processor_args)
+        )
+        event_processor.process()
+        did = make_did(dt_address, chain_id)
+
+        return sanitize_record(es_instance.get(did)), 200
+    except Exception as e:
+        logger.error(f"trigger_caching failed: {str(e)}.")
+        return (
+            jsonify(error=f"Encountered error when triggering caching: {str(e)}."),
+            500,
+        )
