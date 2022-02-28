@@ -14,7 +14,7 @@ from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
 )
-from aquarius.events.util import setup_web3
+from aquarius.events.util import setup_web3, make_did
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from artifacts import ERC721Template
@@ -361,6 +361,7 @@ def trigger_caching():
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     web3 = setup_web3(config_file)
     tx_receipt = web3.eth.wait_for_transaction_receipt(tx_id)
+    # TODO: possibly more logs, so get log index too
     dt_address = tx_receipt.logs[0].address
     dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
     created_event = dt_contract.events.MetadataCreated().processReceipt(tx_receipt)
@@ -371,16 +372,21 @@ def trigger_caching():
 
     es_instance = ElasticsearchInstance(config_file)
     allowed_publishers = get_allowed_publishers()
+    chain_id = web3.eth.chain_id
     processor_args = [
         es_instance,
         web3,
         allowed_publishers,
-        None,  # events_monitor purgatory will kick in
-        web3.eth.chain_id,
+        None,  # TODO: purgatory
+        chain_id,
     ]
 
-    if created_event:
-        event_processor = MetadataCreatedProcessor(
-            *([created_event[0], dt_contract, tx_receipt["from"]] + processor_args)
-        )
-        event_processor.process()
+    processor = MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
+    event_to_process = created_event[0] if created_event else updated_event[0]
+    event_processor = processor(
+        *([event_to_process, dt_contract, tx_receipt["from"]] + processor_args)
+    )
+    event_processor.process()
+    did = make_did(dt_address, chain_id)
+
+    return sanitize_record(es_instance.get(did)), 200
