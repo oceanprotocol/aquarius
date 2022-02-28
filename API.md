@@ -9,7 +9,7 @@
     Get DDO of a particular asset.
 
 - Parameters
-    
+
     | name | description      | type   | in   | required |
     |------|------------------|--------|------|----------|
     | `did`| DID of the asset | string | path | true     |
@@ -28,7 +28,7 @@
     - 404
         - content-type: json
         - description: This asset DID is not in ES.
-        - response body: 
+        - response body:
             ```JSON
             {
                 "error": "Asset DID <did> not found in Elasticsearch."
@@ -42,7 +42,7 @@
     Get metadata of a particular asset.
 
 - Parameters
-    
+
     | name | description      | type   | in   | required |
     |------|------------------|--------|------|----------|
     | `did`| DID of the asset | string | path | true     |
@@ -60,7 +60,7 @@
     - 404
         - content-type: json
         - description: This asset DID is not in ES.
-        - response body: 
+        - response body:
             ```JSON
             {
                 "error": "Error encountered while retrieving metadata: NotFoundError(404, '{\"_index\":\"aquarius\",\"_type\":\"_doc\",\"_id\":\"<did>\",\"found\":false}')."
@@ -99,7 +99,7 @@
     - 400
         - content-type: json
         - description: This asset DID is not in ES.
-        - response body: 
+        - response body:
             ```JSON
             {
             "error": "The requested didList can not be empty."
@@ -136,8 +136,8 @@
 
     Validate DDO content. Cosumes `application/octet-stream`
 
-- Example 
-   
+- Example
+
     ```bash
     curl --location --request POST 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/assets/ddo/validate' \
     --header 'Content-Type: application/json' \
@@ -188,13 +188,56 @@
     - 200
 
         - description: successfully request.
-    
+
     - 400
 
         - description: Invalid DDO format
-    
+
     - 500
-    
+
+        - description: Error
+
+
+### **POST** `/api/aquarius/assets/triggerCaching`
+
+- Description
+
+    Manually triggers DDO caching based on a transacionId containing either MetadataCreated or MetadataUpdated event(s).
+
+- Parameters
+
+    | name           | description                         | type   | in   | required |
+    |----------------|-------------------------------------|--------|------|----------|
+    | `transactionId`| DID of the asset                    | string | path | true     |
+    | `logIndex`     | custom log index for the transaction| int    | path | false    |
+
+- Example
+
+    ```bash
+    curl --location --request POST 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/assets/triggerCaching' \
+    --header 'Content-Type: application/json' \
+    --data-raw '<json_body>'
+    ```
+- Valid body
+
+    ```JSON
+        {
+            "transactionId": "0x945596edf2a26d127514a78ed94fea86b199e68e9bed8b6f6d6c8bb24e451f27",
+            "logIndex": 0
+        }
+    ```
+
+- Responses:
+    - 200
+
+        - description: triggering successful, updated asset returned
+
+    - 400
+
+        - description: request issues: either log index not found, or neither of MetadataCreated, MetadataUpdated found in tx log
+
+    - 500
+
         - description: Error
 
 ## Chains
@@ -209,14 +252,14 @@
     ```bash
     curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/chains/list'
     ```
-    
+
 - Response
     - 200
-        
+
         - Description: Successful request
         - Body
             ```JSON
-            {   "246": true, "3": true, "137": true, 
+            {   "246": true, "3": true, "137": true,
                 "2021000": true, "4": true, "1": true,
                 "56": true, "80001": true, "1287": true
             }
@@ -232,7 +275,7 @@
     ```bash
     curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/api/v1/aquarius/chains/status/137'
     ```
-    
+
 - Response
     - 200
 
@@ -255,7 +298,7 @@
     ```bash
     curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/'
     ```
-    
+
 - Response
     - 200
         - Description: Successful request
@@ -278,7 +321,7 @@
     ```bash
     curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/health'
     ```
-    
+
 - Response
     - 200
         - Description: Successful request
@@ -297,11 +340,11 @@
     ```bash
     curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/assets/query/spec'
     ```
-    
+
 - Response
     - 200
         - Description: Successful request
-           
+
 ### Postman documentation
 
 Click <a href="https://documenter.getpostman.com/view/2151723/UVkmQc7r" target="_blank">here</a> to explore the documentation and more examples in postman.
