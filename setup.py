@@ -38,7 +38,7 @@ install_requirements = [
     "python-dateutil==2.8.2",
 ]
 
-setup_requirements = ["pytest-runner==5.3.1"]
+setup_requirements = ["pytest-runner==6.0.0"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
