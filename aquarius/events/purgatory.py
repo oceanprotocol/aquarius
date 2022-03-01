@@ -84,7 +84,7 @@ class Purgatory:
         """
         :return: None
         """
-        now = int(datetime.now().timestamp())
+        now = int(datetime.utcnow().timestamp())
         req_diff = int(os.getenv("PURGATORY_UPDATE_INTERVAL", "60")) * 60
         if self.update_time and (now - self.update_time) < req_diff:
             return
