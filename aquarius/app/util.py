@@ -8,9 +8,12 @@ from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
 from hashlib import sha256
 import json
+from json import JSONDecodeError
 import logging
 import os
 from web3.main import Web3
+
+from aquarius.app.auth_util import sanitize_addresses
 
 logger = logging.getLogger("aquarius")
 keys = KeyAPI(NativeECCBackend)
@@ -71,3 +74,19 @@ def get_signature_vrs(raw):
         values = {"hash": "", "publicKey": "", "r": "", "s": "", "v": ""}
 
     return values
+
+
+def get_allowed_publishers():
+    allowed_publishers = set()
+    try:
+        publishers_str = os.getenv("ALLOWED_PUBLISHERS", "")
+        allowed_publishers = (
+            set(json.loads(publishers_str)) if publishers_str else set()
+        )
+    except (JSONDecodeError, TypeError, Exception) as e:
+        logger.error(
+            f"Reading list of allowed publishers failed: {e}\n"
+            f"ALLOWED_PUBLISHERS is set to empty set."
+        )
+
+    return set(sanitize_addresses(allowed_publishers))

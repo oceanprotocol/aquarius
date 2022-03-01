@@ -14,7 +14,7 @@ from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import get_bool_env_value
+from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
@@ -70,19 +70,7 @@ class EventsMonitor(BlockProcessingClass):
             self.reset_chain()
 
         self.get_or_set_last_block()
-        allowed_publishers = set()
-        try:
-            publishers_str = os.getenv("ALLOWED_PUBLISHERS", "")
-            allowed_publishers = (
-                set(json.loads(publishers_str)) if publishers_str else set()
-            )
-        except (JSONDecodeError, TypeError, Exception) as e:
-            logger.error(
-                f"Reading list of allowed publishers failed: {e}\n"
-                f"ALLOWED_PUBLISHERS is set to empty set."
-            )
-
-        self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
+        self._allowed_publishers = get_allowed_publishers()
         logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
         self._monitor_is_on = False
