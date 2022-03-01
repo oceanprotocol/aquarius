@@ -39,7 +39,7 @@ install_requirements = [
     "aiohttp==3.7.4.post0",
 ]
 
-setup_requirements = ["pytest-runner==5.3.1"]
+setup_requirements = ["pytest-runner==6.0.0"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
