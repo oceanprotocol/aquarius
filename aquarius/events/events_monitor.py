@@ -391,7 +391,7 @@ class EventsMonitor(BlockProcessingClass):
         all_logs = []
         while _from <= to_block:
             # Search current chunk
-            logs = self._web3.eth.get_logs(fromBlock=_from, toBlock=_to)
+            logs = self._web3.eth.get_logs(filter_params=filter_params)
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
                 logger.info(
