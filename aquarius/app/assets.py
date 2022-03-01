@@ -20,6 +20,8 @@ from aquarius.log import setup_logging
 from aquarius.myapp import app
 from aquarius.events.purgatory import Purgatory
 from artifacts import ERC721Template
+from web3.logs import DISCARD
+
 
 setup_logging()
 assets = Blueprint("assets", __name__)
@@ -391,8 +393,12 @@ def trigger_caching():
 
         dt_address = tx_receipt.logs[log_index].address
         dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
-        created_event = dt_contract.events.MetadataCreated().processReceipt(tx_receipt)
-        updated_event = dt_contract.events.MetadataUpdated().processReceipt(tx_receipt)
+        created_event = dt_contract.events.MetadataCreated().processReceipt(
+            tx_receipt, errors=DISCARD
+        )
+        updated_event = dt_contract.events.MetadataUpdated().processReceipt(
+            tx_receipt, errors=DISCARD
+        )
 
         if not created_event and not updated_event:
             return jsonify(error="No metadata created/updated event found in tx."), 400
@@ -405,13 +411,7 @@ def trigger_caching():
             else None
         )
         chain_id = web3.eth.chain_id
-        processor_args = [
-            es_instance,
-            web3,
-            allowed_publishers,
-            purgatory,
-            chain_id,
-        ]
+        processor_args = [es_instance, web3, allowed_publishers, purgatory, chain_id]
 
         processor = (
             MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
