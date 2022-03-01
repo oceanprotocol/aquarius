@@ -268,10 +268,7 @@ class EventsMonitor(BlockProcessingClass):
         for event in events:
             try:
                 event_processor = TokenURIUpdatedProcessor(
-                    event,
-                    self._web3,
-                    self._es_instance,
-                    self._chain_id,
+                    event, self._web3, self._es_instance, self._chain_id
                 )
                 event_processor.process()
             except Exception as e:
@@ -363,31 +360,40 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block):
+    def get_event_logs(self, event_name, from_block, to_block, chunk_size=1000):
         if event_name not in EventTypes.get_all_values():
             return []
 
+        erc721_template_contract = self._web3.eth.contract(abi=ERC721Template.abi)
+        erc20_template_contract = self._web3.eth.contract(abi=ERC20Template.abi)
+
         if event_name == EventTypes.EVENT_METADATA_CREATED:
-            hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
+            event = erc721_template_contract.events.MetadataCreated()
         elif event_name == EventTypes.EVENT_METADATA_UPDATED:
-            hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
+            event = erc721_template_contract.events.MetadataUpdated()
         elif event_name == EventTypes.EVENT_METADATA_STATE:
-            hash_text = "MetadataState(address,uint8,uint256,uint256)"
+            event = erc721_template_contract.events.MetadataState()
         elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
-            hash_text = "TokenURIUpdate(address,string,uint256,uint256,uint256)"
+            event = erc721_template_contract.events.TokenURIUpdate()
         else:
-            hash_text = (
-                "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
-            )
+            event = erc20_template_contract.events.OrderStarted()
 
-        event_signature_hash = self._web3.keccak(text=hash_text).hex()
+        _from = from_block
+        _to = _from + chunk_size - 1
 
-        event_filter = self._web3.eth.filter(
-            {
-                "topics": [event_signature_hash],
-                "fromBlock": from_block,
-                "toBlock": to_block,
-            }
-        )
+        all_logs = []
+        _to = min(_to, to_block)
+        while _from <= to_block:
+            # Search current chunk
+            logs = event.getLogs(fromBlock=_from, toBlock=_to)
+            all_logs.extend(logs)
+            if (_from - from_block) % 1000 == 0:
+                logger.info(
+                    f"Searched blocks {_from}-{_to}. {len(all_logs)} {event_name} events detected so far."
+                )
 
-        return event_filter.get_all_entries()
+            # Prepare for next chunk
+            _from = _to + 1
+            _to = min(_from + chunk_size - 1, to_block)
+
+        return all_logs
