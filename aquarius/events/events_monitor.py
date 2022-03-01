@@ -364,28 +364,34 @@ class EventsMonitor(BlockProcessingClass):
         if event_name not in EventTypes.get_all_values():
             return []
 
-        erc721_template_contract = self._web3.eth.contract(abi=ERC721Template.abi)
-        erc20_template_contract = self._web3.eth.contract(abi=ERC20Template.abi)
-
         if event_name == EventTypes.EVENT_METADATA_CREATED:
-            event = erc721_template_contract.events.MetadataCreated()
+            hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
         elif event_name == EventTypes.EVENT_METADATA_UPDATED:
-            event = erc721_template_contract.events.MetadataUpdated()
+            hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
         elif event_name == EventTypes.EVENT_METADATA_STATE:
-            event = erc721_template_contract.events.MetadataState()
+            hash_text = "MetadataState(address,uint8,uint256,uint256)"
         elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
-            event = erc721_template_contract.events.TokenURIUpdate()
+            hash_text = "TokenURIUpdate(address,string,uint256,uint256,uint256)"
         else:
-            event = erc20_template_contract.events.OrderStarted()
+            hash_text = (
+                "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
+            )
+
+        event_signature_hash = self._web3.keccak(text=hash_text).hex()
 
         _from = from_block
-        _to = _from + chunk_size - 1
+        _to = min(_from + chunk_size - 1, to_block)
+
+        filter_params = {
+            "topics": [event_signature_hash],
+            "fromBlock": _from,
+            "toBlock": _to,
+        }
 
         all_logs = []
-        _to = min(_to, to_block)
         while _from <= to_block:
             # Search current chunk
-            logs = event.getLogs(fromBlock=_from, toBlock=_to)
+            logs = self._web3.eth.get_logs(fromBlock=_from, toBlock=_to)
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
                 logger.info(
@@ -395,5 +401,6 @@ class EventsMonitor(BlockProcessingClass):
             # Prepare for next chunk
             _from = _to + 1
             _to = min(_from + chunk_size - 1, to_block)
+            filter_params.update({"fromBlock": _from, "toBlock": _to})
 
         return all_logs
