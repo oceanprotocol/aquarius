@@ -19,6 +19,8 @@ from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import deploy_datatoken, make_did
 from artifacts import ERC721Template
 from tests.ddos.ddo_event_sample_v4 import ddo_event_sample_v4
+from web3.logs import DISCARD
+
 
 rpc = os.environ.get("EVENTS_RPC", "")
 provider = get_web3_connection_provider(rpc)
@@ -121,7 +123,9 @@ def send_create_update_tx(name, ddo, flags, account):
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
-    _ = getattr(dt_contract.events, event_name)().processReceipt(txn_receipt)
+    _ = getattr(dt_contract.events, event_name)().processReceipt(
+        txn_receipt, errors=DISCARD
+    )
 
     return txn_receipt, dt_contract, erc20_address
 

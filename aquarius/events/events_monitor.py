@@ -6,13 +6,11 @@ import json
 import logging
 import os
 import time
-from json import JSONDecodeError
 from threading import Thread
 
 import elasticsearch
 from jsonsempai import magic  # noqa: F401
 
-from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
@@ -27,6 +25,8 @@ from aquarius.events.processors import (
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block
 from artifacts import ERC20Template, ERC721Template
+from web3.logs import DISCARD
+
 
 logger = logging.getLogger(__name__)
 
@@ -213,7 +213,7 @@ class EventsMonitor(BlockProcessingClass):
             )
             event_object = dt_contract.events[
                 EventTypes.get_value(event_name)
-            ]().processReceipt(receipt)[0]
+            ]().processReceipt(receipt, errors=DISCARD)[0]
             try:
                 event_processor = processor(
                     *([event_object, dt_contract, receipt["from"]] + processor_args)
