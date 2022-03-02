@@ -17,6 +17,8 @@ from addresses import address as contract_addresses
 from aquarius.app.util import get_bool_env_value
 from aquarius.events.http_provider import get_web3_connection_provider
 from artifacts import ERC721Factory
+from web3.logs import DISCARD
+
 
 logger = logging.getLogger(__name__)
 ENV_ADDRESS_FILE = "ADDRESS_FILE"
@@ -90,7 +92,7 @@ def deploy_datatoken(w3, account, name, symbol):
 
         return (
             dt_factory.events.NFTCreated()
-            .processReceipt(receipt)[0]
+            .processReceipt(receipt, errors=DISCARD)[0]
             .args.newTokenAddress
         )
     except Exception:

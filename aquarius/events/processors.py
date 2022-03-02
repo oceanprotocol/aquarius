@@ -22,6 +22,8 @@ from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did, get_dt_factory
 from aquarius.graphql import get_number_orders
 from artifacts import ERC20Template, ERC721Template
+from web3.logs import DISCARD
+
 
 logger = logging.getLogger(__name__)
 
@@ -424,9 +426,9 @@ class TokenURIUpdatedProcessor:
         )
 
         receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)
-        event_decoded = erc721_contract.events.TokenURIUpdate().processReceipt(receipt)[
-            0
-        ]
+        event_decoded = erc721_contract.events.TokenURIUpdate().processReceipt(
+            receipt, errors=DISCARD
+        )[0]
 
         if self.asset["event"]["tx"] == event_decoded.transactionHash.hex():
             logger.warning("old asset has the same txid, no need to update")
@@ -465,10 +467,10 @@ class MetadataStateProcessor(EventProcessor):
 
         create_events = self.dt_contract.events[
             EventTypes.EVENT_METADATA_CREATED
-        ]().processReceipt(receipt)
+        ]().processReceipt(receipt, errors=DISCARD)
         update_events = self.dt_contract.events[
             EventTypes.EVENT_METADATA_UPDATED
-        ]().processReceipt(receipt)
+        ]().processReceipt(receipt, errors=DISCARD)
 
         if not create_events and not update_events:
             logger.error("create/update ddo event not found")
