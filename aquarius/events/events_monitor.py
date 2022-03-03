@@ -371,7 +371,8 @@ class EventsMonitor(BlockProcessingClass):
         _to = min(_from + chunk_size - 1, to_block)
 
         logger.info(
-            f"Searching for {event_name} events in blocks {from_block} to {to_block}."
+            f"Searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}."
         )
 
         filter_params = {
@@ -387,7 +388,7 @@ class EventsMonitor(BlockProcessingClass):
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
                 logger.debug(
-                    f"Searched blocks {_from} to {_to}. "
+                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}"
                     f"{len(all_logs)} {event_name} events detected so far."
                 )
 
@@ -397,7 +398,8 @@ class EventsMonitor(BlockProcessingClass):
             filter_params.update({"fromBlock": _from, "toBlock": _to})
 
         logger.info(
-            f"Finished searching for {event_name} events in blocks {from_block} to {to_block}. "
+            f"Finished searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}. "
             f"{len(all_logs)} {event_name} events detected."
         )
 
