@@ -23,6 +23,7 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
         "transactionId": txid,
         "chainId": chain_id,
         "decrypterAddress": aquarius_account.address,
+        "dataNftAddress": contract_address,
         "signature": signature,
         "nonce": nonce,
     }
