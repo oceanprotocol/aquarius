@@ -1,0 +1,9 @@
+##
+## Copyright 2021 Ocean Protocol Foundation
+## SPDX-License-Identifier: Apache-2.0
+##
+version: "2"         # required to adjust maintainability checks
+checks:
+  argument-count:
+    config:
+      threshold: 6
