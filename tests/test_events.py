@@ -367,7 +367,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
     )
     events_object.process_current_blocks()
-    time.sleep(5)
+    time.sleep(10)
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Asset has been recreated
     assert published_ddo["id"] == did
