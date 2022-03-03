@@ -370,6 +370,10 @@ class EventsMonitor(BlockProcessingClass):
         _from = from_block
         _to = min(_from + chunk_size - 1, to_block)
 
+        logger.info(
+            f"Searching for {event_name} events in blocks {from_block} to {to_block}."
+        )
+
         filter_params = {
             "topics": [event_signature_hash],
             "fromBlock": _from,
@@ -382,13 +386,17 @@ class EventsMonitor(BlockProcessingClass):
             logs = self._web3.eth.get_logs(filter_params)
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
-                logger.info(
-                    f"Searched blocks {_from}-{_to}. {len(all_logs)} {event_name} events detected so far."
+                logger.debug(
+                    f"Searched blocks {_from} to {_to}. {len(all_logs)} {event_name} events detected so far."
                 )
 
             # Prepare for next chunk
             _from = _to + 1
             _to = min(_from + chunk_size - 1, to_block)
             filter_params.update({"fromBlock": _from, "toBlock": _to})
+
+        logger.info(
+            f"Finished searching for {event_name} events in blocks {from_block} to {to_block}."
+        )
 
         return all_logs
