@@ -387,7 +387,8 @@ class EventsMonitor(BlockProcessingClass):
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
                 logger.debug(
-                    f"Searched blocks {_from} to {_to}. {len(all_logs)} {event_name} events detected so far."
+                    f"Searched blocks {_from} to {_to}. "
+                    f"{len(all_logs)} {event_name} events detected so far."
                 )
 
             # Prepare for next chunk
@@ -396,7 +397,8 @@ class EventsMonitor(BlockProcessingClass):
             filter_params.update({"fromBlock": _from, "toBlock": _to})
 
         logger.info(
-            f"Finished searching for {event_name} events in blocks {from_block} to {to_block}."
+            f"Finished searching for {event_name} events in blocks {from_block} to {to_block}. "
+            f"{len(all_logs)} {event_name} events detected."
         )
 
         return all_logs
