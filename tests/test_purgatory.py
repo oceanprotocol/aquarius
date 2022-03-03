@@ -120,7 +120,7 @@ def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatc
     assert published_ddo["purgatory"]["state"] is True
 
     # simulate the passage of time (1 hour until next purgatory update)
-    in_one_hour = datetime.utcnow() + timedelta(hours=1)
+    in_one_hour = datetime.now() + timedelta(hours=1)
     freezer = freeze_time(in_one_hour)
     freezer.start()
 

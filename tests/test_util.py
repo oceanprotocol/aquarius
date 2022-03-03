@@ -102,7 +102,7 @@ def test_compare_eth_addresses():
 
 
 def test_datetime_converter():
-    assert datetime_converter(datetime.utcnow())
+    assert datetime_converter(datetime.now())
 
 
 def test_sanitize_record():
