@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 from datetime import datetime
-import os
 
 import requests
 from eth_account.messages import encode_defunct
@@ -14,7 +13,8 @@ from aquarius.app.util import get_aquarius_wallet
 
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
     aquarius_account = get_aquarius_wallet()
-    nonce = str(datetime.now().timestamp())
+    nonce = str(int(datetime.utcnow().timestamp()))
+
     signature = aquarius_account.sign_message(
         encode_defunct(text=f"{txid}{aquarius_account.address}{chain_id}{nonce}")
     ).signature.hex()
@@ -23,6 +23,7 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
         "transactionId": txid,
         "chainId": chain_id,
         "decrypterAddress": aquarius_account.address,
+        "dataNftAddress": contract_address,
         "signature": signature,
         "nonce": nonce,
     }
