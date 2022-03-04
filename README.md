@@ -145,6 +145,9 @@ RBAC_SERVER_URL
 
 # Whether to start clean and reindex events on chain id
 EVENTS_CLEAN_START
+
+# Subgraph URLs in the form of a json-dumped string mapping chain_ids to subgraph urls.
+SUBGRAPH_URLS
 ```
 ## Running Aquarius for multiple chains
 

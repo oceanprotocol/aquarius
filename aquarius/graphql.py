@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 import time
 
 from gql import Client, gql
@@ -11,9 +13,9 @@ logger = logging.getLogger("aquarius")
 aiohttp_logger.setLevel(logging.WARNING)
 
 
-def get_number_orders(token_address, last_sync_block):
+def get_number_orders(token_address, last_sync_block, chain_id):
     try:
-        client = get_client()
+        client = get_client(chain_id)
 
         last_block = get_last_block(client)
         while last_block < last_sync_block:
@@ -31,18 +33,19 @@ def get_number_orders(token_address, last_sync_block):
         return -1
 
 
-def get_transport():
-    network_name = get_network_name()
-    if network_name == "development":
-        prefix = "http://localhost:9000"
-    else:
-        prefix = f"http://v4.subgraph.{network_name}.oceanprotocol.com"
+def get_transport(chain_id):
+    subgraph_urls = json.loads(os.getenv("SUBGRAPH_URLS", "{}"))
+
+    if str(chain_id) not in subgraph_urls:
+        raise Exception("Subgraph not defined for this chain.")
+
+    prefix = subgraph_urls[str(chain_id)]
 
     return AIOHTTPTransport(url=f"{prefix}/subgraphs/name/oceanprotocol/ocean-subgraph")
 
 
-def get_client():
-    return Client(transport=get_transport(), fetch_schema_from_transport=True)
+def get_client(chain_id):
+    return Client(transport=get_transport(chain_id), fetch_schema_from_transport=True)
 
 
 def get_last_block(client):
