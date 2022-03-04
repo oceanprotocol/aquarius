@@ -348,7 +348,7 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block):
+    def get_event_logs(self, event_name, from_block, to_block, chunk_size=1000):
         if event_name not in EventTypes.get_all_values():
             return []
 
@@ -367,12 +367,40 @@ class EventsMonitor(BlockProcessingClass):
 
         event_signature_hash = self._web3.keccak(text=hash_text).hex()
 
-        event_filter = self._web3.eth.filter(
-            {
-                "topics": [event_signature_hash],
-                "fromBlock": from_block,
-                "toBlock": to_block,
-            }
+        _from = from_block
+        _to = min(_from + chunk_size - 1, to_block)
+
+        logger.info(
+            f"Searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}."
         )
 
-        return event_filter.get_all_entries()
+        filter_params = {
+            "topics": [event_signature_hash],
+            "fromBlock": _from,
+            "toBlock": _to,
+        }
+
+        all_logs = []
+        while _from <= to_block:
+            # Search current chunk
+            logs = self._web3.eth.get_logs(filter_params)
+            all_logs.extend(logs)
+            if (_from - from_block) % 1000 == 0:
+                logger.debug(
+                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}"
+                    f"{len(all_logs)} {event_name} events detected so far."
+                )
+
+            # Prepare for next chunk
+            _from = _to + 1
+            _to = min(_from + chunk_size - 1, to_block)
+            filter_params.update({"fromBlock": _from, "toBlock": _to})
+
+        logger.info(
+            f"Finished searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}. "
+            f"{len(all_logs)} {event_name} events detected."
+        )
+
+        return all_logs
