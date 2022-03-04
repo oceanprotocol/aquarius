@@ -22,6 +22,7 @@ from tests.helpers import (
     get_ddo,
     get_web3,
     new_ddo,
+    run_request_get_data,
     send_create_update_tx,
     send_set_metadata_state_tx,
     test_account1,
@@ -348,7 +349,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         ddo=_ddo, account=test_account1, state=MetadataStates.DEPRECATED
     )
     events_object.process_current_blocks()
-    time.sleep(5)
+    time.sleep(20)
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Check if asset is soft deleted
     assert "id" not in published_ddo
@@ -367,7 +368,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
     )
     events_object.process_current_blocks()
-    time.sleep(10)
+    time.sleep(20)
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Asset has been recreated
     assert published_ddo["id"] == did
@@ -403,3 +404,67 @@ def test_token_uri_update(client, base_ddo_url, events_object):
     updated_ddo = get_ddo(client, base_ddo_url, did)
     assert updated_ddo["id"] == did
     assert updated_ddo["nft"]["tokenURI"] == "http://something-else.com"
+
+
+def test_trigger_caching(client, base_ddo_url, events_object):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    txn_receipt, _, erc20_address = send_create_update_tx(
+        "create", _ddo, bytes([2]), test_account1
+    )
+    tx_id = txn_receipt["transactionHash"].hex()
+
+    with patch("aquarius.app.es_instance.ElasticsearchInstance.get") as mock:
+        mock.side_effect = Exception("Boom!")
+        response = run_request_get_data(
+            client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+        )
+        assert response["error"] == "Encountered error when triggering caching: Boom!."
+
+    response = run_request_get_data(
+        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    )
+    assert response["id"] == did
+
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
+    for service in published_ddo["services"]:
+        assert service["datatokenAddress"] == erc20_address
+        assert service["name"] in ["dataAssetAccess", "dataAssetComputingService"]
+
+    _ddo["metadata"]["name"] = "Updated ddo by event"
+    txn_receipt, dt_contract, _ = send_create_update_tx(
+        "update", _ddo, bytes([2]), test_account1
+    )
+    tx_id = txn_receipt["transactionHash"].hex()
+
+    response = run_request_get_data(
+        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    )
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
+    assert published_ddo["metadata"]["name"] == "Updated ddo by event"
+
+    assert response["metadata"]["name"] == "Updated ddo by event"
+
+    # index out of range
+    response = run_request_get_data(
+        client.post,
+        "api/aquarius/assets/triggerCaching",
+        {"transactionId": tx_id, "logIndex": 1},
+    )
+    assert response["error"] == "Log index 1 not found"
+
+    # can not find event created, nor event updated
+    txn_hash = dt_contract.functions.setTokenURI(
+        1, "http://something-else.com"
+    ).transact()
+    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
+    tx_id = txn_receipt["transactionHash"].hex()
+    response = run_request_get_data(
+        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    )
+    assert response["error"] == "No metadata created/updated event found in tx."

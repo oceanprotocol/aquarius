@@ -6,15 +6,13 @@ import json
 import logging
 import os
 import time
-from json import JSONDecodeError
 from threading import Thread
 
 import elasticsearch
 from jsonsempai import magic  # noqa: F401
 
-from aquarius.app.auth_util import sanitize_addresses
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import get_bool_env_value
+from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
@@ -27,6 +25,8 @@ from aquarius.events.processors import (
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import get_metadata_start_block
 from artifacts import ERC20Template, ERC721Template
+from web3.logs import DISCARD
+
 
 logger = logging.getLogger(__name__)
 
@@ -70,19 +70,7 @@ class EventsMonitor(BlockProcessingClass):
             self.reset_chain()
 
         self.get_or_set_last_block()
-        allowed_publishers = set()
-        try:
-            publishers_str = os.getenv("ALLOWED_PUBLISHERS", "")
-            allowed_publishers = (
-                set(json.loads(publishers_str)) if publishers_str else set()
-            )
-        except (JSONDecodeError, TypeError, Exception) as e:
-            logger.error(
-                f"Reading list of allowed publishers failed: {e}\n"
-                f"ALLOWED_PUBLISHERS is set to empty set."
-            )
-
-        self._allowed_publishers = set(sanitize_addresses(allowed_publishers))
+        self._allowed_publishers = get_allowed_publishers()
         logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
         self._monitor_is_on = False
@@ -225,7 +213,7 @@ class EventsMonitor(BlockProcessingClass):
             )
             event_object = dt_contract.events[
                 EventTypes.get_value(event_name)
-            ]().processReceipt(receipt)[0]
+            ]().processReceipt(receipt, errors=DISCARD)[0]
             try:
                 event_processor = processor(
                     *([event_object, dt_contract, receipt["from"]] + processor_args)
@@ -268,10 +256,7 @@ class EventsMonitor(BlockProcessingClass):
         for event in events:
             try:
                 event_processor = TokenURIUpdatedProcessor(
-                    event,
-                    self._web3,
-                    self._es_instance,
-                    self._chain_id,
+                    event, self._web3, self._es_instance, self._chain_id
                 )
                 event_processor.process()
             except Exception as e:
@@ -363,7 +348,7 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block):
+    def get_event_logs(self, event_name, from_block, to_block, chunk_size=1000):
         if event_name not in EventTypes.get_all_values():
             return []
 
@@ -382,12 +367,40 @@ class EventsMonitor(BlockProcessingClass):
 
         event_signature_hash = self._web3.keccak(text=hash_text).hex()
 
-        event_filter = self._web3.eth.filter(
-            {
-                "topics": [event_signature_hash],
-                "fromBlock": from_block,
-                "toBlock": to_block,
-            }
+        _from = from_block
+        _to = min(_from + chunk_size - 1, to_block)
+
+        logger.info(
+            f"Searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}."
         )
 
-        return event_filter.get_all_entries()
+        filter_params = {
+            "topics": [event_signature_hash],
+            "fromBlock": _from,
+            "toBlock": _to,
+        }
+
+        all_logs = []
+        while _from <= to_block:
+            # Search current chunk
+            logs = self._web3.eth.get_logs(filter_params)
+            all_logs.extend(logs)
+            if (_from - from_block) % 1000 == 0:
+                logger.debug(
+                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}"
+                    f"{len(all_logs)} {event_name} events detected so far."
+                )
+
+            # Prepare for next chunk
+            _from = _to + 1
+            _to = min(_from + chunk_size - 1, to_block)
+            filter_params.update({"fromBlock": _from, "toBlock": _to})
+
+        logger.info(
+            f"Finished searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}. "
+            f"{len(all_logs)} {event_name} events detected."
+        )
+
+        return all_logs
