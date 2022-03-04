@@ -238,6 +238,9 @@ schema:ServiceShape
         sh:path schema:compute;
         sh:node schema:ComputeShape ;
         sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:additionalInformation ;
     ] ; .
 
 
