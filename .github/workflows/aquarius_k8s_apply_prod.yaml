@@ -1,0 +1,69 @@
+name:  "[PROD] Build, push to ECR and deploy to k8s"
+
+on:
+  #push:
+    #tags:
+    #  - 'prod-v*'
+  workflow_dispatch:
+
+jobs:
+  build_and_push_to_ECR:
+    name: Build, push to ECR and deploy to k8s
+    runs-on: ubuntu-latest
+    env:
+      ECR_REPO_NAME: "aquarius-mainnet"
+      K8S_NAMESPACE: "bdp-prod"
+            
+      # Supported version
+      KUBECTL_VERSION: 1.21.2
+      
+      # Cluster variables
+      ACCOUNT_ID: 692682348024
+      AWS_REGION: "us-east-1"
+      ENVIRONMENT: prod
+      CLUSTER_NAME: 'bdp-infra-prod'
+      IMAGE_URL: ""
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker build -t ${{ env.ECR_REPO_NAME }}:$GITHUB_REF_NAME .
+        docker tag ${{ env.ECR_REPO_NAME }}:$GITHUB_REF_NAME $ECR_REGISTRY/${{ env.ECR_REPO_NAME }}:$GITHUB_REF_NAME
+        docker push $ECR_REGISTRY/${{ env.ECR_REPO_NAME }}:$GITHUB_REF_NAME
+        
+    - name: Install kubectl
+      run: |
+        curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/${{ env.KUBECTL_VERSION }}/2021-07-05/bin/linux/amd64/kubectl
+        chmod +x ./kubectl
+        sudo mv kubectl /usr/bin/
+    
+    - name: Configure kubectl
+      id: kubeconfig
+      run: |
+        aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ env.CLUSTER_NAME }}
+    
+    - name: Deploy to k8s
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+          export IMAGE_URL=$ECR_REGISTRY/${{ env.ECR_REPO_NAME }}:$GITHUB_REF_NAME
+          cat ./k8s/base/namespace.yaml | envsubst | kubectl apply --wait=true -f -
+          cat ./k8s/overlays/prod/secrets.yaml | envsubst | kubectl apply --namespace ${{ env.K8S_NAMESPACE }} --wait=true -f -
+          kubectl kustomize ./k8s/overlays/prod/ | envsubst | kubectl apply --namespace ${{ env.K8S_NAMESPACE }} --wait=true -f -
+         #kubectl rollout status deployment/$PROJECT_NAME --namespace ${{ env.K8S_NAMESPACE }}

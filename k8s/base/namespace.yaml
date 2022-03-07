@@ -1,0 +1,6 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: '${K8S_NAMESPACE}'
+  labels:
+    name: '${K8S_NAMESPACE}'

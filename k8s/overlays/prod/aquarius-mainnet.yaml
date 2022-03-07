@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aquarius-mainnet
+spec:
+  selector:
+    matchLabels:
+      app: aquarius-mainnet
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: aquarius-mainnet
+        image: '${IMAGE_URL}'
+        resources:
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+        env:
+          - name: EVENTS_ECIES_PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: aquarius-mainnet
+                key: EVENTS_ECIES_PRIVATE_KEY
+          - name: EVENTS_RPC
+            valueFrom:
+              secretKeyRef:
+                name: aquarius-mainnet
+                key: EVENTS_RPC
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: aquarius-mainnet
+                key: DB_PASSWORD
+          - name: OCEAN_ADDRESS
+            value: "0xf3dcbc6d72a4e1892f7917b7c43b74131df8480e"
+          - name: DB_VERIFY_CERTS
+            value: "true"
+          - name: METADATA_CONTRACT_BLOCK
+            value: "12341835"
+          - name: NETWORK_NAME
+            value: "mainnet"
+          - name: BFACTORY_BLOCK
+            value: "12341835"
+          - name: LOG_LEVEL
+            value: "DEBUG"
+          - name: ALLOWED_PUBLISHERS
+            value: "[\"0x89717015882D6460e4A0daeB945B3D4032f2D9D6\"]"
+          - name: DB_HOSTNAME
+            value: "https://vpc-bdp-prod-es-aquarius-hhhvzrbbw4yforw2o7g7atenoe.us-east-1.es.amazonaws.com"

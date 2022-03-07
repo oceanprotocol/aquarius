@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aquarius-mainnet
+spec:
+  selector:
+    matchLabels:
+      app: aquarius-mainnet
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: aquarius-mainnet
+    spec:
+      containers:
+      - name: aquarius-mainnet
+        image: aquarius-mainnet-image
+        ports:
+            - containerPort: 5000
