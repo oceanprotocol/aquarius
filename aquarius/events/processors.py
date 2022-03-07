@@ -100,7 +100,9 @@ class EventProcessor(ABC):
         record[AquariusCustomDDOFields.DATATOKENS] = self.get_tokens_info(record)
 
         record[AquariusCustomDDOFields.STATS] = {
-            "orders": get_number_orders(self.dt_contract.address, self.block)
+            "orders": get_number_orders(
+                self.dt_contract.address, self.block, self._chain_id
+            )
         }
 
         return record, block_time
@@ -384,6 +386,7 @@ class MetadataUpdatedProcessor(EventProcessor):
 class OrderStartedProcessor:
     def __init__(self, token_address, es_instance, last_sync_block, chain_id):
         self.did = make_did(token_address, chain_id)
+        self.chain_id = chain_id
         self.es_instance = es_instance
         self.token_address = token_address
         self.last_sync_block = last_sync_block
@@ -397,7 +400,9 @@ class OrderStartedProcessor:
         if not self.asset:
             return
 
-        number_orders = get_number_orders(self.token_address, self.last_sync_block)
+        number_orders = get_number_orders(
+            self.token_address, self.last_sync_block, self.chain_id
+        )
         self.asset["stats"]["orders"] = number_orders
 
         self.es_instance.update(self.asset, self.did)
