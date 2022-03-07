@@ -209,16 +209,15 @@ class MetadataCreatedProcessor(EventProcessor):
             logger.error("token not deployed by our factory")
             return
 
-        try:
-            asset = decrypt_ddo(
-                self._web3,
-                self.event.args.decryptorUrl,
-                self.event.address,
-                self._chain_id,
-                txid,
-                self.event.args.metaDataHash,
-            )
-        except:
+        asset = decrypt_ddo(
+            self._web3,
+            self.event.args.decryptorUrl,
+            self.event.address,
+            self._chain_id,
+            txid,
+            self.event.args.metaDataHash,
+        )
+        if not asset:
             logger.error("Decrypt ddo failed")
             raise Exception("Decrypt ddo failed")
 
@@ -303,16 +302,15 @@ class MetadataUpdatedProcessor(EventProcessor):
         if dt_factory.caller.erc721List(self.event.address) != self.event.address:
             logger.error("token not deployed by our factory")
 
-        try:
-            asset = decrypt_ddo(
-                self._web3,
-                self.event.args.decryptorUrl,
-                self.event.address,
-                self._chain_id,
-                txid,
-                self.event.args.metaDataHash,
-            )
-        except:
+        asset = decrypt_ddo(
+            self._web3,
+            self.event.args.decryptorUrl,
+            self.event.address,
+            self._chain_id,
+            txid,
+            self.event.args.metaDataHash,
+        )
+        if not asset:
             logger.error("Decrypt ddo failed")
             raise Exception("Decrypt ddo failed")
 
