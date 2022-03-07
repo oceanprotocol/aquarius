@@ -62,7 +62,7 @@ test_requirements = [
     "pytest",
     "tox",
     "pytest-env",
-    "freezegun==1.1.0",
+    "freezegun==1.2.0",
 ]
 
 setup(
