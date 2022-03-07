@@ -24,7 +24,6 @@ from aquarius.graphql import get_number_orders
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -210,15 +209,17 @@ class MetadataCreatedProcessor(EventProcessor):
             logger.error("token not deployed by our factory")
             return
 
-        asset = decrypt_ddo(
-            self._web3,
-            self.event.args.decryptorUrl,
-            self.event.address,
-            self._chain_id,
-            txid,
-            self.event.args.metaDataHash,
-        )
-        if not asset:
+        try:
+            asset = decrypt_ddo(
+                self._web3,
+                self.event.args.decryptorUrl,
+                self.event.address,
+                self._chain_id,
+                txid,
+                self.event.args.metaDataHash,
+            )
+        except:
+            logger.error("Decrypt ddo failed")
             raise Exception("Decrypt ddo failed")
 
         self.did = asset["id"]
@@ -302,16 +303,17 @@ class MetadataUpdatedProcessor(EventProcessor):
         if dt_factory.caller.erc721List(self.event.address) != self.event.address:
             logger.error("token not deployed by our factory")
 
-        asset = decrypt_ddo(
-            self._web3,
-            self.event.args.decryptorUrl,
-            self.event.address,
-            self._chain_id,
-            txid,
-            self.event.args.metaDataHash,
-        )
-
-        if not asset:
+        try:
+            asset = decrypt_ddo(
+                self._web3,
+                self.event.args.decryptorUrl,
+                self.event.address,
+                self._chain_id,
+                txid,
+                self.event.args.metaDataHash,
+            )
+        except:
+            logger.error("Decrypt ddo failed")
             raise Exception("Decrypt ddo failed")
 
         self.did = asset["id"]
