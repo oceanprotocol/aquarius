@@ -24,7 +24,6 @@ from aquarius.graphql import get_number_orders
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -219,6 +218,7 @@ class MetadataCreatedProcessor(EventProcessor):
             self.event.args.metaDataHash,
         )
         if not asset:
+            logger.error("Decrypt ddo failed")
             raise Exception("Decrypt ddo failed")
 
         self.did = asset["id"]
@@ -310,8 +310,8 @@ class MetadataUpdatedProcessor(EventProcessor):
             txid,
             self.event.args.metaDataHash,
         )
-
         if not asset:
+            logger.error("Decrypt ddo failed")
             raise Exception("Decrypt ddo failed")
 
         self.did = asset["id"]
