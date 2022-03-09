@@ -36,7 +36,7 @@ install_requirements = [
     "python-dateutil==2.8.2",
     "pyshacl==0.17.2",
     "gql==3.0.0a6",
-    "aiohttp==3.7.4.post0",
+    "aiohttp==3.8.1",
 ]
 
 setup_requirements = ["pytest-runner==6.0.0"]
