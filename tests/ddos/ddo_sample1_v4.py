@@ -35,6 +35,7 @@ json_dict = {
             "serviceEndpoint": "http://172.15.0.4:8030/",
             "timeout": 0,
             "files": "encryptedFiles",
+            "additionalInformation": {"test-key": "test-value"},
         }
     ],
 }
