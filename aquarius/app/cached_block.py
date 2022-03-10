@@ -22,11 +22,10 @@ cache = Cache(
 
 def get_cached_block():
     """
+    Retrieves the latest block value.
     :return: `cached_block` stored in the database
     """
-    result = cache.get("cached_block")
-    logger.info(f"result:{result}")
-    return result
+    return cache.get("cached_block")
 
 
 def update_cached_block(cached_block):
@@ -39,9 +38,9 @@ def update_cached_block(cached_block):
         return
 
     block = get_or_create_cached_block(cached_block)
-    logger.info(f"block:{block}")
     cache.set("cached_block", block)
-    logger.info(f'cache={cache.get("cached_block")}')
+    assert cache.get("cached_block") == block, "The block was not updated."
+    logger.info("Successfully updated the cached block")
 
 
 def get_or_create_cached_block(cached_block):
