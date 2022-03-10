@@ -266,20 +266,16 @@ class EventsMonitor(BlockProcessingClass):
 
     def get_last_processed_block(self):
         block = 0
-        while True:
-            try:
-                last_block_record = self._es_instance.es.get(
-                    index=self._other_db_index, id=self._index_name, doc_type="_doc"
-                )["_source"]
-                block = last_block_record["last_block"]
-                break
-            except Exception as e:
-                logger.error(f"Cannot get last_block error={e}")
-                # re-establish the ES connection
-                if self._es_instance.es.ping() is False:
-                    logging.info("Trying to connect...")
-                    time.sleep(5)
-                continue
+        try:
+            while self._es_instance.es.ping() is False:
+                logging.info("Trying to connect...")
+                time.sleep(5)
+            last_block_record = self._es_instance.es.get(
+                index=self._other_db_index, id=self._index_name, doc_type="_doc"
+            )["_source"]
+            block = last_block_record["last_block"]
+        except Exception as e:
+            logger.error(f"Cannot get last_block error={e}")
         return block
 
     def store_last_processed_block(self, block):
