@@ -35,9 +35,9 @@ install_requirements = [
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
-    "pyshacl==0.17.2",
-    "gql==3.0.0a6",
-    "aiohttp==3.7.4.post0",
+    "pyshacl==0.18.1",
+    "gql==3.0.0",
+    "aiohttp==3.8.1",
     "redis==4.0.2",
 ]
 
@@ -61,10 +61,10 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==6.3.2",
     "mccabe==0.6.1",
-    "pylint==2.12.1",
+    "pylint==2.12.2",
     "pytest",
     "pytest-env",
-    "freezegun==1.1.0",
+    "freezegun==1.2.0",
 ]
 
 setup(
