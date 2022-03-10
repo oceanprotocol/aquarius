@@ -26,7 +26,7 @@ def get_cached_block():
     """
     result = cache.get("cached_block")
     logger.info(f"result:{result}")
-    return int(result) if result else None
+    return result
 
 
 def update_cached_block(cached_block):
