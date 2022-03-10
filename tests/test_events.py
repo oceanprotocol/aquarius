@@ -2,7 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-
+import logging
 import elasticsearch
 import json
 import time
@@ -31,6 +31,8 @@ from tests.helpers import (
 )
 
 keys = KeyAPI(NativeECCBackend)
+
+logger = logging.getLogger("aquarius")
 
 
 def run_test(client, base_ddo_url, events_instance, flags):
@@ -229,6 +231,7 @@ def test_get_last_processed_block(monkeypatch, events_object):
     monkeypatch.setenv("REDIS_CONNECTION", "redis://172.15.0.18:6379")
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
+        logger.info(f"test_cached_block: {int(get_cached_block())}")
         assert events_object.get_last_processed_block() == get_cached_block()
 
     intended_block = -10  # can not be smaller than start block
