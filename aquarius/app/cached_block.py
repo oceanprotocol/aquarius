@@ -33,11 +33,13 @@ def update_cached_block(cached_block):
     Updates the value of `cached_block` in the database
     :param: cached_block
     """
+    logger.info(f"cached_block:{cached_block}")
     if cached_block is None:
         logger.error("Cached block is None.")
         return
 
     block = get_or_create_cached_block(cached_block)
+    logger.info(f"block:{block}")
     cache.set("cached_block", block)
 
 

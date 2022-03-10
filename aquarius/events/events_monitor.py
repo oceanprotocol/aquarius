@@ -12,7 +12,7 @@ import elasticsearch
 from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.last_block_utils import update_cached_block
+from aquarius.app.cached_block import update_cached_block
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EventTypes

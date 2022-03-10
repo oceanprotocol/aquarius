@@ -12,7 +12,7 @@ from eth_keys.backends import NativeECCBackend
 from unittest.mock import patch
 from web3.main import Web3
 
-from aquarius.app.last_block_utils import get_cached_block
+from aquarius.app.cached_block import get_cached_block
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
@@ -227,15 +227,14 @@ def test_process_block_range(client, base_ddo_url, events_object):
 
 def test_get_last_processed_block(monkeypatch, events_object):
     monkeypatch.setenv("REDIS_CONNECTION", "redis://172.15.0.18:6379")
-    start_block = get_cached_block()
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        assert events_object.get_last_processed_block() == start_block
+        assert events_object.get_last_processed_block() == get_cached_block()
 
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.return_value = {"last_block": intended_block}
-        assert events_object.get_last_processed_block() == start_block
+        assert events_object.get_last_processed_block() == get_cached_block()
 
 
 def test_store_last_processed_block(events_object):
