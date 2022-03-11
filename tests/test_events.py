@@ -231,7 +231,6 @@ def test_get_last_processed_block(monkeypatch, events_object):
     monkeypatch.setenv("REDIS_CONNECTION", "redis://172.15.0.18:6379")
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        logger.info(f"test_cached_block: {int(get_cached_block())}")
         assert events_object.get_last_processed_block() == get_cached_block()
 
     intended_block = -10  # can not be smaller than start block

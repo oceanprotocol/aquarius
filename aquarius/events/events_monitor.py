@@ -12,7 +12,7 @@ import elasticsearch
 from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.cached_block import update_cached_block
+from aquarius.app.cached_block import update_cached_block, get_cached_block
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EventTypes
@@ -268,6 +268,8 @@ class EventsMonitor(BlockProcessingClass):
     def get_last_processed_block(self):
         block = 0
         try:
+            logger.info(f"first updated block: {get_cached_block()}")
+            # Initialize first block. TODO: create a condition here
             update_cached_block(block)
             while self._es_instance.es.ping() is False:
                 logging.info("Trying to connect to ES...")
@@ -276,6 +278,7 @@ class EventsMonitor(BlockProcessingClass):
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
             block = last_block_record["last_block"]
+            update_cached_block(block)
         except Exception as e:
             logger.error(f"Cannot get last_block error={e}")
         return block
