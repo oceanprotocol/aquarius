@@ -28,7 +28,6 @@ from aquarius.events.util import get_metadata_start_block
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -266,24 +265,29 @@ class EventsMonitor(BlockProcessingClass):
                 )
 
     def get_last_processed_block(self):
-        block = 0
-        print("I have entered to get the last block!")
-        print(f"first updated block: {get_cached_block()}")
         try:
-            print(f"first updated block: {get_cached_block()}")
-            logger.info(f"first updated block: {get_cached_block()}")
-            # Initialize first block. TODO: create a condition here
-            update_cached_block(block)
+            # Initialize the cached block with 0 if cache is empty.
+            if get_cached_block() is None:
+                update_cached_block(0)
+            # Re-establishing the connection with ES
             while self._es_instance.es.ping() is False:
-                logging.info("Trying to connect to ES...")
+                logging.error("Trying to connect to ES...")
                 time.sleep(5)
             last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
-            block = last_block_record["last_block"]
+            # If blocks indexing starts from 0, get the cached last block instead.
+            block = (
+                last_block_record["last_block"]
+                if last_block_record["last_block"] != 0
+                else get_cached_block()
+            )
+            # Store in cache
             update_cached_block(block)
         except Exception as e:
             logger.error(f"Cannot get last_block error={e}")
+            block = get_cached_block()
+            logger.info(f"Retrieved the last cached block instead. block={block}")
         return block
 
     def store_last_processed_block(self, block):
