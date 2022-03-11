@@ -267,7 +267,10 @@ class EventsMonitor(BlockProcessingClass):
 
     def get_last_processed_block(self):
         block = 0
+        print("I have entered to get the last block!")
+        print(f"first updated block: {get_cached_block()}")
         try:
+            print(f"first updated block: {get_cached_block()}")
             logger.info(f"first updated block: {get_cached_block()}")
             # Initialize first block. TODO: create a condition here
             update_cached_block(block)

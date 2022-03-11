@@ -4,6 +4,7 @@
 #
 import logging
 import os
+from typing import Optional
 
 from flask_caching import Cache
 from aquarius.myapp import app
@@ -28,14 +29,15 @@ def get_cached_block():
     return cache.get("cached_block")
 
 
-def update_cached_block(cached_block):
+def update_cached_block(cached_block: Optional[int]):
     """
     Updates the value of `cached_block` in the database
     :param: cached_block
     """
     if cached_block is None:
-        logger.error("Cached block is None.")
-        return
+        msg = "Cached block is None."
+        logger.error(msg)
+        raise Exception(msg)
 
     block = get_or_create_cached_block(cached_block)
     cache.set("cached_block", block)
@@ -43,6 +45,6 @@ def update_cached_block(cached_block):
     logger.info("Successfully updated the cached block")
 
 
-def get_or_create_cached_block(cached_block):
+def get_or_create_cached_block(cached_block: int):
     cache.set("cached_block", cached_block)
     return cached_block
