@@ -34,7 +34,7 @@ install_requirements = [
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
-    "pyshacl==0.18.1",
+    "pyshacl==0.19.0",
     "gql==3.1.0",
     "aiohttp==3.8.1",
 ]
