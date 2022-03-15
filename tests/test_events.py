@@ -227,11 +227,11 @@ def test_process_block_range(client, base_ddo_url, events_object):
         assert events_object.process_current_blocks() is None
 
 
-def test_get_last_processed_block(monkeypatch, events_object):
-    monkeypatch.setenv("REDIS_CONNECTION", "redis://172.15.0.18:6379")
+def test_get_last_processed_block(events_object):
+    start_block = events_object._start_block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        assert events_object.get_last_processed_block() == get_cached_block()
+        assert events_object.get_last_processed_block() == start_block
 
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:

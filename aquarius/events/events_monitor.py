@@ -12,7 +12,6 @@ import elasticsearch
 from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.cached_block import update_cached_block, get_cached_block
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
 from aquarius.events.constants import EventTypes
@@ -265,29 +264,18 @@ class EventsMonitor(BlockProcessingClass):
                 )
 
     def get_last_processed_block(self):
+        block = 0
         try:
-            # Initialize the cached block with 0 if cache is empty.
-            if get_cached_block() is None:
-                update_cached_block(0)
             # Re-establishing the connection with ES
             while self._es_instance.es.ping() is False:
-                logging.error("Trying to connect to ES...")
+                logging.error("Connection to ES failed. Trying to connect to back...")
                 time.sleep(5)
             last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
-            # If blocks indexing starts from 0, get the cached last block instead.
-            block = (
-                last_block_record["last_block"]
-                if last_block_record["last_block"] != 0
-                else get_cached_block()
-            )
-            # Store in cache
-            update_cached_block(block)
+            block = last_block_record["last_block"]
         except Exception as e:
             logger.error(f"Cannot get last_block error={e}")
-            block = get_cached_block()
-            logger.info(f"Retrieved the last cached block instead. block={block}")
         return block
 
     def store_last_processed_block(self, block):
