@@ -230,12 +230,12 @@ def test_get_last_processed_block(events_object):
     start_block = events_object._start_block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        assert events_object.get_last_processed_block() == start_block
+        assert events_object.get_last_processed_block() == 0
 
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.return_value = {"last_block": intended_block}
-        assert events_object.get_last_processed_block() == get_cached_block()
+        assert events_object.get_last_processed_block() == 0
 
 
 def test_store_last_processed_block(events_object):
