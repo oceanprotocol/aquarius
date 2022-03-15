@@ -12,7 +12,6 @@ from eth_keys.backends import NativeECCBackend
 from unittest.mock import patch
 from web3.main import Web3
 
-from aquarius.app.cached_block import get_cached_block
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
