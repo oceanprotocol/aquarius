@@ -281,7 +281,7 @@ class EventsMonitor(BlockProcessingClass):
             )["_source"]
             block = (
                 last_block_record["last_block"]
-                if last_block_record["last_block"] > 0
+                if last_block_record["last_block"] >= 0
                 else 0
             )
         except Exception as e:
