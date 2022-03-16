@@ -43,7 +43,6 @@ jobs:
           stack-version: 7.14.2
       - name: Test with pytest
         run: |
-            bash exportlocal.sh
             coverage run --source aquarius -m py.test
             coverage report
             coverage xml
