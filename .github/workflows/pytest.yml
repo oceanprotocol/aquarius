@@ -44,7 +44,7 @@ jobs:
       - name: Test with pytest
         run: |
             bash exportlocal.sh
-            coverage run --source aquarius -m py.test
+            coverage run --source aquarius -m -o log_cli=true py.test
             coverage report
             coverage xml
       - name: Publish code coverage

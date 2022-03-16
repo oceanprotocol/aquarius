@@ -267,13 +267,25 @@ class EventsMonitor(BlockProcessingClass):
         block = 0
         try:
             # Re-establishing the connection with ES
-            while self._es_instance.es.ping() is False:
+            while True:
+                try:
+                    if self._es_instance.es.ping() is True:
+                        break
+                except elasticsearch.exceptions.ElasticsearchException as es_err:
+                    print(f"Elasticsearch error: {es_err}")
+                    logger.error(f"Elasticsearch error: {es_err}")
+                print("Connection to ES failed. Trying to connect to back...")
                 logging.error("Connection to ES failed. Trying to connect to back...")
                 time.sleep(5)
+
             last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
-            block = last_block_record["last_block"]
+            block = (
+                last_block_record["last_block"]
+                if last_block_record["last_block"] > 0
+                else 0
+            )
         except Exception as e:
             logger.error(f"Cannot get last_block error={e}")
         return block

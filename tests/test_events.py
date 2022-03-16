@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import logging
+import threading
+
 import elasticsearch
 import json
 import time
@@ -226,15 +228,36 @@ def test_process_block_range(client, base_ddo_url, events_object):
         assert events_object.process_current_blocks() is None
 
 
+def test_elasticsearch_conn(events_object, caplog):
+    with patch("elasticsearch.Elasticsearch.ping") as es_mock:
+        es_mock.return_value = True
+        assert events_object._es_instance.es.ping() is True
+        with patch("elasticsearch.Elasticsearch.get") as mock:
+            mock.return_value = {"_source": {"last_block": 24}}
+            assert events_object.get_last_processed_block() == 24
+
+    with patch("elasticsearch.Elasticsearch.ping") as es_mock:
+        es_mock.return_value = False
+        assert events_object._es_instance.es.ping() is False
+        with patch("elasticsearch.Elasticsearch.get"):
+            logger.info("Testing now.")
+            threading.Thread(
+                target=events_object.get_last_processed_block, daemon=True
+            ).start()
+            time.sleep(5)
+            assert (
+                "Connection to ES failed. Trying to connect to back..." in caplog.text
+            )
+
+
 def test_get_last_processed_block(events_object):
-    start_block = events_object._start_block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
         assert events_object.get_last_processed_block() == 0
 
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.return_value = {"last_block": intended_block}
+        mock.return_value = {"_source": {"last_block": intended_block}}
         assert events_object.get_last_processed_block() == 0
 
 
