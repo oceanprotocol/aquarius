@@ -228,7 +228,7 @@ def test_process_block_range(client, base_ddo_url, events_object):
         assert events_object.process_current_blocks() is None
 
 
-def test_elasticsearch_conn(events_object, caplog):
+def test_elasticsearch_connection(events_object, caplog):
     with patch("elasticsearch.Elasticsearch.ping") as es_mock:
         es_mock.return_value = True
         with patch("elasticsearch.Elasticsearch.get") as mock:
@@ -236,7 +236,12 @@ def test_elasticsearch_conn(events_object, caplog):
             assert events_object.get_last_processed_block() == 24
 
     with patch("elasticsearch.Elasticsearch.ping") as es_mock:
-        es_mock.return_value = [False, False, True]
+        es_mock.return_value = False
+        action_thread = threading.Thread(target=events_object.get_last_processed_block)
+        action_thread.start()
+        time.sleep(5)
+        es_mock.return_value = True
+        action_thread.join()
         assert "Connection to ES failed. Trying to connect to back..." in caplog.text
 
 
