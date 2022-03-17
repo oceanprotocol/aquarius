@@ -38,7 +38,6 @@ install_requirements = [
     "pyshacl==0.18.1",
     "gql==3.0.0",
     "aiohttp==3.8.1",
-    "redis==4.0.2",
 ]
 
 setup_requirements = ["pytest-runner==6.0.0"]

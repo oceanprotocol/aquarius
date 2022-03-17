@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import logging
+import os
 import threading
 
 import elasticsearch
@@ -243,12 +244,15 @@ def test_elasticsearch_connection(events_object, caplog):
         es_mock.return_value = True
         action_thread.join()
         assert "Connection to ES failed. Trying to connect to back..." in caplog.text
+        assert "Stable connection to ES." in caplog.text
 
 
 def test_get_last_processed_block(events_object):
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        assert events_object.get_last_processed_block() == 0
+        assert events_object.get_last_processed_block() == int(
+            os.getenv("BFACTORY_BLOCK")
+        )
 
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:

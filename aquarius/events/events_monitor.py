@@ -275,6 +275,7 @@ class EventsMonitor(BlockProcessingClass):
                     logging.error(f"Elasticsearch error: {es_err}")
                 logging.error("Connection to ES failed. Trying to connect to back...")
                 time.sleep(5)
+            logging.info("Stable connection to ES.")
             last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
@@ -285,7 +286,6 @@ class EventsMonitor(BlockProcessingClass):
             )
         except Exception as e:
             logging.error(f"Cannot get last_block error={e}")
-        logging.info("Successfully retrieved the last processed block.")
         return block
 
     def store_last_processed_block(self, block):
