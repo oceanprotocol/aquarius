@@ -11,7 +11,7 @@ ddo_event_sample_v4 = {
     "chainId": 1337,
     "metadata": {
         "type": "dataset",
-        "name": "Event DDO sample",
+        "name": "Event DDO sample cărăctere șpecialeț",
         "description": "Event DDO sample",
         "author": "Met Office",
         "license": "CC-BY",
