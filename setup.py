@@ -28,14 +28,14 @@ install_requirements = [
     "gunicorn==20.1.0",
     "elasticsearch==7.17.0",
     "PyYAML==6.0",
-    "pytz==2021.3",
-    "ocean-contracts==1.0.0a21",
+    "pytz==2022.1",
+    "ocean-contracts==1.0.0a22",
     "web3==5.28.0",
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
-    "pyshacl==0.18.1",
-    "gql==3.0.0",
+    "pyshacl==0.19.0",
+    "gql==3.1.0",
     "aiohttp==3.8.1",
 ]
 
@@ -62,7 +62,7 @@ test_requirements = [
     "pylint==2.12.2",
     "pytest",
     "pytest-env",
-    "freezegun==1.2.0",
+    "freezegun==1.2.1",
 ]
 
 setup(
