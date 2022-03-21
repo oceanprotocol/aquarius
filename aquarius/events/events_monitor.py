@@ -27,7 +27,6 @@ from aquarius.events.util import get_metadata_start_block
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -267,15 +266,26 @@ class EventsMonitor(BlockProcessingClass):
     def get_last_processed_block(self):
         block = 0
         try:
+            # Re-establishing the connection with ES
+            while True:
+                try:
+                    if self._es_instance.es.ping() is True:
+                        break
+                except elasticsearch.exceptions.ElasticsearchException as es_err:
+                    logging.error(f"Elasticsearch error: {es_err}")
+                logging.error("Connection to ES failed. Trying to connect to back...")
+                time.sleep(5)
+            logging.info("Stable connection to ES.")
             last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
-            block = last_block_record["last_block"]
+            block = (
+                last_block_record["last_block"]
+                if last_block_record["last_block"] >= 0
+                else 0
+            )
         except Exception as e:
-            logger.error(f"Cannot get last_block error={e}")
-        # no need to start from 0 if we have a deployment block
-        if block < self._start_block:
-            block = self._start_block
+            logging.error(f"Cannot get last_block error={e}")
         return block
 
     def store_last_processed_block(self, block):
