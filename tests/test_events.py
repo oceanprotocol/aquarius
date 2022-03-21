@@ -2,6 +2,9 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import logging
+import os
+import threading
 
 import elasticsearch
 import json
@@ -30,6 +33,8 @@ from tests.helpers import (
 )
 
 keys = KeyAPI(NativeECCBackend)
+
+logger = logging.getLogger("aquarius")
 
 
 def run_test(client, base_ddo_url, events_instance, flags):
@@ -224,16 +229,35 @@ def test_process_block_range(client, base_ddo_url, events_object):
         assert events_object.process_current_blocks() is None
 
 
+def test_elasticsearch_connection(events_object, caplog):
+    with patch("elasticsearch.Elasticsearch.ping") as es_mock:
+        es_mock.return_value = True
+        with patch("elasticsearch.Elasticsearch.get") as mock:
+            mock.return_value = {"_source": {"last_block": 24}}
+            assert events_object.get_last_processed_block() == 24
+
+    with patch("elasticsearch.Elasticsearch.ping") as es_mock:
+        es_mock.return_value = False
+        action_thread = threading.Thread(target=events_object.get_last_processed_block)
+        action_thread.start()
+        time.sleep(5)
+        es_mock.return_value = True
+        action_thread.join()
+        assert "Connection to ES failed. Trying to connect to back..." in caplog.text
+        assert "Stable connection to ES." in caplog.text
+
+
 def test_get_last_processed_block(events_object):
-    start_block = events_object._start_block
     with patch("elasticsearch.Elasticsearch.get") as mock:
         mock.side_effect = Exception("Boom!")
-        assert events_object.get_last_processed_block() == start_block
+        assert events_object.get_last_processed_block() == int(
+            os.getenv("BFACTORY_BLOCK")
+        )
 
     intended_block = -10  # can not be smaller than start block
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.return_value = {"last_block": intended_block}
-        assert events_object.get_last_processed_block() == start_block
+        mock.return_value = {"_source": {"last_block": intended_block}}
+        assert events_object.get_last_processed_block() == 0
 
 
 def test_store_last_processed_block(events_object):
@@ -349,7 +373,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         ddo=_ddo, account=test_account1, state=MetadataStates.DEPRECATED
     )
     events_object.process_current_blocks()
-    time.sleep(20)
+    time.sleep(30)
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Check if asset is soft deleted
     assert "id" not in published_ddo
@@ -368,7 +392,7 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
     )
     events_object.process_current_blocks()
-    time.sleep(20)
+    time.sleep(30)
     published_ddo = get_ddo(client, base_ddo_url, did)
     # Asset has been recreated
     assert published_ddo["id"] == did
