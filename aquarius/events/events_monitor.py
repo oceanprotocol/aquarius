@@ -282,7 +282,7 @@ class EventsMonitor(BlockProcessingClass):
             block = (
                 last_block_record["last_block"]
                 if last_block_record["last_block"] >= 0
-                else 0
+                else int(os.getenv("BFACTORY_BLOCK", 0))
             )
         except Exception as e:
             logging.error(f"Cannot get last_block error={e}")
