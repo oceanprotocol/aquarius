@@ -47,26 +47,23 @@ def get_network_name():
     return network_name
 
 
-def get_network_name_by_chain_id(chain_id: int) -> str:
+def get_start_block_by_chain_id(chain_id: int) -> str:
     """Return the contract address with the given name and chain id"""
     with open(get_address_file(), "r") as address_json:
         addresses = json.load(address_json)
     return next(
-        network_name
-        for (network_name, network_values) in addresses.items()
+        network_values["startBlock"]
+        for network_values in addresses.values()
         if network_values["chainId"] == chain_id
     )
 
 
 def get_defined_block(chain_id: int):
     """Retrieves the block either from envvar, either from address.json file."""
-    with open(get_address_file(), "r") as address_file:
-        addresses = json.load(address_file)
-    return (
-        int(os.getenv("BFACTORY_BLOCK"))
-        if "BFACTORY_BLOCK" in os.environ
-        else addresses[get_network_name_by_chain_id(chain_id)]["startBlock"]
-    )
+    if "BFACTORY_BLOCK" in os.environ:
+        return int(os.getenv("BFACTORY_BLOCK"))
+    else:
+        return get_start_block_by_chain_id(chain_id)
 
 
 def sign_tx(web3, tx, private_key):
