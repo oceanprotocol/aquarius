@@ -51,6 +51,7 @@ def get_start_block_by_chain_id(chain_id: int) -> str:
     """Return the contract address with the given name and chain id"""
     with open(get_address_file(), "r") as address_json:
         addresses = json.load(address_json)
+
     return next(
         network_values["startBlock"]
         for network_values in addresses.values()
@@ -62,6 +63,7 @@ def get_defined_block(chain_id: int):
     """Retrieves the block either from envvar, either from address.json file."""
     if "BFACTORY_BLOCK" in os.environ:
         return int(os.getenv("BFACTORY_BLOCK"))
+
     return get_start_block_by_chain_id(chain_id)
 
 
