@@ -50,7 +50,8 @@ Aquarius is a simple, lightweight scanner and API. It is built using Python, usi
 
 ### The Aquarius API
 
-Aquarius provides REST api to fetch the data from off-chain datastore. Please rerfer [API.md](API.md) file.
+Aquarius provides REST api to fetch the data from off-chain datastore. Aquarius works only with UTF8-encoding for the moment.
+Please refer [API.md](API.md) file.
 
 ### The EventsMonitor
 
