@@ -62,8 +62,7 @@ def get_defined_block(chain_id: int):
     """Retrieves the block either from envvar, either from address.json file."""
     if "BFACTORY_BLOCK" in os.environ:
         return int(os.getenv("BFACTORY_BLOCK"))
-    else:
-        return get_start_block_by_chain_id(chain_id)
+    return get_start_block_by_chain_id(chain_id)
 
 
 def sign_tx(web3, tx, private_key):
