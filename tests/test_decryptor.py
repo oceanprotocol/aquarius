@@ -22,7 +22,7 @@ def test_decryptor_request_exception():
         with patch("requests.post") as mock:
             the_response = Mock(spec=Response)
             the_response.status_code = 201
-            the_response.text = "some other test"
+            the_response.content = b"some other test"
             mock.return_value = the_response
             decrypt_ddo(
                 None, "provider_url", None, None, None, "test_hash".encode("utf-8")
