@@ -35,11 +35,11 @@ Aquarius is part of the [Ocean Protocol](https://oceanprotocol.com) toolset. ðŸŒ
 
 ## How is metadata treated?
 
-The metadata is published on-chain via the Metadata smartcontract:
+The metadata is published on-chain as such:
 
-* Metadata is first compressed (using lzma), then published on-chain
-* The compressed metadata on-chain is not kept in storage, but rather is captured in an event log named `MetadataCreated`
-* The id (DID) of the dataset asset is the Datatoken address, off-chain the did consist of `did:op:` prepended to the datatoken address
+* Metadata is first (optionally) compressed (using lzma) and (strongly recommended) encrypted, then published on-chain
+* The metadata on-chain is not kept in storage, but rather is captured in an event log named `MetadataCreated`
+* Aquarius defers to the Provider for encryption and decryption. Aquarius and Provider support utf-8 encoded strings. You can look into the encrypt/decrypt flows if you want to learn more, but you will generally not need to go in-depth just to use Aquarius.
 
 For more details on working with OCEAN DIDs check out the [DID concept documentation](https://docs.oceanprotocol.com/concepts/did-ddo/).
 The [DDO Metadata documentation](https://docs.oceanprotocol.com/concepts/ddo-metadata/) goes into more depth regarding metadata structure.
@@ -50,7 +50,8 @@ Aquarius is a simple, lightweight scanner and API. It is built using Python, usi
 
 ### The Aquarius API
 
-Aquarius provides REST api to fetch the data from off-chain datastore. Please rerfer [API.md](API.md) file.
+Aquarius provides REST api to fetch the data from off-chain datastore. 
+Please refer to [API.md](API.md) file for details on the API itself.
 
 ### The EventsMonitor
 

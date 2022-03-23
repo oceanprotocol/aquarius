@@ -23,7 +23,10 @@ from aquarius.events.processors import (
     TokenURIUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
-from aquarius.events.util import get_metadata_start_block
+from aquarius.events.util import (
+    get_metadata_start_block,
+    get_defined_block,
+)
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
@@ -264,7 +267,7 @@ class EventsMonitor(BlockProcessingClass):
                 )
 
     def get_last_processed_block(self):
-        block = 0
+        block = get_defined_block(self._chain_id)
         try:
             # Re-establishing the connection with ES
             while True:
@@ -282,10 +285,15 @@ class EventsMonitor(BlockProcessingClass):
             block = (
                 last_block_record["last_block"]
                 if last_block_record["last_block"] >= 0
-                else 0
+                else get_defined_block(self._chain_id)
             )
         except Exception as e:
-            logging.error(f"Cannot get last_block error={e}")
+            # Retrieve the defined block.
+            if type(e) == elasticsearch.NotFoundError:
+                block = get_defined_block(self._chain_id)
+                logger.info(f"Retrieved the default block. NotFound error occurred.")
+            else:
+                logging.error(f"Cannot get last_block error={e}")
         return block
 
     def store_last_processed_block(self, block):
