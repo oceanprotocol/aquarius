@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import json
 import logging
 from datetime import datetime
 
@@ -40,11 +41,13 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
 
     if response.status_code == 201:
         if sha256(response.content).hexdigest() != hash.hex():
-            msg = f"Hash check failed: response={response.text}, encoded response={sha256(response.content).hexdigest()}\n metadata hash={hash.hex()}"
+            msg = f"Hash check failed: response={response.content}, encoded response={sha256(response.content).hexdigest()}\n metadata hash={hash.hex()}"
             logger.error(msg)
             raise Exception(msg)
         logger.info("Decrypted DDO successfully.")
-        return response.json()
+        response_content = response.content.decode("utf-8")
+
+        return json.loads(response_content)
 
     msg = f"Provider exception on decrypt DDO: {response.content}\n provider URL={provider_url}, payload={payload}."
     logger.error(msg)
