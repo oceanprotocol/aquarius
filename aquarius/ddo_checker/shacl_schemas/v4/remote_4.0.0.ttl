@@ -55,7 +55,7 @@ schema:MetadataShape
     sh:property [
         sh:path schema:description ;
         sh:datatype xsd:string ;
-        sh:pattern "^(.|\\s)*$" ;
+        sh:pattern "^((.|\n)*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
     ] ;
@@ -203,7 +203,7 @@ schema:ServiceShape
     sh:property [
         sh:path schema:description ;
         sh:datatype xsd:string ;
-        sh:pattern "^(.*)$" ;
+        sh:pattern "^((.|\n)*)$" ;
         sh:maxCount 1;
     ] ;
     sh:property [
