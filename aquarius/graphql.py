@@ -19,12 +19,16 @@ def get_number_orders(token_address, last_sync_block, chain_id):
 
         last_block = get_last_block(client)
         while last_block < last_sync_block:
+            logger.info(
+                f"Waiting gor sync with subgraph, currently at last block {last_block}."
+            )
             last_block = get_last_block(client)
             time.sleep(2)
 
         did_query = gql('{ nft(id: "' + token_address.lower() + '") { orderCount } }')
         result = client.execute(did_query)
 
+        logger.info(f"Got result for did query: {result}.")
         return int(result["nft"]["orderCount"])
     except Exception:
         logger.error(
@@ -41,10 +45,13 @@ def get_transport(chain_id):
 
     prefix = subgraph_urls[str(chain_id)]
 
-    return AIOHTTPTransport(url=f"{prefix}/subgraphs/name/oceanprotocol/ocean-subgraph")
+    url = f"{prefix}/subgraphs/name/oceanprotocol/ocean-subgraph"
+    logger.info(f"Creating transport for {url}.")
+    return AIOHTTPTransport(url=url)
 
 
 def get_client(chain_id):
+    logger.info("Initializing client for transport and fetching schema.")
     return Client(transport=get_transport(chain_id), fetch_schema_from_transport=True)
 
 
