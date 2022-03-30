@@ -489,7 +489,7 @@ class MetadataStateProcessor(EventProcessor):
     def process(self):
         self.did = make_did(self.event.address, self._chain_id)
 
-        if self.event.args.state != MetadataStates.ACTIVE:
+        if self.event.args.state == MetadataStates.ACTIVE:
             return self.restore_ddo()
 
         target_state = self.event.args.state
