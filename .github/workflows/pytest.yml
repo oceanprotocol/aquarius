@@ -34,7 +34,7 @@ jobs:
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
         env:
-          CONTRACTS_VERSION: v4_rc1
+          CONTRACTS_VERSION: v1.0.0-alpha.28
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -52,7 +52,7 @@ jobs:
         uses: paambaati/codeclimate-action@v2.7.5
         env:
           CC_TEST_REPORTER_ID: d9a74ea9daf38479941f0f0b7502b0f67578d122cc660a9fca96bc06df5a1d99
-  
+
   dockerbuild:
     runs-on: ubuntu-latest
     needs: [build]
