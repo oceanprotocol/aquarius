@@ -237,7 +237,7 @@ class EventsMonitor(BlockProcessingClass):
                 abi=ERC20Template.abi, address=event.address
             )
 
-            logger.info(f"OrderStarted detected on ERC20 contract {event.address}.")
+            logger.debug(f"OrderStarted detected on ERC20 contract {event.address}.")
 
             try:
                 event_processor = OrderStartedProcessor(

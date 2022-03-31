@@ -394,20 +394,20 @@ class OrderStartedProcessor:
         try:
             self.asset = self.es_instance.read(self.did)
         except Exception:
-            logger.info(f"Asset {self.did} is missing from ES.")
+            logger.debug(f"Asset {self.did} is missing from ES.")
             self.asset = None
 
     def process(self):
         if not self.asset:
             return
 
-        logger.info(f"Retrieving number of orders for {self.token_address}.")
+        logger.debug(f"Retrieving number of orders for {self.token_address}.")
         number_orders = get_number_orders(
             self.token_address, self.last_sync_block, self.chain_id
         )
         self.asset["stats"]["orders"] = number_orders
 
-        logger.info(f"Updating number of orders to {number_orders} for {self.did}.")
+        logger.debug(f"Updating number of orders to {number_orders} for {self.did}.")
         self.es_instance.update(self.asset, self.did)
 
         return self.asset
