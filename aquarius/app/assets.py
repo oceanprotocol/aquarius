@@ -7,6 +7,7 @@ from flask import Blueprint, jsonify, request
 import json
 import logging
 import os
+import requests
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import sanitize_record, get_signature_vrs, get_allowed_publishers
@@ -338,6 +339,24 @@ def validate_remote():
                 ),
                 400,
             )
+
+        version = data.get("version", None)
+
+        if os.getenv("RBAC_SERVER_URL"):
+            payload = {
+                "eventType": "validateDDO",
+                "component": "metadatacache",
+                "ddo": data,
+                "browserHeaders": {k: v for k, v in request.headers.items()},
+            }
+
+            valid = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+
+            if not valid:
+                return (
+                    jsonify(error="DDO marked invalid by the RBAC server."),
+                    400,
+                )
 
         version = data.get("version", None)
         if not version:
