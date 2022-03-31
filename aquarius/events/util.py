@@ -101,7 +101,7 @@ def deploy_datatoken(w3, account, name, symbol):
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         "http://oceanprotocol.com/nft",
-        True,
+        False,
         account.address,
     ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
