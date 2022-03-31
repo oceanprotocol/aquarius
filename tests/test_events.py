@@ -408,6 +408,23 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
     # The NFT state is active
     assert published_ddo[AquariusCustomDDOFields.NFT]["state"] == MetadataStates.ACTIVE
 
+    # MetadataState updated to order disabled should leave the contents intact
+    # but change the state
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.ORDERING_DISABLED
+    )
+    events_object.process_current_blocks()
+    time.sleep(30)
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    # Asset id and event are untouched
+    assert published_ddo["id"] == did
+    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
+    # The NFT state is disabled
+    assert (
+        published_ddo[AquariusCustomDDOFields.NFT]["state"]
+        == MetadataStates.ORDERING_DISABLED
+    )
+
 
 def test_token_uri_update(client, base_ddo_url, events_object):
     web3 = events_object._web3  # get_web3()

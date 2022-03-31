@@ -123,6 +123,7 @@ class EventProcessor(ABC):
         DID"""
         asset_to_update = self._es_instance.read(did)
         asset_to_update[AquariusCustomDDOFields.NFT]["state"] = new_state
+
         return self._es_instance.update(asset_to_update, did)
 
     def get_tokens_info(self, record):
@@ -452,18 +453,7 @@ class TokenURIUpdatedProcessor:
 
 
 class MetadataStateProcessor(EventProcessor):
-    def process(self):
-        self.did = make_did(self.event.address, self._chain_id)
-
-        if self.event.args.state != MetadataStates.ACTIVE:
-            try:
-                self._es_instance.read(self.did)
-                self.soft_delete_ddo(self.did)
-                self.update_aqua_nft_state_data(self.event.args.state, self.did)
-            except Exception:
-                pass
-            return
-
+    def restore_ddo(self):
         soft_deleted_ddo = self._es_instance.read(self.did)
 
         receipt = self._web3.eth.get_transaction_receipt(
@@ -495,3 +485,23 @@ class MetadataStateProcessor(EventProcessor):
         )
 
         return event_processor.process()
+
+    def process(self):
+        self.did = make_did(self.event.address, self._chain_id)
+
+        if self.event.args.state == MetadataStates.ACTIVE:
+            return self.restore_ddo()
+
+        target_state = self.event.args.state
+        if target_state in [
+            MetadataStates.END_OF_LIFE,
+            MetadataStates.DEPRECATED,
+            MetadataStates.REVOKED,
+        ]:
+            try:
+                self._es_instance.read(self.did)
+                self.soft_delete_ddo(self.did)
+            except Exception:
+                return
+
+        self.update_aqua_nft_state_data(self.event.args.state, self.did)
