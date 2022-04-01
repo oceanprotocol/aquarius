@@ -49,7 +49,7 @@ es_mapping = """
         "nftAddress": {
           "type": "keyword",
         },
-        "datatokenInfo": {
+        "nft": {
           "properties": {
             "address": {
               "type": "keyword"
@@ -74,7 +74,18 @@ es_mapping = """
                 }
               }
             },
-            "decimals": {
+            "tokenURI": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "ocean_normalizer"
+                }
+              }
+            },
+            "owner": {"type": "text"},
+            "state": {
               "type": "integer",
               "fields": {
                 "keyword": {
@@ -82,33 +93,45 @@ es_mapping = """
                 }
               }
             },
-            "totalSupply": {
-              "type": "float",
-              "fields": {
-                "keyword": {
-                  "type": "keyword"
-                }
-              }
+            "created": {
+              "type": "date"
             },
-            "cap": {
-              "type": "float",
-              "fields": {
-                "keyword": {
-                  "type": "keyword"
-                }
-              }
-            },
-            "minter": {
+          }
+        },
+        "datatokens": {
+          "properties": {
+            "address": {
               "type": "keyword"
             },
-            "minterBalance": {
-              "type": "float",
+            "name": {
+              "type": "text",
               "fields": {
                 "keyword": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "ocean_normalizer"
                 }
               }
-            }
+            },
+            "symbol": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "ocean_normalizer"
+                }
+              }
+            },
+            "serviceId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                }
+              }
+            },
           }
         },
         "price": {
