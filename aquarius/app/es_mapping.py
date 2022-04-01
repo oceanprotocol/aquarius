@@ -29,6 +29,26 @@ es_mapping = """
             }
           }
         },
+        "chainId": {
+          "type": "integer",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+            }
+          }
+        },
+        "version": {
+          "type": "keyword",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "nftAddress": {
+          "type": "keyword",
+        },
         "datatokenInfo": {
           "properties": {
             "address": {
@@ -243,11 +263,11 @@ es_mapping = """
             }
           }
         },
-        "service": {
+        "services": {
           "properties": {
             "attributes": {
               "properties": {
-                "encryptedFiles": {
+                "files": {
                   "type": "text",
                   "fields": {
                     "keyword": {
@@ -256,6 +276,64 @@ es_mapping = """
                     }
                   }
                 },
+                "id": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "name": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "description": {
+                  "type": "text",
+                },
+                "datatokenAddress": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "timeout": {
+                  "type": "integer",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                    }
+                  }
+                },
+                "compute": {
+                  "properties": {
+                    "allowRawAlgorithm": {
+                      "type": "boolean"
+                    },
+                    "allowNetworkAccess": {
+                      "type": "boolean"
+                    },
+                    "publisherTrustedAlgorithmPublishers": {
+                      "type": "text"
+                    },
+                    "publisherTrustedAlgorithms": {
+                      "properties": {
+                        "did": {"type": "text"},
+                        "filesChecksum": {"type": "text"},
+                        "containerSectionChecksum": {"type": "text"},
+                      },
+                    },
+                  }
+                }
                 "additionalInformation": {
                   "properties": {
                     "structuredMarkup": {
@@ -379,6 +457,7 @@ es_mapping = """
                     }
                   }
                 },
+                # TODO: remove main?
                 "main": {
                   "properties": {
                     "author": {
@@ -511,15 +590,6 @@ es_mapping = """
                       "type": "float"
                     }
                   }
-                }
-              }
-            },
-            "index": {
-              "type": "text",
-              "fields": {
-                "keyword": {
-                  "type": "keyword",
-                  "ignore_above": 256
                 }
               }
             },
