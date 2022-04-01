@@ -263,6 +263,34 @@ es_mapping = """
             }
           }
         },
+        "metadata": {
+            "properties": {
+                "description": {"type": "text"},
+                "copyrightHolder": {"type": "text"},
+                "name": {"type": "text"},
+                "type": {"type": "text"},
+                "author": {"type": "text"},
+                "license": {"type": "text"},
+                "links": {"type": "text"},
+                "tags": {"type": "text"},
+                "categories": {"type": "text"},
+                "contentLanguage": {"type": "text"},
+                "algorithm": {
+                    "properties": {
+                      "version": {"type": "text"},
+                      "language": {"type": "text"},
+                      "container": {
+                        "properties": {
+                          "entrypoint": {"type": "text"},
+                          "image": {"type": "text"},
+                          "tag": {"type": "text"},
+                          "checksum": {"type": "text"},
+                        },
+                      },
+                    }
+                }
+            }
+        }
         "services": {
           "properties": {
             "attributes": {
