@@ -29,7 +29,27 @@ es_mapping = """
             }
           }
         },
-        "datatokenInfo": {
+        "chainId": {
+          "type": "integer",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+            }
+          }
+        },
+        "version": {
+          "type": "keyword",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "nftAddress": {
+          "type": "keyword",
+        },
+        "nft": {
           "properties": {
             "address": {
               "type": "keyword"
@@ -54,7 +74,18 @@ es_mapping = """
                 }
               }
             },
-            "decimals": {
+            "tokenURI": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "ocean_normalizer"
+                }
+              }
+            },
+            "owner": {"type": "text"},
+            "state": {
               "type": "integer",
               "fields": {
                 "keyword": {
@@ -62,33 +93,45 @@ es_mapping = """
                 }
               }
             },
-            "totalSupply": {
-              "type": "float",
-              "fields": {
-                "keyword": {
-                  "type": "keyword"
-                }
-              }
+            "created": {
+              "type": "date"
             },
-            "cap": {
-              "type": "float",
-              "fields": {
-                "keyword": {
-                  "type": "keyword"
-                }
-              }
-            },
-            "minter": {
+          }
+        },
+        "datatokens": {
+          "properties": {
+            "address": {
               "type": "keyword"
             },
-            "minterBalance": {
-              "type": "float",
+            "name": {
+              "type": "text",
               "fields": {
                 "keyword": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "ocean_normalizer"
                 }
               }
-            }
+            },
+            "symbol": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "ocean_normalizer"
+                }
+              }
+            },
+            "serviceId": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                }
+              }
+            },
           }
         },
         "price": {
@@ -243,11 +286,39 @@ es_mapping = """
             }
           }
         },
-        "service": {
+        "metadata": {
+            "properties": {
+                "description": {"type": "text"},
+                "copyrightHolder": {"type": "text"},
+                "name": {"type": "text"},
+                "type": {"type": "text"},
+                "author": {"type": "text"},
+                "license": {"type": "text"},
+                "links": {"type": "text"},
+                "tags": {"type": "text"},
+                "categories": {"type": "text"},
+                "contentLanguage": {"type": "text"},
+                "algorithm": {
+                    "properties": {
+                      "version": {"type": "text"},
+                      "language": {"type": "text"},
+                      "container": {
+                        "properties": {
+                          "entrypoint": {"type": "text"},
+                          "image": {"type": "text"},
+                          "tag": {"type": "text"},
+                          "checksum": {"type": "text"},
+                        },
+                      },
+                    }
+                }
+            }
+        }
+        "services": {
           "properties": {
             "attributes": {
               "properties": {
-                "encryptedFiles": {
+                "files": {
                   "type": "text",
                   "fields": {
                     "keyword": {
@@ -256,6 +327,64 @@ es_mapping = """
                     }
                   }
                 },
+                "id": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "name": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "description": {
+                  "type": "text",
+                },
+                "datatokenAddress": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                      "ignore_above": 256
+                    }
+                  }
+                },
+                "timeout": {
+                  "type": "integer",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword",
+                    }
+                  }
+                },
+                "compute": {
+                  "properties": {
+                    "allowRawAlgorithm": {
+                      "type": "boolean"
+                    },
+                    "allowNetworkAccess": {
+                      "type": "boolean"
+                    },
+                    "publisherTrustedAlgorithmPublishers": {
+                      "type": "text"
+                    },
+                    "publisherTrustedAlgorithms": {
+                      "properties": {
+                        "did": {"type": "text"},
+                        "filesChecksum": {"type": "text"},
+                        "containerSectionChecksum": {"type": "text"},
+                      },
+                    },
+                  }
+                }
                 "additionalInformation": {
                   "properties": {
                     "structuredMarkup": {
@@ -379,6 +508,7 @@ es_mapping = """
                     }
                   }
                 },
+                # TODO: remove main?
                 "main": {
                   "properties": {
                     "author": {
@@ -511,15 +641,6 @@ es_mapping = """
                       "type": "float"
                     }
                   }
-                }
-              }
-            },
-            "index": {
-              "type": "text",
-              "fields": {
-                "keyword": {
-                  "type": "keyword",
-                  "ignore_above": 256
                 }
               }
             },
