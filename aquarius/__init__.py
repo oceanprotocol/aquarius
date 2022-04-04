@@ -9,5 +9,5 @@
 __author__ = """OceanProtocol"""
 # fmt: off
 # bumpversion needs single quotes
-__version__ = '4.0.3'
+__version__ = '4.0.4'
 # fmt: on

@@ -1,3 +1,7 @@
+#
+# Copyright 2021 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import json
 import logging
 import os
@@ -31,7 +35,7 @@ def get_number_orders(token_address, last_sync_block, chain_id):
         logger.debug(f"Got result for did query: {result}.")
         return int(result["nft"]["orderCount"])
     except Exception:
-        logger.error(
+        logger.exception(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
         )
         return -1
