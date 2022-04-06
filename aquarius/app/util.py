@@ -36,6 +36,19 @@ def sanitize_record(data_record):
     return json.dumps(data_record, default=datetime_converter)
 
 
+def sanitize_query_result(query_result):
+    if not os.getenv("RBAC_SERVER_URL"):
+        return query_result
+
+    payload = {
+        "eventType": "filter_query_result",
+        "component": "metadatacache",
+        "query_result": query_result,
+    }
+
+    return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+
+
 def get_bool_env_value(envvar_name, default_value=0):
     assert default_value in (0, 1), "bad default value, must be either 0 or 1"
     try:

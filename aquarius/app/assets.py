@@ -10,7 +10,12 @@ import os
 import requests
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import sanitize_record, get_signature_vrs, get_allowed_publishers
+from aquarius.app.util import (
+    sanitize_record,
+    sanitize_query_result,
+    get_signature_vrs,
+    get_allowed_publishers,
+)
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
@@ -283,7 +288,7 @@ def query_ddo():
         )
 
     try:
-        return es_instance.es.search(data)
+        return sanitize_query_result(es_instance.es.search(data))
     except elasticsearch.exceptions.TransportError as e:
         error = e.error if isinstance(e.error, str) else str(e.error)
         info = e.info if isinstance(e.info, dict) else ""
