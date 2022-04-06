@@ -11,6 +11,7 @@ import json
 from json import JSONDecodeError
 import logging
 import os
+import requests
 from web3.main import Web3
 
 from aquarius.app.auth_util import sanitize_addresses
@@ -22,6 +23,15 @@ keys = KeyAPI(NativeECCBackend)
 def sanitize_record(data_record):
     if "_id" in data_record:
         data_record.pop("_id")
+
+    if os.getenv("RBAC_SERVER_URL"):
+        payload = {
+            "eventType": "filter_single_result",
+            "component": "metadatacache",
+            "ddo": data_record,
+        }
+
+        return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
 
     return json.dumps(data_record, default=datetime_converter)
 

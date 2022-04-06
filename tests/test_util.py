@@ -6,8 +6,9 @@ from eth_account import Account
 import json
 import logging
 import os
+from requests.models import Response
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 
@@ -110,6 +111,18 @@ def test_sanitize_record():
     result = json.loads(sanitize_record(record))
     assert "_id" not in result
     assert result["other_value"] == "something else"
+
+
+def test_sanitize_record_through_rbac(monkeypatch):
+    monkeypatch.setenv("RBAC_SERVER_URL", "test")
+
+    with patch("requests.post") as mock:
+        response = Mock(spec=Response)
+        response.json.return_value = {"this_is": "SPARTAAA!"}
+        mock.return_value = response
+
+        result = sanitize_record({})
+        assert result["this_is"] == "SPARTAAA!"
 
 
 class BlockProcessingClassChild(BlockProcessingClass):
