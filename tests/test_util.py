@@ -120,6 +120,7 @@ def test_sanitize_record_through_rbac(monkeypatch):
     with patch("requests.post") as mock:
         response = Mock(spec=Response)
         response.json.return_value = {"this_is": "SPARTAAA!"}
+        response.status_code = 200
         mock.return_value = response
 
         result = sanitize_record({})
@@ -135,6 +136,7 @@ def test_sanitize_query_result(monkeypatch):
     with patch("requests.post") as mock:
         response = Mock(spec=Response)
         response.json.return_value = {"this_is": "SPARTAAA!"}
+        response.status_code = 200
         mock.return_value = response
 
         result = sanitize_query_result({})

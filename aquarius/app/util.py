@@ -31,7 +31,9 @@ def sanitize_record(data_record):
             "ddo": data_record,
         }
 
-        return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+        response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
+        if response.status_code == 200 and response.json():
+            return response.json()
 
     return json.dumps(data_record, default=datetime_converter)
 
@@ -46,7 +48,12 @@ def sanitize_query_result(query_result):
         "query_result": query_result,
     }
 
-    return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+    response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
+    return (
+        response.json()
+        if response.status_code == 200 and response.json()
+        else query_result
+    )
 
 
 def get_bool_env_value(envvar_name, default_value=0):
