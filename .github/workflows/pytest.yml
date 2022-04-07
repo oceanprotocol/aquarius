@@ -35,7 +35,7 @@ jobs:
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
         env:
           CONTRACTS_VERSION: v1.0.0-alpha.28
-          AQUARIUS_VERSION: refactor_signatures
+          PROVIDER_VERSION: refactor_signatures
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
