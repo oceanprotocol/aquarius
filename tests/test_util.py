@@ -126,6 +126,14 @@ def test_sanitize_record_through_rbac(monkeypatch):
         result = sanitize_record({})
         assert result["this_is"] == "SPARTAAA!"
 
+    with patch("requests.post") as mock:
+        response = Mock(spec=Response)
+        response.status_code = 404
+        mock.return_value = response
+
+        result = sanitize_record({"this_is": "something else"})
+        assert result["this_is"] == "something else"
+
 
 def test_sanitize_query_result(monkeypatch):
     result = sanitize_query_result({"this_is": "Athens, for some reason."})
@@ -141,6 +149,14 @@ def test_sanitize_query_result(monkeypatch):
 
         result = sanitize_query_result({})
         assert result["this_is"] == "SPARTAAA!"
+
+    with patch("requests.post") as mock:
+        response = Mock(spec=Response)
+        response.status_code = 404
+        mock.return_value = response
+
+        result = sanitize_query_result({"this_is": "something else"})
+        assert result["this_is"] == "something else"
 
 
 class BlockProcessingClassChild(BlockProcessingClass):

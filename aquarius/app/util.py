@@ -32,8 +32,12 @@ def sanitize_record(data_record):
         }
 
         response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
-        if response.status_code == 200 and response.json():
+        if response.status_code == 200 and response.json() is not False:
             return response.json()
+        else:
+            logger.warning(
+                f"Expected response code 200 from RBAC server, got {response.status_code}."
+            )
 
     return json.dumps(data_record, default=datetime_converter)
 
@@ -49,6 +53,11 @@ def sanitize_query_result(query_result):
     }
 
     response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
+
+    if response.status_code != 200 or response.json() is False:
+        logger.warning(
+            f"Expected response code 200 from RBAC server, got {response.status_code}."
+        )
     return (
         response.json()
         if response.status_code == 200 and response.json()
