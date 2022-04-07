@@ -2,15 +2,16 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import json
+import logging
+import os
 from datetime import datetime
+from hashlib import sha256
+from json import JSONDecodeError
+
 from eth_account import Account
 from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
-from hashlib import sha256
-import json
-from json import JSONDecodeError
-import logging
-import os
 from web3.main import Web3
 
 from aquarius.app.auth_util import sanitize_addresses
@@ -74,6 +75,31 @@ def get_signature_vrs(raw):
         values = {"hash": "", "publicKey": "", "r": "", "s": "", "v": ""}
 
     return values
+
+
+def get_signature_bytes(raw):
+    try:
+        wallet = get_aquarius_wallet()
+
+        keys_pk = keys.PrivateKey(wallet.key)
+        message_hash = Web3.solidityKeccak(
+            ["bytes"],
+            [Web3.toHex(Web3.toBytes(text=raw))],
+        )
+        prefix = "\x19Ethereum Signed Message:\n32"
+        signable_hash = Web3.solidityKeccak(
+            ["bytes", "bytes"], [Web3.toBytes(text=prefix), Web3.toBytes(message_hash)]
+        )
+        prefix = "\x19Ethereum Signed Message:\n32"
+        signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=keys_pk)
+        v = str(Web3.toHex(Web3.toBytes(signed.v)))
+        r = str(Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")))
+        s = str(Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")))
+        signature = "0x" + r[2:] + s[2:] + v[2:]
+    except AquariusPrivateKeyException:
+        signature = None
+
+    return signature
 
 
 def get_allowed_publishers():

@@ -5,12 +5,12 @@
 import json
 import logging
 from datetime import datetime
+from hashlib import sha256
 
 import requests
 from eth_account.messages import encode_defunct
-from hashlib import sha256
 
-from aquarius.app.util import get_aquarius_wallet
+from aquarius.app.util import get_aquarius_wallet, get_signature_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +19,12 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
     aquarius_account = get_aquarius_wallet()
     nonce = str(int(datetime.utcnow().timestamp()))
 
-    signature = aquarius_account.sign_message(
-        encode_defunct(text=f"{txid}{aquarius_account.address}{chain_id}{nonce}")
-    ).signature.hex()
-
+    # signature = aquarius_account.sign_message(
+    #    encode_defunct(text=f"{txid}{aquarius_account.address}{chain_id}{nonce}")
+    # ).signature.hex()
+    signature = get_signature_bytes(
+        f"{txid}{aquarius_account.address}{chain_id}{nonce}"
+    )
     payload = {
         "transactionId": txid,
         "chainId": chain_id,
