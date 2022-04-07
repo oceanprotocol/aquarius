@@ -20,7 +20,7 @@ class RBAC:
             "eventType": "filter_single_result",
             "component": "metadatacache",
             "ddo": data_record,
-            "browserHeaders": getattr(RBAC, "headers", {})
+            "browserHeaders": getattr(RBAC, "headers", {}),
         }
 
         response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
@@ -41,7 +41,7 @@ class RBAC:
             "eventType": "filter_query_result",
             "component": "metadatacache",
             "query_result": query_result,
-            "browserHeaders": getattr(RBAC, "headers", {})
+            "browserHeaders": getattr(RBAC, "headers", {}),
         }
 
         response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
@@ -63,7 +63,7 @@ class RBAC:
             "eventType": "validateDDO",
             "component": "metadatacache",
             "ddo": data,
-            "browserHeaders": getattr(RBAC, "headers", {})
+            "browserHeaders": getattr(RBAC, "headers", {}),
         }
 
         return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()

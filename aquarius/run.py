@@ -8,7 +8,7 @@ This module is the entrypoint for statring the Aquarius component.
 import configparser
 
 from elasticsearch import Elasticsearch
-from flask import jsonify
+from flask import jsonify, request
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 import os
@@ -30,7 +30,7 @@ aquarius_url = config.aquarius_url
 @app.before_request
 def set_rbac_headers():
     if os.getenv("RBAC_SERVER_URL"):
-        RBAC.set_rbac_headers(request)
+        RBAC.set_headers(request)
 
 
 def get_version():
