@@ -9,7 +9,6 @@ import os
 from abc import ABC
 from datetime import datetime
 
-import requests
 from jsonsempai import magic  # noqa: F401
 
 from aquarius.ddo_checker.shacl_checker import validate_dict
@@ -21,6 +20,7 @@ from aquarius.events.constants import (
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.util import make_did, get_dt_factory
 from aquarius.graphql import get_number_orders
+from aquarius.rbac import RBAC
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
@@ -61,17 +61,8 @@ class EventProcessor(ABC):
             if self.__class__.__name__ == "MetadataCreatedProcessor"
             else "update"
         )
-        address = publisher_address
-        payload = {
-            "eventType": event_type,
-            "component": "metadatacache",
-            "credentials": {"type": "address", "value": address},
-        }
 
-        try:
-            return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
-        except Exception:
-            return False
+        return RBAC.check_permission_rbac(event_type, publisher_address)
 
     def add_aqua_data(self, record):
         """Adds keys that are specific to Aquarius, on top of the DDO structure:

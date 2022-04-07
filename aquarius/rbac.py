@@ -67,3 +67,16 @@ class RBAC:
         }
 
         return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+
+    @staticmethod
+    def check_permission_rbac(event_type, address):
+        payload = {
+            "eventType": event_type,
+            "component": "metadatacache",
+            "credentials": {"type": "address", "value": address},
+        }
+
+        try:
+            return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+        except Exception:
+            return False
