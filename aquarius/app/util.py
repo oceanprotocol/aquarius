@@ -11,10 +11,10 @@ import json
 from json import JSONDecodeError
 import logging
 import os
-import requests
 from web3.main import Web3
 
 from aquarius.app.auth_util import sanitize_addresses
+from aquarius.rbac import RBAC
 
 logger = logging.getLogger("aquarius")
 keys = KeyAPI(NativeECCBackend)
@@ -24,45 +24,17 @@ def sanitize_record(data_record):
     if "_id" in data_record:
         data_record.pop("_id")
 
-    if os.getenv("RBAC_SERVER_URL"):
-        payload = {
-            "eventType": "filter_single_result",
-            "component": "metadatacache",
-            "ddo": data_record,
-        }
+    if not os.getenv("RBAC_SERVER_URL"):
+        return json.dumps(data_record, default=datetime_converter)
 
-        response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
-        if response.status_code == 200 and response.json() is not False:
-            return response.json()
-        else:
-            logger.warning(
-                f"Expected response code 200 from RBAC server, got {response.status_code}."
-            )
-
-    return json.dumps(data_record, default=datetime_converter)
+    return RBAC.sanitize_record(data_record)
 
 
 def sanitize_query_result(query_result):
     if not os.getenv("RBAC_SERVER_URL"):
         return query_result
 
-    payload = {
-        "eventType": "filter_query_result",
-        "component": "metadatacache",
-        "query_result": query_result,
-    }
-
-    response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
-
-    if response.status_code != 200 or response.json() is False:
-        logger.warning(
-            f"Expected response code 200 from RBAC server, got {response.status_code}."
-        )
-    return (
-        response.json()
-        if response.status_code == 200 and response.json()
-        else query_result
-    )
+    return RBAC.sanitize_query_result(query_result)
 
 
 def get_bool_env_value(envvar_name, default_value=0):

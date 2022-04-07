@@ -7,7 +7,6 @@ from flask import Blueprint, jsonify, request
 import json
 import logging
 import os
-import requests
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import (
@@ -25,6 +24,7 @@ from aquarius.events.util import setup_web3, make_did
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from aquarius.events.purgatory import Purgatory
+from aquarius.rbac import RBAC
 from artifacts import ERC721Template
 from web3.logs import DISCARD
 
@@ -348,14 +348,7 @@ def validate_remote():
         version = data.get("version", None)
 
         if os.getenv("RBAC_SERVER_URL"):
-            payload = {
-                "eventType": "validateDDO",
-                "component": "metadatacache",
-                "ddo": data,
-                "browserHeaders": {k: v for k, v in request.headers.items()},
-            }
-
-            valid = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+            valid = RBAC.validate_ddo_rbac(data)
 
             if not valid:
                 return (
