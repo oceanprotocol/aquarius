@@ -7,10 +7,14 @@ from flask import Blueprint, jsonify, request
 import json
 import logging
 import os
-import requests
 
 from aquarius.app.es_instance import ElasticsearchInstance
-from aquarius.app.util import sanitize_record, get_signature_vrs, get_allowed_publishers
+from aquarius.app.util import (
+    sanitize_record,
+    sanitize_query_result,
+    get_signature_vrs,
+    get_allowed_publishers,
+)
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
@@ -20,6 +24,7 @@ from aquarius.events.util import setup_web3, make_did
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from aquarius.events.purgatory import Purgatory
+from aquarius.rbac import RBAC
 from artifacts import ERC721Template
 from web3.logs import DISCARD
 
@@ -283,7 +288,7 @@ def query_ddo():
         )
 
     try:
-        return es_instance.es.search(data)
+        return sanitize_query_result(es_instance.es.search(data))
     except elasticsearch.exceptions.TransportError as e:
         error = e.error if isinstance(e.error, str) else str(e.error)
         info = e.info if isinstance(e.info, dict) else ""
@@ -343,14 +348,7 @@ def validate_remote():
         version = data.get("version", None)
 
         if os.getenv("RBAC_SERVER_URL"):
-            payload = {
-                "eventType": "validateDDO",
-                "component": "metadatacache",
-                "ddo": data,
-                "browserHeaders": {k: v for k, v in request.headers.items()},
-            }
-
-            valid = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+            valid = RBAC.validate_ddo_rbac(data)
 
             if not valid:
                 return (

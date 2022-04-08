@@ -6,8 +6,9 @@ from eth_account import Account
 import json
 import logging
 import os
+from requests.models import Response
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 
@@ -16,6 +17,7 @@ from aquarius.app.util import (
     datetime_converter,
     get_bool_env_value,
     sanitize_record,
+    sanitize_query_result,
     get_aquarius_wallet,
     AquariusPrivateKeyException,
     get_signature_vrs,
@@ -110,6 +112,51 @@ def test_sanitize_record():
     result = json.loads(sanitize_record(record))
     assert "_id" not in result
     assert result["other_value"] == "something else"
+
+
+def test_sanitize_record_through_rbac(monkeypatch):
+    monkeypatch.setenv("RBAC_SERVER_URL", "test")
+
+    with patch("requests.post") as mock:
+        response = Mock(spec=Response)
+        response.json.return_value = {"this_is": "SPARTAAA!"}
+        response.status_code = 200
+        mock.return_value = response
+
+        result = sanitize_record({})
+        assert result["this_is"] == "SPARTAAA!"
+
+    with patch("requests.post") as mock:
+        response = Mock(spec=Response)
+        response.status_code = 404
+        mock.return_value = response
+
+        result = sanitize_record({"this_is": "something else"})
+        assert result["this_is"] == "something else"
+
+
+def test_sanitize_query_result(monkeypatch):
+    result = sanitize_query_result({"this_is": "Athens, for some reason."})
+    assert result["this_is"] == "Athens, for some reason."
+
+    monkeypatch.setenv("RBAC_SERVER_URL", "test")
+
+    with patch("requests.post") as mock:
+        response = Mock(spec=Response)
+        response.json.return_value = {"this_is": "SPARTAAA!"}
+        response.status_code = 200
+        mock.return_value = response
+
+        result = sanitize_query_result({})
+        assert result["this_is"] == "SPARTAAA!"
+
+    with patch("requests.post") as mock:
+        response = Mock(spec=Response)
+        response.status_code = 404
+        mock.return_value = response
+
+        result = sanitize_query_result({"this_is": "something else"})
+        assert result["this_is"] == "something else"
 
 
 class BlockProcessingClassChild(BlockProcessingClass):

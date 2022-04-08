@@ -8,9 +8,10 @@ This module is the entrypoint for statring the Aquarius component.
 import configparser
 
 from elasticsearch import Elasticsearch
-from flask import jsonify
+from flask import jsonify, request
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
+import os
 
 from aquarius.app.assets import assets
 from aquarius.app.chains import chains
@@ -20,9 +21,16 @@ from aquarius.constants import BaseURLs, Metadata
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
+from aquarius.rbac import RBAC
 
 config = Config(filename=app.config["AQUARIUS_CONFIG_FILE"])
 aquarius_url = config.aquarius_url
+
+
+@app.before_request
+def set_rbac_headers():
+    if os.getenv("RBAC_SERVER_URL"):
+        RBAC.set_headers(request)
 
 
 def get_version():

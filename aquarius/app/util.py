@@ -14,6 +14,7 @@ import os
 from web3.main import Web3
 
 from aquarius.app.auth_util import sanitize_addresses
+from aquarius.rbac import RBAC
 
 logger = logging.getLogger("aquarius")
 keys = KeyAPI(NativeECCBackend)
@@ -23,7 +24,17 @@ def sanitize_record(data_record):
     if "_id" in data_record:
         data_record.pop("_id")
 
-    return json.dumps(data_record, default=datetime_converter)
+    if not os.getenv("RBAC_SERVER_URL"):
+        return json.dumps(data_record, default=datetime_converter)
+
+    return RBAC.sanitize_record(data_record)
+
+
+def sanitize_query_result(query_result):
+    if not os.getenv("RBAC_SERVER_URL"):
+        return query_result
+
+    return RBAC.sanitize_query_result(query_result)
 
 
 def get_bool_env_value(envvar_name, default_value=0):
