@@ -84,13 +84,12 @@ def get_signature_bytes(raw):
         keys_pk = keys.PrivateKey(wallet.key)
         message_hash = Web3.solidityKeccak(
             ["bytes"],
-            [Web3.toHex(Web3.toBytes(text=raw))],
+            [Web3.toBytes(text=raw)],
         )
         prefix = "\x19Ethereum Signed Message:\n32"
         signable_hash = Web3.solidityKeccak(
             ["bytes", "bytes"], [Web3.toBytes(text=prefix), Web3.toBytes(message_hash)]
         )
-        prefix = "\x19Ethereum Signed Message:\n32"
         signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=keys_pk)
         v = str(Web3.toHex(Web3.toBytes(signed.v)))
         r = str(Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")))

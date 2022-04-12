@@ -19,9 +19,6 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
     aquarius_account = get_aquarius_wallet()
     nonce = str(int(datetime.utcnow().timestamp()))
 
-    # signature = aquarius_account.sign_message(
-    #    encode_defunct(text=f"{txid}{aquarius_account.address}{chain_id}{nonce}")
-    # ).signature.hex()
     signature = get_signature_bytes(
         f"{txid}{aquarius_account.address}{chain_id}{nonce}"
     )
