@@ -8,7 +8,6 @@ from datetime import datetime
 from hashlib import sha256
 
 import requests
-from eth_account.messages import encode_defunct
 
 from aquarius.app.util import get_aquarius_wallet, get_signature_bytes
 
