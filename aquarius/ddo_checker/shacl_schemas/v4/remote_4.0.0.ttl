@@ -299,12 +299,10 @@ schema:CredentialsShape
     sh:property [
         sh:path schema:deny ;
         sh:node schema:CredentialsItemShape;
-        sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:allow;
         sh:node schema:CredentialsItemShape;
-        sh:maxCount 1;
     ] ; .
 
 
