@@ -95,7 +95,7 @@ setup(
     url="https://github.com/oceanprotocol/aquarius",
     # fmt: off
     # bumpversion needs single quotes
-    version='4.0.5',
+    version='4.0.6',
     # fmt: on
     zip_safe=False,
 )
