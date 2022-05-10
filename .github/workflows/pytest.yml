@@ -34,7 +34,7 @@ jobs:
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
         env:
-          CONTRACTS_VERSION: v1.0.0-alpha.31
+          CONTRACTS_VERSION: v1.0.0-alpha.32
           PROVIDER_VERSION: refactor_signatures
       - name: Install dependencies
         run: |
