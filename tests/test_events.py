@@ -280,17 +280,5 @@ def test_add_chain_id_to_chains_list(events_object):
         assert events_object.add_chain_id_to_chains_list() is None
 
 
-def test_get_event_logs(events_object):
-    def get_logs_exception(event, from_block, to_block):
-        raise ValueError("Boom!")
-
-    def get_logs_mock(event, from_block, to_block):
-        return {"Hello There": "General Kenobi!"}
-
-    assert (
-        events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10, get_logs_exception)
-        is None
-    )
-    result = events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10, get_logs_mock)
-
-    assert result["Hello There"] == "General Kenobi!"
+def test_get_event_logs(events_object: EventsMonitor):
+    assert events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10) == []
