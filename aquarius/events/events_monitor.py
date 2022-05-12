@@ -334,7 +334,7 @@ class EventsMonitor(BlockProcessingClass):
         all_logs = []
         while _from <= to_block:
             # Search current chunk
-            logs = event.get_logs(_from, _to)
+            logs = event().get_logs(_from, _to)
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
                 logger.debug(
