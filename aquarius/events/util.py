@@ -178,7 +178,7 @@ def get_datatoken_info(web3, token_address):
         "name": dt.functions.name().call(),
         "symbol": dt.functions.symbol().call(),
         "decimals": decimals,
-        "cap": float(cap_orig / (10 ** decimals)),
+        "cap": float(cap_orig / (10**decimals)),
     }
 
 
