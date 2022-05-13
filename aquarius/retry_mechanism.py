@@ -1,4 +1,6 @@
+from datetime import datetime, timedelta
 import elasticsearch
+from hashlib import sha256
 import json
 import logging
 from web3.logs import DISCARD
@@ -22,23 +24,33 @@ class RetryMechanism:
         self._retries_db_index = retries_db_index
         self._purgatory = purgatory
         self._web3 = setup_web3(config_file)
+        self.retry_interval = timedelta(minutes=5)
 
-    def add_to_retry_queue(self, tx_id, log_index, chain_id):
-        import pdb; pdb.set_trace()
+    def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
+        params = {
+            "tx_id": tx_id,
+            "log_index": log_index,
+            "chain_id": chain_id
+        }
+
+        rm_id = sha256(json.dumps(params).encode("utf-8")).hexdigest()
         try:
             self._es_instance.es.get(
-                index=self._retries_db_index, id="TODO", doc_type="_doc"
+                index=self._retries_db_index, id=rm_id, doc_type="_doc"
             )["_source"]
 
-            # TODO: return, since it already exists
+            # TODO: update the timestamp; if asap, then now
         except Exception:
             pass
+
+        params["number_retries"] = 0
+        params["next_retry"] = (datetime.utcnow() + self.retry_interval).timestamp()
 
         try:
             self._es_instance.es.index(
                 index=self._retries_db_index,
-                id="TODO",
-                body=json.dumps("TODO"),
+                id=rm_id,
+                body=params,
                 doc_type="_doc",
                 refresh="wait_for",
             )["_id"]
@@ -49,11 +61,18 @@ class RetryMechanism:
             )
 
     def get_from_retry_queue(self):
-        self._es_instance.es.get(
-            index=self._retries_db_index, doc_type="_doc"
-        )
-        import pdb; pdb.set_trace()
+        q = {
+            "range": {
+                "next_retry": {"lte": datetime.utcnow().timestamp()}
+            }
+        }
 
+        result = self._es_instance.es.search(
+            index=self._retries_db_index,
+            query=q
+        )
+
+        return result["hits"]["hits"]
 
     def handle_retry(self, tx_id, log_index, chain_id):
         tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_id)
