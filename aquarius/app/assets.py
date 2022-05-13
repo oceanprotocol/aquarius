@@ -401,6 +401,8 @@ def trigger_caching():
         tx_id = data.get("transactionId")
         log_index = int(data.get("logIndex", 0))
 
+        # TODO: adapt with retry mechanism
+
         config_file = app.config["AQUARIUS_CONFIG_FILE"]
         web3 = setup_web3(config_file)
         tx_receipt = web3.eth.wait_for_transaction_receipt(tx_id)

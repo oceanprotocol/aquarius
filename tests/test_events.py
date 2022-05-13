@@ -516,3 +516,15 @@ def test_trigger_caching(client, base_ddo_url, events_object):
         client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
     )
     assert response["error"] == "No metadata created/updated event found in tx."
+
+
+def test_publish_error(client, base_ddo_url, events_object):
+    _ddo = new_ddo(test_account1, get_web3(), "dt.0")
+    did = _ddo.id
+    send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    with patch("aquarius.events.processors.decrypt_ddo") as mock:
+        mock.side_effect = Exception("First exception")
+        events_object.process_current_blocks()
+
+    ddo = get_ddo(client, base_ddo_url, did)
+    assert ddo["error"] == f"Asset DID {did} not found in Elasticsearch."

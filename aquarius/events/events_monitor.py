@@ -61,6 +61,9 @@ class EventsMonitor(BlockProcessingClass):
         self._other_db_index = f"{self._es_instance.db_index}_plus"
         self._es_instance.es.indices.create(index=self._other_db_index, ignore=400)
 
+        self._retries_db_index = f"{self._es_instance.db_index}_retries"
+        self._es_instance.es.indices.create(index=self._retries_db_index, ignore=400)
+
         self._web3 = web3
 
         self._chain_id = self._web3.eth.chain_id
