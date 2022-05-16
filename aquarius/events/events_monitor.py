@@ -194,6 +194,7 @@ class EventsMonitor(BlockProcessingClass):
         self.handle_token_uri_update(from_block, to_block)
 
         self.store_last_processed_block(to_block)
+        # TODO: process retry queue (maybe order by closest, take a fixed number?)
 
     def handle_regular_event_processor(
         self, event_name, processor, processor_args, from_block, to_block

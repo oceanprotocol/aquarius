@@ -5,12 +5,12 @@ import json
 import logging
 from web3.logs import DISCARD
 
-from aquarius.app.util import get_allowed_publishers
+from aquarius.app.util import get_allowed_publishers, sanitize_record
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataUpdatedProcessor,
 )
-from aquarius.events.util import setup_web3
+from aquarius.events.util import setup_web3, make_did
 
 from jsonsempai import magic  # noqa: F401
 from artifacts import ERC721Template
@@ -93,6 +93,14 @@ class RetryMechanism:
 
         return result["hits"]["hits"]
 
+    def process_queue(self):
+        for queue_element in self.get_from_retry_queue():
+            self.handle_retry(
+                queue_element["tx_id"],
+                queue_element["log_index"],
+                queue_element["chain_id"],
+            )
+
     def handle_retry(self, tx_id, log_index, chain_id):
         tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_id)
 
@@ -109,7 +117,7 @@ class RetryMechanism:
         )
 
         if not created_event and not updated_event:
-            return False, "No metadata created/updated event"
+            return False, "No metadata created/updated event found in tx."
 
         allowed_publishers = get_allowed_publishers()
         processor_args = [self._es_instance, self._web3, allowed_publishers, self._purgatory, chain_id]
@@ -121,5 +129,7 @@ class RetryMechanism:
         event_processor = processor(
             *([event_to_process, dt_contract, tx_receipt["from"]] + processor_args)
         )
-        return event_processor.process()
+        event_processor.process()
+        did = make_did(dt_address, chain_id)
 
+        return True, sanitize_record(self._es_instance.get(did))
