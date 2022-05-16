@@ -303,10 +303,7 @@ class EventsMonitor(BlockProcessingClass):
     def get_assets_in_chain(self):
         body = {
             "query": {
-                "query_string": {
-                    "query": self._chain_id,
-                    "default_field": "chainId",
-                }
+                "query_string": {"query": self._chain_id, "default_field": "chainId"}
             }
         }
         page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
@@ -320,22 +317,39 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block, _get_logs_callback=None):
-        def _get_logs_orig(event, _from_block, _to_block):
-            logger.debug(f"get_event_logs ({event_name}, {from_block}, {to_block})..")
-            _filter = event().createFilter(fromBlock=_from_block, toBlock=_to_block)
-            return _filter.get_all_entries()
+    def get_event_logs(self, event_name, from_block, to_block, chunk_size=1000):
+        if event_name not in [EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED]:
+            raise ValueError(f"Event name {event_name} not supported.")
 
-        _get_logs = _get_logs_callback if _get_logs_callback else _get_logs_orig
+        event = getattr(self._contract.events, event_name)
 
-        for x in [0, 1]:
-            try:
-                return _get_logs(
-                    getattr(self._contract.events, event_name), from_block, to_block
+        _from = from_block
+        _to = min(_from + chunk_size - 1, to_block)
+
+        logger.info(
+            f"Searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}."
+        )
+
+        all_logs = []
+        while _from <= to_block:
+            # Search current chunk
+            logs = event().getLogs(fromBlock=_from, toBlock=_to)
+            all_logs.extend(logs)
+            if (_from - from_block) % 1000 == 0:
+                logger.debug(
+                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}"
+                    f"{len(all_logs)} {event_name} events detected so far."
                 )
-            except ValueError as e:
-                suffix = "" if x == 1 else "\n Retrying once more."
-                logger.error(
-                    f"get_event_logs ({event_name}, {from_block}, {to_block}) failed: {e}."
-                    + suffix
-                )
+
+            # Prepare for next chunk
+            _from = _to + 1
+            _to = min(_from + chunk_size - 1, to_block)
+
+        logger.info(
+            f"Finished searching for {event_name} events on chain {self._chain_id} "
+            f"in blocks {from_block} to {to_block}. "
+            f"{len(all_logs)} {event_name} events detected."
+        )
+
+        return all_logs

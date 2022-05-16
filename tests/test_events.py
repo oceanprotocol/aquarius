@@ -7,6 +7,7 @@ import lzma
 
 import ecies
 import elasticsearch
+import pytest
 from web3 import Web3
 from unittest.mock import patch
 
@@ -280,17 +281,23 @@ def test_add_chain_id_to_chains_list(events_object):
         assert events_object.add_chain_id_to_chains_list() is None
 
 
-def test_get_event_logs(events_object):
-    def get_logs_exception(event, from_block, to_block):
-        raise ValueError("Boom!")
+def test_get_event_logs(events_object: EventsMonitor):
+    assert events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10) == []
+    assert events_object.get_event_logs(EVENT_METADATA_UPDATED, 0, 10) == []
 
-    def get_logs_mock(event, from_block, to_block):
-        return {"Hello There": "General Kenobi!"}
+    with pytest.raises(ValueError):
+        assert events_object.get_event_logs("invalid event", 0, 10)
 
-    assert (
-        events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10, get_logs_exception)
-        is None
-    )
-    result = events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10, get_logs_mock)
+    with patch("web3.contract.ContractEvent.getLogs") as mock:
+        mock.side_effect = Exception("Boom!")
 
-    assert result["Hello There"] == "General Kenobi!"
+        with pytest.raises(Exception, match="Boom!"):
+            assert events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10)
+
+    with patch("web3.contract.ContractEvent.getLogs") as mock:
+        list_of_logs = [{"a list of": "logs"}]
+        mock.return_value = list_of_logs
+
+        assert (
+            events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10) == list_of_logs
+        )

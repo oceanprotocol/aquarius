@@ -23,6 +23,7 @@ jobs:
         with:
           repository: "oceanprotocol/barge"
           path: 'barge'
+          ref: 'v3'
       - name: Run Barge
         working-directory: ${{ github.workspace }}/barge
         run: |
@@ -32,6 +33,7 @@ jobs:
             [ -f "$HOME/.ocean/ocean-contracts/artifacts/ready" ] && break
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
+          cat "$HOME/.ocean/ocean-contracts/artifacts/address.json"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -40,10 +42,5 @@ jobs:
         uses: elastic/elastic-github-actions/elasticsearch@master
         with:
           stack-version: 6.6.2
-      - name: Test with tox and publish code coverage
-        uses: paambaati/codeclimate-action@v2.7.5
-        env:
-          CC_TEST_REPORTER_ID: d9a74ea9daf38479941f0f0b7502b0f67578d122cc660a9fca96bc06df5a1d99
-        with:
-          coverageCommand: tox
-          debug: true
+      - name: Test with tox
+        run: tox
