@@ -26,6 +26,14 @@ class RetryMechanism:
         self._web3 = setup_web3(config_file)
         self.retry_interval = timedelta(minutes=5)
 
+    def clear_all(self):
+        q = {"match_all": {}}
+
+        self._es_instance.es.delete_by_query(
+            index=self._retries_db_index,
+            body={"query": q}
+        )
+
     def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
         params = {
             "tx_id": tx_id,
@@ -44,14 +52,14 @@ class RetryMechanism:
             pass
 
         params["number_retries"] = 0
-        params["next_retry"] = (datetime.utcnow() + self.retry_interval).timestamp()
+        params["next_retry"] = int((datetime.utcnow() + self.retry_interval).timestamp())
 
         try:
             self._es_instance.es.index(
                 index=self._retries_db_index,
                 id=rm_id,
                 body=params,
-                doc_type="_doc",
+                doc_type="queue",
                 refresh="wait_for",
             )["_id"]
             logger.info(f"Added todo to retry queue")
@@ -60,10 +68,21 @@ class RetryMechanism:
                 f"Cannot add todo to retry queue: ES RequestError"
             )
 
+    def get_all(self):
+        # TODO: remove, just for debugging
+        q = {"match_all": {}}
+
+        result = self._es_instance.es.search(
+            index=self._retries_db_index,
+            query=q
+        )
+
+        return result["hits"]["hits"]
+
     def get_from_retry_queue(self):
         q = {
             "range": {
-                "next_retry": {"lte": datetime.utcnow().timestamp()}
+                "next_retry": {"lt": int(datetime.utcnow().timestamp())}
             }
         }
 
