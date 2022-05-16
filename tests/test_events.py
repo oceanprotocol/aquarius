@@ -291,7 +291,7 @@ def test_get_event_logs(events_object: EventsMonitor):
     with patch("web3.contract.ContractEvent.getLogs") as mock:
         mock.side_effect = Exception("Boom!")
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match="Boom!"):
             assert events_object.get_event_logs(EVENT_METADATA_CREATED, 0, 10)
 
     with patch("web3.contract.ContractEvent.getLogs") as mock:
