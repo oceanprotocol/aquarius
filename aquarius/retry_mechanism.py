@@ -34,6 +34,11 @@ class RetryMechanism:
             body={"query": q}
         )
 
+    def get_by_id(self, rm_id):
+        return self._es_instance.es.get(
+            index=self._retries_db_index, id=rm_id, doc_type="queue"
+        )["_source"]
+
     def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
         params = {
             "tx_id": tx_id,
@@ -43,16 +48,22 @@ class RetryMechanism:
 
         rm_id = sha256(json.dumps(params).encode("utf-8")).hexdigest()
         try:
-            self._es_instance.es.get(
-                index=self._retries_db_index, id=rm_id, doc_type="_doc"
-            )["_source"]
+            result = self.get_by_id(rm_id)
+            params["number_retries"] = result["number_retries"] + 1
 
-            # TODO: update the timestamp; if asap, then now
         except Exception:
+            params["number_retries"] = 0
             pass
 
-        params["number_retries"] = 0
-        params["next_retry"] = int((datetime.utcnow() + self.retry_interval).timestamp())
+        params["next_retry"] = int(
+            (
+                datetime.utcnow() + (params["number_retries"] + 1) * self.retry_interval
+            ).timestamp()
+        )
+
+        if asap:
+            params["number_retries"] = 0
+            params["next_retry"] = int(datetime.utcnow().timestamp())
 
         try:
             self._es_instance.es.index(
@@ -62,22 +73,11 @@ class RetryMechanism:
                 doc_type="queue",
                 refresh="wait_for",
             )["_id"]
-            logger.info(f"Added todo to retry queue")
+            logger.info(f"Added {rm_id} to retry queue")
         except elasticsearch.exceptions.RequestError:
             logger.error(
-                f"Cannot add todo to retry queue: ES RequestError"
+                f"Cannot add {rm_id} to retry queue: ES RequestError"
             )
-
-    def get_all(self):
-        # TODO: remove, just for debugging
-        q = {"match_all": {}}
-
-        result = self._es_instance.es.search(
-            index=self._retries_db_index,
-            query=q
-        )
-
-        return result["hits"]["hits"]
 
     def get_from_retry_queue(self):
         q = {
