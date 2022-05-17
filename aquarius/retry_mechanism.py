@@ -99,9 +99,8 @@ class RetryMechanism:
         )
 
     def process_queue(self):
-        # TODO: maybe order by closest, take a fixed number?
-        # TODO: stop trying after a certain number of retries?
-        # TODO: replace trigger caching with add + asap?
+        # possible improvements: order by closest, take only a fixed number from the queue
+        # delete from retry queue after a certain number of retries
         queue_elements = self.get_from_retry_queue()
         for queue_element in queue_elements:
             element_id = queue_element["_id"]
