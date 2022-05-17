@@ -93,13 +93,34 @@ class RetryMechanism:
 
         return result["hits"]["hits"]
 
+    def delete_by_id(self, element_id):
+        self._es_instance.es.delete( index=self._retries_db_index, id=element_id,
+            doc_type="queue",
+        )
+
     def process_queue(self):
-        for queue_element in self.get_from_retry_queue():
-            self.handle_retry(
+        # TODO: maybe order by closest, take a fixed number?
+        # TODO: stop trying after a certain number of retries?
+        # TODO: replace trigger caching with add + asap?
+        queue_elements = self.get_from_retry_queue()
+        for queue_element in queue_elements:
+            element_id = queue_element["_id"]
+            queue_element = queue_element["_source"]
+            success, message = self.handle_retry(
                 queue_element["tx_id"],
                 queue_element["log_index"],
                 queue_element["chain_id"],
             )
+
+            if success:
+                self.delete_by_id(element_id)
+            else:
+                logger.info(f"Still unsuccessful. Will retry {element_id} again.")
+                self.add_to_retry_queue(
+                    queue_element["tx_id"],
+                    queue_element["log_index"],
+                    queue_element["chain_id"],
+                )
 
     def handle_retry(self, tx_id, log_index, chain_id):
         tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_id)
@@ -133,3 +154,4 @@ class RetryMechanism:
         did = make_did(dt_address, chain_id)
 
         return True, sanitize_record(self._es_instance.get(did))
+

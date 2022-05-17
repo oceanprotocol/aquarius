@@ -14,6 +14,7 @@ from jsonsempai import magic  # noqa: F401
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
+from aquarius.retry_mechanism import RetryMechanism
 from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
@@ -95,6 +96,13 @@ class EventsMonitor(BlockProcessingClass):
             else None
         )
 
+        self.retry_mechanism = RetryMechanism(
+            config_file,
+            self._es_instance,
+            self._retries_db_index,
+            self.purgatory
+        )
+
         purgatory_message = (
             "Enabling purgatory" if self.purgatory else "Purgatory is disabled"
         )
@@ -138,6 +146,8 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
+        self.retry_mechanism.process_queue()
+
         last_block = self.get_last_processed_block()
         current_block = self._web3.eth.block_number
         if (
@@ -194,7 +204,6 @@ class EventsMonitor(BlockProcessingClass):
         self.handle_token_uri_update(from_block, to_block)
 
         self.store_last_processed_block(to_block)
-        # TODO: process retry queue (maybe order by closest, take a fixed number?)
 
     def handle_regular_event_processor(
         self, event_name, processor, processor_args, from_block, to_block
@@ -226,6 +235,11 @@ class EventsMonitor(BlockProcessingClass):
                 )
                 event_processor.process()
             except Exception as e:
+                self.retry_mechanism.add_to_retry_queue(
+                    event.transactionHash.hex(),
+                    0,
+                    processor_args[4]
+                )
                 logger.exception(
                     f"Error processing {EventTypes.get_value(event_name)} event: {e}\n"
                     f"event={event}"
