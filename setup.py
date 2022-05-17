@@ -29,7 +29,7 @@ install_requirements = [
     "elasticsearch==7.17.0",
     "PyYAML==6.0",
     "pytz==2022.1",
-    "ocean-contracts==1.0.0a32",
+    "ocean-contracts==1.0.0a33",
     "web3==5.29.0",
     "gevent",
     "json-sempai==0.4.0",
@@ -50,16 +50,16 @@ dev_requirements = [
     "black",
     "pre-commit",
     # not virtualenv: devs should already have it before pip-installing
-    "watchdog==2.1.7",
+    "watchdog==2.1.8",
     "licenseheaders",
 ]
 
 test_requirements = [
     "Flask==2.1.2",
     "codacy-coverage==1.3.11",
-    "coverage==6.3.2",
+    "coverage==6.3.3",
     "mccabe==0.6.1",
-    "pylint==2.13.8",
+    "pylint==2.13.9",
     "pytest",
     "pytest-env",
     "freezegun==1.2.1",
@@ -95,7 +95,7 @@ setup(
     url="https://github.com/oceanprotocol/aquarius",
     # fmt: off
     # bumpversion needs single quotes
-    version='4.0.7',
+    version='4.0.8',
     # fmt: on
     zip_safe=False,
 )
