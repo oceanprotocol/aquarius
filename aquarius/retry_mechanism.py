@@ -34,11 +34,9 @@ class RetryMechanism:
         )
 
     def get_by_id(self, rm_id):
-        result = self._es_instance.es.get(
+        return self._es_instance.es.get(
             index=self._retries_db_index, id=rm_id, doc_type="queue"
-        )
-
-        return result["_source"] if result else {}
+        )["_source"]
 
     def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
         params = {"tx_id": tx_id, "log_index": log_index, "chain_id": chain_id}
@@ -82,7 +80,9 @@ class RetryMechanism:
         return result["hits"]["hits"]
 
     def delete_by_id(self, element_id):
-        if not self.get_by_id(element_id):
+        try:
+            self.get_by_id(element_id)
+        except Exception:
             return
 
         self._es_instance.es.delete(
