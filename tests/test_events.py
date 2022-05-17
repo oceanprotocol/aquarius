@@ -545,7 +545,10 @@ def test_publish_error(client, base_ddo_url, events_object):
     after_5_minutes_and_a_bit = now + timedelta(minutes=5, seconds=1)
     freezer = freeze_time(after_5_minutes_and_a_bit)
     freezer.start()
-    tx_ids = [res["_source"]["tx_id"] for res in events_object.retry_mechanism.get_from_retry_queue()]
+    tx_ids = [
+        res["_source"]["tx_id"]
+        for res in events_object.retry_mechanism.get_from_retry_queue()
+    ]
     assert tx_id in tx_ids
 
     # no exceptions this time

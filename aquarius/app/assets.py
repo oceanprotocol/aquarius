@@ -406,13 +406,12 @@ def trigger_caching():
         )
 
         retry_mechanism = RetryMechanism(
-            config_file,
-            es_instance,
-            retries_db_index,
-            purgatory
+            config_file, es_instance, retries_db_index, purgatory
         )
 
-        success, result = retry_mechanism.handle_retry(tx_id, log_index, web3.eth.chain_id)
+        success, result = retry_mechanism.handle_retry(
+            tx_id, log_index, web3.eth.chain_id
+        )
 
         if not success:
             return jsonify(error=result), 400

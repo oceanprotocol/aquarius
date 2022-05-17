@@ -97,10 +97,7 @@ class EventsMonitor(BlockProcessingClass):
         )
 
         self.retry_mechanism = RetryMechanism(
-            config_file,
-            self._es_instance,
-            self._retries_db_index,
-            self.purgatory
+            config_file, self._es_instance, self._retries_db_index, self.purgatory
         )
 
         purgatory_message = (
@@ -236,9 +233,7 @@ class EventsMonitor(BlockProcessingClass):
                 event_processor.process()
             except Exception as e:
                 self.retry_mechanism.add_to_retry_queue(
-                    event.transactionHash.hex(),
-                    0,
-                    processor_args[4]
+                    event.transactionHash.hex(), 0, processor_args[4]
                 )
                 logger.exception(
                     f"Error processing {EventTypes.get_value(event_name)} event: {e}\n"

@@ -30,8 +30,7 @@ class RetryMechanism:
         q = {"match_all": {}}
 
         self._es_instance.es.delete_by_query(
-            index=self._retries_db_index,
-            body={"query": q}
+            index=self._retries_db_index, body={"query": q}
         )
 
     def get_by_id(self, rm_id):
@@ -40,11 +39,7 @@ class RetryMechanism:
         )["_source"]
 
     def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
-        params = {
-            "tx_id": tx_id,
-            "log_index": log_index,
-            "chain_id": chain_id
-        }
+        params = {"tx_id": tx_id, "log_index": log_index, "chain_id": chain_id}
 
         rm_id = sha256(json.dumps(params).encode("utf-8")).hexdigest()
         try:
@@ -75,26 +70,19 @@ class RetryMechanism:
             )["_id"]
             logger.info(f"Added {rm_id} to retry queue")
         except elasticsearch.exceptions.RequestError:
-            logger.error(
-                f"Cannot add {rm_id} to retry queue: ES RequestError"
-            )
+            logger.error(f"Cannot add {rm_id} to retry queue: ES RequestError")
 
     def get_from_retry_queue(self):
-        q = {
-            "range": {
-                "next_retry": {"lt": int(datetime.utcnow().timestamp())}
-            }
-        }
+        q = {"range": {"next_retry": {"lt": int(datetime.utcnow().timestamp())}}}
 
-        result = self._es_instance.es.search(
-            index=self._retries_db_index,
-            query=q
-        )
+        result = self._es_instance.es.search(index=self._retries_db_index, query=q)
 
         return result["hits"]["hits"]
 
     def delete_by_id(self, element_id):
-        self._es_instance.es.delete( index=self._retries_db_index, id=element_id,
+        self._es_instance.es.delete(
+            index=self._retries_db_index,
+            id=element_id,
             doc_type="queue",
         )
 
@@ -128,7 +116,9 @@ class RetryMechanism:
             return False, f"Log index {log_index} not found"
 
         dt_address = tx_receipt.logs[log_index].address
-        dt_contract = self._web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
+        dt_contract = self._web3.eth.contract(
+            abi=ERC721Template.abi, address=dt_address
+        )
         created_event = dt_contract.events.MetadataCreated().processReceipt(
             tx_receipt, errors=DISCARD
         )
@@ -140,7 +130,13 @@ class RetryMechanism:
             return False, "No metadata created/updated event found in tx."
 
         allowed_publishers = get_allowed_publishers()
-        processor_args = [self._es_instance, self._web3, allowed_publishers, self._purgatory, chain_id]
+        processor_args = [
+            self._es_instance,
+            self._web3,
+            allowed_publishers,
+            self._purgatory,
+            chain_id,
+        ]
 
         processor = (
             MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
@@ -153,4 +149,3 @@ class RetryMechanism:
         did = make_did(dt_address, chain_id)
 
         return True, sanitize_record(self._es_instance.get(did))
-
