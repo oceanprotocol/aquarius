@@ -29,7 +29,7 @@ install_requirements = [
     "elasticsearch==7.17.0",
     "PyYAML==6.0",
     "pytz==2022.1",
-    "ocean-contracts==1.0.0a32",
+    "ocean-contracts==1.0.0a33",
     "web3==5.29.0",
     "gevent",
     "json-sempai==0.4.0",
@@ -95,7 +95,7 @@ setup(
     url="https://github.com/oceanprotocol/aquarius",
     # fmt: off
     # bumpversion needs single quotes
-    version='4.0.7',
+    version='4.0.8',
     # fmt: on
     zip_safe=False,
 )
