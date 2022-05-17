@@ -2,8 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from datetime import datetime, timedelta
-from freezegun import freeze_time
+from datetime import timedelta
 import logging
 import os
 import threading
@@ -527,24 +526,19 @@ def test_publish_error(client, base_ddo_url, events_object):
     tx_id = txn_receipt["transactionHash"].hex()
     # prevent any issues from previous tests, start clean-slate
     events_object.retry_mechanism.clear_all()
+    events_object.retry_mechanism.retry_interval = timedelta(seconds=30)
 
     # force first trial to fail with decrypt exception
-    now = datetime.utcnow()
-    freezer = freeze_time(now)
-    freezer.start()
     with patch("aquarius.events.processors.decrypt_ddo") as mock:
         mock.side_effect = Exception("First exception")
         events_object.process_current_blocks()
-    freezer.stop()
 
     # the asset is not published
     ddo = get_ddo(client, base_ddo_url, did)
     assert ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
 
     # later, that asset will be ripe and ready in the retry queue
-    later = now + timedelta(minutes=10)
-    freezer = freeze_time(later)
-    freezer.start()
+    time.sleep(60)
     tx_ids = [
         res["_source"]["tx_id"]
         for res in events_object.retry_mechanism.get_from_retry_queue()
@@ -557,8 +551,6 @@ def test_publish_error(client, base_ddo_url, events_object):
     # asset is correctly published on retry
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
-
-    freezer.stop()
 
     # the element was removed from the retry queue after successful saving
     assert events_object.retry_mechanism.get_from_retry_queue() == []
