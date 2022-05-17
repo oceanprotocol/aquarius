@@ -542,7 +542,7 @@ def test_publish_error(client, base_ddo_url, events_object):
     assert ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
 
     # after 5 minutes, that asset will be ripe and ready in the retry queue
-    after_5_minutes_and_a_bit = now + timedelta(minutes=5, seconds=1)
+    after_5_minutes_and_a_bit = now + timedelta(minutes=6)
     freezer = freeze_time(after_5_minutes_and_a_bit)
     freezer.start()
     tx_ids = [
