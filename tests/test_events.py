@@ -551,6 +551,3 @@ def test_publish_error(client, base_ddo_url, events_object):
     # asset is correctly published on retry
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
-
-    # the element was removed from the retry queue after successful saving
-    assert events_object.retry_mechanism.get_from_retry_queue() == []

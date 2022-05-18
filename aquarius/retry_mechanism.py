@@ -72,6 +72,12 @@ class RetryMechanism:
         except elasticsearch.exceptions.RequestError:
             logger.error(f"Cannot add {rm_id} to retry queue: ES RequestError")
 
+    def get_all(self):
+        q = {"match_all": {}}
+        result = self._es_instance.es.search(index=self._retries_db_index, query=q)
+
+        return result["hits"]["hits"]
+
     def get_from_retry_queue(self):
         q = {"range": {"next_retry": {"lt": int(datetime.utcnow().timestamp())}}}
 
@@ -81,15 +87,13 @@ class RetryMechanism:
 
     def delete_by_id(self, element_id):
         try:
-            self.get_by_id(element_id)
+            self._es_instance.es.delete(
+                index=self._retries_db_index,
+                id=element_id,
+                doc_type="queue",
+            )
         except Exception:
-            return
-
-        self._es_instance.es.delete(
-            index=self._retries_db_index,
-            id=element_id,
-            doc_type="queue",
-        )
+            pass
 
     def process_queue(self):
         # possible improvements: order by closest, take only a fixed number from the queue
