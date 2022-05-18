@@ -538,12 +538,20 @@ def test_publish_error(client, base_ddo_url, events_object):
     assert ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
 
     # later, that asset will be ripe and ready in the retry queue
-    time.sleep(60)
-    tx_ids = [
-        res["_source"]["tx_id"]
-        for res in events_object.retry_mechanism.get_from_retry_queue()
-    ]
-    assert tx_id in tx_ids
+    timeout = time.time() + 30 * 4
+    job_is_valid = False
+    while True:
+        tx_ids = [
+            res["_source"]["tx_id"]
+            for res in events_object.retry_mechanism.get_from_retry_queue()
+        ]
+        if tx_id in tx_ids or time.time() > timeout:
+            job_is_valid = True
+            break
+
+        time.sleep(1)
+
+    assert job_is_valid, "tx id was not picked up"
 
     # no exceptions this time
     events_object.process_current_blocks()
@@ -551,3 +559,17 @@ def test_publish_error(client, base_ddo_url, events_object):
     # asset is correctly published on retry
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
+
+    timeout = time.time() + 30 * 4
+    job_is_done = False
+    while True:
+        tx_ids = [
+            res["_source"]["tx_id"] for res in events_object.retry_mechanism.get_all()
+        ]
+        if tx_id not in tx_ids or time.time() > timeout:
+            job_is_done = True
+            break
+
+        time.sleep(1)
+
+    assert job_is_done, "tx id was not deleted from queue"
