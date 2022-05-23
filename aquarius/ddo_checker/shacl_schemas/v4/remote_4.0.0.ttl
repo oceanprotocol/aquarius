@@ -118,11 +118,6 @@ schema:MetadataShape
         sh:path schema:additionalInformation;
     ] ;
     sh:property [
-        sh:path schema:consumerParameters;
-        sh:node schema:ConsumerParametersShape ;
-        sh:maxCount 1;
-    ] ;
-    sh:property [
         sh:path schema:algorithm;
         sh:node schema:AlgorithmShape ;
         sh:maxCount 1;
@@ -296,7 +291,12 @@ schema:ServiceShape
     ] ;
     sh:property [
         sh:path schema:additionalInformation ;
-    ] ; .
+    ] ;
+    sh:property [
+        sh:path schema:consumerParameters;
+        sh:node schema:ConsumerParametersShape ;
+        sh:maxCount 1;
+    ] ;.
 
 
 schema:ComputeShape
