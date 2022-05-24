@@ -61,7 +61,7 @@ algorithm_ddo_sample = {
                 "publisherTrustedAlgorithmPublishers": [],
             },
             "files": "encryptedFiles",
-            "consumerParameters": [{"name": "test_key"}, {"name": "naming_this_key"],
+            "consumerParameters": [{"name": "test_key"}, {"name": "naming_this_key"}],
         }
     ],
 }
