@@ -36,7 +36,7 @@ algorithm_ddo_sample = {
                 "tag": "10",
                 "checksum": "test",
             },
-            "consumerParameters": {"name": "test_key"},
+            "consumerParameters": [{"name": "test_key"}, {"name": "another_test_key"}],
         },
         "additionalInformation": {
             "description": "Workflow to aggregate weather information",
@@ -61,7 +61,7 @@ algorithm_ddo_sample = {
                 "publisherTrustedAlgorithmPublishers": [],
             },
             "files": "encryptedFiles",
-            "consumerParameters": {"name": "test_key"},
+            "consumerParameters": [{"name": "test_key"}, {"name": "naming_this_key"],
         }
     ],
 }
