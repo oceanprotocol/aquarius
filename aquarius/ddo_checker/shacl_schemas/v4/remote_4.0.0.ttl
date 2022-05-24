@@ -147,12 +147,11 @@ schema:AlgorithmShape
     sh:property [
         sh:path schema:consumerParameters;
         sh:node schema:ConsumerParametersShape ;
-        sh:maxCount 1;
     ] ;.
 
 
 schema:ConsumerParametersShape
-    sh:targetClass schema:ConsumerParmeter ;
+    sh:targetClass schema:ConsumerParameter ;
     sh:property [
         sh:path schema:name;
         sh:datatype xsd:string ;
@@ -295,7 +294,6 @@ schema:ServiceShape
     sh:property [
         sh:path schema:consumerParameters;
         sh:node schema:ConsumerParametersShape ;
-        sh:maxCount 1;
     ] ;.
 
 
