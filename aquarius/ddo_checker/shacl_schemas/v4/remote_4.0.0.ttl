@@ -163,29 +163,34 @@ schema:ConsumerParametersShape
         sh:path schema:type;
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
+        sh:minCount 1;
         sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:label;
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
+        sh:minCount 1;
         sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:required ;
         sh:datatype xsd:boolean ;
+        sh:minCount 1;
         sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:description ;
         sh:datatype xsd:string ;
         sh:pattern "^((.|\n)*)$" ;
+        sh:minCount 1;
         sh:maxCount 1;
     ] ;
     sh:property [
         sh:path schema:default;
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
+        sh:minCount 1;
         sh:maxCount 1;
     ] ;
     sh:property [

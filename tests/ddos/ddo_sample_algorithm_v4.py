@@ -36,7 +36,25 @@ algorithm_ddo_sample = {
                 "tag": "10",
                 "checksum": "test",
             },
-            "consumerParameters": [{"name": "test_key"}, {"name": "another_test_key"}],
+            "consumerParameters": [
+                {
+                    "name": "test_key",
+                    "type": "string",
+                    "label": "Test Key",
+                    "required": False,
+                    "description": "This is a test key",
+                    "default": "some_value",
+                    "options": ["some_value", "some_other_value"],
+                },
+                {
+                    "name": "another_test_key",
+                    "type": "string",
+                    "label": "Another Test Key",
+                    "required": False,
+                    "description": "This is another test key",
+                    "default": "some_other_value",
+                },
+            ],
         },
         "additionalInformation": {
             "description": "Workflow to aggregate weather information",
@@ -61,7 +79,24 @@ algorithm_ddo_sample = {
                 "publisherTrustedAlgorithmPublishers": [],
             },
             "files": "encryptedFiles",
-            "consumerParameters": [{"name": "test_key"}, {"name": "naming_this_key"}],
+            "consumerParameters": [
+                {
+                    "name": "test_key",
+                    "type": "string",
+                    "label": "Test Key",
+                    "required": False,
+                    "description": "This is a test key",
+                    "default": "some_value",
+                },
+                {
+                    "name": "another_test_key",
+                    "type": "string",
+                    "label": "Another Test Key",
+                    "required": False,
+                    "description": "This is another test key",
+                    "default": "some_other_value",
+                },
+            ],
         }
     ],
 }
