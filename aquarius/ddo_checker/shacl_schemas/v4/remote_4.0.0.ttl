@@ -143,6 +143,60 @@ schema:AlgorithmShape
         sh:node schema:ContainerShape ;
         sh:minCount 1;
         sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:consumerParameters;
+        sh:node schema:ConsumerParametersShape ;
+    ] ;.
+
+
+schema:ConsumerParametersShape
+    sh:targetClass schema:ConsumerParameter ;
+    sh:property [
+        sh:path schema:name;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:type;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:label;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:required ;
+        sh:datatype xsd:boolean ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:description ;
+        sh:datatype xsd:string ;
+        sh:pattern "^((.|\n)*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:default;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ] ;
+    sh:property [
+        sh:path schema:options;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
     ] ;.
 
 
@@ -241,7 +295,11 @@ schema:ServiceShape
     ] ;
     sh:property [
         sh:path schema:additionalInformation ;
-    ] ; .
+    ] ;
+    sh:property [
+        sh:path schema:consumerParameters;
+        sh:node schema:ConsumerParametersShape ;
+    ] ;.
 
 
 schema:ComputeShape
