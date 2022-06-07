@@ -304,7 +304,7 @@ def test_order_started(events_object, client, base_ddo_url):
     )
 
     token_contract.functions.mint(
-        test_account3.address, web3.toWei(10, "ether")
+        web3.toChecksumAddress(test_account3.address), web3.toWei(10, "ether")
     ).transact({"from": test_account1.address})
     # mock provider fees
     provider_wallet = get_aquarius_wallet()
@@ -330,8 +330,8 @@ def test_order_started(events_object, client, base_ddo_url):
     signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=pk)
 
     provider_fee = {
-        "providerFeeAddress": provider_fee_address,
-        "providerFeeToken": provider_fee_token,
+        "providerFeeAddress": web3.toChecksumAddress(provider_fee_address),
+        "providerFeeToken": web3.toChecksumAddress(provider_fee_token),
         "providerFeeAmount": provider_fee_amount,
         "providerData": Web3.toHex(Web3.toBytes(text=provider_data)),
         # make it compatible with last openzepellin https://github.com/OpenZeppelin/openzeppelin-contracts/pull/1622
@@ -341,11 +341,11 @@ def test_order_started(events_object, client, base_ddo_url):
         "validUntil": 0,
     }
     txn = token_contract.functions.startOrder(
-        test_account3.address,
+        web3.toChecksumAddress(test_account3.address),
         1,
         (
-            provider_fee["providerFeeAddress"],
-            provider_fee["providerFeeToken"],
+            web3.toChecksumAddress(provider_fee["providerFeeAddress"]),
+            web3.toChecksumAddress(provider_fee["providerFeeToken"]),
             provider_fee["providerFeeAmount"],
             provider_fee["v"],
             provider_fee["r"],
