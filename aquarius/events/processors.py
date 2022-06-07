@@ -121,7 +121,8 @@ class EventProcessor(ABC):
         datatokens = []
         for service in record.get("services"):
             token_contract = self._web3.eth.contract(
-                abi=ERC20Template.abi, address=service["datatokenAddress"]
+                abi=ERC20Template.abi,
+                address=self._web3.toChecksumAddress(service["datatokenAddress"]),
             )
 
             datatokens.append(
@@ -422,7 +423,8 @@ class TokenURIUpdatedProcessor:
             return
 
         erc721_contract = self.web3.eth.contract(
-            abi=ERC721Template.abi, address=self.event.address
+            abi=ERC721Template.abi,
+            address=self.web3.toChecksumAddress(self.event.address),
         )
 
         receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)

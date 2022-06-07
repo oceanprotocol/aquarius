@@ -77,7 +77,7 @@ def send_create_update_tx(name, ddo, flags, account):
     )
 
     dt_contract = get_web3().eth.contract(
-        abi=ERC721Template.abi, address=datatoken_address
+        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
     )
 
     cap = web3.toWei(100000, "ether")
@@ -136,7 +136,9 @@ def send_set_metadata_state_tx(ddo, account, state):
     web3 = get_web3()
     web3.eth.default_account = account.address
 
-    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=datatoken_address)
+    dt_contract = web3.eth.contract(
+        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
+    )
 
     txn_hash = dt_contract.functions.setMetaDataState(state).transact()
     txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)

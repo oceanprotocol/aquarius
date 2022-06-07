@@ -208,7 +208,8 @@ class EventsMonitor(BlockProcessingClass):
             EventTypes.get_value(event_name), from_block, to_block
         ):
             dt_contract = self._web3.eth.contract(
-                abi=ERC721Template.abi, address=event.address
+                abi=ERC721Template.abi,
+                address=self._web3.toChecksumAddress(event.address),
             )
             receipt = self._web3.eth.get_transaction_receipt(
                 event.transactionHash.hex()
@@ -234,7 +235,8 @@ class EventsMonitor(BlockProcessingClass):
 
         for event in events:
             erc20_contract = self._web3.eth.contract(
-                abi=ERC20Template.abi, address=event.address
+                abi=ERC20Template.abi,
+                address=self._web3.toChecksumAddress(event.address),
             )
 
             logger.debug(f"OrderStarted detected on ERC20 contract {event.address}.")

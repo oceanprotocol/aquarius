@@ -409,7 +409,9 @@ def trigger_caching():
             return jsonify(error=f"Log index {log_index} not found"), 400
 
         dt_address = tx_receipt.logs[log_index].address
-        dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
+        dt_contract = web3.eth.contract(
+            abi=ERC721Template.abi, address=web3.toChecksumAddress(dt_address)
+        )
         created_event = dt_contract.events.MetadataCreated().processReceipt(
             tx_receipt, errors=DISCARD
         )

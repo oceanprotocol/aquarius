@@ -299,7 +299,9 @@ def test_order_started(events_object, client, base_ddo_url):
         "create", _ddo, bytes([2]), test_account1
     )
     events_object.process_current_blocks()
-    token_contract = web3.eth.contract(abi=ERC20Template.abi, address=erc20_address)
+    token_contract = web3.eth.contract(
+        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
+    )
 
     token_contract.functions.mint(
         test_account3.address, web3.toWei(10, "ether")
@@ -439,7 +441,8 @@ def test_token_uri_update(client, base_ddo_url, events_object):
     assert initial_ddo["nft"]["tokenURI"] == "http://oceanprotocol.com/nft"
 
     nft_contract = web3.eth.contract(
-        abi=ERC721Template.abi, address=initial_ddo["nftAddress"]
+        abi=ERC721Template.abi,
+        address=web3.toChecksumAddress(initial_ddo["nftAddress"]),
     )
 
     web3.eth.default_account = test_account1.address

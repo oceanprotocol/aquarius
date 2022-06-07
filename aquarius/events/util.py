@@ -141,7 +141,7 @@ def get_dt_factory(web3, chain_id=None):
     address = correspondence[chain_id]
     abi = ERC721Factory.abi
 
-    return web3.eth.contract(address=address, abi=abi)
+    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
 
 
 def get_address_file():
