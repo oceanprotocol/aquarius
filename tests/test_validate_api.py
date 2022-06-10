@@ -6,6 +6,7 @@ import json
 from requests.models import Response
 from unittest.mock import patch, Mock
 
+from aquarius.ddo_checker.shacl_checker import CURRENT_VERSION
 from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.helpers import run_request_octet, run_request
 
@@ -70,7 +71,9 @@ def test_validate_error(client, base_ddo_url, monkeypatch):
         rv = run_request_octet(
             client.post,
             base_ddo_url + "/validate",
-            data=json.dumps({"service": [], "test": "test", "version": "4.0.0"}),
+            data=json.dumps(
+                {"service": [], "test": "test", "version": CURRENT_VERSION}
+            ),
         )
         data = rv.get_json()
         assert rv.status_code == 500
@@ -81,7 +84,9 @@ def test_validate_error_remote(client, base_ddo_url, monkeypatch):
     rv = run_request_octet(
         client.post,
         base_ddo_url + "/validate",
-        data=json.dumps({"@context": ["test"], "services": "bla", "version": "4.0.0"}),
+        data=json.dumps(
+            {"@context": ["test"], "services": "bla", "version": CURRENT_VERSION}
+        ),
     )
     data = rv.get_json()
     assert rv.status_code == 400
