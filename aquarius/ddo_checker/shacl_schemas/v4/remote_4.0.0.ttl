@@ -237,7 +237,7 @@ schema:ServiceShape
     sh:property [
         sh:path schema:id ;
         sh:datatype xsd:string ;
-        sh:pattern "^(.*)$" ;
+        sh:pattern "^[a-zA-Z0-9_]+$" ;
         sh:minCount 1;
         sh:maxCount 1;
     ] ;

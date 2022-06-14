@@ -127,6 +127,18 @@ def test_remote_ddo_fails():
     assert not valid
     assert "services" in errors
 
+    _copy = copy.deepcopy(json_dict)
+    _copy["services"][0]["id"] = "my-test"
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
+    assert not valid
+    assert "services" in errors
+
+    _copy = copy.deepcopy(json_dict)
+    _copy["services"][0]["id"] = "../../../../../../../etc"
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
+    assert not valid
+    assert "services" in errors
+
     for required_prop in ["type", "datatokenAddress", "serviceEndpoint", "timeout"]:
         _copy = copy.deepcopy(json_dict)
         _copy["services"][0].pop(required_prop)
