@@ -151,14 +151,18 @@ def test_missing_attributes():
 
     test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
     dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
-    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=dt_address)
+    dt_contract = web3.eth.contract(
+        abi=ERC721Template.abi, address=web3.toChecksumAddress(dt_address)
+    )
 
     dt_factory = Mock()
     dt_factory.caller = Mock()
-    dt_factory.caller.erc721List.return_value = ""
+    dt_factory.caller.erc721List.return_value = (
+        "0x0000000000000000000000000000000000000000"
+    )
 
     processor = MetadataCreatedProcessor(
-        event_sample, None, None, None, None, None, None, None
+        event_sample, None, None, None, web3, None, None, None
     )
 
     assert processor._get_contract_attribute(dt_contract, "non_existent") == ""
@@ -173,7 +177,7 @@ def test_missing_attributes():
     processor.event.args.decryptorUrl = ""
     processor.event.args.metaDataHash = ""
     processor.event.args.address = ""
-    processor.event.address = ""
+    processor.event.address = "0x0000000000000000000000000000000000000000"
 
     with patch("aquarius.events.processors.decrypt_ddo") as mock:
         mock.return_value = None
@@ -183,7 +187,7 @@ def test_missing_attributes():
                 processor.process()
 
     processor = MetadataUpdatedProcessor(
-        event_sample, None, None, None, None, None, None, None
+        event_sample, None, None, None, web3, None, None, None
     )
 
     assert processor._get_contract_attribute(dt_contract, "non_existent") == ""
@@ -197,7 +201,7 @@ def test_missing_attributes():
     processor.event = Mock()
     processor.event.args.decryptorUrl = ""
     processor.event.args.metaDataHash = ""
-    processor.event.args.address = ""
+    processor.event.address = "0x0000000000000000000000000000000000000000"
 
     with patch("aquarius.events.processors.decrypt_ddo") as mock:
         mock.return_value = None
@@ -212,8 +216,11 @@ def test_drop_non_factory():
     dt_factory.caller = Mock()
     dt_factory.caller.erc721List.return_value = "not the address"
 
+    config_file = app.config["AQUARIUS_CONFIG_FILE"]
+    web3 = setup_web3(config_file)
+
     processor = MetadataCreatedProcessor(
-        event_sample, None, None, None, None, None, None, None
+        event_sample, None, None, None, web3, None, None, None
     )
 
     with patch("aquarius.events.processors.get_dt_factory") as mock2:

@@ -77,7 +77,7 @@ def send_create_update_tx(name, ddo, flags, account):
     )
 
     dt_contract = get_web3().eth.contract(
-        abi=ERC721Template.abi, address=datatoken_address
+        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
     )
 
     cap = web3.toWei(100000, "ether")
@@ -85,9 +85,9 @@ def send_create_update_tx(name, ddo, flags, account):
         1,
         ["ERC20DT1", "ERC20DT1Symbol"],
         [
-            account.address,
-            account.address,
-            account.address,
+            web3.toChecksumAddress(account.address),
+            web3.toChecksumAddress(account.address),
+            web3.toChecksumAddress(account.address),
             "0x0000000000000000000000000000000000000000",
         ],
         [cap, 0],
@@ -119,7 +119,13 @@ def send_create_update_tx(name, ddo, flags, account):
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
     txn_hash = dt_contract.functions.setMetaData(
-        0, provider_url, provider_address, flags, encrypted_data, dataHash, []
+        0,
+        provider_url,
+        web3.toChecksumAddress(provider_address),
+        flags,
+        encrypted_data,
+        dataHash,
+        [],
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
@@ -134,9 +140,11 @@ def send_set_metadata_state_tx(ddo, account, state):
     datatoken_address = ddo["nftAddress"]
 
     web3 = get_web3()
-    web3.eth.default_account = account.address
+    web3.eth.default_account = web3.toChecksumAddress(account.address)
 
-    dt_contract = web3.eth.contract(abi=ERC721Template.abi, address=datatoken_address)
+    dt_contract = web3.eth.contract(
+        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
+    )
 
     txn_hash = dt_contract.functions.setMetaDataState(state).transact()
     txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)

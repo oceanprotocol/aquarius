@@ -13,7 +13,10 @@ from pyshacl import validate
 from aquarius.events.util import make_did
 
 
-def get_schema(version="4.0.0"):
+CURRENT_VERSION = "4.1.0"
+
+
+def get_schema(version=CURRENT_VERSION):
     """Gets the schema file corresponding to the version."""
     path = "ddo_checker/shacl_schemas/v4/remote_" + version + ".ttl"
 
@@ -95,7 +98,7 @@ def validate_dict(dict_orig, chain_id, nft_address):
     dictionary["@context"] = {"@vocab": "http://schema.org/"}
     dictionary_as_string = json.dumps(dictionary)
 
-    version = dictionary.get("version", "4.0.0")
+    version = dictionary.get("version", CURRENT_VERSION)
     schema_file = get_schema(version)
     dataGraph = rdflib.Graph().parse(data=dictionary_as_string, format="json-ld")
 
