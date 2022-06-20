@@ -505,9 +505,9 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     response = run_request_get_data(
         client.post,
         "api/aquarius/assets/triggerCaching",
-        {"transactionId": tx_id, "logIndex": 1},
+        {"transactionId": tx_id, "logIndex": 2},
     )
-    assert response["error"] == "Log index 1 not found"
+    assert response["error"] == "Log index 2 not found"
 
     # can not find event created, nor event updated
     txn_hash = dt_contract.functions.setTokenURI(
