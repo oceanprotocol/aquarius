@@ -124,7 +124,7 @@ def send_create_update_tx(name, ddo, flags, account):
         validatorContent["publicKey"],
         validatorContent["v"],
         validatorContent["r"][0],
-        validatorContent["s"][0]
+        validatorContent["s"][0],
     )
 
     txn_hash = dt_contract.functions.setMetaData(
