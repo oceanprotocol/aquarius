@@ -14,6 +14,7 @@ from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 from web3.datastructures import AttributeDict
 
+from aquarius.app.util import get_signature_vrs
 from aquarius.events.constants import EventTypes
 from aquarius.events.http_provider import get_web3_connection_provider
 from aquarius.events.util import deploy_datatoken, make_did
@@ -118,6 +119,14 @@ def send_create_update_tx(name, ddo, flags, account):
 
     dataHash = hashlib.sha256(document.encode("UTF-8")).hexdigest()
 
+    validatorContent = get_signature_vrs(document.encode("UTF-8"))
+    validatorContent = (
+        validatorContent["publicKey"],
+        validatorContent["v"],
+        validatorContent["r"][0],
+        validatorContent["s"][0]
+    )
+
     txn_hash = dt_contract.functions.setMetaData(
         0,
         provider_url,
@@ -125,7 +134,7 @@ def send_create_update_tx(name, ddo, flags, account):
         flags,
         encrypted_data,
         dataHash,
-        [],
+        [validatorContent],
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
