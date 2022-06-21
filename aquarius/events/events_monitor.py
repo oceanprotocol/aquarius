@@ -218,9 +218,13 @@ class EventsMonitor(BlockProcessingClass):
                 EventTypes.get_value(event_name)
             ]().processReceipt(receipt, errors=DISCARD)[0]
             try:
+                metadata_proofs = dt_contract.events.MetadataValidated().processReceipt(
+                    receipt, errors=DISCARD
+                )
                 event_processor = processor(
                     *([event_object, dt_contract, receipt["from"]] + processor_args)
                 )
+                event_processor.metadata_proofs = metadata_proofs
                 event_processor.process()
             except Exception as e:
                 logger.exception(
