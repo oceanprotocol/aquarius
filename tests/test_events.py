@@ -61,7 +61,9 @@ def run_test(client, base_ddo_url, events_instance, flags):
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
 
 
-def test_publish_and_update_ddo(client, base_ddo_url, events_object):
+def test_publish_and_update_ddo(client, base_ddo_url, events_object, monkeypatch):
+    aqua_address = get_aquarius_wallet().address
+    monkeypatch.setenv("ALLOWED_VALIDATORS", f'["{aqua_address}"]')
     run_test(client, base_ddo_url, events_object, 2)
 
 
