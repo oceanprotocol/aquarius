@@ -121,7 +121,8 @@ class EventProcessor(ABC):
         datatokens = []
         for service in record.get("services"):
             token_contract = self._web3.eth.contract(
-                abi=ERC20Template.abi, address=service["datatokenAddress"]
+                abi=ERC20Template.abi,
+                address=self._web3.toChecksumAddress(service["datatokenAddress"]),
             )
 
             datatokens.append(
@@ -197,7 +198,9 @@ class MetadataCreatedProcessor(EventProcessor):
         txid = self.txid
 
         dt_factory = get_dt_factory(self._web3, self._chain_id)
-        if dt_factory.caller.erc721List(self.event.address) != self.event.address:
+        if dt_factory.caller.erc721List(
+            self._web3.toChecksumAddress(self.event.address)
+        ) != self._web3.toChecksumAddress(self.event.address):
             logger.error("token not deployed by our factory")
             return
 
@@ -291,7 +294,9 @@ class MetadataUpdatedProcessor(EventProcessor):
         txid = self.txid
 
         dt_factory = get_dt_factory(self._web3, self._chain_id)
-        if dt_factory.caller.erc721List(self.event.address) != self.event.address:
+        if dt_factory.caller.erc721List(
+            self._web3.toChecksumAddress(self.event.address)
+        ) != self._web3.toChecksumAddress(self.event.address):
             logger.error("token not deployed by our factory")
 
         asset = decrypt_ddo(
@@ -422,7 +427,8 @@ class TokenURIUpdatedProcessor:
             return
 
         erc721_contract = self.web3.eth.contract(
-            abi=ERC721Template.abi, address=self.event.address
+            abi=ERC721Template.abi,
+            address=self.web3.toChecksumAddress(self.event.address),
         )
 
         receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)

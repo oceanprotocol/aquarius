@@ -10,7 +10,11 @@ from pyshacl import validate
 import pytest
 import rdflib
 
-from aquarius.ddo_checker.shacl_checker import validate_dict, parse_report_to_errors
+from aquarius.ddo_checker.shacl_checker import (
+    validate_dict,
+    parse_report_to_errors,
+    CURRENT_VERSION,
+)
 from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.ddos.ddo_sample_algorithm_v4 import algorithm_ddo_sample
 
@@ -24,7 +28,7 @@ def test_sample_schema():
             "@context": {"@vocab": "http://schema.org/"},
             "@type": "DDO",
             "id": "123",
-            "version": "4.0.0",
+            "version": CURRENT_VERSION,
         }
     )
 
@@ -40,7 +44,7 @@ def test_sample_schema():
         {
             "@context": {"@vocab": "http://schema.org/"},
             "@type": "DDO",
-            "version": "4.0.0",
+            "version": CURRENT_VERSION,
         }
     )
 
@@ -57,7 +61,7 @@ def test_sample_schema():
             "@context": {"@vocab": "http://schema.org/"},
             "@type": "DDO",
             "id": "did:op:123",
-            "version": "4.0.0",
+            "version": CURRENT_VERSION,
         }
     )
 

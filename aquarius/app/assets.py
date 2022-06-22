@@ -397,6 +397,7 @@ def trigger_caching():
 
         config_file = app.config["AQUARIUS_CONFIG_FILE"]
         web3 = setup_web3(config_file)
+
         es_instance = ElasticsearchInstance(config_file)
         retries_db_index = f"{es_instance.db_index}_retries"
         purgatory = (
