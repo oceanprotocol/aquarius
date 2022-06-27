@@ -83,6 +83,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     response = client.get(
         base_url + f"/metadata/{did}", content_type="application/json"
     )
+    assert response.headers["Content-Type"] == "application/json"
     assert response.status_code == 200
 
 
