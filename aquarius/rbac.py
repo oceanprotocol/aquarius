@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import json
 import logging
 import requests
 import os
@@ -29,7 +30,7 @@ class RBAC:
                 f"Expected response code 200 from RBAC server, got {response.status_code}."
             )
 
-        return (
+        return json.dumps(
             response.json()
             if response.status_code == 200 and response.json() is not False
             else data_record
@@ -51,7 +52,7 @@ class RBAC:
                 f"Expected response code 200 from RBAC server, got {response.status_code}."
             )
 
-        return (
+        return json.dumps(
             response.json()
             if response.status_code == 200 and response.json() is not False
             else query_result
