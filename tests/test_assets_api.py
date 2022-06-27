@@ -68,7 +68,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     send_create_update_tx("create", ddo, bytes([1]), test_account1)
     events_object.process_current_blocks()
 
-    result = run_request_get_data(
+    result = run_request(
         client.post,
         query_url,
         {
@@ -77,6 +77,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
             }
         },
     )
+    result = result.json
     assert len(result["hits"]["hits"]) > 0
 
     base_url = BaseURLs.BASE_AQUARIUS_URL + "/assets"

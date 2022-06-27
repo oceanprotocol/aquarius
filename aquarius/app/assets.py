@@ -298,12 +298,7 @@ def query_ddo():
         )
 
     try:
-        response = app.response_class(
-            response=sanitize_query_result(es_instance.es.search(data)),
-            status=200,
-            mimetype="application/json",
-        )
-        return response
+        return jsonify(sanitize_query_result(es_instance.es.search(data)))
     except elasticsearch.exceptions.TransportError as e:
         error = e.error if isinstance(e.error, str) else str(e.error)
         info = e.info if isinstance(e.info, dict) else ""
