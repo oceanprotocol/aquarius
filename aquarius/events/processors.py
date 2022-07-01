@@ -196,8 +196,8 @@ class MetadataCreatedProcessor(EventProcessor):
 
         return _record
 
-    def restore_nft_state(self, ddo):
-        ddo["nft"]["state"] = MetadataStates.ACTIVE
+    def restore_nft_state(self, ddo, state):
+        ddo["nft"]["state"] = state
         record_str = json.dumps(ddo)
         self._es_instance.update(record_str, self.did)
         _record = json.loads(record_str)
@@ -205,7 +205,7 @@ class MetadataCreatedProcessor(EventProcessor):
         sender_address = _record["nft"]["owner"]
         logger.info(
             f"DDO saved: did={self.did}, name={name}, "
-            f"publisher={sender_address}, chainId={self._chain_id}, updated state={MetadataStates.ACTIVE}"
+            f"publisher={sender_address}, chainId={self._chain_id}, updated state={state}"
         )
 
     def process(self):
@@ -247,13 +247,10 @@ class MetadataCreatedProcessor(EventProcessor):
         try:
             ddo = self._es_instance.read(did)
             if ddo["chainId"] == self._chain_id:
-                ddoState = ddo["nft"]["state"]
-                logger.warning(f"MetadataCreatedProcessor try {did} , ddp {ddoState}")
                 if ddo["nft"]["state"] == MetadataStates.ACTIVE:
                     logger.warning(f"{did} is already registered on this chainId")
                     return
-                logger.warning(f"MetadataCreatedProcessor try {did} not return, restore nft state")
-                self.restore_nft_state(ddo)
+                self.restore_nft_state(ddo, asset["nft"]["state"])
                 return True
         except Exception:
             pass
@@ -503,12 +500,6 @@ class MetadataStateProcessor(EventProcessor):
             return False
 
         event = create_events[0] if create_events else update_events[0]
-        print(f"MetadataStateProcessor create_events[0]: {create_events}")
-        if create_events:
-            print(f"MetadataStateProcessor update_events[0]: {create_events[0]}")
-        print(f"MetadataStateProcessor update_events: {update_events}")
-        if update_events:
-            print(f"MetadataStateProcessor update_events[0]: {update_events[0]}")
 
         event_processor = MetadataCreatedProcessor(
             event,
