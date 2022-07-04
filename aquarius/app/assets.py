@@ -145,7 +145,12 @@ def get_ddo(did):
     """
     try:
         asset_record = es_instance.get(did)
-        return sanitize_record(asset_record), 200
+        response = app.response_class(
+            response=sanitize_record(asset_record),
+            status=200,
+            mimetype="application/json",
+        )
+        return response
     except elasticsearch.exceptions.NotFoundError:
         return jsonify(error=f"Asset DID {did} not found in Elasticsearch."), 404
     except Exception as e:
@@ -195,7 +200,12 @@ def get_metadata(did):
     """
     try:
         asset_record = es_instance.get(did)
-        return sanitize_record(asset_record["metadata"])
+        response = app.response_class(
+            response=sanitize_record(asset_record["metadata"]),
+            status=200,
+            mimetype="application/json",
+        )
+        return response
     except Exception as e:
         logger.error(f"get_metadata: {str(e)}")
         return (
@@ -261,7 +271,7 @@ def get_assets_names():
         except Exception:
             names[did] = ""
 
-    return json.dumps(names), 200
+    return jsonify(names)
 
 
 @assets.route("/query", methods=["POST"])
@@ -288,7 +298,7 @@ def query_ddo():
         )
 
     try:
-        return sanitize_query_result(es_instance.es.search(data))
+        return jsonify(sanitize_query_result(es_instance.es.search(data)))
     except elasticsearch.exceptions.TransportError as e:
         error = e.error if isinstance(e.error, str) else str(e.error)
         info = e.info if isinstance(e.info, dict) else ""
@@ -442,7 +452,12 @@ def trigger_caching():
         event_processor.process()
         did = make_did(dt_address, chain_id)
 
-        return sanitize_record(es_instance.get(did)), 200
+        response = app.response_class(
+            response=sanitize_record(es_instance.get(did)),
+            status=200,
+            mimetype="application/json",
+        )
+        return response
     except Exception as e:
         logger.error(f"trigger_caching failed: {str(e)}.")
         return (

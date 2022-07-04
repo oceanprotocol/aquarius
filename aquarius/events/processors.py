@@ -121,7 +121,7 @@ class EventProcessor(ABC):
 
     def get_tokens_info(self, record):
         datatokens = []
-        for service in record.get("services"):
+        for service in record.get("services", []):
             token_contract = self._web3.eth.contract(
                 abi=ERC20Template.abi,
                 address=self._web3.toChecksumAddress(service["datatokenAddress"]),
