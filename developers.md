@@ -140,3 +140,11 @@ You may need to:
 All changes should double-check that Ocean Market still works as expected.
 - test Ocean Market locally, focusing on where the change was made. This will hit the API endpoint. [Ocean.py marketplace flow](https://github.com/oceanprotocol/ocean.py/blob/main/READMEs/marketplace-flow.md) shows how to spin it up locally in a Python context
 - test Ocean Market on rinkeby or ropsten
+
+## Force setting the last processed block
+Use the registered flask command with `chain_id` and `block_number` parameters:
+
+```bash
+export FLASK_APP=aquarius/run.py
+flask force_set_block 8996 12
+```
