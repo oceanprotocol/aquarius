@@ -34,7 +34,7 @@ install_requirements = [
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
-    "pyshacl==0.19.0",
+    "pyshacl==0.19.1",
     "gql==3.3.0",
     "aiohttp==3.8.1",
 ]
@@ -59,7 +59,7 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==6.4.1",
     "mccabe==0.6.1",
-    "pylint==2.14.1",
+    "pylint==2.14.4",
     "pytest",
     "pytest-env",
     "freezegun==1.2.1",
@@ -95,7 +95,7 @@ setup(
     url="https://github.com/oceanprotocol/aquarius",
     # fmt: off
     # bumpversion needs single quotes
-    version='4.1.0',
+    version='4.2.0',
     # fmt: on
     zip_safe=False,
 )

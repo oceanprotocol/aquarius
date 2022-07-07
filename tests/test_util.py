@@ -123,7 +123,7 @@ def test_sanitize_record_through_rbac(monkeypatch):
         response.status_code = 200
         mock.return_value = response
 
-        result = sanitize_record({})
+        result = json.loads(sanitize_record({}))
         assert result["this_is"] == "SPARTAAA!"
 
     with patch("requests.post") as mock:
@@ -131,7 +131,7 @@ def test_sanitize_record_through_rbac(monkeypatch):
         response.status_code = 404
         mock.return_value = response
 
-        result = sanitize_record({"this_is": "something else"})
+        result = json.loads(sanitize_record({"this_is": "something else"}))
         assert result["this_is"] == "something else"
 
 

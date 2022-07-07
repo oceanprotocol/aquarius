@@ -18,6 +18,7 @@ from aquarius.events.constants import (
     MetadataStates,
 )
 from aquarius.events.decryptor import decrypt_ddo
+from aquarius.events.proof_checker import check_metadata_proofs
 from aquarius.events.util import make_did, get_dt_factory
 from aquarius.graphql import get_number_orders
 from aquarius.rbac import RBAC
@@ -51,6 +52,7 @@ class EventProcessor(ABC):
         self.allowed_publishers = allowed_publishers
         self.purgatory = purgatory
         self._chain_id = chain_id
+        self.metadata_proofs = None
 
     def check_permission(self, publisher_address):
         if not os.getenv("RBAC_SERVER_URL") or not publisher_address:
@@ -119,7 +121,7 @@ class EventProcessor(ABC):
 
     def get_tokens_info(self, record):
         datatokens = []
-        for service in record.get("services"):
+        for service in record.get("services", []):
             token_contract = self._web3.eth.contract(
                 abi=ERC20Template.abi,
                 address=self._web3.toChecksumAddress(service["datatokenAddress"]),
@@ -202,6 +204,9 @@ class MetadataCreatedProcessor(EventProcessor):
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
             logger.error("token not deployed by our factory")
+            return
+
+        if not check_metadata_proofs(self._web3, self.metadata_proofs):
             return
 
         asset = decrypt_ddo(
@@ -298,6 +303,14 @@ class MetadataUpdatedProcessor(EventProcessor):
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
             logger.error("token not deployed by our factory")
+
+        if not check_metadata_proofs(self._web3, self.metadata_proofs):
+            try:
+                self._es_instance.delete(make_did(self.event.address, self._chain_id))
+            except ValueError:
+                pass
+
+            return
 
         asset = decrypt_ddo(
             self._web3,

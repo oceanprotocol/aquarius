@@ -2,7 +2,6 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-import json
 import logging
 
 import elasticsearch
@@ -34,7 +33,7 @@ def get_chains_list():
         chains = es_instance.es.get(
             index=f"{es_instance.db_index}_plus", id="chains", doc_type="_doc"
         )["_source"]
-        return json.dumps(chains)
+        return jsonify(chains)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
         logger.error("Cannot get chains list.")
         return jsonify(error="No chains found."), 404
@@ -67,7 +66,7 @@ def get_index_status(chain_id):
             id="events_last_block_" + str(chain_id),
             doc_type="_doc",
         )["_source"]
-        return json.dumps(last_block_record)
+        return jsonify(last_block_record)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
         logger.error(f"Cannot get index status for chain {chain_id}. Chain not found.")
         return jsonify(error=f"Chain {chain_id} is not indexed."), 404
