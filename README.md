@@ -24,6 +24,7 @@ SPDX-License-Identifier: Apache-2.0
 * [Using Aquarius](#using-aquarius)
    * [Quickstart](#quickstart)
    * [Learn about Aquarius API](#learn-about-aquarius-api)
+   * [Running Aquarius locally](#running-aquarius-locally)
    * [Development](#development)
 * [License](#license)
 
@@ -50,7 +51,7 @@ Aquarius is a simple, lightweight scanner and API. It is built using Python, usi
 
 ### The Aquarius API
 
-Aquarius provides REST api to fetch the data from off-chain datastore. 
+Aquarius provides REST api to fetch the data from off-chain datastore.
 Please refer to [API.md](API.md) file for details on the API itself.
 
 ### The EventsMonitor
@@ -176,6 +177,10 @@ If you have Aquarius running locally, you can find a Swagger API documentation a
 
 - Tip 1: If that doesn't work, then try `https`.
 - Tip 2: If your browser shows the Swagger header across the top but says "Failed to load spec." then we found that, in Chrome, if we went to `chrome://flags/#allow-insecure-localhost` and toggled it to Enabled, then relaunched Chrome, it worked.
+
+## Running Aquarius locally
+
+For testing purposes, running Aquarius from [barge](https://github.com/oceanprotocol/barge/) should suffice, but if you want to run your own version of Aquarius (with any configurations or alterations), you can do that by following the instructions in [the developers documentation](developers.md).
 
 ## Development
 
