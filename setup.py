@@ -35,7 +35,7 @@ install_requirements = [
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
     "pyshacl==0.19.1",
-    "gql==3.3.0",
+    "gql==3.4.0",
     "aiohttp==3.8.1",
 ]
 
