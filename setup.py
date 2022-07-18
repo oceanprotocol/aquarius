@@ -57,7 +57,7 @@ dev_requirements = [
 test_requirements = [
     "Flask==2.1.3",
     "codacy-coverage==1.3.11",
-    "coverage==6.4.1",
+    "coverage==6.4.2",
     "mccabe==0.6.1",
     "pylint==2.14.5",
     "pytest",
