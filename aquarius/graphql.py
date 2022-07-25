@@ -43,7 +43,7 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         if fres:
             price = fres[0].get("price", -1)
 
-        return int(order_count), int(price)
+        return int(order_count), float(price)
     except Exception:
         logger.exception(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"

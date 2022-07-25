@@ -13,14 +13,14 @@ from aquarius.graphql import get_number_orders_price, get_last_block, get_transp
 def test_get_number_orders():
     client = Mock()
     client.execute.return_value = {
-        "tokens": [{"fixedRateExchanges": [{"price": "200"}], "orderCount": "14"}]
+        "tokens": [{"fixedRateExchanges": [{"price": "20.5"}], "orderCount": "14"}]
     }
     last_sync_block = 10
     with patch("aquarius.graphql.get_client") as client_mock:
         client_mock.return_value = client
         with patch("aquarius.graphql.get_last_block") as block_mock:
             block_mock.side_effect = [10, 11]
-            assert get_number_orders_price("0x01", last_sync_block, 8996) == (14, 200)
+            assert get_number_orders_price("0x01", last_sync_block, 8996) == (14, 20.5)
 
 
 def test_get_number_orders_exception():
