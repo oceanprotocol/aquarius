@@ -390,6 +390,10 @@ class EventsMonitor(BlockProcessingClass):
             hash_text = "MetadataState(address,uint8,uint256,uint256)"
         elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
             hash_text = "TokenURIUpdate(address,string,uint256,uint256,uint256)"
+        elif event_name == EventTypes.EVENT_EXCHANGE_CREATED:
+            hash_text = "ExchangeCreated(bytes32,address,address,address,uint256)"
+        elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
+            hash_text = "ExchangeRateChanged(bytes32,address,uint256)"
         else:
             hash_text = (
                 "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
