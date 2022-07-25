@@ -107,7 +107,7 @@ class Purgatory:
         for acc_id, reason in new_accounts_for_purgatory:
             assets = self.get_assets_authored_by(acc_id)
             for asset in assets:
-                self.update_asset_purgatory_status(asset)
+                self.update_asset_purgatory_status(asset, reason=reason)
             self.reference_account_list.add((acc_id, reason))
 
         for acc_id, reason in new_accounts_forgiven:
@@ -119,7 +119,7 @@ class Purgatory:
         for did, reason in new_ids_for_purgatory:
             try:
                 asset = self._es_instance.read(did)
-                self.update_asset_purgatory_status(asset)
+                self.update_asset_purgatory_status(asset, reason=reason)
                 self.reference_asset_list.add((did, reason))
             except elasticsearch.exceptions.NotFoundError:
                 continue
