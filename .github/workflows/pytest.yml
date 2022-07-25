@@ -21,9 +21,9 @@ jobs:
       - uses: actions/checkout@v2
         name: Checkout Barge
         with:
-          repository: "MantisClone/barge"
+          repository: "oceanprotocol/barge"
           path: 'barge'
-          ref: arweave-integration
+          ref: v4
       - name: Run Barge
         working-directory: ${{ github.workspace }}/barge
         run: |
