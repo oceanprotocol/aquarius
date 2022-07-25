@@ -26,6 +26,7 @@ from aquarius.events.purgatory import Purgatory
 from aquarius.events.util import (
     get_metadata_start_block,
     get_defined_block,
+    get_fre,
 )
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
@@ -233,6 +234,8 @@ class EventsMonitor(BlockProcessingClass):
                 )
 
     def handle_price_change(self, from_block, to_block):
+        fre = get_fre(self._web3, self._chain_id)
+
         events = []
         for event_name in [
             EventTypes.EVENT_ORDER_STARTED,
@@ -242,9 +245,19 @@ class EventsMonitor(BlockProcessingClass):
             events += self.get_event_logs(event_name, from_block, to_block)
 
         for event in events:
+            if self._web3.toChecksumAddress(
+                event.address
+            ) == self._web3.toChecksumAddress(fre.address):
+                receipt = self._web3.eth.get_transaction_receipt(
+                    event.transactionHash.hex()
+                )
+                erc20_address = receipt.to
+            else:
+                erc20_address = event.address
+
             erc20_contract = self._web3.eth.contract(
                 abi=ERC20Template.abi,
-                address=self._web3.toChecksumAddress(event.address),
+                address=self._web3.toChecksumAddress(erc20_address),
             )
 
             logger.debug(f"OrderStarted detected on ERC20 contract {event.address}.")
