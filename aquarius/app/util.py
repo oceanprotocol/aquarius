@@ -28,7 +28,7 @@ def sanitize_record(data_record):
     if not os.getenv("RBAC_SERVER_URL"):
         return json.dumps(data_record, default=datetime_converter)
 
-    return RBAC.sanitize_record(data_record)
+    return json.dumps(RBAC.sanitize_record(data_record))
 
 
 def sanitize_query_result(query_result):

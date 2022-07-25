@@ -5,6 +5,7 @@
 """
 This module is the entrypoint for statring the Aquarius component.
 """
+import click
 import configparser
 
 from elasticsearch import Elasticsearch
@@ -15,6 +16,7 @@ import os
 
 from aquarius.app.assets import assets
 from aquarius.app.chains import chains
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value
 from aquarius.config import Config
 from aquarius.constants import BaseURLs, Metadata
@@ -25,6 +27,7 @@ from aquarius.rbac import RBAC
 
 config = Config(filename=app.config["AQUARIUS_CONFIG_FILE"])
 aquarius_url = config.aquarius_url
+es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 
 
 @app.before_request
@@ -92,6 +95,25 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 app.register_blueprint(chains, url_prefix=BaseURLs.CHAINS_URL)
+
+
+@app.cli.command("force_set_block")
+@click.argument("chain_id")
+@click.argument("block_number")
+def force_set_block(chain_id, block_number):
+    index_name = "events_last_block_" + str(chain_id)
+    other_db_index = f"{es_instance.db_index}_plus"
+    record = {"last_block": block_number}
+
+    es_instance.es.index(
+        index=other_db_index,
+        id=index_name,
+        body=record,
+        doc_type="_doc",
+        refresh="wait_for",
+    )["_id"]
+
+    print("OK")
 
 
 def get_status():

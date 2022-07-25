@@ -61,7 +61,9 @@ def run_test(client, base_ddo_url, events_instance, flags):
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
 
 
-def test_publish_and_update_ddo(client, base_ddo_url, events_object):
+def test_publish_and_update_ddo(client, base_ddo_url, events_object, monkeypatch):
+    aqua_address = get_aquarius_wallet().address
+    monkeypatch.setenv("ALLOWED_VALIDATORS", f'["{aqua_address}"]')
     run_test(client, base_ddo_url, events_object, 2)
 
 
@@ -427,6 +429,21 @@ def test_metadata_state_update(client, base_ddo_url, events_object):
         == MetadataStates.ORDERING_DISABLED
     )
 
+    # MetadataState updated to active should delegate to MetadataCreated processor
+    # and reactivate the existing asset
+    send_set_metadata_state_tx(
+        ddo=_ddo, account=test_account1, state=MetadataStates.ACTIVE
+    )
+    events_object.process_current_blocks()
+    time.sleep(30)
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    # Existing asset has been reactivated
+    assert published_ddo["id"] == did
+    # The event after reactivated is kept as it uses the same original creation event
+    assert published_ddo["event"]["tx"] == initial_ddo["event"]["tx"]
+    # The NFT state is active
+    assert published_ddo[AquariusCustomDDOFields.NFT]["state"] == MetadataStates.ACTIVE
+
 
 def test_token_uri_update(client, base_ddo_url, events_object):
     web3 = events_object._web3  # get_web3()
@@ -505,9 +522,9 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     response = run_request_get_data(
         client.post,
         "api/aquarius/assets/triggerCaching",
-        {"transactionId": tx_id, "logIndex": 1},
+        {"transactionId": tx_id, "logIndex": 2},
     )
-    assert response["error"] == "Log index 1 not found"
+    assert response["error"] == "Log index 2 not found"
 
     # can not find event created, nor event updated
     txn_hash = dt_contract.functions.setTokenURI(

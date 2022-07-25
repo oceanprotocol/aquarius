@@ -18,6 +18,7 @@ from aquarius.events.constants import (
     MetadataStates,
 )
 from aquarius.events.decryptor import decrypt_ddo
+from aquarius.events.proof_checker import check_metadata_proofs
 from aquarius.events.util import make_did, get_dt_factory
 from aquarius.graphql import get_number_orders
 from aquarius.rbac import RBAC
@@ -51,6 +52,7 @@ class EventProcessor(ABC):
         self.allowed_publishers = allowed_publishers
         self.purgatory = purgatory
         self._chain_id = chain_id
+        self.metadata_proofs = None
 
     def check_permission(self, publisher_address):
         if not os.getenv("RBAC_SERVER_URL") or not publisher_address:
@@ -119,7 +121,7 @@ class EventProcessor(ABC):
 
     def get_tokens_info(self, record):
         datatokens = []
-        for service in record.get("services"):
+        for service in record.get("services", []):
             token_contract = self._web3.eth.contract(
                 abi=ERC20Template.abi,
                 address=self._web3.toChecksumAddress(service["datatokenAddress"]),
@@ -194,6 +196,18 @@ class MetadataCreatedProcessor(EventProcessor):
 
         return _record
 
+    def restore_nft_state(self, ddo, state):
+        ddo["nft"]["state"] = state
+        record_str = json.dumps(ddo)
+        self._es_instance.update(record_str, self.did)
+        _record = json.loads(record_str)
+        name = _record["metadata"]["name"]
+        sender_address = _record["nft"]["owner"]
+        logger.info(
+            f"DDO saved: did={self.did}, name={name}, "
+            f"publisher={sender_address}, chainId={self._chain_id}, updated state={state}"
+        )
+
     def process(self):
         txid = self.txid
 
@@ -202,6 +216,9 @@ class MetadataCreatedProcessor(EventProcessor):
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
             logger.error("token not deployed by our factory")
+            return
+
+        if not check_metadata_proofs(self._web3, self.metadata_proofs):
             return
 
         asset = decrypt_ddo(
@@ -230,8 +247,11 @@ class MetadataCreatedProcessor(EventProcessor):
         try:
             ddo = self._es_instance.read(did)
             if ddo["chainId"] == self._chain_id:
-                logger.warning(f"{did} is already registered on this chainId")
-                return
+                if ddo["nft"]["state"] == MetadataStates.ACTIVE:
+                    logger.warning(f"{did} is already registered on this chainId")
+                    return
+                self.restore_nft_state(ddo, asset["nft"]["state"])
+                return True
         except Exception:
             pass
 
@@ -298,6 +318,14 @@ class MetadataUpdatedProcessor(EventProcessor):
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
             logger.error("token not deployed by our factory")
+
+        if not check_metadata_proofs(self._web3, self.metadata_proofs):
+            try:
+                self._es_instance.delete(make_did(self.event.address, self._chain_id))
+            except ValueError:
+                pass
+
+            return
 
         asset = decrypt_ddo(
             self._web3,
