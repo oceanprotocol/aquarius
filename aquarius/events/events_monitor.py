@@ -187,7 +187,7 @@ class EventsMonitor(BlockProcessingClass):
                 to_block,
             )
 
-        self.handle_order_started(from_block, to_block)
+        self.handle_price_change(from_block, to_block)
         self.handle_token_uri_update(from_block, to_block)
 
         self.store_last_processed_block(to_block)
@@ -232,10 +232,14 @@ class EventsMonitor(BlockProcessingClass):
                     f"event={event}"
                 )
 
-    def handle_order_started(self, from_block, to_block):
-        events = self.get_event_logs(
-            EventTypes.EVENT_ORDER_STARTED, from_block, to_block
-        )
+    def handle_price_change(self, from_block, to_block):
+        events = []
+        for event_name in [
+            EventTypes.EVENT_ORDER_STARTED,
+            EventTypes.EVENT_EXCHANGE_CREATED,
+            EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
+        ]:
+            events += self.get_event_logs(event_name, from_block, to_block)
 
         for event in events:
             erc20_contract = self._web3.eth.contract(

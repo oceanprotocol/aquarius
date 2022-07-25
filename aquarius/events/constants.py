@@ -37,6 +37,8 @@ class EventTypes(SimpleEnum):
     EVENT_METADATA_STATE = "MetadataState"
     EVENT_ORDER_STARTED = "OrderStarted"
     EVENT_TOKEN_URI_UPDATE = "TokenURIUpdate"
+    EVENT_EXCHANGE_CREATED = "ExchangeCreated"
+    EVENT_EXCHANGE_RATE_CHANGED = "ExchangeRateChanged"
 
 
 class MetadataStates(IntEnum):

@@ -17,7 +17,7 @@ logger = logging.getLogger("aquarius")
 aiohttp_logger.setLevel(logging.WARNING)
 
 
-def get_number_orders(token_address, last_sync_block, chain_id):
+def get_number_orders_price(token_address, last_sync_block, chain_id):
     try:
         client = get_client(chain_id)
 
@@ -29,16 +29,26 @@ def get_number_orders(token_address, last_sync_block, chain_id):
             last_block = get_last_block(client)
             time.sleep(2)
 
-        did_query = gql('{ nft(id: "' + token_address.lower() + '") { orderCount } }')
-        result = client.execute(did_query)
+        query = gql(
+            '{tokens(where:{nft:"'
+            + token_address.lower()
+            + '"}){orderCount, fixedRateExchanges{ price }}}'
+        )
+        tokens_result = client.execute(query)
+        logger.debug(f"Got result for did query: {tokens_result}.")
 
-        logger.debug(f"Got result for did query: {result}.")
-        return int(result["nft"]["orderCount"])
+        order_count = tokens_result["tokens"][0]["orderCount"]
+        price = -1
+        fres = tokens_result["tokens"][0].get("fixedRateExchanges", None)
+        if fres:
+            price = fres[0].get("price", -1)
+
+        return int(order_count), int(price)
     except Exception:
         logger.exception(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
         )
-        return -1
+        return -1, -1
 
 
 def get_transport(chain_id):
