@@ -253,7 +253,11 @@ class EventsMonitor(BlockProcessingClass):
                     receipt = self._web3.eth.get_transaction_receipt(
                         event.transactionHash.hex()
                     )
-                    exchange_id = fre.events.ExchangeRateChanged().processReceipt(receipt)[0].args.exchangeId
+                    exchange_id = (
+                        fre.events.ExchangeRateChanged()
+                        .processReceipt(receipt)[0]
+                        .args.exchangeId
+                    )
                     erc20_address = fre.caller.getExchange(exchange_id)[1]
                 else:
                     erc20_address = event.address
@@ -263,7 +267,9 @@ class EventsMonitor(BlockProcessingClass):
                     address=self._web3.toChecksumAddress(erc20_address),
                 )
 
-                logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
+                logger.debug(
+                    f"{event_name} detected on ERC20 contract {event.address}."
+                )
 
                 try:
                     event_processor = OrderStartedProcessor(

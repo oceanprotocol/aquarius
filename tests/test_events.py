@@ -589,10 +589,12 @@ def test_exchange_created(events_object, client, base_ddo_url):
 
     fre = get_fre(web3)
     rate = 2 * rate
-    exchange_id = fre.events.ExchangeCreated().processReceipt(receipt)[0].args.exchangeId
-    tx = fre.functions.setRate(
-        exchange_id, rate
-    ).transact({"from": test_account1.address})
+    exchange_id = (
+        fre.events.ExchangeCreated().processReceipt(receipt)[0].args.exchangeId
+    )
+    tx = fre.functions.setRate(exchange_id, rate).transact(
+        {"from": test_account1.address}
+    )
     receipt = web3.eth.wait_for_transaction_receipt(tx)
     events_object.process_current_blocks()
 
