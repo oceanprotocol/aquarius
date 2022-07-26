@@ -17,7 +17,7 @@ from web3.main import Web3
 
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
-from aquarius.events.util import setup_web3, get_address_file
+from aquarius.events.util import setup_web3, get_address_file, get_fre
 from aquarius.app.util import get_aquarius_wallet
 from aquarius.myapp import app
 from artifacts import ERC20Template, ERC721Template, FixedRateExchange
@@ -581,8 +581,20 @@ def test_exchange_created(events_object, client, base_ddo_url):
             0,
         ],
     ).transact({"from": test_account1.address})
-    web3.eth.wait_for_transaction_receipt(tx)
+    receipt = web3.eth.wait_for_transaction_receipt(tx)
     events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["stats"]["price"] == 1
+
+    fre = get_fre(web3)
+    rate = 2 * rate
+    exchange_id = fre.events.ExchangeCreated().processReceipt(receipt)[0].args.exchangeId
+    tx = fre.functions.setRate(
+        exchange_id, rate
+    ).transact({"from": test_account1.address})
+    receipt = web3.eth.wait_for_transaction_receipt(tx)
+    events_object.process_current_blocks()
+
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["stats"]["price"] == 2

@@ -236,44 +236,47 @@ class EventsMonitor(BlockProcessingClass):
     def handle_price_change(self, from_block, to_block):
         fre = get_fre(self._web3, self._chain_id)
 
-        events = []
         for event_name in [
             EventTypes.EVENT_ORDER_STARTED,
             EventTypes.EVENT_EXCHANGE_CREATED,
             EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
         ]:
-            events += self.get_event_logs(event_name, from_block, to_block)
+            events = self.get_event_logs(event_name, from_block, to_block)
 
-        for event in events:
-            if self._web3.toChecksumAddress(
-                event.address
-            ) == self._web3.toChecksumAddress(fre.address):
-                receipt = self._web3.eth.get_transaction_receipt(
-                    event.transactionHash.hex()
+            for event in events:
+                if event_name == EventTypes.EVENT_EXCHANGE_CREATED:
+                    receipt = self._web3.eth.get_transaction_receipt(
+                        event.transactionHash.hex()
+                    )
+                    erc20_address = receipt.to
+                elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
+                    receipt = self._web3.eth.get_transaction_receipt(
+                        event.transactionHash.hex()
+                    )
+                    exchange_id = fre.events.ExchangeRateChanged().processReceipt(receipt)[0].args.exchangeId
+                    erc20_address = fre.caller.getExchange(exchange_id)[1]
+                else:
+                    erc20_address = event.address
+
+                erc20_contract = self._web3.eth.contract(
+                    abi=ERC20Template.abi,
+                    address=self._web3.toChecksumAddress(erc20_address),
                 )
-                erc20_address = receipt.to
-            else:
-                erc20_address = event.address
 
-            erc20_contract = self._web3.eth.contract(
-                abi=ERC20Template.abi,
-                address=self._web3.toChecksumAddress(erc20_address),
-            )
+                logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
 
-            logger.debug(f"OrderStarted detected on ERC20 contract {event.address}.")
-
-            try:
-                event_processor = OrderStartedProcessor(
-                    erc20_contract.caller.getERC721Address(),
-                    self._es_instance,
-                    to_block,
-                    self._chain_id,
-                )
-                event_processor.process()
-            except Exception as e:
-                logger.error(
-                    f"Error processing order started event: {e}\n" f"event={event}"
-                )
+                try:
+                    event_processor = OrderStartedProcessor(
+                        erc20_contract.caller.getERC721Address(),
+                        self._es_instance,
+                        to_block,
+                        self._chain_id,
+                    )
+                    event_processor.process()
+                except Exception as e:
+                    logger.error(
+                        f"Error processing {event_name} event: {e}\n" f"event={event}"
+                    )
 
     def handle_token_uri_update(self, from_block, to_block):
         events = self.get_event_logs(
