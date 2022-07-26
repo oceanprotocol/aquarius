@@ -32,7 +32,7 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         query = gql(
             '{tokens(where:{nft:"'
             + token_address.lower()
-            + '"}){orderCount, fixedRateExchanges{ price }}}'
+            + '"}){orderCount, fixedRateExchanges{ price }, dispensers{id}}}'
         )
         tokens_result = client.execute(query)
         logger.debug(f"Got result for did query: {tokens_result}.")
@@ -40,8 +40,11 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         order_count = tokens_result["tokens"][0]["orderCount"]
         price = -1
         fres = tokens_result["tokens"][0].get("fixedRateExchanges", None)
+        dispensers = tokens_result["tokens"][0].get("dispensers", None)
         if fres:
             price = fres[0].get("price", -1)
+        elif dispensers:
+            price = 0
 
         return int(order_count), float(price)
     except Exception:

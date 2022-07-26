@@ -600,3 +600,38 @@ def test_exchange_created(events_object, client, base_ddo_url):
 
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["stats"]["price"] == 2
+
+
+def test_dispenser_created(events_object, client, base_ddo_url):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    _, dt_contract, erc20_address = send_create_update_tx(
+        "create", _ddo, bytes([2]), test_account1
+    )
+    events_object.process_current_blocks()
+    token_contract = web3.eth.contract(
+        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
+    )
+
+    address_file = get_address_file()
+    with open(address_file) as f:
+        address_json = json.load(f)
+
+    dispenser_address = address_json["development"]["Dispenser"]
+
+    tx = token_contract.functions.createDispenser(
+        web3.toChecksumAddress(dispenser_address),
+        web3.toWei("1", "ether"),
+        web3.toWei("1", "ether"),
+        True,
+        "0x0000000000000000000000000000000000000000",
+    ).transact({"from": test_account1.address})
+
+    receipt = web3.eth.wait_for_transaction_receipt(tx)
+    events_object.process_current_blocks()
+
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["stats"]["price"] == 0

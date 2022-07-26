@@ -27,6 +27,7 @@ from aquarius.events.util import (
     get_metadata_start_block,
     get_defined_block,
     get_fre,
+    get_dispenser,
 )
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
@@ -235,11 +236,13 @@ class EventsMonitor(BlockProcessingClass):
 
     def handle_price_change(self, from_block, to_block):
         fre = get_fre(self._web3, self._chain_id)
+        dispenser = get_dispenser(self._web3, self._chain_id)
 
         for event_name in [
             EventTypes.EVENT_ORDER_STARTED,
             EventTypes.EVENT_EXCHANGE_CREATED,
             EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
+            EventTypes.EVENT_DISPENSER_CREATED,
         ]:
             events = self.get_event_logs(event_name, from_block, to_block)
 
@@ -259,6 +262,15 @@ class EventsMonitor(BlockProcessingClass):
                         .args.exchangeId
                     )
                     erc20_address = fre.caller.getExchange(exchange_id)[1]
+                elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
+                    receipt = self._web3.eth.get_transaction_receipt(
+                        event.transactionHash.hex()
+                    )
+                    erc20_address = (
+                        dispenser.events.DispenserCreated()
+                        .processReceipt(receipt)[0]
+                        .args.datatokenAddress
+                    )
                 else:
                     erc20_address = event.address
 
@@ -416,6 +428,8 @@ class EventsMonitor(BlockProcessingClass):
             hash_text = "ExchangeCreated(bytes32,address,address,address,uint256)"
         elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
             hash_text = "ExchangeRateChanged(bytes32,address,uint256)"
+        elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
+            hash_text = "DispenserCreated(address,address,uint256,uint256,address)"
         else:
             hash_text = (
                 "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
