@@ -18,12 +18,11 @@ aiohttp_logger.setLevel(logging.WARNING)
 
 
 def get_number_orders(token_address, last_sync_block, chain_id):
-    return -1
     try:
         client = get_client(chain_id)
 
         last_block = get_last_block(client)
-        while last_block < last_sync_block:
+        while last_block <= last_sync_block:
             logger.debug(
                 f"Waiting for sync with subgraph, currently at last block {last_block}."
             )
