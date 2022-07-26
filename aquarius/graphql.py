@@ -18,6 +18,7 @@ aiohttp_logger.setLevel(logging.WARNING)
 
 
 def get_number_orders(token_address, last_sync_block, chain_id):
+    return -1
     try:
         client = get_client(chain_id)
 
