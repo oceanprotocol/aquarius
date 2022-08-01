@@ -26,7 +26,7 @@ install_requirements = [
     "Jinja2>=2.10.1",
     "requests>=2.21.0",
     "gunicorn==20.1.0",
-    "elasticsearch==7.17.0",
+    "elasticsearch==8.3.3",
     "PyYAML==6.0",
     "pytz==2022.1",
     "ocean-contracts==1.1.0",
