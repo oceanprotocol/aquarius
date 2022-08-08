@@ -5,7 +5,7 @@
 algorithm_ddo_sample = {
     "@context": ["https://w3id.org/did/v1"],
     "id": "did:op:af051054d397c9d7f79dcca7391ba9f93941e99845ecf1ae132a3d203e450009",
-    "version": "4.1.0",
+    "version": "4.2.0",
     "chainId": 1337,
     "nftAddress": "0xabcd",
     "proof": {
@@ -34,7 +34,7 @@ algorithm_ddo_sample = {
                 "entrypoint": "node $ALGO",
                 "image": "node",
                 "tag": "10",
-                "checksum": "test",
+                "checksum": "sha256:8221d20c1c16491d7d56b9657ea09082c0ee4a8ab1a6621fa720da58b09580e4",
             },
             "consumerParameters": [
                 {
