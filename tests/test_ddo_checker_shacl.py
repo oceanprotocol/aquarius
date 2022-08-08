@@ -149,6 +149,46 @@ def test_remote_ddo_fails():
     assert "services" in errors
 
 
+def test_remote_ddo_failures_limits():
+    # simple maxLength check (metadata name)
+    _copy = copy.deepcopy(json_dict)
+    _copy["metadata"]["name"] = "a" * 257
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
+    assert not valid
+    assert "metadata" in errors
+
+    # too many tags
+    _copy = copy.deepcopy(json_dict)
+    _copy["metadata"]["tags"] = [str(x) for x in range(0, 65)]
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
+    assert not valid
+    assert "metadata" in errors
+
+    # algorithm container checksum is the wrong length
+    _copy = copy.deepcopy(algorithm_ddo_sample)
+    _copy["metadata"]["algorithm"]["container"]["checksum"] = ("sha256:wronglength",)
+    valid, errors = validate_dict(
+        _copy,
+        algorithm_ddo_sample["chainId"],
+        algorithm_ddo_sample["nftAddress"],
+    )
+    assert not valid
+    assert "metadata" in errors
+
+    # algorithm container checksum does not start with "sha256:"
+    _copy = copy.deepcopy(algorithm_ddo_sample)
+    _copy["metadata"]["algorithm"]["container"]["checksum"] = (
+        "zha256:8221d20c1c16491d7d56b9657ea09082c0ee4a8ab1a6621fa720da58b09580e4",
+    )
+    valid, errors = validate_dict(
+        _copy,
+        algorithm_ddo_sample["chainId"],
+        algorithm_ddo_sample["nftAddress"],
+    )
+    assert not valid
+    assert "metadata" in errors
+
+
 def test_remote_ddo_metadata_fails():
     for required_prop in ["description", "name", "type", "author", "license"]:
         _copy = copy.deepcopy(json_dict)
