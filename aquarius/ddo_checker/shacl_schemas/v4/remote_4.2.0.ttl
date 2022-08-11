@@ -13,6 +13,8 @@ schema:DDOShape
         sh:pattern "^did\\:op\\:(.*)$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:maxLength 71;
+        sh:minLength 71;
     ] ;
     sh:property [
         sh:path schema:version ;
@@ -20,6 +22,7 @@ schema:DDOShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:maxLength 16;
     ] ;
     sh:property [
         sh:path schema:chainId;
@@ -32,6 +35,7 @@ schema:DDOShape
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:maxLength 42;
     ] ;
     sh:property [
         sh:path schema:metadata ;
@@ -67,7 +71,7 @@ schema:MetadataShape
         sh:datatype xsd:string ;
         sh:pattern "^(.|\\s)*$" ;
         sh:maxCount 1;
-        sh:maxLength 256;
+        sh:maxLength 512;
     ] ;
     sh:property [
         sh:path schema:name ;
@@ -75,7 +79,7 @@ schema:MetadataShape
         sh:pattern "^(.|\\s)*$" ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:maxLength 256;
+        sh:maxLength 512;
     ] ;
     sh:property [
         sh:path schema:type;
@@ -105,7 +109,7 @@ schema:MetadataShape
         sh:path schema:links;
         sh:datatype xsd:string ;
         sh:pattern "^(.|\\s)*$" ;
-        sh:maxLength 256;
+        sh:maxLength 512;
         sh:maxCount 64;
     ] ;
     sh:property [
@@ -299,7 +303,8 @@ schema:ServiceShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:maxLength 256;
+        sh:minLength 42;
+        sh:maxLength 42;
     ] ;
     sh:property [
         sh:path schema:serviceEndpoint ;
@@ -315,7 +320,7 @@ schema:ServiceShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:maxLength 2048;
+        sh:maxLength 8192;
     ] ;
     sh:property [
         sh:path schema:timeout ;
