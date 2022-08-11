@@ -152,7 +152,7 @@ def test_remote_ddo_fails():
 def test_remote_ddo_failures_limits():
     # simple maxLength check (metadata name)
     _copy = copy.deepcopy(json_dict)
-    _copy["metadata"]["name"] = "a" * 257
+    _copy["metadata"]["name"] = "a" * 513
     valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
     assert "metadata" in errors
