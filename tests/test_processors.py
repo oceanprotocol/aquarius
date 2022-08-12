@@ -239,14 +239,16 @@ def test_order_started_processor():
     es_instance.read.return_value = {"sample_asset": "mock", "stats": {"orders": 0}}
     es_instance.update.return_value = None
 
+    price_json = {"value": 12.4, "tokenAddress": "test", "tokenSymbol": "test2"}
+
     processor = OrderStartedProcessor(dt_address, es_instance, 0, 0)
     with patch("aquarius.events.processors.get_number_orders_price") as no_mock:
-        no_mock.return_value = 3, 12.4
+        no_mock.return_value = 3, price_json
         updated_asset = processor.process()
 
     assert es_instance.update.called_once()
     assert updated_asset["stats"]["orders"] == 3
-    assert updated_asset["stats"]["price"] == 12.4
+    assert updated_asset["stats"]["price"] == price_json
 
 
 def test_order_started_processor_no_asset():

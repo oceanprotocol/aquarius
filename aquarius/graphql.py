@@ -63,7 +63,9 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         if fres and "price" in fres[0]:
             price = Price(fres[0]["price"])
             if "baseToken" in fres[0]:
-                price.token_address = Web3.toChecksumAddress(fres[0]["baseToken"].get("address"))
+                price.token_address = Web3.toChecksumAddress(
+                    fres[0]["baseToken"].get("address")
+                )
                 price.token_symbol = fres[0]["baseToken"].get("symbol")
         elif dispensers:
             price = Price(0)

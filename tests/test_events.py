@@ -586,7 +586,11 @@ def test_exchange_created(events_object, client, base_ddo_url):
     events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["stats"]["price"] == {'tokenAddress': ocean_address, 'tokenSymbol': 'Ocean', 'value': 1.0}
+    assert published_ddo["stats"]["price"] == {
+        "tokenAddress": ocean_address,
+        "tokenSymbol": "Ocean",
+        "value": 1.0,
+    }
 
     fre = get_fre(web3)
     rate = 2 * rate
@@ -600,7 +604,11 @@ def test_exchange_created(events_object, client, base_ddo_url):
     events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["stats"]["price"] == {'tokenAddress': ocean_address, 'tokenSymbol': 'Ocean', 'value': 2.0}
+    assert published_ddo["stats"]["price"] == {
+        "tokenAddress": ocean_address,
+        "tokenSymbol": "Ocean",
+        "value": 2.0,
+    }
 
 
 def test_dispenser_created(events_object, client, base_ddo_url):
