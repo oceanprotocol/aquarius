@@ -77,7 +77,7 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         logger.exception(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
         )
-        return -1, -1
+        return -1, {}
 
 
 def get_transport(chain_id):

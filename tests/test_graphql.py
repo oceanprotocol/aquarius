@@ -20,7 +20,10 @@ def test_get_number_orders():
         client_mock.return_value = client
         with patch("aquarius.graphql.get_last_block") as block_mock:
             block_mock.side_effect = [10, 11]
-            assert get_number_orders_price("0x01", last_sync_block, 8996) == (14, 20.5)
+            assert get_number_orders_price("0x01", last_sync_block, 8996) == (
+                14,
+                {"value": 20.5},
+            )
 
 
 def test_get_number_orders_exception():
@@ -31,7 +34,7 @@ def test_get_number_orders_exception():
         client_mock.return_value = client
         with patch("aquarius.graphql.get_last_block") as block_mock:
             block_mock.return_value = 11
-            assert get_number_orders_price("0x01", last_sync_block, 8996) == (-1, -1)
+            assert get_number_orders_price("0x01", last_sync_block, 8996) == (-1, {})
 
 
 def test_get_last_block():
