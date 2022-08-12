@@ -17,10 +17,10 @@ from web3.main import Web3
 
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
-from aquarius.events.util import setup_web3
+from aquarius.events.util import setup_web3, get_address_file, get_fre
 from aquarius.app.util import get_aquarius_wallet
 from aquarius.myapp import app
-from artifacts import ERC20Template, ERC721Template
+from artifacts import ERC20Template, ERC721Template, FixedRateExchange
 from tests.helpers import (
     get_ddo,
     get_web3,
@@ -536,3 +536,111 @@ def test_trigger_caching(client, base_ddo_url, events_object):
         client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
     )
     assert response["error"] == "No metadata created/updated event found in tx."
+
+
+def test_exchange_created(events_object, client, base_ddo_url):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    _, dt_contract, erc20_address = send_create_update_tx(
+        "create", _ddo, bytes([2]), test_account1
+    )
+    events_object.process_current_blocks()
+    token_contract = web3.eth.contract(
+        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
+    )
+
+    amount = web3.toWei("100000", "ether")
+    rate = web3.toWei("1", "ether")
+
+    address_file = get_address_file()
+    with open(address_file) as f:
+        address_json = json.load(f)
+
+    fre_address = address_json["development"]["FixedPrice"]
+
+    token_contract.functions.mint(
+        web3.toChecksumAddress(test_account3.address), amount
+    ).transact({"from": test_account1.address})
+
+    ocean_address = web3.toChecksumAddress(address_json["development"]["Ocean"])
+    tx = token_contract.functions.createFixedRate(
+        web3.toChecksumAddress(fre_address),
+        [
+            ocean_address,
+            web3.toChecksumAddress(test_account1.address),
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+        ],
+        [
+            18,
+            18,
+            rate,
+            0,
+            0,
+        ],
+    ).transact({"from": test_account1.address})
+    receipt = web3.eth.wait_for_transaction_receipt(tx)
+    events_object.process_current_blocks()
+
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["stats"]["price"] == {
+        "tokenAddress": ocean_address,
+        "tokenSymbol": "Ocean",
+        "value": 1.0,
+    }
+
+    fre = get_fre(web3)
+    rate = 2 * rate
+    exchange_id = (
+        fre.events.ExchangeCreated().processReceipt(receipt)[0].args.exchangeId
+    )
+    tx = fre.functions.setRate(exchange_id, rate).transact(
+        {"from": test_account1.address}
+    )
+    receipt = web3.eth.wait_for_transaction_receipt(tx)
+    events_object.process_current_blocks()
+
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["stats"]["price"] == {
+        "tokenAddress": ocean_address,
+        "tokenSymbol": "Ocean",
+        "value": 2.0,
+    }
+
+
+def test_dispenser_created(events_object, client, base_ddo_url):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    _, dt_contract, erc20_address = send_create_update_tx(
+        "create", _ddo, bytes([2]), test_account1
+    )
+    events_object.process_current_blocks()
+    token_contract = web3.eth.contract(
+        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
+    )
+
+    address_file = get_address_file()
+    with open(address_file) as f:
+        address_json = json.load(f)
+
+    dispenser_address = address_json["development"]["Dispenser"]
+
+    tx = token_contract.functions.createDispenser(
+        web3.toChecksumAddress(dispenser_address),
+        web3.toWei("1", "ether"),
+        web3.toWei("1", "ether"),
+        True,
+        "0x0000000000000000000000000000000000000000",
+    ).transact({"from": test_account1.address})
+
+    _ = web3.eth.wait_for_transaction_receipt(tx)
+    events_object.process_current_blocks()
+
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["stats"]["price"] == {"value": 0.0}

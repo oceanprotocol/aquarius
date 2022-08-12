@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import time
+from web3.main import Web3
 
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -17,7 +18,25 @@ logger = logging.getLogger("aquarius")
 aiohttp_logger.setLevel(logging.WARNING)
 
 
-def get_number_orders(token_address, last_sync_block, chain_id):
+class Price:
+    def __init__(self, value):
+        self.value = float(value)
+        self.token_address = None
+        self.token_symbol = None
+
+    def as_dict(self):
+        result = {"value": self.value}
+
+        if self.token_address:
+            result["tokenAddress"] = self.token_address
+
+        if self.token_symbol:
+            result["tokenSymbol"] = self.token_symbol
+
+        return result
+
+
+def get_number_orders_price(token_address, last_sync_block, chain_id):
     try:
         client = get_client(chain_id)
 
@@ -29,16 +48,36 @@ def get_number_orders(token_address, last_sync_block, chain_id):
             last_block = get_last_block(client)
             time.sleep(2)
 
-        did_query = gql('{ nft(id: "' + token_address.lower() + '") { orderCount } }')
-        result = client.execute(did_query)
+        query = gql(
+            '{tokens(where:{nft:"'
+            + token_address.lower()
+            + '"}){orderCount, fixedRateExchanges{ price, baseToken {symbol, address} }, dispensers{id}}}'
+        )
+        tokens_result = client.execute(query)
+        logger.debug(f"Got result for did query: {tokens_result}.")
 
-        logger.debug(f"Got result for did query: {result}.")
-        return int(result["nft"]["orderCount"])
+        order_count = tokens_result["tokens"][0]["orderCount"]
+        price = None
+        fres = tokens_result["tokens"][0].get("fixedRateExchanges", None)
+        dispensers = tokens_result["tokens"][0].get("dispensers", None)
+        if fres and "price" in fres[0]:
+            price = Price(fres[0]["price"])
+            if "baseToken" in fres[0]:
+                price.token_address = Web3.toChecksumAddress(
+                    fres[0]["baseToken"].get("address")
+                )
+                price.token_symbol = fres[0]["baseToken"].get("symbol")
+        elif dispensers:
+            price = Price(0)
+
+        price_obj = price.as_dict() if price else {}
+
+        return int(order_count), price_obj
     except Exception:
         logger.exception(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
         )
-        return -1
+        return -1, {}
 
 
 def get_transport(chain_id):

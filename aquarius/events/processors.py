@@ -20,7 +20,7 @@ from aquarius.events.constants import (
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.proof_checker import check_metadata_proofs
 from aquarius.events.util import make_did, get_dt_factory
-from aquarius.graphql import get_number_orders
+from aquarius.graphql import get_number_orders_price
 from aquarius.rbac import RBAC
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
@@ -91,11 +91,10 @@ class EventProcessor(ABC):
 
         record[AquariusCustomDDOFields.DATATOKENS] = self.get_tokens_info(record)
 
-        record[AquariusCustomDDOFields.STATS] = {
-            "orders": get_number_orders(
-                self.dt_contract.address, self.block, self._chain_id
-            )
-        }
+        order_count, price = get_number_orders_price(
+            self.dt_contract.address, self.block, self._chain_id
+        )
+        record[AquariusCustomDDOFields.STATS] = {"orders": order_count, "price": price}
 
         return record, block_time
 
@@ -427,10 +426,11 @@ class OrderStartedProcessor:
             return
 
         logger.debug(f"Retrieving number of orders for {self.token_address}.")
-        number_orders = get_number_orders(
+        number_orders, price = get_number_orders_price(
             self.token_address, self.last_sync_block, self.chain_id
         )
         self.asset["stats"]["orders"] = number_orders
+        self.asset["stats"]["price"] = price
 
         logger.debug(f"Updating number of orders to {number_orders} for {self.did}.")
         self.es_instance.update(self.asset, self.did)
