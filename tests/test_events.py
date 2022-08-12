@@ -565,10 +565,11 @@ def test_exchange_created(events_object, client, base_ddo_url):
         web3.toChecksumAddress(test_account3.address), amount
     ).transact({"from": test_account1.address})
 
+    ocean_address = web3.toChecksumAddress(address_json["development"]["Ocean"])
     tx = token_contract.functions.createFixedRate(
         web3.toChecksumAddress(fre_address),
         [
-            web3.toChecksumAddress(address_json["development"]["Ocean"]),
+            ocean_address,
             web3.toChecksumAddress(test_account1.address),
             "0x0000000000000000000000000000000000000000",
             "0x0000000000000000000000000000000000000000",
@@ -585,7 +586,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["stats"]["price"] == 1
+    assert published_ddo["stats"]["price"] == {'tokenAddress': ocean_address, 'tokenSymbol': 'Ocean', 'value': 1.0}
 
     fre = get_fre(web3)
     rate = 2 * rate
@@ -599,7 +600,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["stats"]["price"] == 2
+    assert published_ddo["stats"]["price"] == {'tokenAddress': ocean_address, 'tokenSymbol': 'Ocean', 'value': 2.0}
 
 
 def test_dispenser_created(events_object, client, base_ddo_url):
@@ -630,8 +631,8 @@ def test_dispenser_created(events_object, client, base_ddo_url):
         "0x0000000000000000000000000000000000000000",
     ).transact({"from": test_account1.address})
 
-    receipt = web3.eth.wait_for_transaction_receipt(tx)
+    _ = web3.eth.wait_for_transaction_receipt(tx)
     events_object.process_current_blocks()
 
     published_ddo = get_ddo(client, base_ddo_url, did)
-    assert published_ddo["stats"]["price"] == 0
+    assert published_ddo["stats"]["price"] == {"value": 0.0}

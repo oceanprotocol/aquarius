@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import time
+from web3.main import Web3
 
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -15,6 +16,24 @@ from aquarius.events.util import get_network_name
 
 logger = logging.getLogger("aquarius")
 aiohttp_logger.setLevel(logging.WARNING)
+
+
+class Price:
+    def __init__(self, value):
+        self.value = float(value)
+        self.token_address = None
+        self.token_symbol = None
+
+    def as_dict(self):
+        result = {"value": self.value}
+
+        if self.token_address:
+            result["tokenAddress"] = self.token_address
+
+        if self.token_symbol:
+            result["tokenSymbol"] = self.token_symbol
+
+        return result
 
 
 def get_number_orders_price(token_address, last_sync_block, chain_id):
@@ -32,21 +51,26 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         query = gql(
             '{tokens(where:{nft:"'
             + token_address.lower()
-            + '"}){orderCount, fixedRateExchanges{ price }, dispensers{id}}}'
+            + '"}){orderCount, fixedRateExchanges{ price, baseToken {symbol, address} }, dispensers{id}}}'
         )
         tokens_result = client.execute(query)
         logger.debug(f"Got result for did query: {tokens_result}.")
 
         order_count = tokens_result["tokens"][0]["orderCount"]
-        price = -1
+        price = None
         fres = tokens_result["tokens"][0].get("fixedRateExchanges", None)
         dispensers = tokens_result["tokens"][0].get("dispensers", None)
-        if fres:
-            price = fres[0].get("price", -1)
+        if fres and "price" in fres[0]:
+            price = Price(fres[0]["price"])
+            if "baseToken" in fres[0]:
+                price.token_address = Web3.toChecksumAddress(fres[0]["baseToken"].get("address"))
+                price.token_symbol = fres[0]["baseToken"].get("symbol")
         elif dispensers:
-            price = 0
+            price = Price(0)
 
-        return int(order_count), float(price)
+        price_obj = price.as_dict() if price else {}
+
+        return int(order_count), price_obj
     except Exception:
         logger.exception(
             f"Can not get number of orders for subgraph {get_network_name()} token address {token_address}"
