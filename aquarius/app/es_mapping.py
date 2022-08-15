@@ -142,24 +142,24 @@ es_mapping = """
         },
         "price": {
           "properties": {
-            "datatoken": {
-              "type": "double",
-              "fields": {
-                "keyword": {
-                  "type": "keyword"
-                }
-              }
-            },
-            "ocean": {
-              "type": "double",
-              "fields": {
-                "keyword": {
-                  "type": "keyword"
-                }
-              }
-            },
             "value": {
               "type": "double",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "tokenAddress": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "tokenSymbol": {
+              "type": "text",
               "fields": {
                 "keyword": {
                   "type": "keyword"

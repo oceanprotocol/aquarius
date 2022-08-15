@@ -20,7 +20,7 @@ from aquarius.events.constants import (
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.proof_checker import check_metadata_proofs
 from aquarius.events.util import make_did, get_dt_factory
-from aquarius.graphql import get_number_orders
+from aquarius.graphql import get_number_orders_price
 from aquarius.rbac import RBAC
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
@@ -91,11 +91,10 @@ class EventProcessor(ABC):
 
         record[AquariusCustomDDOFields.DATATOKENS] = self.get_tokens_info(record)
 
-        record[AquariusCustomDDOFields.STATS] = {
-            "orders": get_number_orders(
-                self.dt_contract.address, self.block, self._chain_id
-            )
-        }
+        order_count, price = get_number_orders_price(
+            self.dt_contract.address, self.block, self._chain_id
+        )
+        record[AquariusCustomDDOFields.STATS] = {"orders": order_count, "price": price}
 
         return record, block_time
 
@@ -196,6 +195,18 @@ class MetadataCreatedProcessor(EventProcessor):
 
         return _record
 
+    def restore_nft_state(self, ddo, state):
+        ddo["nft"]["state"] = state
+        record_str = json.dumps(ddo)
+        self._es_instance.update(record_str, self.did)
+        _record = json.loads(record_str)
+        name = _record["metadata"]["name"]
+        sender_address = _record["nft"]["owner"]
+        logger.info(
+            f"DDO saved: did={self.did}, name={name}, "
+            f"publisher={sender_address}, chainId={self._chain_id}, updated state={state}"
+        )
+
     def process(self):
         txid = self.txid
 
@@ -235,8 +246,11 @@ class MetadataCreatedProcessor(EventProcessor):
         try:
             ddo = self._es_instance.read(did)
             if ddo["chainId"] == self._chain_id:
-                logger.warning(f"{did} is already registered on this chainId")
-                return
+                if ddo["nft"]["state"] == MetadataStates.ACTIVE:
+                    logger.warning(f"{did} is already registered on this chainId")
+                    return
+                self.restore_nft_state(ddo, asset["nft"]["state"])
+                return True
         except Exception:
             pass
 
@@ -412,10 +426,11 @@ class OrderStartedProcessor:
             return
 
         logger.debug(f"Retrieving number of orders for {self.token_address}.")
-        number_orders = get_number_orders(
+        number_orders, price = get_number_orders_price(
             self.token_address, self.last_sync_block, self.chain_id
         )
         self.asset["stats"]["orders"] = number_orders
+        self.asset["stats"]["price"] = price
 
         logger.debug(f"Updating number of orders to {number_orders} for {self.did}.")
         self.es_instance.update(self.asset, self.did)

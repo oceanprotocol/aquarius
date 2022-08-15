@@ -16,7 +16,7 @@ from web3 import Web3
 from addresses import address as contract_addresses
 from aquarius.app.util import get_bool_env_value
 from aquarius.events.http_provider import get_web3_connection_provider
-from artifacts import ERC721Factory
+from artifacts import ERC721Factory, FixedRateExchange, Dispenser
 from web3.logs import DISCARD
 
 
@@ -122,7 +122,7 @@ def deploy_datatoken(w3, account, name, symbol):
         raise Exception(f"tx not found: {tx_hash.hex()}")
 
 
-def get_dt_factory(web3, chain_id=None):
+def get_address_of_type(web3, chain_id=None, address_type=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     address_file = get_address_file()
 
@@ -130,16 +130,37 @@ def get_dt_factory(web3, chain_id=None):
         address_json = json.load(f)
 
     correspondence = {
-        elem["chainId"]: elem["ERC721Factory"]
+        elem["chainId"]: elem[address_type]
         for elem in address_json.values()
-        if "chainId" in elem and "ERC721Factory" in elem
+        if "chainId" in elem and address_type in elem
     }
 
     if chain_id not in correspondence:
-        raise Exception("No ERC721Factory factory configured for chain id")
+        raise Exception(b"No {address_type} factory configured for chain id")
 
-    address = correspondence[chain_id]
+    return correspondence[chain_id]
+
+
+def get_dt_factory(web3, chain_id=None):
+    chain_id = chain_id if chain_id else web3.eth.chain_id
+    address = get_address_of_type(web3, chain_id, "ERC721Factory")
     abi = ERC721Factory.abi
+
+    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+
+
+def get_fre(web3, chain_id=None):
+    chain_id = chain_id if chain_id else web3.eth.chain_id
+    address = get_address_of_type(web3, chain_id, "FixedPrice")
+    abi = FixedRateExchange.abi
+
+    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+
+
+def get_dispenser(web3, chain_id=None):
+    chain_id = chain_id if chain_id else web3.eth.chain_id
+    address = get_address_of_type(web3, chain_id, "Dispenser")
+    abi = Dispenser.abi
 
     return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
 
