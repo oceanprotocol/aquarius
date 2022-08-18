@@ -288,6 +288,7 @@ schema:ServiceShape
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
         sh:maxCount 1;
+        sh:minLength 4;
         sh:maxLength 256;
     ] ;
     sh:property [
@@ -295,6 +296,7 @@ schema:ServiceShape
         sh:datatype xsd:string ;
         sh:pattern "^((.|\n)*)$" ;
         sh:maxCount 1;
+        sh:minLength 10;
         sh:maxLength 65536;
     ] ;
     sh:property [
