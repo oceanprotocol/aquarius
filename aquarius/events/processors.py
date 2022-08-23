@@ -534,6 +534,7 @@ class MetadataStateProcessor(EventProcessor):
 
         self.update_aqua_nft_state_data(self.event.args.state, self.did)
 
+
 class TransferProcessor:
     def __init__(self, event, web3, es_instance, chain_id):
         self.did = make_did(event.address, chain_id)

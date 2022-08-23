@@ -314,10 +314,8 @@ class EventsMonitor(BlockProcessingClass):
                     f"Error processing token update event: {e}\n" f"event={event}"
                 )
 
-def handle_transfer_ownership(self, from_block, to_block):
-        events = self.get_event_logs(
-            EventTypes.EVENT_TRANSFER, from_block, to_block
-        )
+    def handle_transfer_ownership(self, from_block, to_block):
+        events = self.get_event_logs(EventTypes.EVENT_TRANSFER, from_block, to_block)
 
         for event in events:
             try:
