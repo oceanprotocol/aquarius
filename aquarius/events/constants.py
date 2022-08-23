@@ -40,6 +40,7 @@ class EventTypes(SimpleEnum):
     EVENT_EXCHANGE_CREATED = "ExchangeCreated"
     EVENT_EXCHANGE_RATE_CHANGED = "ExchangeRateChanged"
     EVENT_DISPENSER_CREATED = "DispenserCreated"
+    EVENT_TRANSFER = 'Transfer'
 
 
 class MetadataStates(IntEnum):
