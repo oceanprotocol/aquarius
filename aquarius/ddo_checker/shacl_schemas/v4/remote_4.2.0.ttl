@@ -314,6 +314,7 @@ schema:ServiceShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
+        sh:minLength 10;
         sh:maxLength 2048;
     ] ;
     sh:property [
