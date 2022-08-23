@@ -446,6 +446,8 @@ class EventsMonitor(BlockProcessingClass):
             hash_text = "ExchangeRateChanged(bytes32,address,uint256)"
         elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
             hash_text = "DispenserCreated(address,address,uint256,uint256,address)"
+        elif event_name == EventTypes.EVENT_TRANSFER:
+            hash_text = "Transfer(address,address,uint256)"
         else:
             hash_text = (
                 "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
