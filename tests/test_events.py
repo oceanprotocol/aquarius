@@ -29,6 +29,7 @@ from tests.helpers import (
     send_create_update_tx,
     send_set_metadata_state_tx,
     test_account1,
+    test_account2,
     test_account3,
 )
 
