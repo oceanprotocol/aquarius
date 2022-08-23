@@ -501,7 +501,7 @@ def test_token_transfer(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     updated_ddo = get_ddo(client, base_ddo_url, did)
     assert updated_ddo["id"] == did
-    assert initial_ddo["nft"]["owner"] == test_account2.address
+    assert updated_ddo["nft"]["owner"] == test_account2.address
 
 
 def test_trigger_caching(client, base_ddo_url, events_object):

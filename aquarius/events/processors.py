@@ -555,13 +555,10 @@ class TransferProcessor:
             abi=ERC721Template.abi,
             address=self.web3.toChecksumAddress(self.event.address),
         )
-
         receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)
         event_decoded = erc721_contract.events.Transfer().processReceipt(
             receipt, errors=DISCARD
         )[0]
-
         self.asset["nft"]["owner"] = event_decoded.args.to
         self.es_instance.update(self.asset, self.did)
-
         return self.asset
