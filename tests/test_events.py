@@ -473,6 +473,7 @@ def test_token_uri_update(client, base_ddo_url, events_object):
     assert updated_ddo["id"] == did
     assert updated_ddo["nft"]["tokenURI"] == "http://something-else.com"
 
+
 def test_token_transfer(client, base_ddo_url, events_object):
     web3 = events_object._web3  # get_web3()
     block = web3.eth.block_number
@@ -491,7 +492,9 @@ def test_token_transfer(client, base_ddo_url, events_object):
     )
 
     web3.eth.default_account = test_account1.address
-    txn_hash = nft_contract.functions.safeTransferFrom(test_account1.address,test_account2.address,1).transact()
+    txn_hash = nft_contract.functions.safeTransferFrom(
+        test_account1.address, test_account2.address, 1
+    ).transact()
     _ = web3.eth.wait_for_transaction_receipt(txn_hash)
 
     events_object.process_current_blocks()
