@@ -35,6 +35,7 @@ schema:DDOShape
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:minLength 42;
         sh:maxLength 42;
     ] ;
     sh:property [
