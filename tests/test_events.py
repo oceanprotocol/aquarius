@@ -29,6 +29,7 @@ from tests.helpers import (
     send_create_update_tx,
     send_set_metadata_state_tx,
     test_account1,
+    test_account2,
     test_account3,
 )
 
@@ -472,6 +473,35 @@ def test_token_uri_update(client, base_ddo_url, events_object):
     updated_ddo = get_ddo(client, base_ddo_url, did)
     assert updated_ddo["id"] == did
     assert updated_ddo["nft"]["tokenURI"] == "http://something-else.com"
+
+
+def test_token_transfer(client, base_ddo_url, events_object):
+    web3 = events_object._web3  # get_web3()
+    block = web3.eth.block_number
+    _ddo = new_ddo(test_account1, web3, f"dt.{block}")
+    did = _ddo.id
+
+    send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    events_object.process_current_blocks()
+    initial_ddo = get_ddo(client, base_ddo_url, did)
+    assert initial_ddo["id"] == did
+    assert initial_ddo["nft"]["owner"] == test_account1.address
+
+    nft_contract = web3.eth.contract(
+        abi=ERC721Template.abi,
+        address=web3.toChecksumAddress(initial_ddo["nftAddress"]),
+    )
+
+    web3.eth.default_account = test_account1.address
+    txn_hash = nft_contract.functions.safeTransferFrom(
+        test_account1.address, test_account2.address, 1
+    ).transact()
+    _ = web3.eth.wait_for_transaction_receipt(txn_hash)
+
+    events_object.process_current_blocks()
+    updated_ddo = get_ddo(client, base_ddo_url, did)
+    assert updated_ddo["id"] == did
+    assert updated_ddo["nft"]["owner"] == test_account2.address
 
 
 def test_trigger_caching(client, base_ddo_url, events_object):

@@ -18,6 +18,7 @@ from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataStateProcessor,
+    TransferProcessor,
     MetadataUpdatedProcessor,
     OrderStartedProcessor,
     TokenURIUpdatedProcessor,
@@ -191,6 +192,7 @@ class EventsMonitor(BlockProcessingClass):
 
         self.handle_price_change(from_block, to_block)
         self.handle_token_uri_update(from_block, to_block)
+        self.handle_transfer_ownership(from_block, to_block)
 
         self.store_last_processed_block(to_block)
 
@@ -312,6 +314,20 @@ class EventsMonitor(BlockProcessingClass):
                     f"Error processing token update event: {e}\n" f"event={event}"
                 )
 
+    def handle_transfer_ownership(self, from_block, to_block):
+        events = self.get_event_logs(EventTypes.EVENT_TRANSFER, from_block, to_block)
+
+        for event in events:
+            try:
+                event_processor = TransferProcessor(
+                    event, self._web3, self._es_instance, self._chain_id
+                )
+                event_processor.process()
+            except Exception as e:
+                logger.error(
+                    f"Error processing token transfer event: {e}\n" f"event={event}"
+                )
+
     def get_last_processed_block(self):
         block = get_defined_block(self._chain_id)
         try:
@@ -430,6 +446,8 @@ class EventsMonitor(BlockProcessingClass):
             hash_text = "ExchangeRateChanged(bytes32,address,uint256)"
         elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
             hash_text = "DispenserCreated(address,address,uint256,uint256,address)"
+        elif event_name == EventTypes.EVENT_TRANSFER:
+            hash_text = "Transfer(address,address,uint256)"
         else:
             hash_text = (
                 "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
