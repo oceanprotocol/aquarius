@@ -258,9 +258,9 @@ schema:ContainerShape
     sh:property [
         sh:path schema:checksum ;
         sh:datatype xsd:string ;
-        sh:pattern "^sha256\\:(.*)$" ;
-        sh:maxLength 71;
-        sh:minLength 71;
+        sh:pattern "^(.*)$" ;
+        sh:maxLength 512;
+        sh:minLength 7;
         sh:minCount 1;
         sh:maxCount 1;
     ] ;.

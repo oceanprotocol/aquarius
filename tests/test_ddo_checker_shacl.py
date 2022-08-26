@@ -166,20 +166,7 @@ def test_remote_ddo_failures_limits():
 
     # algorithm container checksum is the wrong length
     _copy = copy.deepcopy(algorithm_ddo_sample)
-    _copy["metadata"]["algorithm"]["container"]["checksum"] = ("sha256:wronglength",)
-    valid, errors = validate_dict(
-        _copy,
-        algorithm_ddo_sample["chainId"],
-        algorithm_ddo_sample["nftAddress"],
-    )
-    assert not valid
-    assert "metadata" in errors
-
-    # algorithm container checksum does not start with "sha256:"
-    _copy = copy.deepcopy(algorithm_ddo_sample)
-    _copy["metadata"]["algorithm"]["container"]["checksum"] = (
-        "zha256:8221d20c1c16491d7d56b9657ea09082c0ee4a8ab1a6621fa720da58b09580e4",
-    )
+    _copy["metadata"]["algorithm"]["container"]["checksum"] = ("sha2:",)
     valid, errors = validate_dict(
         _copy,
         algorithm_ddo_sample["chainId"],
