@@ -13,12 +13,12 @@ from pyshacl import validate
 from aquarius.events.util import make_did
 
 
-CURRENT_VERSION = "4.2.0"
+CURRENT_VERSION = "4.3.0"
 
 
 def get_schema(version=CURRENT_VERSION):
     """Gets the schema file corresponding to the version."""
-    assert version in ["4.0.0", "4.1.0", "4.2.0"], "Can't find schema {}".format(
+    assert version in ["4.0.0", "4.1.0", "4.3.0"], "Can't find schema {}".format(
         version
     )
 
