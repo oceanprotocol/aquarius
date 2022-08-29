@@ -149,6 +149,33 @@ def test_remote_ddo_fails():
     assert "services" in errors
 
 
+def test_remote_ddo_failures_limits():
+    # simple maxLength check (metadata name)
+    _copy = copy.deepcopy(json_dict)
+    _copy["metadata"]["name"] = "a" * 513
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
+    assert not valid
+    assert "metadata" in errors
+
+    # too many tags
+    _copy = copy.deepcopy(json_dict)
+    _copy["metadata"]["tags"] = [str(x) for x in range(0, 65)]
+    valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
+    assert not valid
+    assert "metadata" in errors
+
+    # algorithm container checksum is the wrong length
+    _copy = copy.deepcopy(algorithm_ddo_sample)
+    _copy["metadata"]["algorithm"]["container"]["checksum"] = ("sha2:",)
+    valid, errors = validate_dict(
+        _copy,
+        algorithm_ddo_sample["chainId"],
+        algorithm_ddo_sample["nftAddress"],
+    )
+    assert not valid
+    assert "metadata" in errors
+
+
 def test_remote_ddo_metadata_fails():
     for required_prop in ["description", "name", "type", "author", "license"]:
         _copy = copy.deepcopy(json_dict)
