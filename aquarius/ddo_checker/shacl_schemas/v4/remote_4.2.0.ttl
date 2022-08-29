@@ -65,7 +65,7 @@ schema:MetadataShape
         sh:pattern "^((.|\n)*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:maxLength 65536;
+        sh:maxLength 7000;
     ] ;
     sh:property [
         sh:path schema:copyrightHolder;
@@ -211,7 +211,7 @@ schema:ConsumerParametersShape
         sh:pattern "^((.|\n)*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:maxLength 65536;
+        sh:maxLength 7000;
     ] ;
     sh:property [
         sh:path schema:default;
@@ -298,7 +298,7 @@ schema:ServiceShape
         sh:pattern "^((.|\n)*)$" ;
         sh:maxCount 1;
         sh:minLength 10;
-        sh:maxLength 65536;
+        sh:maxLength 7000;
     ] ;
     sh:property [
         sh:path schema:datatokenAddress ;
