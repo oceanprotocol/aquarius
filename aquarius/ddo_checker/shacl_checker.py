@@ -31,7 +31,7 @@ def get_schema(version=CURRENT_VERSION):
 
 
 def parse_report_to_errors(results_graph):
-    """Iterats throgh results graph to create a dictionary of key: validation message."""
+    """Iterates throgh results graph to create a dictionary of key: validation message."""
     paths = [
         str(x[2]).replace("http://schema.org/", "")
         for x in results_graph.triples(

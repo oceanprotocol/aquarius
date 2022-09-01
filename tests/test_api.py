@@ -45,10 +45,10 @@ def test_conversion(client):
     import rdflib
     from aquarius.ddo_checker.conversion import graph_to_dict
 
-    path = "sample_schemas/remote_v4.ttl"
-    schema_file = Path(pkg_resources.resource_filename("tests", path)).read_text()
+    path = "ddo_checker/shacl_schemas/v4/remote_4.3.0.ttl"
+    schema_file = Path(pkg_resources.resource_filename("aquarius", path)).read_text()
     rulesGraph = rdflib.Graph().parse(data=schema_file)
     result = graph_to_dict(rulesGraph)
-    import pdb
+    # import pdb
 
-    pdb.set_trace()
+    # pdb.set_trace()

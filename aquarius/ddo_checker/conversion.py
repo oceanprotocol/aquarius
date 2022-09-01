@@ -1,3 +1,4 @@
+import json
 import rdflib
 
 
@@ -7,49 +8,59 @@ def graph_to_dict(g):
     the Talis JSON serialization for RDF:
     http://n2.talis.com/wiki/RDF_JSON_Specification
     """
-    result = {}
+    result = json.loads(g.serialize(format="json-ld"))
 
-    # go through all the triples in the graph
-    for s, p, o in g:
-        # initialize property dictionary if we've got a new subject
-        if not str(s) in result:
-            result[str(s)] = {}
+    i = 0
+    while i < len(result):
+        if "http://www.w3.org/ns/shacl#property" in result[i]:
+            sub_ids = [
+                res["@id"] for res in result[i]["http://www.w3.org/ns/shacl#property"]
+            ]
 
-        # initialize object list if we've got a new subject-property combo
-        if not str(p) in result[str(s)]:
-            result[str(s)][str(p)] = []
+            del result[i]["http://www.w3.org/ns/shacl#property"]
+            result[i]["properties"] = {}
+            result[i]["nodes"] = {}
+            for sub_id in sub_ids:
+                ind, res = [
+                    (ind, res)
+                    for ind, res in enumerate(result)
+                    if res.get("@id") == sub_id
+                ][0]
 
-        # determine the value dictionary for the object
-        v = {"value": str(o)}
+                res.pop("@id")
 
-        if isinstance(o, rdflib.term.URIRef):
-            v["type"] = "uri"
-        elif isinstance(o, rdflib.term.BNode):
-            v["type"] = "bnode"
-        elif isinstance(o, rdflib.term.Literal):
-            v["type"] = "literal"
-            if o.language:
-                v["lang"] = o.language
-            if o.datatype:
-                v["datatype"] = str(o.datatype)
+                path = res.pop("http://www.w3.org/ns/shacl#path")
+                path = path[0]["@id"].replace("http://schema.org/", "")
 
-        # add the triple
-        result[str(s)][str(p)].append(v)
+                values = {
+                    k.replace("http://www.w3.org/ns/shacl#", ""): v[0].get("@value")
+                    for k, v in res.items()
+                    if v[0].get("@value")
+                }
+                result[i]["properties"][path] = values
 
-    result.pop("http://schema.org/DDOShape")
+                if not "http://www.w3.org/ns/shacl#node" in result[ind]:
+                    del result[ind]
+                else:
+                    result[i]["nodes"][path] = result[ind][
+                        "http://www.w3.org/ns/shacl#node"
+                    ][0]["@id"]
 
-    final_result = {}
+        i += 1
 
-    for key, result_item in result.items():
-        fin_key = result_item["http://www.w3.org/ns/shacl#path"][0]["value"].replace(
-            "http://schema.org/", ""
-        )
+    i = 0
+    while i < len(result):
+        if "nodes" not in result[i]:
+            i += 1
+            continue
 
-        final_result[fin_key] = {}
-        for kn, rin in result_item.items():
-            if kn != "http://www.w3.org/ns/shacl#path":
-                final_result[fin_key][
-                    kn.replace("http://www.w3.org/ns/shacl#", "")
-                ] = rin[0]["value"].replace("http://www.w3.org/2001/XMLSchema#", "")
+        nodes = result[i]["nodes"]
+        for node_key, node in nodes.items():
+            result[i]["properties"][node_key] = [
+                res["properties"] for res in result if res.get("@id") == node
+            ]
 
-    return final_result
+        del result[i]["nodes"]
+        i += 1
+
+    return [res for res in result if res.get("@id") == "http://schema.org/DDOShape"][0]
