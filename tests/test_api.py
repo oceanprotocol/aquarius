@@ -37,3 +37,18 @@ def test_invalid_requests(client_with_no_data, base_ddo_url, query_url):
         client_with_no_data.post, base_ddo_url + "/validate", "not a dict request"
     )
     assert response.status == "400 BAD REQUEST"
+
+
+def test_conversion(client):
+    import pkg_resources
+    from pathlib import Path
+    import rdflib
+    from aquarius.ddo_checker.conversion import graph_to_dict
+
+    path = "sample_schemas/remote_v4.ttl"
+    schema_file = Path(pkg_resources.resource_filename("tests", path)).read_text()
+    rulesGraph = rdflib.Graph().parse(data=schema_file)
+    result = graph_to_dict(rulesGraph)
+    import pdb
+
+    pdb.set_trace()
