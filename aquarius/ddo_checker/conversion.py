@@ -58,9 +58,11 @@ def graph_to_dict(g):
         for node_key, node in nodes.items():
             result[i]["properties"][node_key] = [
                 res["properties"] for res in result if res.get("@id") == node
-            ]
+            ][0]
 
         del result[i]["nodes"]
         i += 1
 
-    return [res for res in result if res.get("@id") == "http://schema.org/DDOShape"][0]
+    return [res for res in result if res.get("@id") == "http://schema.org/DDOShape"][0][
+        "properties"
+    ]

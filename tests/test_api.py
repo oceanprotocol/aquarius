@@ -48,3 +48,6 @@ def test_conversion(client, validation_url):
 
     response = run_request(client.get, validation_url + "/schema")
     assert response.status == "200 OK"
+    response_json = response.json
+    assert response_json["version"]["maxLength"] == 16
+    response.json["credentials"]["deny"]["type"]["maxLength"] == 256
