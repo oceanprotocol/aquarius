@@ -14,13 +14,12 @@ from aquarius.events.util import make_did
 
 
 CURRENT_VERSION = "4.3.0"
+ALLOWED_VERSIONS = ["4.0.0", "4.1.0", "4.3.0"]
 
 
 def get_schema(version=CURRENT_VERSION):
     """Gets the schema file corresponding to the version."""
-    assert version in ["4.0.0", "4.1.0", "4.3.0"], "Can't find schema {}".format(
-        version
-    )
+    assert version in ALLOWED_VERSIONS, "Can't find schema {}".format(version)
 
     path = "ddo_checker/shacl_schemas/v4/remote_" + version + ".ttl"
 

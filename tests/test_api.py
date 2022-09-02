@@ -39,16 +39,12 @@ def test_invalid_requests(client_with_no_data, base_ddo_url, query_url):
     assert response.status == "400 BAD REQUEST"
 
 
-def test_conversion(client):
-    import pkg_resources
-    from pathlib import Path
-    import rdflib
-    from aquarius.ddo_checker.conversion import graph_to_dict
+def test_conversion(client, validation_url):
+    response = run_request(client.get, validation_url + "/schema?version=blabla")
+    assert response.status == "404 NOT FOUND"
 
-    path = "ddo_checker/shacl_schemas/v4/remote_4.3.0.ttl"
-    schema_file = Path(pkg_resources.resource_filename("aquarius", path)).read_text()
-    rulesGraph = rdflib.Graph().parse(data=schema_file)
-    result = graph_to_dict(rulesGraph)
-    # import pdb
+    response = run_request(client.get, validation_url + "/schema?version=4.1.0")
+    assert response.status == "200 OK"
 
-    # pdb.set_trace()
+    response = run_request(client.get, validation_url + "/schema")
+    assert response.status == "200 OK"
