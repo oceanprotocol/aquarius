@@ -14,6 +14,7 @@ from jsonsempai import magic  # noqa: F401
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
+from aquarius.retry_mechanism import RetryMechanism
 from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
@@ -64,6 +65,9 @@ class EventsMonitor(BlockProcessingClass):
         self._other_db_index = f"{self._es_instance.db_index}_plus"
         self._es_instance.es.indices.create(index=self._other_db_index, ignore=400)
 
+        self._retries_db_index = f"{self._es_instance.db_index}_retries"
+        self._es_instance.es.indices.create(index=self._retries_db_index, ignore=400)
+
         self._web3 = web3
 
         self._chain_id = self._web3.eth.chain_id
@@ -93,6 +97,10 @@ class EventsMonitor(BlockProcessingClass):
             Purgatory(self._es_instance)
             if (os.getenv("ASSET_PURGATORY_URL") or os.getenv("ACCOUNT_PURGATORY_URL"))
             else None
+        )
+
+        self.retry_mechanism = RetryMechanism(
+            config_file, self._es_instance, self._retries_db_index, self.purgatory
         )
 
         purgatory_message = (
@@ -138,6 +146,8 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
+        self.retry_mechanism.process_queue()
+
         last_block = self.get_last_processed_block()
         current_block = self._web3.eth.block_number
         if (
@@ -231,6 +241,9 @@ class EventsMonitor(BlockProcessingClass):
                 event_processor.metadata_proofs = metadata_proofs
                 event_processor.process()
             except Exception as e:
+                self.retry_mechanism.add_to_retry_queue(
+                    event.transactionHash.hex(), 0, processor_args[4]
+                )
                 logger.exception(
                     f"Error processing {EventTypes.get_value(event_name)} event: {e}\n"
                     f"event={event}"

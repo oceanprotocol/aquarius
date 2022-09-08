@@ -2,6 +2,7 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+from datetime import timedelta
 import logging
 import os
 import threading
@@ -566,6 +567,62 @@ def test_trigger_caching(client, base_ddo_url, events_object):
         client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
     )
     assert response["error"] == "No metadata created/updated event found in tx."
+
+
+def test_publish_error(client, base_ddo_url, events_object):
+    _ddo = new_ddo(test_account1, get_web3(), "dt.0")
+    did = _ddo.id
+    txn_receipt, _, _ = send_create_update_tx("create", _ddo, bytes([2]), test_account1)
+    tx_id = txn_receipt["transactionHash"].hex()
+    # prevent any issues from previous tests, start clean-slate
+    events_object.retry_mechanism.clear_all()
+    events_object.retry_mechanism.retry_interval = timedelta(seconds=30)
+
+    # force first trial to fail with decrypt exception
+    with patch("aquarius.events.processors.decrypt_ddo") as mock:
+        mock.side_effect = Exception("First exception")
+        events_object.process_current_blocks()
+
+    # the asset is not published
+    ddo = get_ddo(client, base_ddo_url, did)
+    assert ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
+
+    # later, that asset will be ripe and ready in the retry queue
+    timeout = time.time() + 30 * 4
+    job_is_valid = False
+    while True:
+        tx_ids = [
+            res["_source"]["tx_id"]
+            for res in events_object.retry_mechanism.get_from_retry_queue()
+        ]
+        if tx_id in tx_ids or time.time() > timeout:
+            job_is_valid = True
+            break
+
+        time.sleep(1)
+
+    assert job_is_valid, "tx id was not picked up"
+
+    # no exceptions this time
+    events_object.process_current_blocks()
+
+    # asset is correctly published on retry
+    published_ddo = get_ddo(client, base_ddo_url, did)
+    assert published_ddo["id"] == did
+
+    timeout = time.time() + 30 * 4
+    job_is_done = False
+    while True:
+        tx_ids = [
+            res["_source"]["tx_id"] for res in events_object.retry_mechanism.get_all()
+        ]
+        if tx_id not in tx_ids or time.time() > timeout:
+            job_is_done = True
+            break
+
+        time.sleep(1)
+
+    assert job_is_done, "tx id was not deleted from queue"
 
 
 def test_exchange_created(events_object, client, base_ddo_url):

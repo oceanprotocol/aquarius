@@ -2,10 +2,10 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
+from datetime import datetime, timedelta
 from requests.models import Response
 
 from aquarius.events.purgatory import Purgatory

@@ -18,6 +18,12 @@ es_mapping = """
     }
   },
   "mappings": {
+    "_queue": {
+      "properties": {
+        "number_retries": {"type": "integer"},
+        "next_retry": {"type": "integer"},
+      }
+    },
     "_doc": {
       "properties": {
         "@context": {
