@@ -675,7 +675,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["stats"]["price"] == {
         "tokenAddress": ocean_address,
-        "tokenSymbol": "Ocean",
+        "tokenSymbol": "OCEAN",
         "value": 1.0,
     }
 
@@ -693,7 +693,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["stats"]["price"] == {
         "tokenAddress": ocean_address,
-        "tokenSymbol": "Ocean",
+        "tokenSymbol": "OCEAN",
         "value": 2.0,
     }
 
