@@ -186,23 +186,22 @@ class EventsMonitor(BlockProcessingClass):
             self._chain_id,
         ]
 
-        transfer_events = self.get_event_logs(EventTypes.EVENT_TRANSFER, from_block, to_block)
-        self.handle_transfer_ownership(transfer_events)
+        # event retrieval
+        transfer_events = self.get_event_logs(
+            EventTypes.EVENT_TRANSFER, from_block, to_block
+        )
+        regular_events = {}
+        price_changed_events = {}
 
         event_processors = {
             "EVENT_METADATA_CREATED": MetadataCreatedProcessor,
             "EVENT_METADATA_UPDATED": MetadataUpdatedProcessor,
             "EVENT_METADATA_STATE": MetadataStateProcessor,
         }
+
         for event_name in event_processors:
-            events_to_process = self.get_event_logs(
+            regular_events[event_name] = self.get_event_logs(
                 EventTypes.get_value(event_name), from_block, to_block
-            )
-            self.handle_regular_event_processor(
-                event_name,
-                event_processors[event_name],
-                processor_args,
-                events_to_process
             )
 
         for event_name in [
@@ -211,12 +210,27 @@ class EventsMonitor(BlockProcessingClass):
             EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
             EventTypes.EVENT_DISPENSER_CREATED,
         ]:
-            events_to_process = self.get_event_logs(event_name, from_block, to_block)
-            self.handle_price_change(event_name, events_to_process, to_block)
+            price_changed_events[event_name] = self.get_event_logs(
+                event_name, from_block, to_block
+            )
 
         token_uri_events = self.get_event_logs(
             EventTypes.EVENT_TOKEN_URI_UPDATE, from_block, to_block
         )
+
+        # event handling
+        self.handle_transfer_ownership(transfer_events)
+
+        for event_name, events_to_process in regular_events.items():
+            self.handle_regular_event_processor(
+                event_name,
+                event_processors[event_name],
+                processor_args,
+                events_to_process,
+            )
+
+        for event_name, events_to_process in price_changed_events.items():
+            self.handle_price_change(event_name, events_to_process, to_block)
 
         self.handle_token_uri_update(token_uri_events)
 
@@ -300,9 +314,7 @@ class EventsMonitor(BlockProcessingClass):
                 address=self._web3.toChecksumAddress(erc20_address),
             )
 
-            logger.debug(
-                f"{event_name} detected on ERC20 contract {event.address}."
-            )
+            logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
 
             try:
                 event_processor = OrderStartedProcessor(
