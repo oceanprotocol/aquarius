@@ -186,28 +186,44 @@ class EventsMonitor(BlockProcessingClass):
             self._chain_id,
         ]
 
+        transfer_events = self.get_event_logs(EventTypes.EVENT_TRANSFER, from_block, to_block)
+        self.handle_transfer_ownership(transfer_events)
+
         event_processors = {
             "EVENT_METADATA_CREATED": MetadataCreatedProcessor,
             "EVENT_METADATA_UPDATED": MetadataUpdatedProcessor,
             "EVENT_METADATA_STATE": MetadataStateProcessor,
         }
         for event_name in event_processors:
+            events_to_process = self.get_event_logs(
+                EventTypes.get_value(event_name), from_block, to_block
+            )
             self.handle_regular_event_processor(
                 event_name,
                 event_processors[event_name],
                 processor_args,
-                from_block,
-                to_block,
+                events_to_process
             )
 
-        self.handle_price_change(from_block, to_block)
-        self.handle_token_uri_update(from_block, to_block)
-        self.handle_transfer_ownership(from_block, to_block)
+        for event_name in [
+            EventTypes.EVENT_ORDER_STARTED,
+            EventTypes.EVENT_EXCHANGE_CREATED,
+            EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
+            EventTypes.EVENT_DISPENSER_CREATED,
+        ]:
+            events_to_process = self.get_event_logs(event_name, from_block, to_block)
+            self.handle_price_change(event_name, events_to_process, to_block)
+
+        token_uri_events = self.get_event_logs(
+            EventTypes.EVENT_TOKEN_URI_UPDATE, from_block, to_block
+        )
+
+        self.handle_token_uri_update(token_uri_events)
 
         self.store_last_processed_block(to_block)
 
     def handle_regular_event_processor(
-        self, event_name, processor, processor_args, from_block, to_block
+        self, event_name, processor, processor_args, events
     ):
         """Process emitted events between two given blocks for a given event name.
 
@@ -218,9 +234,7 @@ class EventsMonitor(BlockProcessingClass):
             from_block (int): inital block
             to_block (int): final block
         """
-        for event in self.get_event_logs(
-            EventTypes.get_value(event_name), from_block, to_block
-        ):
+        for event in events:
             dt_contract = self._web3.eth.contract(
                 abi=ERC721Template.abi,
                 address=self._web3.toChecksumAddress(event.address),
@@ -249,73 +263,61 @@ class EventsMonitor(BlockProcessingClass):
                     f"event={event}"
                 )
 
-    def handle_price_change(self, from_block, to_block):
+    def handle_price_change(self, event_name, events, to_block):
         fre = get_fre(self._web3, self._chain_id)
         dispenser = get_dispenser(self._web3, self._chain_id)
 
-        for event_name in [
-            EventTypes.EVENT_ORDER_STARTED,
-            EventTypes.EVENT_EXCHANGE_CREATED,
-            EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
-            EventTypes.EVENT_DISPENSER_CREATED,
-        ]:
-            events = self.get_event_logs(event_name, from_block, to_block)
+        for event in events:
+            if event_name == EventTypes.EVENT_EXCHANGE_CREATED:
+                receipt = self._web3.eth.get_transaction_receipt(
+                    event.transactionHash.hex()
+                )
+                erc20_address = receipt.to
+            elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
+                receipt = self._web3.eth.get_transaction_receipt(
+                    event.transactionHash.hex()
+                )
+                exchange_id = (
+                    fre.events.ExchangeRateChanged()
+                    .processReceipt(receipt)[0]
+                    .args.exchangeId
+                )
+                erc20_address = fre.caller.getExchange(exchange_id)[1]
+            elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
+                receipt = self._web3.eth.get_transaction_receipt(
+                    event.transactionHash.hex()
+                )
+                erc20_address = (
+                    dispenser.events.DispenserCreated()
+                    .processReceipt(receipt)[0]
+                    .args.datatokenAddress
+                )
+            else:
+                erc20_address = event.address
 
-            for event in events:
-                if event_name == EventTypes.EVENT_EXCHANGE_CREATED:
-                    receipt = self._web3.eth.get_transaction_receipt(
-                        event.transactionHash.hex()
-                    )
-                    erc20_address = receipt.to
-                elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
-                    receipt = self._web3.eth.get_transaction_receipt(
-                        event.transactionHash.hex()
-                    )
-                    exchange_id = (
-                        fre.events.ExchangeRateChanged()
-                        .processReceipt(receipt)[0]
-                        .args.exchangeId
-                    )
-                    erc20_address = fre.caller.getExchange(exchange_id)[1]
-                elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
-                    receipt = self._web3.eth.get_transaction_receipt(
-                        event.transactionHash.hex()
-                    )
-                    erc20_address = (
-                        dispenser.events.DispenserCreated()
-                        .processReceipt(receipt)[0]
-                        .args.datatokenAddress
-                    )
-                else:
-                    erc20_address = event.address
+            erc20_contract = self._web3.eth.contract(
+                abi=ERC20Template.abi,
+                address=self._web3.toChecksumAddress(erc20_address),
+            )
 
-                erc20_contract = self._web3.eth.contract(
-                    abi=ERC20Template.abi,
-                    address=self._web3.toChecksumAddress(erc20_address),
+            logger.debug(
+                f"{event_name} detected on ERC20 contract {event.address}."
+            )
+
+            try:
+                event_processor = OrderStartedProcessor(
+                    erc20_contract.caller.getERC721Address(),
+                    self._es_instance,
+                    to_block,
+                    self._chain_id,
+                )
+                event_processor.process()
+            except Exception as e:
+                logger.error(
+                    f"Error processing {event_name} event: {e}\n" f"event={event}"
                 )
 
-                logger.debug(
-                    f"{event_name} detected on ERC20 contract {event.address}."
-                )
-
-                try:
-                    event_processor = OrderStartedProcessor(
-                        erc20_contract.caller.getERC721Address(),
-                        self._es_instance,
-                        to_block,
-                        self._chain_id,
-                    )
-                    event_processor.process()
-                except Exception as e:
-                    logger.error(
-                        f"Error processing {event_name} event: {e}\n" f"event={event}"
-                    )
-
-    def handle_token_uri_update(self, from_block, to_block):
-        events = self.get_event_logs(
-            EventTypes.EVENT_TOKEN_URI_UPDATE, from_block, to_block
-        )
-
+    def handle_token_uri_update(self, events):
         for event in events:
             try:
                 event_processor = TokenURIUpdatedProcessor(
@@ -327,9 +329,7 @@ class EventsMonitor(BlockProcessingClass):
                     f"Error processing token update event: {e}\n" f"event={event}"
                 )
 
-    def handle_transfer_ownership(self, from_block, to_block):
-        events = self.get_event_logs(EventTypes.EVENT_TRANSFER, from_block, to_block)
-
+    def handle_transfer_ownership(self, events):
         for event in events:
             try:
                 event_processor = TransferProcessor(
