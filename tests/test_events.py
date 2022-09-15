@@ -653,6 +653,11 @@ def test_exchange_created(events_object, client, base_ddo_url):
     ).transact({"from": test_account1.address})
 
     ocean_address = web3.toChecksumAddress(address_json["development"]["Ocean"])
+    ocean_contract = web3.eth.contract(
+        abi=ERC20Template.abi, address=web3.toChecksumAddress(ocean_address)
+    )
+    ocean_symbol = ocean_contract.caller.symbol()
+
     tx = token_contract.functions.createFixedRate(
         web3.toChecksumAddress(fre_address),
         [
@@ -675,7 +680,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["stats"]["price"] == {
         "tokenAddress": ocean_address,
-        "tokenSymbol": "Ocean",
+        "tokenSymbol": ocean_symbol,
         "value": 1.0,
     }
 
@@ -693,7 +698,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["stats"]["price"] == {
         "tokenAddress": ocean_address,
-        "tokenSymbol": "Ocean",
+        "tokenSymbol": ocean_symbol,
         "value": 2.0,
     }
 
