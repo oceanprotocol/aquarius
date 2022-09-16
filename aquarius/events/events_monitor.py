@@ -187,31 +187,13 @@ class EventsMonitor(BlockProcessingClass):
         ]
 
         # event retrieval
-        all_events = {
-            EventTypes.EVENT_TRANSFER: [],
-            # "regular" events
-            EventTypes.EVENT_METADATA_CREATED: [],
-            EventTypes.EVENT_METADATA_UPDATED: [],
-            EventTypes.EVENT_METADATA_STATE: [],
-            # price changed events
-            EventTypes.EVENT_ORDER_STARTED: [],
-            EventTypes.EVENT_EXCHANGE_CREATED: [],
-            EventTypes.EVENT_EXCHANGE_RATE_CHANGED: [],
-            EventTypes.EVENT_DISPENSER_CREATED: [],
-            #
-            EventTypes.EVENT_TOKEN_URI_UPDATE: []
-        }
+        all_events = self.get_all_events(from_block, to_block)
 
         regular_event_processors = {
             EventTypes.EVENT_METADATA_CREATED: MetadataCreatedProcessor,
             EventTypes.EVENT_METADATA_UPDATED: MetadataUpdatedProcessor,
             EventTypes.EVENT_METADATA_STATE: MetadataStateProcessor,
         }
-
-        for event_name in all_events.keys():
-            all_events[event_name] = self.get_event_logs(
-                event_name, from_block, to_block
-            );
 
         # event handling
         for event_name, events_to_process in all_events.items():
@@ -228,13 +210,46 @@ class EventsMonitor(BlockProcessingClass):
                 EventTypes.EVENT_ORDER_STARTED,
                 EventTypes.EVENT_EXCHANGE_CREATED,
                 EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
-                EventTypes.EVENT_DISPENSER_CREATED
+                EventTypes.EVENT_DISPENSER_CREATED,
             ]:
                 self.handle_price_change(event_name, events_to_process, to_block)
             elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
                 self.handle_token_uri_update(events_to_process)
 
         self.store_last_processed_block(to_block)
+
+    def get_all_events(self, from_block, to_block):
+        all_events = {
+            EventTypes.EVENT_TRANSFER: [],
+            # "regular" events
+            EventTypes.EVENT_METADATA_CREATED: [],
+            EventTypes.EVENT_METADATA_UPDATED: [],
+            EventTypes.EVENT_METADATA_STATE: [],
+            # price changed events
+            EventTypes.EVENT_ORDER_STARTED: [],
+            EventTypes.EVENT_EXCHANGE_CREATED: [],
+            EventTypes.EVENT_EXCHANGE_RATE_CHANGED: [],
+            EventTypes.EVENT_DISPENSER_CREATED: [],
+            #
+            EventTypes.EVENT_TOKEN_URI_UPDATE: [],
+        }
+
+        if from_block >= to_block:
+            return all_events
+
+        try:
+            for event_name in all_events.keys():
+                all_events[event_name] = self.get_event_logs(
+                    event_name, from_block, to_block
+                )
+
+            return all_events
+        except Exception:
+            middle = int((from_block + to_block) / 2)
+            return merge_list_dictionary(
+                self.get_all_events(from_block, middle),
+                self.get_all_events(middle + 1, to_block),
+            )
 
     def handle_regular_event_processor(
         self, event_name, processor, processor_args, events
@@ -256,9 +271,9 @@ class EventsMonitor(BlockProcessingClass):
             receipt = self._web3.eth.get_transaction_receipt(
                 event.transactionHash.hex()
             )
-            event_object = dt_contract.events[
-                event_name
-            ]().processReceipt(receipt, errors=DISCARD)[0]
+            event_object = dt_contract.events[event_name]().processReceipt(
+                receipt, errors=DISCARD
+            )[0]
             try:
                 metadata_proofs = dt_contract.events.MetadataValidated().processReceipt(
                     receipt, errors=DISCARD
@@ -273,8 +288,7 @@ class EventsMonitor(BlockProcessingClass):
                     event.transactionHash.hex(), 0, processor_args[4]
                 )
                 logger.exception(
-                    f"Error processing {event_name} event: {e}\n"
-                    f"event={event}"
+                    f"Error processing {event_name} event: {e}\n" f"event={event}"
                 )
 
     def handle_price_change(self, event_name, events, to_block):
@@ -517,3 +531,12 @@ class EventsMonitor(BlockProcessingClass):
         )
 
         return all_logs
+
+
+def merge_list_dictionary(dict_1, dict_2):
+    dict_3 = {**dict_1, **dict_2}
+    for key, value in dict_3.items():
+        if key in dict_1 and key in dict_2:
+            dict_3[key] = value + dict_1[key]
+
+    return dict_3
