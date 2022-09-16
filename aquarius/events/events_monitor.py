@@ -187,52 +187,52 @@ class EventsMonitor(BlockProcessingClass):
         ]
 
         # event retrieval
-        transfer_events = self.get_event_logs(
-            EventTypes.EVENT_TRANSFER, from_block, to_block
-        )
-        regular_events = {}
-        price_changed_events = {}
-
-        event_processors = {
-            "EVENT_METADATA_CREATED": MetadataCreatedProcessor,
-            "EVENT_METADATA_UPDATED": MetadataUpdatedProcessor,
-            "EVENT_METADATA_STATE": MetadataStateProcessor,
+        all_events = {
+            EventTypes.EVENT_TRANSFER: [],
+            # "regular" events
+            EventTypes.EVENT_METADATA_CREATED: [],
+            EventTypes.EVENT_METADATA_UPDATED: [],
+            EventTypes.EVENT_METADATA_STATE: [],
+            # price changed events
+            EventTypes.EVENT_ORDER_STARTED: [],
+            EventTypes.EVENT_EXCHANGE_CREATED: [],
+            EventTypes.EVENT_EXCHANGE_RATE_CHANGED: [],
+            EventTypes.EVENT_DISPENSER_CREATED: [],
+            #
+            EventTypes.EVENT_TOKEN_URI_UPDATE: []
         }
 
-        for event_name in event_processors:
-            regular_events[event_name] = self.get_event_logs(
-                EventTypes.get_value(event_name), from_block, to_block
-            )
+        regular_event_processors = {
+            EventTypes.EVENT_METADATA_CREATED: MetadataCreatedProcessor,
+            EventTypes.EVENT_METADATA_UPDATED: MetadataUpdatedProcessor,
+            EventTypes.EVENT_METADATA_STATE: MetadataStateProcessor,
+        }
 
-        for event_name in [
-            EventTypes.EVENT_ORDER_STARTED,
-            EventTypes.EVENT_EXCHANGE_CREATED,
-            EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
-            EventTypes.EVENT_DISPENSER_CREATED,
-        ]:
-            price_changed_events[event_name] = self.get_event_logs(
+        for event_name in all_events.keys():
+            all_events[event_name] = self.get_event_logs(
                 event_name, from_block, to_block
-            )
-
-        token_uri_events = self.get_event_logs(
-            EventTypes.EVENT_TOKEN_URI_UPDATE, from_block, to_block
-        )
+            );
 
         # event handling
-        self.handle_transfer_ownership(transfer_events)
-
-        for event_name, events_to_process in regular_events.items():
-            self.handle_regular_event_processor(
-                event_name,
-                event_processors[event_name],
-                processor_args,
-                events_to_process,
-            )
-
-        for event_name, events_to_process in price_changed_events.items():
-            self.handle_price_change(event_name, events_to_process, to_block)
-
-        self.handle_token_uri_update(token_uri_events)
+        for event_name, events_to_process in all_events.items():
+            if event_name == EventTypes.EVENT_TRANSFER:
+                self.handle_transfer_ownership(events_to_process)
+            elif event_name in regular_event_processors.keys():
+                self.handle_regular_event_processor(
+                    event_name,
+                    regular_event_processors[event_name],
+                    processor_args,
+                    events_to_process,
+                )
+            elif event_name in [
+                EventTypes.EVENT_ORDER_STARTED,
+                EventTypes.EVENT_EXCHANGE_CREATED,
+                EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
+                EventTypes.EVENT_DISPENSER_CREATED
+            ]:
+                self.handle_price_change(event_name, events_to_process, to_block)
+            elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
+                self.handle_token_uri_update(events_to_process)
 
         self.store_last_processed_block(to_block)
 
@@ -257,7 +257,7 @@ class EventsMonitor(BlockProcessingClass):
                 event.transactionHash.hex()
             )
             event_object = dt_contract.events[
-                EventTypes.get_value(event_name)
+                event_name
             ]().processReceipt(receipt, errors=DISCARD)[0]
             try:
                 metadata_proofs = dt_contract.events.MetadataValidated().processReceipt(
@@ -273,7 +273,7 @@ class EventsMonitor(BlockProcessingClass):
                     event.transactionHash.hex(), 0, processor_args[4]
                 )
                 logger.exception(
-                    f"Error processing {EventTypes.get_value(event_name)} event: {e}\n"
+                    f"Error processing {event_name} event: {e}\n"
                     f"event={event}"
                 )
 
