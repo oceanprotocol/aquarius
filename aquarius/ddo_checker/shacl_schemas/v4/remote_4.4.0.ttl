@@ -47,7 +47,7 @@ schema:DDOShape
     sh:property [
         sh:path schema:services ;
         sh:node schema:ServiceShape ;
-        sh:minCount 1;
+        sh:minCount 0;
         sh:maxCount 64;
     ] ;
     sh:property [

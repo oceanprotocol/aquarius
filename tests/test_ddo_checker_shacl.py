@@ -17,6 +17,7 @@ from aquarius.ddo_checker.shacl_checker import (
 )
 from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.ddos.ddo_sample_algorithm_v4 import algorithm_ddo_sample
+from tests.ddos.dddo_without_service import json_dict as ddo_without_service_dict
 
 
 def test_sample_schema():
@@ -205,3 +206,14 @@ def test_remote_ddo_metadata_fails():
 
     valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
+
+
+def test_remote_ddo_without_service():
+    assert not ddo_without_service_dict.get("services")
+    assert ddo_without_service_dict["version"] == CURRENT_VERSION
+    valid, _ = validate_dict(
+        ddo_without_service_dict,
+        ddo_without_service_dict["chainId"],
+        ddo_without_service_dict["nftAddress"],
+    )
+    assert valid
