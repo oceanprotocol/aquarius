@@ -569,7 +569,9 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     assert response["error"] == "No metadata created/updated event found in tx."
 
 
-def test_publish_error(client, base_ddo_url, events_object):
+def test_publish_error(client, base_ddo_url, events_object, monkeypatch):
+    monkeypatch.setenv("PROCESS_RETRY_QUEUE", "1")
+
     _ddo = new_ddo(test_account1, get_web3(), "dt.0")
     did = _ddo.id
     txn_receipt, _, _ = send_create_update_tx("create", _ddo, bytes([2]), test_account1)
