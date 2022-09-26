@@ -13,7 +13,7 @@ from pyshacl import validate
 from aquarius.events.util import make_did
 
 
-CURRENT_VERSION = "4.4.0"
+CURRENT_VERSION = "4.5.0"
 
 
 def get_schema(version=CURRENT_VERSION):
@@ -22,7 +22,7 @@ def get_schema(version=CURRENT_VERSION):
         "4.0.0",
         "4.1.0",
         "4.3.0",
-        "4.4.0",
+        "4.5.0",
     ], "Can't find schema {}".format(version)
 
     path = "ddo_checker/shacl_schemas/v4/remote_" + version + ".ttl"
