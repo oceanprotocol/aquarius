@@ -146,7 +146,8 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
-        self.retry_mechanism.process_queue()
+        if os.getenv("PROCESS_RETRY_QUEUE"):
+            self.retry_mechanism.process_queue()
 
         last_block = self.get_last_processed_block()
         current_block = self._web3.eth.block_number
