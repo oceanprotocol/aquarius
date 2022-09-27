@@ -282,7 +282,8 @@
         - Description: Successful request
         - Body
             ```JSON
-            {"last_block": 25198729}
+            {"last_block": 25198729,
+            "version": "4.4.1"}
             ```
 
 ## Others
