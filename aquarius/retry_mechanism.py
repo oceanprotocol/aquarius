@@ -34,24 +34,19 @@ class RetryMechanism:
         )
 
     def get_by_id(self, rm_id):
-        query_result = self._es_instance.es.get(
+        return self._es_instance.es.get(
             index=self._retries_db_index, id=rm_id, doc_type="queue"
-        )
-        logger.info(f"Query result for rm_id {rm_id}.")
-
-        return query_result["_source"]
+        )["_source"]
 
     def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
         params = {"tx_id": tx_id, "log_index": log_index, "chain_id": chain_id}
 
         rm_id = sha256(json.dumps(params).encode("utf-8")).hexdigest()
-        logger.info(f"rm_id for retry queue in tx_id {tx_id} is {rm_id}.")
+
         try:
             result = self.get_by_id(rm_id)
             params["number_retries"] = result["number_retries"] + 1
-
-        except Exception as e:
-            logger.info(f"got exception {str(e)}")
+        except Exception:
             params["number_retries"] = 0
             pass
 
