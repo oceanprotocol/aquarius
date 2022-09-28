@@ -570,7 +570,6 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     assert response["error"] == "No metadata created/updated event found in tx."
 
 
-@pytest.mark.skip
 def test_publish_error(client, base_ddo_url, events_object, monkeypatch):
     monkeypatch.setenv("PROCESS_RETRY_QUEUE", "1")
 
