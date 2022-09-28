@@ -490,7 +490,7 @@ class EventsMonitor(BlockProcessingClass):
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
                 logger.debug(
-                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}"
+                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}; "
                     f"{len(all_logs)} {event_name} events detected so far."
                 )
 
