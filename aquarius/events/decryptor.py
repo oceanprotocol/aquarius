@@ -47,6 +47,10 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
 
         return json.loads(response_content)
 
+    if response.status_code == 403:
+        # unauthorised decrypter
+        return False
+
     msg = f"Provider exception on decrypt DDO: {response.content}\n provider URL={provider_url}, payload={payload}."
     logger.error(msg)
     raise Exception(msg)
