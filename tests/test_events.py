@@ -524,7 +524,7 @@ def test_trigger_caching(client, base_ddo_url, events_object):
         response = run_request_get_data(
             client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
         )
-        assert response["error"] == "Encountered error when triggering caching: Boom!."
+        assert response["error"] == "new exception in processor, retry again"
 
     response = run_request_get_data(
         client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}

@@ -42,10 +42,10 @@ class RetryMechanism:
         params = {"tx_id": tx_id, "log_index": log_index, "chain_id": chain_id}
 
         rm_id = sha256(json.dumps(params).encode("utf-8")).hexdigest()
+
         try:
             result = self.get_by_id(rm_id)
             params["number_retries"] = result["number_retries"] + 1
-
         except Exception:
             params["number_retries"] = 0
             pass
@@ -147,14 +147,17 @@ class RetryMechanism:
             chain_id,
         ]
 
-        processor = (
-            MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
-        )
-        event_to_process = created_event[0] if created_event else updated_event[0]
-        event_processor = processor(
-            *([event_to_process, dt_contract, tx_receipt["from"]] + processor_args)
-        )
-        event_processor.process()
-        did = make_did(dt_address, chain_id)
+        try:
+            processor = (
+                MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
+            )
+            event_to_process = created_event[0] if created_event else updated_event[0]
+            event_processor = processor(
+                *([event_to_process, dt_contract, tx_receipt["from"]] + processor_args)
+            )
+            event_processor.process()
+            did = make_did(dt_address, chain_id)
 
-        return True, sanitize_record(self._es_instance.get(did))
+            return True, sanitize_record(self._es_instance.get(did))
+        except Exception:
+            return False, "new exception in processor, retry again"

@@ -180,10 +180,10 @@ def test_missing_attributes():
     processor.event.address = "0x0000000000000000000000000000000000000000"
 
     with patch("aquarius.events.processors.decrypt_ddo") as mock:
-        mock.return_value = None
+        mock.side_effect = Exception("in decrypt_ddo: some message")
         with patch("aquarius.events.processors.get_dt_factory") as mock2:
             mock2.return_value = dt_factory
-            with pytest.raises(Exception, match="Decrypt ddo failed"):
+            with pytest.raises(Exception, match="in decrypt_ddo: some message"):
                 processor.process()
 
     processor = MetadataUpdatedProcessor(
@@ -204,10 +204,10 @@ def test_missing_attributes():
     processor.event.address = "0x0000000000000000000000000000000000000000"
 
     with patch("aquarius.events.processors.decrypt_ddo") as mock:
-        mock.return_value = None
+        mock.side_effect = Exception("in decrypt_ddo: some message")
         with patch("aquarius.events.processors.get_dt_factory") as mock2:
             mock2.return_value = dt_factory
-            with pytest.raises(Exception, match="Decrypt ddo failed"):
+            with pytest.raises(Exception, match="in decrypt_ddo: some message"):
                 processor.process()
 
 

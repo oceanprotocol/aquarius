@@ -220,6 +220,8 @@ class MetadataCreatedProcessor(EventProcessor):
         if not check_metadata_proofs(self._web3, self.metadata_proofs):
             return
 
+        # if not authorized, will return False, which is a graceful failure
+        # otherwise it will raise an exception
         asset = decrypt_ddo(
             self._web3,
             self.event.args.decryptorUrl,
@@ -229,8 +231,8 @@ class MetadataCreatedProcessor(EventProcessor):
             self.event.args.metaDataHash,
         )
         if not asset:
-            logger.error("Decrypt ddo failed")
-            raise Exception("Decrypt ddo failed")
+            logger.info("Decrypter is not authorized. Failing gracefully.")
+            return
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
@@ -326,6 +328,8 @@ class MetadataUpdatedProcessor(EventProcessor):
 
             return
 
+        # if not authorized, will return False, which is a graceful failure
+        # otherwise it will raise an exception
         asset = decrypt_ddo(
             self._web3,
             self.event.args.decryptorUrl,
@@ -335,8 +339,8 @@ class MetadataUpdatedProcessor(EventProcessor):
             self.event.args.metaDataHash,
         )
         if not asset:
-            logger.error("Decrypt ddo failed")
-            raise Exception("Decrypt ddo failed")
+            logger.info("Decrypter is not authorized. Failing gracefully.")
+            return
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
