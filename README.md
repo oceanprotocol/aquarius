@@ -150,6 +150,9 @@ EVENTS_CLEAN_START
 
 # Subgraph URLs in the form of a json-dumped string mapping chain_ids to subgraph urls.
 SUBGRAPH_URLS
+
+# Process a queue with failed assets, e.g. retry where temporary network flukes or similar conditions caused a failure
+PROCESS_RETRY_QUEUE
 ```
 ## Running Aquarius for multiple chains
 
