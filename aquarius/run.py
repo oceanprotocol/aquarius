@@ -18,7 +18,7 @@ from aquarius.app.assets import assets
 from aquarius.app.chains import chains
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value
-from aquarius.config import Config
+from aquarius.config import Config, get_version
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
@@ -34,12 +34,6 @@ es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
 def set_rbac_headers():
     if os.getenv("RBAC_SERVER_URL"):
         RBAC.set_headers(request)
-
-
-def get_version():
-    conf = configparser.ConfigParser()
-    conf.read(".bumpversion.cfg")
-    return conf["bumpversion"]["current_version"]
 
 
 @app.route("/")

@@ -2,26 +2,28 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from datetime import timedelta
+import json
 import logging
 import os
 import threading
+import time
+from datetime import timedelta
+from unittest.mock import patch
 
 import elasticsearch
-import json
-import time
-from jsonsempai import magic  # noqa: F401
+import pytest
+from artifacts import ERC20Template, ERC721Template, FixedRateExchange
 from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
-from unittest.mock import patch
+from jsonsempai import magic  # noqa: F401
 from web3.main import Web3
 
+from aquarius.app.util import get_aquarius_wallet
+from aquarius.config import get_version
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
-from aquarius.events.util import setup_web3, get_address_file, get_fre
-from aquarius.app.util import get_aquarius_wallet
+from aquarius.events.util import get_address_file, get_fre, setup_web3
 from aquarius.myapp import app
-from artifacts import ERC20Template, ERC721Template, FixedRateExchange
 from tests.helpers import (
     get_ddo,
     get_web3,
@@ -124,6 +126,7 @@ def test_get_chain_status(client, chains_url):
     )
     chain_status = json.loads(rv.data.decode("utf-8"))
     assert int(chain_status["last_block"]) > 0
+    assert chain_status["version"] == get_version()
 
 
 def test_get_assets_in_chain(client, events_object):
@@ -521,7 +524,7 @@ def test_trigger_caching(client, base_ddo_url, events_object):
         response = run_request_get_data(
             client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
         )
-        assert response["error"] == "Encountered error when triggering caching: Boom!."
+        assert response["error"] == "new exception in processor, retry again"
 
     response = run_request_get_data(
         client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
@@ -569,7 +572,10 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     assert response["error"] == "No metadata created/updated event found in tx."
 
 
-def test_publish_error(client, base_ddo_url, events_object):
+@pytest.mark.skip
+def test_publish_error(client, base_ddo_url, events_object, monkeypatch):
+    monkeypatch.setenv("PROCESS_RETRY_QUEUE", "1")
+
     _ddo = new_ddo(test_account1, get_web3(), "dt.0")
     did = _ddo.id
     txn_receipt, _, _ = send_create_update_tx("create", _ddo, bytes([2]), test_account1)
