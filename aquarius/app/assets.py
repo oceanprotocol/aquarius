@@ -13,20 +13,14 @@ from aquarius.app.util import (
     sanitize_record,
     sanitize_query_result,
     get_signature_vrs,
-    get_allowed_publishers,
 )
 from aquarius.ddo_checker.shacl_checker import validate_dict
-from aquarius.events.processors import (
-    MetadataCreatedProcessor,
-    MetadataUpdatedProcessor,
-)
-from aquarius.events.util import setup_web3, make_did
+from aquarius.events.util import setup_web3
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from aquarius.events.purgatory import Purgatory
+from aquarius.retry_mechanism import RetryMechanism
 from aquarius.rbac import RBAC
-from artifacts import ERC721Template
-from web3.logs import DISCARD
 
 
 setup_logging()
@@ -413,47 +407,28 @@ def trigger_caching():
 
         config_file = app.config["AQUARIUS_CONFIG_FILE"]
         web3 = setup_web3(config_file)
-        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_id)
-
-        if len(tx_receipt.logs) <= log_index or log_index < 0:
-            return jsonify(error=f"Log index {log_index} not found"), 400
-
-        dt_address = tx_receipt.logs[log_index].address
-        dt_contract = web3.eth.contract(
-            abi=ERC721Template.abi, address=web3.toChecksumAddress(dt_address)
-        )
-        created_event = dt_contract.events.MetadataCreated().processReceipt(
-            tx_receipt, errors=DISCARD
-        )
-        updated_event = dt_contract.events.MetadataUpdated().processReceipt(
-            tx_receipt, errors=DISCARD
-        )
-
-        if not created_event and not updated_event:
-            return jsonify(error="No metadata created/updated event found in tx."), 400
 
         es_instance = ElasticsearchInstance(config_file)
-        allowed_publishers = get_allowed_publishers()
+        retries_db_index = f"{es_instance.db_index}_retries"
         purgatory = (
             Purgatory(es_instance)
             if (os.getenv("ASSET_PURGATORY_URL") or os.getenv("ACCOUNT_PURGATORY_URL"))
             else None
         )
-        chain_id = web3.eth.chain_id
-        processor_args = [es_instance, web3, allowed_publishers, purgatory, chain_id]
 
-        processor = (
-            MetadataCreatedProcessor if created_event else MetadataUpdatedProcessor
+        retry_mechanism = RetryMechanism(
+            config_file, es_instance, retries_db_index, purgatory
         )
-        event_to_process = created_event[0] if created_event else updated_event[0]
-        event_processor = processor(
-            *([event_to_process, dt_contract, tx_receipt["from"]] + processor_args)
+
+        success, result = retry_mechanism.handle_retry(
+            tx_id, log_index, web3.eth.chain_id
         )
-        event_processor.process()
-        did = make_did(dt_address, chain_id)
+
+        if not success:
+            return jsonify(error=result), 400
 
         response = app.response_class(
-            response=sanitize_record(es_instance.get(did)),
+            response=result,
             status=200,
             mimetype="application/json",
         )

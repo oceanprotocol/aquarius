@@ -42,8 +42,8 @@ The metadata is published on-chain as such:
 * The metadata on-chain is not kept in storage, but rather is captured in an event log named `MetadataCreated`
 * Aquarius defers to the Provider for encryption and decryption. Aquarius and Provider support utf-8 encoded strings. You can look into the encrypt/decrypt flows if you want to learn more, but you will generally not need to go in-depth just to use Aquarius.
 
-For more details on working with OCEAN DIDs check out the [DID concept documentation](https://docs.oceanprotocol.com/concepts/did-ddo/).
-The [DDO Metadata documentation](https://docs.oceanprotocol.com/concepts/did-ddo/#metadata/) goes into more depth regarding metadata structure.
+For more details on working with OCEAN DIDs check out the [DID concept documentation](https://docs.oceanprotocol.com/core-concepts/did-ddo/).
+The [DDO Metadata documentation](https://docs.oceanprotocol.com/core-concepts/did-ddo#metadata) goes into more depth regarding metadata structure.
 
 ## Components and architecture
 
@@ -150,6 +150,9 @@ EVENTS_CLEAN_START
 
 # Subgraph URLs in the form of a json-dumped string mapping chain_ids to subgraph urls.
 SUBGRAPH_URLS
+
+# Process a queue with failed assets, e.g. retry where temporary network flukes or similar conditions caused a failure
+PROCESS_RETRY_QUEUE
 ```
 ## Running Aquarius for multiple chains
 
@@ -171,7 +174,7 @@ If you're developing a marketplace, you'll want to run Aquarius and several othe
 
 ## Learn about Aquarius API
 
-[Here](https://docs.oceanprotocol.com/references/aquarius/) is API documentation. You can find more details about the ontology of the metadata in the [Ocean documentation](https://docs.oceanprotocol.com/concepts/did-ddo/#metadata/).
+[Here](https://docs.oceanprotocol.com/api-references/aquarius-rest-api) is API documentation. You can find more details about the ontology of the metadata in the [Ocean documentation](https://docs.oceanprotocol.com/core-concepts/did-ddo#metadata).
 
 If you have Aquarius running locally, you can find a Swagger API documentation at [http://localhost:5000/api/docs](http://localhost:5000/api/docs) or maybe [http://0.0.0.0:5000/api/docs](http://0.0.0.0:5000/api/docs).
 
