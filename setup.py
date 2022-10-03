@@ -28,7 +28,7 @@ install_requirements = [
     "gunicorn==20.1.0",
     "elasticsearch==7.17.0",
     "PyYAML==6.0",
-    "pytz==2022.2.1",
+    "pytz==2022.4",
     "ocean-contracts==1.1.7",
     "web3==5.31.0",
     "gevent",
@@ -57,7 +57,7 @@ dev_requirements = [
 test_requirements = [
     "Flask==2.2.2",
     "codacy-coverage==1.3.11",
-    "coverage==6.4.4",
+    "coverage==6.5.0",
     "mccabe==0.6.1",
     "pylint==2.15.3",
     "pytest",
@@ -95,7 +95,7 @@ setup(
     url="https://github.com/oceanprotocol/aquarius",
     # fmt: off
     # bumpversion needs single quotes
-    version='4.4.1',
+    version='4.4.2',
     # fmt: on
     zip_safe=False,
 )

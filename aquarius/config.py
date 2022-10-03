@@ -27,6 +27,12 @@ config_defaults = {
 }
 
 
+def get_version():
+    conf = configparser.ConfigParser()
+    conf.read(".bumpversion.cfg")
+    return conf["bumpversion"]["current_version"]
+
+
 class Config(configparser.ConfigParser):
     def __init__(self, filename=None, **kwargs):
         """

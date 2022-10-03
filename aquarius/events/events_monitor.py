@@ -14,6 +14,7 @@ from jsonsempai import magic  # noqa: F401
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
 from aquarius.block_utils import BlockProcessingClass
+from aquarius.config import get_version
 from aquarius.retry_mechanism import RetryMechanism
 from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
@@ -377,7 +378,7 @@ class EventsMonitor(BlockProcessingClass):
         stored_block = self.get_last_processed_block()
         if block <= stored_block:
             return
-        record = {"last_block": block}
+        record = {"last_block": block, "version": get_version()}
         try:
             self._es_instance.es.index(
                 index=self._other_db_index,
@@ -490,7 +491,7 @@ class EventsMonitor(BlockProcessingClass):
             all_logs.extend(logs)
             if (_from - from_block) % 1000 == 0:
                 logger.debug(
-                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}"
+                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}; "
                     f"{len(all_logs)} {event_name} events detected so far."
                 )
 
