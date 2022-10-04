@@ -66,6 +66,7 @@ schema:MetadataShape
         sh:minCount 1;
         sh:maxCount 1;
         sh:maxLength 7000;
+        sh:minLength 10;
     ] ;
     sh:property [
         sh:path schema:copyrightHolder;
@@ -81,6 +82,7 @@ schema:MetadataShape
         sh:minCount 1;
         sh:maxCount 1;
         sh:maxLength 512;
+        sh:minLength 4;
     ] ;
     sh:property [
         sh:path schema:type;
