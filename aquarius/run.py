@@ -16,6 +16,7 @@ import os
 
 from aquarius.app.assets import assets
 from aquarius.app.chains import chains
+from aquarius.app.validation import validation
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value
 from aquarius.config import Config, get_version
@@ -89,6 +90,7 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 app.register_blueprint(swaggerui_blueprint, url_prefix=BaseURLs.SWAGGER_URL)
 app.register_blueprint(assets, url_prefix=BaseURLs.ASSETS_URL)
 app.register_blueprint(chains, url_prefix=BaseURLs.CHAINS_URL)
+app.register_blueprint(validation, url_prefix=BaseURLs.VALIDATION_URL)
 
 
 @app.cli.command("force_set_block")
