@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import time
+from distutils.util import strtobool
 from threading import Thread
 
 import elasticsearch
@@ -147,7 +148,9 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
-        if os.getenv("PROCESS_RETRY_QUEUE"):
+        process_queue = strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0"))
+
+        if process_queue:
             self.retry_mechanism.process_queue()
 
         last_block = self.get_last_processed_block()
