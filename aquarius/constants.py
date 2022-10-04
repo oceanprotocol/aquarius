@@ -28,6 +28,7 @@ class BaseURLs:
     SWAGGER_URL = "/api/docs"  # URL for exposing Swagger UI (without trailing '/')
     ASSETS_URL = BASE_AQUARIUS_URL + "/assets"
     CHAINS_URL = BASE_AQUARIUS_URL + "/chains"
+    VALIDATION_URL = BASE_AQUARIUS_URL + "/validation"
 
 
 class Metadata:

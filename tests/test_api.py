@@ -37,3 +37,17 @@ def test_invalid_requests(client_with_no_data, base_ddo_url, query_url):
         client_with_no_data.post, base_ddo_url + "/validate", "not a dict request"
     )
     assert response.status == "400 BAD REQUEST"
+
+
+def test_conversion(client, validation_url):
+    response = run_request(client.get, validation_url + "/schema?version=blabla")
+    assert response.status == "404 NOT FOUND"
+
+    response = run_request(client.get, validation_url + "/schema?version=4.1.0")
+    assert response.status == "200 OK"
+
+    response = run_request(client.get, validation_url + "/schema")
+    assert response.status == "200 OK"
+    response_json = response.json
+    assert response_json["version"]["maxLength"] == 16
+    response.json["credentials"]["deny"]["type"]["maxLength"] == 256
