@@ -305,7 +305,12 @@ class EventsMonitor(BlockProcessingClass):
                 receipt = self._web3.eth.get_transaction_receipt(
                     event.transactionHash.hex()
                 )
-                erc20_address = receipt.to
+                exchange_id = (
+                    fre.events.ExchangeCreated()
+                    .processReceipt(receipt)[0]
+                    .args.exchangeId
+                )
+                erc20_address = fre.caller.getExchange(exchange_id)[1]
             elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
                 receipt = self._web3.eth.get_transaction_receipt(
                     event.transactionHash.hex()
