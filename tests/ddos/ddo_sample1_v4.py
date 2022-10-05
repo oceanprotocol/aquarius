@@ -5,7 +5,7 @@
 json_dict = {
     "@context": ["https://w3id.org/did/v1"],
     "id": "did:op:601075d81cb25f2ceb669c8527c0186596a15baeebcc1a69be26960ada17d222",
-    "version": "4.3.0",
+    "version": "4.5.0",
     "chainId": 1337,
     "nftAddress": "0x37BB53e3d293494DE59fBe1FF78500423dcFd43B",
     "metadata": {

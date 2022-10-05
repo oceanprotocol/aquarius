@@ -205,3 +205,16 @@ def test_remote_ddo_metadata_fails():
 
     valid, errors = validate_dict(_copy, json_dict["chainId"], json_dict["nftAddress"])
     assert not valid
+
+
+def test_remote_ddo_without_service():
+    _copy = copy.deepcopy(json_dict)
+    _ = _copy.pop("services")
+    assert not _copy.get("services")
+    assert _copy["version"] == CURRENT_VERSION
+    valid, _ = validate_dict(
+        _copy,
+        _copy["chainId"],
+        _copy["nftAddress"],
+    )
+    assert valid
