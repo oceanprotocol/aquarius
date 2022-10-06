@@ -27,7 +27,7 @@ from aquarius.events.processors import (
     TokenURIUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
-from aquarius.events.veAllocate import VeAllocate
+from aquarius.events.ve_allocate import VeAllocate
 from aquarius.events.util import (
     get_metadata_start_block,
     get_defined_block,

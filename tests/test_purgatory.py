@@ -11,10 +11,8 @@ from requests.models import Response
 from aquarius.events.purgatory import Purgatory
 from tests.helpers import (
     get_ddo,
-    get_web3,
-    new_ddo,
-    send_create_update_tx,
-    test_account1,
+    publish_ddo
+    
 )
 
 
@@ -30,16 +28,6 @@ class PurgatoryForTesting(Purgatory):
             if env_var == "ASSET_PURGATORY_URL"
             else self.current_test_account_list
         )
-
-
-def publish_ddo(client, base_ddo_url, events_object):
-    ddo = new_ddo(test_account1, get_web3(), "dt.0")
-    did = ddo.id
-    send_create_update_tx("create", ddo, bytes([0]), test_account1)
-    events_object.process_current_blocks()
-
-    return did
-
 
 def test_purgatory_before_init(client, base_ddo_url, events_object, monkeypatch):
     monkeypatch.setenv(

@@ -8,14 +8,8 @@ from unittest.mock import Mock, patch
 from freezegun import freeze_time
 from requests.models import Response
 
-from aquarius.events.veAllocate import VeAllocate
-from tests.helpers import (
-    get_ddo,
-    get_web3,
-    new_ddo,
-    send_create_update_tx,
-    test_account1,
-)
+from aquarius.events.ve_allocate import VeAllocate
+from tests.helpers import get_ddo, publish_ddo
 
 
 class VeAllocateForTesting(VeAllocate):
@@ -25,15 +19,6 @@ class VeAllocateForTesting(VeAllocate):
 
     def retrieve_new_list(self, env_var):
         return self.current_test_asset_list if env_var == "VEALLOCATE_URL" else None
-
-
-def publish_ddo(client, base_ddo_url, events_object):
-    ddo = new_ddo(test_account1, get_web3(), "dt.0")
-    did = ddo.id
-    send_create_update_tx("create", ddo, bytes([0]), test_account1)
-    events_object.process_current_blocks()
-
-    return did
 
 
 def test_ve_allocate_with_assets(client, base_ddo_url, events_object, monkeypatch):

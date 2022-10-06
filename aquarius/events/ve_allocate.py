@@ -55,7 +55,7 @@ class VeAllocate:
         try:
             self._es_instance.update(json.dumps(asset), did)
         except Exception as e:
-            logger.warning(f"updating ddo {did} purgatory attribute failed: {e}")
+            logger.warning(f"updating ddo {did} stats.allocated attribute failed: {e}")
 
     def update_lists(self):
         """
@@ -73,9 +73,9 @@ class VeAllocate:
 
         ve_list = self.retrieve_new_list("VEALLOCATE_URL")
 
-        for nft, ve_allocated, chainID in ve_list:
+        for nft, ve_allocated, chain_id in ve_list:
             try:
-                did = make_did(nft, chainID)
+                did = make_did(nft, chain_id)
                 asset = self._es_instance.read(did)
                 self.update_asset(asset, ve_allocated)
             except elasticsearch.exceptions.NotFoundError:
