@@ -63,6 +63,15 @@ def get_ddo(client, base_ddo_url, did):
         return None
 
 
+def publish_ddo(client, base_ddo_url, events_object):
+    ddo = new_ddo(test_account1, get_web3(), "dt.0")
+    did = ddo.id
+    send_create_update_tx("create", ddo, bytes([0]), test_account1)
+    events_object.process_current_blocks()
+
+    return did
+
+
 def send_create_update_tx(name, ddo, flags, account):
     provider_url = "http://172.15.0.4:8030"
     provider_address = "0xe2DD09d719Da89e5a3D0F2549c7E24566e947260"

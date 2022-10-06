@@ -94,7 +94,11 @@ class EventProcessor(ABC):
         order_count, price = get_number_orders_price(
             self.dt_contract.address, self.block, self._chain_id
         )
-        record[AquariusCustomDDOFields.STATS] = {"orders": order_count, "price": price}
+        record[AquariusCustomDDOFields.STATS] = {
+            "allocated": 0,
+            "orders": order_count,
+            "price": price,
+        }
 
         return record, block_time
 

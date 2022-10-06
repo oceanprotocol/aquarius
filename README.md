@@ -63,6 +63,7 @@ The events monitor runs continuously to retrieve and index the chain Metadata. I
 - a Decryptor class that handles decompression and decryption on the chain data, through communication with Provider
 - a set of `ALLOWED_PUBLISHERS`, if such a restriction exists. You can set a limited number of allowed publisher addresses using this env variable.
 - a Purgatory, based on the `ASSET_PURGATORY_URL` and `ACCOUNT_PURGATORY_URL` env variables. These mark some assets as being in purgatory (`"isInPurgatory": True`), enabling restrictions for some assets or accounts.
+- a VeAllocate, based on the `VEALLOCATE_URL` and `VEALLOCATE_UPDATE_INTERVAL` env variables. This updates the veAllocation for datasets.
 - start blocks, if such defined using `BFACTORY_BLOCK` and `METADATA_CONTRACT_BLOCK`. These start blocks are coroborated with the last stored blocks per Elasticsearch, to avoid indexing multiple times
 
 The EventsMonitor processes block chunks as defined using `BLOCKS_CHUNK_SIZE`. For each block, it retrieves all `MetadataCreated` and `MetadataUpdated` events, and these events are processed inside the `MetadataCreatedProcessor` and `MetadataUpdatedProcessor` classes. These processors run the following flow:
@@ -141,6 +142,12 @@ ACCOUNT_PURGATORY_URL
 
 # Customise purgatory update (refresh) time (in number of minutes)
 PURGATORY_UPDATE_INTERVAL
+
+# URL for getting the veAllocation list. If not exists, the veAllocate will not be processed. Possible values are: https://df-sql.oceandao.org/nftinfo for mainnet and https://test-df-sql.oceandao.org/nftinfo for goerli, because veOCEAN is deployed only on this networks. All other networks SHOULD NOT HAVE this defined.  The list should be formatted as a list of dictionaries containing chainID,nft_addr and ve_allocated
+VEALLOCATE_URL
+
+# Customise veAllocate update (refresh) time (in number of minutes)
+VEALLOCATE_UPDATE_INTERVAL
 
 # The URL of the RBAC Permissions Server. If set, Aquarius will check permissions with RBAC. Leave empty/unset to skip RBAC permission checks.
 RBAC_SERVER_URL
