@@ -9,6 +9,7 @@ from datetime import datetime
 
 import elasticsearch
 import requests
+from web3 import Web3
 
 from aquarius.events.util import make_did
 
@@ -80,7 +81,7 @@ class VeAllocate:
         logger.info(f"veAllocate: Retrieved list of {len(ve_list)} assets to update")
 
         for nft, ve_allocated, chain_id in ve_list:
-            did = make_did(nft, chain_id)
+            did = make_did(Web3.toChecksumAddress(nft), chain_id)
             try:
                 asset = self._es_instance.read(did)
                 self.update_asset(asset, ve_allocated)

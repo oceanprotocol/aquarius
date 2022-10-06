@@ -225,7 +225,7 @@ def make_did(data_nft_address, chain_id):
     return "did:op:" + remove_0x_prefix(
         Web3.toHex(
             hashlib.sha256(
-                (Web3.toChecksumAddress(data_nft_address) + str(chain_id)).encode(
+                (data_nft_address + str(chain_id)).encode(
                     "utf-8"
                 )
             ).digest()
