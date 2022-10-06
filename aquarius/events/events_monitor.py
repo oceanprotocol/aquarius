@@ -27,6 +27,7 @@ from aquarius.events.processors import (
     TokenURIUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
+from aquarius.events.veAllocate import VeAllocate
 from aquarius.events.util import (
     get_metadata_start_block,
     get_defined_block,
@@ -101,6 +102,10 @@ class EventsMonitor(BlockProcessingClass):
             else None
         )
 
+        self.ve_allocate = (
+            VeAllocate(self._es_instance) if (os.getenv("VEALLOCATE_URL")) else None
+        )
+
         self.retry_mechanism = RetryMechanism(
             config_file, self._es_instance, self._retries_db_index, self.purgatory
         )
@@ -145,6 +150,12 @@ class EventsMonitor(BlockProcessingClass):
                 self.purgatory.update_lists()
             except (KeyError, Exception) as e:
                 logger.error(f"Error updating purgatory list: {str(e)}.")
+
+        if self.ve_allocate:
+            try:
+                self.ve_allocate.update_lists()
+            except (KeyError, Exception) as e:
+                logger.error(f"Error updating ve_allocate list: {str(e)}.")
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
