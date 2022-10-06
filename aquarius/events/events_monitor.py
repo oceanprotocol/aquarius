@@ -106,7 +106,7 @@ class EventsMonitor(BlockProcessingClass):
             VeAllocate(self._es_instance) if (os.getenv("VEALLOCATE_URL")) else None
         )
         allocate_message = (
-            "VeAllocate enabled" if self.purgatory else "VeAllocate disabled"
+            "VeAllocate enabled" if self.ve_allocate else "VeAllocate disabled"
         )
         logger.info(allocate_message)
         self.retry_mechanism = RetryMechanism(
