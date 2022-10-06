@@ -105,7 +105,10 @@ class EventsMonitor(BlockProcessingClass):
         self.ve_allocate = (
             VeAllocate(self._es_instance) if (os.getenv("VEALLOCATE_URL")) else None
         )
-
+        allocate_message = (
+            "Enabling veAllocate" if self.purgatory else "veAllocate is disabled"
+        )
+        logger.info("PURGATORY: " + allocate_message)
         self.retry_mechanism = RetryMechanism(
             config_file, self._es_instance, self._retries_db_index, self.purgatory
         )
@@ -141,21 +144,25 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         try:
+            logger.info("Starting process_current_blocks ....")
             self.process_current_blocks()
         except (KeyError, Exception) as e:
             logger.error(f"Error processing event: {str(e)}.")
 
-        if self.purgatory:
-            try:
-                self.purgatory.update_lists()
-            except (KeyError, Exception) as e:
-                logger.error(f"Error updating purgatory list: {str(e)}.")
-
         if self.ve_allocate:
+            logger.info("Starting ve_allocate.update_lists ....")
             try:
                 self.ve_allocate.update_lists()
             except (KeyError, Exception) as e:
                 logger.error(f"Error updating ve_allocate list: {str(e)}.")
+
+        if self.purgatory:
+            logger.info("Starting purgatory.update_lists ....")
+            try:
+                self.purgatory.update_lists()
+            except (KeyError, Exception) as e:
+                logger.error(f"Error updating purgatory list: {str(e)}.")
+        logger.info("do_run_monitor ended")
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""

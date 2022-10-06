@@ -137,6 +137,7 @@ IGNORE_LAST_BLOCK
 BLOCKS_CHUNK_SIZE
 
 # URLs of asset purgatory and account purgatory. If neither exists, the purgatory will not be processed. The list should be formatted as a list of dictionaries containing the address and reason. See https://github.com/oceanprotocol/list-purgatory/blob/main/list-accounts.json for an example
+# IMPORTANT.  If you are running multiple aquarius event monitors (for multiple chains), make sure that only one event-monitor will handle purgatory
 ASSET_PURGATORY_URL
 ACCOUNT_PURGATORY_URL
 
