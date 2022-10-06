@@ -37,7 +37,7 @@ class VeAllocate:
                 if a and "nft_addr" in a and "ve_allocated" in a and "chainID" in a
             }
 
-        logger.info(f"veAllocate: Failed to retrieve list from {env_var} env var.")
+        logger.error(f"veAllocate: Failed to retrieve list from {env_var} env var.")
         return set()
 
     def update_asset(self, asset, veAllocated):

@@ -144,25 +144,25 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         try:
-            logger.debug("Starting process_current_blocks ....")
+            logger.info("Starting process_current_blocks ....")
             self.process_current_blocks()
         except (KeyError, Exception) as e:
             logger.error(f"Error processing event: {str(e)}.")
 
         if self.ve_allocate:
-            logger.debug("Starting ve_allocate.update_lists ....")
+            logger.info("Starting ve_allocate.update_lists ....")
             try:
                 self.ve_allocate.update_lists()
             except (KeyError, Exception) as e:
                 logger.error(f"Error updating ve_allocate list: {str(e)}.")
 
         if self.purgatory:
-            logger.debug("Starting purgatory.update_lists ....")
+            logger.info("Starting purgatory.update_lists ....")
             try:
                 self.purgatory.update_lists()
             except (KeyError, Exception) as e:
                 logger.error(f"Error updating purgatory list: {str(e)}.")
-        logger.debug("do_run_monitor ended")
+        logger.info("do_run_monitor ended")
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
