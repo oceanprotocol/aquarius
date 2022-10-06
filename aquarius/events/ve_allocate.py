@@ -44,6 +44,8 @@ class VeAllocate:
         did = asset["id"]
         if "stats" not in asset:
             asset["stats"] = {"allocated": 0}
+        if "allocated" not in asset["stats"]:
+            asset["stats"]["allocated"] = 0
         if asset["stats"]["allocated"] != veAllocated:
             asset["stats"]["allocated"] = veAllocated
             logger.info(
