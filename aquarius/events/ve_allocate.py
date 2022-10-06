@@ -42,7 +42,9 @@ class VeAllocate:
         Updates the field `state.allocated`  in `asset` object.
         """
         did = asset["id"]
-        if asset["stats"]["allocated"]!=veAllocated:
+        if "stats" not in asset:
+            asset["stats"] = {"allocated": 0}
+        if asset["stats"]["allocated"] != veAllocated:
             asset["stats"]["allocated"] = veAllocated
             logger.info(
                 f"veAllocate: updating asset {did} with state.allocated={veAllocated}."
@@ -50,7 +52,9 @@ class VeAllocate:
             try:
                 self._es_instance.update(json.dumps(asset), did)
             except Exception as e:
-                logger.warning(f"updating ddo {did} stats.allocated attribute failed: {e}")
+                logger.warning(
+                    f"updating ddo {did} stats.allocated attribute failed: {e}"
+                )
         else:
             logger.debug(
                 f"veAllocate: asset {did} has unchanged state.allocated ({veAllocated})."
