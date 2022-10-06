@@ -28,9 +28,6 @@ class VeAllocate:
         response = requests.post(os.getenv(env_var))
 
         if response.status_code == requests.codes.ok:
-            logger.info(
-                f"veAllocate: Successfully retrieved list from {env_var} env var."
-            )
             return {
                 (a["nft_addr"], a["ve_allocated"], a["chainID"])
                 for a in response.json()
@@ -72,11 +69,13 @@ class VeAllocate:
         self.update_time = now
 
         ve_list = self.retrieve_new_list("VEALLOCATE_URL")
+        logger.info(f"veAllocate: Retrieved list of {len(ve_list)} assets to update")
 
         for nft, ve_allocated, chain_id in ve_list:
+            did = make_did(nft, chain_id)
             try:
-                did = make_did(nft, chain_id)
                 asset = self._es_instance.read(did)
                 self.update_asset(asset, ve_allocated)
             except elasticsearch.exceptions.NotFoundError:
+                logger.debug(f"Cannot find asset {did} for veAllocate update")
                 continue
