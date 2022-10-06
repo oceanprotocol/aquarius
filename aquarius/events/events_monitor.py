@@ -106,17 +106,17 @@ class EventsMonitor(BlockProcessingClass):
             VeAllocate(self._es_instance) if (os.getenv("VEALLOCATE_URL")) else None
         )
         allocate_message = (
-            "Enabling veAllocate" if self.purgatory else "veAllocate is disabled"
+            "VeAllocate enabled" if self.ve_allocate else "VeAllocate disabled"
         )
-        logger.info("PURGATORY: " + allocate_message)
+        logger.info(allocate_message)
         self.retry_mechanism = RetryMechanism(
             config_file, self._es_instance, self._retries_db_index, self.purgatory
         )
 
         purgatory_message = (
-            "Enabling purgatory" if self.purgatory else "Purgatory is disabled"
+            "Purgatory enabled" if self.purgatory else "Purgatory disabled"
         )
-        logger.info("PURGATORY: " + purgatory_message)
+        logger.info(purgatory_message)
 
     @property
     def block_envvar(self):
