@@ -9,11 +9,7 @@ from datetime import datetime, timedelta
 from requests.models import Response
 
 from aquarius.events.purgatory import Purgatory
-from tests.helpers import (
-    get_ddo,
-    publish_ddo
-    
-)
+from tests.helpers import get_ddo, publish_ddo
 
 
 class PurgatoryForTesting(Purgatory):
@@ -28,6 +24,7 @@ class PurgatoryForTesting(Purgatory):
             if env_var == "ASSET_PURGATORY_URL"
             else self.current_test_account_list
         )
+
 
 def test_purgatory_before_init(client, base_ddo_url, events_object, monkeypatch):
     monkeypatch.setenv(
