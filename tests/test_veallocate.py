@@ -43,12 +43,12 @@ def test_ve_allocate_with_assets(client, base_ddo_url, events_object, monkeypatc
     )
     did = publish_ddo(client, base_ddo_url, events_object)
 
-    purgatory = VeAllocateForTesting(events_object._es_instance)
+    veAllocate = VeAllocateForTesting(events_object._es_instance)
     published_ddo = get_ddo(client, base_ddo_url, did)
 
-    purgatory.current_test_asset_list = {
+    veAllocate.current_test_asset_list = {
         (published_ddo["nftAddress"], 100, published_ddo["chainId"])
     }
-    purgatory.update_lists()
+    veAllocate.update_lists()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["stats"]["allocated"] == 100

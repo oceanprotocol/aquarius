@@ -143,7 +143,7 @@ ACCOUNT_PURGATORY_URL
 # Customise purgatory update (refresh) time (in number of minutes)
 PURGATORY_UPDATE_INTERVAL
 
-# URL for getting the veAllocation list. If not exists, the veAllocate will not be processed. Possible values are: https://df-sql.oceandao.org/nftinfo for mainnet and https://test-df-sql.oceandao.org/nftinfo for goerli (because veOCEAN is deployed only on this networks. All other networks SHOULD NOT HAVE this defined.  The list should be formatted as a list of dictionaries containing chainID,nft_addr and ve_allocated
+# URL for getting the veAllocation list. If not exists, the veAllocate will not be processed. Possible values are: https://df-sql.oceandao.org/nftinfo for mainnet and https://test-df-sql.oceandao.org/nftinfo for goerli, because veOCEAN is deployed only on this networks. All other networks SHOULD NOT HAVE this defined.  The list should be formatted as a list of dictionaries containing chainID,nft_addr and ve_allocated
 VEALLOCATE_URL
 
 # Customise veAllocate update (refresh) time (in number of minutes)
