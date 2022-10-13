@@ -31,6 +31,9 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
     }
 
     response = requests.post(provider_url + "/api/services/decrypt", json=payload)
+    if response.status_code == 403:
+        # unauthorised decrypter
+        return False
 
     if not response or not hasattr(response, "status_code"):
         msg = f"Failed to get a response for decrypt DDO with provider={provider_url}, payload={payload}, response is {response.content}"
@@ -47,10 +50,16 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
 
         return json.loads(response_content)
 
-    if response.status_code == 403:
+    try:
+        content = json.loads(response_content)
+    except Exception as e:
+        logger.error("Failed to parse provider response as json")
+        raise Exception(f"in decrypt_ddo: Failed to parse provider response as json")
+
+    if "error" in content and content["error"] == "Decrypter not authorized":
         # unauthorised decrypter
         return False
 
-    msg = f"Provider exception on decrypt DDO: {response.content}\n provider URL={provider_url}, payload={payload}."
+    msg = f"Provider exception on decrypt DDO: {response.content}\n provider URL={provider_url}, payload={payload}, status_code: {response.status_code}."
     logger.error(msg)
     raise Exception(f"in decrypt_ddo: {msg}")
