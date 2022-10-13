@@ -174,13 +174,12 @@ class EventsMonitor(BlockProcessingClass):
             self.retry_mechanism.process_queue()
 
         last_block = self.get_last_processed_block()
-        current_block = self._web3.eth.block_number
-        # current_block = None
-        # try:
-        # except (KeyError, Exception) as e:
-        #    logger.error(f"Failed to get web3.eth.block_number {str(e)}.")
-        #    return
-        logger.debug(f"Web3 block:{current_block}")
+        current_block = None
+        try:
+            current_block = self._web3.eth.block_number
+        except (KeyError, Exception) as e:
+            logger.error(f"Failed to get web3.eth.block_number {str(e)}.")
+            return
         if (
             not current_block
             or not isinstance(current_block, int)
