@@ -53,8 +53,9 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
     try:
         content = json.loads(response_content)
     except Exception as e:
-        logger.error("Failed to parse provider response as json")
-        raise Exception(f"in decrypt_ddo: Failed to parse provider response as json")
+        msg = f"Provider exception on decrypt DDO: Failed to parse provider response as json."
+        logger.error(msg)
+        raise Exception(f"in decrypt_ddo: {msg}")
 
     if "error" in content and content["error"] == "Decrypter not authorized":
         # unauthorised decrypter
