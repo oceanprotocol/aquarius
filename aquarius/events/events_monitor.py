@@ -196,17 +196,9 @@ class EventsMonitor(BlockProcessingClass):
         for end_block_chunk in range(
             from_block, current_block, self.blockchain_chunk_size
         ):
-            logger.debug(
-                f"Start process_block_range({start_block_chunk}, {end_block_chunk})"
-            )
             self.process_block_range(start_block_chunk, end_block_chunk)
-            logger.debug("Done here")
             start_block_chunk = end_block_chunk
 
-        # Process last few blocks because range(start, end) doesn't include end
-        logger.debug(
-            f"Finally, start process_block_range({end_block_chunk}, {current_block})"
-        )
         self.process_block_range(end_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
