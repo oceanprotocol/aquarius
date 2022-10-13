@@ -105,7 +105,7 @@ class ElasticsearchInstance(object):
         :param resource_id: id of the object to be read.
         :return: object value from elasticsearch.
         """
-        logger.debug("elasticsearch::read::{}".format(resource_id))
+        # logger.debug("elasticsearch::read::{}".format(resource_id))
         return self.es.get(index=self.db_index, id=resource_id, doc_type="_doc")[
             "_source"
         ]

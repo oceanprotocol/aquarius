@@ -568,5 +568,6 @@ class TransferProcessor:
             receipt, errors=DISCARD
         )[0]
         self.asset["nft"]["owner"] = event_decoded.args.to
+        logger.debug(f"Update owner for {self.did} to {event_decoded.args.to}")
         self.es_instance.update(self.asset, self.did)
         return self.asset

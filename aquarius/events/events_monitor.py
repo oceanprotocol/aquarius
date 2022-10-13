@@ -33,6 +33,8 @@ from aquarius.events.util import (
     get_defined_block,
     get_fre,
     get_dispenser,
+    is_approved_fre,
+    is_approved_dispenser,
 )
 from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
@@ -172,7 +174,12 @@ class EventsMonitor(BlockProcessingClass):
             self.retry_mechanism.process_queue()
 
         last_block = self.get_last_processed_block()
-        current_block = self._web3.eth.block_number
+        current_block = None
+        try:
+            current_block = self._web3.eth.block_number
+        except (KeyError, Exception) as e:
+            logger.error(f"Failed to get web3.eth.block_number {str(e)}.")
+            return
         if (
             not current_block
             or not isinstance(current_block, int)
@@ -181,7 +188,9 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         from_block = last_block
-
+        logger.debug(
+            f"Web3 block:{current_block}, from:block {from_block}, chunk: {self.blockchain_chunk_size}"
+        )
         start_block_chunk = from_block
         for end_block_chunk in range(
             from_block, current_block, self.blockchain_chunk_size
@@ -189,7 +198,6 @@ class EventsMonitor(BlockProcessingClass):
             self.process_block_range(start_block_chunk, end_block_chunk)
             start_block_chunk = end_block_chunk
 
-        # Process last few blocks because range(start, end) doesn't include end
         self.process_block_range(end_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
@@ -221,8 +229,14 @@ class EventsMonitor(BlockProcessingClass):
         # event handling
         for event_name, events_to_process in all_events.items():
             if event_name == EventTypes.EVENT_TRANSFER:
+                logger.debug(
+                    f"Starting handle_transfer_ownership for {len(events_to_process)} events"
+                )
                 self.handle_transfer_ownership(events_to_process)
             elif event_name in regular_event_processors.keys():
+                logger.debug(
+                    f"Starting handle_regular_event_processor for {len(events_to_process)} events"
+                )
                 self.handle_regular_event_processor(
                     event_name,
                     regular_event_processors[event_name],
@@ -235,13 +249,24 @@ class EventsMonitor(BlockProcessingClass):
                 EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
                 EventTypes.EVENT_DISPENSER_CREATED,
             ]:
+                logger.debug(
+                    f"Starting handle_price_change for {len(events_to_process)} events"
+                )
                 self.handle_price_change(event_name, events_to_process, to_block)
             elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
+                logger.debug(
+                    f"Starting handle_token_uri_update for {len(events_to_process)} events"
+                )
                 self.handle_token_uri_update(events_to_process)
-
+            else:
+                logger.warning(f"Unknown event {event_name}")
+                logger.warning(events_to_process)
         self.store_last_processed_block(to_block)
 
     def get_all_events(self, from_block, to_block):
+        logger.debug(
+            f"**************Getting all events between {from_block} to {to_block}"
+        )
         all_events = {
             EventTypes.EVENT_TRANSFER: [],
             # "regular" events
@@ -268,10 +293,15 @@ class EventsMonitor(BlockProcessingClass):
 
             return all_events
         except Exception:
+            logger.info(f"Failed to get events from {from_block} to {to_block}")
             middle = int((from_block + to_block) / 2)
+            middle_plus = middle + 1
+            logger.info(
+                f"Splitting in two:  {from_block} -> {middle} and {middle_plus} to {to_block}"
+            )
             return merge_list_dictionary(
                 self.get_all_events(from_block, middle),
-                self.get_all_events(middle + 1, to_block),
+                self.get_all_events(middle_plus, to_block),
             )
 
     def handle_regular_event_processor(
@@ -315,42 +345,64 @@ class EventsMonitor(BlockProcessingClass):
                 )
 
     def handle_price_change(self, event_name, events, to_block):
-        fre = get_fre(self._web3, self._chain_id)
-        dispenser = get_dispenser(self._web3, self._chain_id)
-
         for event in events:
+            receipt = self._web3.eth.get_transaction_receipt(
+                event.transactionHash.hex()
+            )
+            erc20_address = None
             if event_name == EventTypes.EVENT_EXCHANGE_CREATED:
-                receipt = self._web3.eth.get_transaction_receipt(
-                    event.transactionHash.hex()
-                )
-                exchange_id = (
-                    fre.events.ExchangeCreated()
-                    .processReceipt(receipt)[0]
-                    .args.exchangeId
-                )
-                erc20_address = fre.caller.getExchange(exchange_id)[1]
+                if is_approved_fre(self._web3, event.address, self._chain_id):
+                    fre = get_fre(self._web3, self._chain_id, event.address)
+                    exchange_id = (
+                        fre.events.ExchangeCreated()
+                        .processReceipt(receipt)[0]
+                        .args.exchangeId
+                    )
+                    try:
+                        erc20_address = fre.caller.getExchange(exchange_id)[1]
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to get ERC20 address for {exchange_id} on fre: {event.address}:  {e}"
+                        )
+                    logger.debug(f"Erc20Addr:{erc20_address}")
+                else:
+                    logger.debug(
+                        f"Event {event_name} detected on unapproved fre {event.address}"
+                    )
             elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
-                receipt = self._web3.eth.get_transaction_receipt(
-                    event.transactionHash.hex()
-                )
-                exchange_id = (
-                    fre.events.ExchangeRateChanged()
-                    .processReceipt(receipt)[0]
-                    .args.exchangeId
-                )
-                erc20_address = fre.caller.getExchange(exchange_id)[1]
+                if is_approved_fre(self._web3, event.address, self._chain_id):
+                    fre = get_fre(self._web3, self._chain_id)
+                    exchange_id = (
+                        fre.events.ExchangeRateChanged()
+                        .processReceipt(receipt)[0]
+                        .args.exchangeId
+                    )
+                    try:
+                        erc20_address = fre.caller.getExchange(exchange_id)[1]
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to get ERC20 address for {exchange_id} on fre: {event.address}:  {e}"
+                        )
+                else:
+                    logger.debug(
+                        f"Event {event_name} detected on unapproved fre {event.address}"
+                    )
             elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
-                receipt = self._web3.eth.get_transaction_receipt(
-                    event.transactionHash.hex()
-                )
-                erc20_address = (
-                    dispenser.events.DispenserCreated()
-                    .processReceipt(receipt)[0]
-                    .args.datatokenAddress
-                )
+                if is_approved_dispenser(self._web3, event.address, self._chain_id):
+                    dispenser = get_dispenser(self._web3, self._chain_id)
+                    erc20_address = (
+                        dispenser.events.DispenserCreated()
+                        .processReceipt(receipt)[0]
+                        .args.datatokenAddress
+                    )
+                else:
+                    logger.debug(
+                        f"Event {event_name} detected on unapproved dispenser {event.address}"
+                    )
             else:
                 erc20_address = event.address
-
+            if erc20_address is None:
+                return
             erc20_contract = self._web3.eth.contract(
                 abi=ERC20Template.abi,
                 address=self._web3.toChecksumAddress(erc20_address),
@@ -389,7 +441,8 @@ class EventsMonitor(BlockProcessingClass):
                 event_processor = TransferProcessor(
                     event, self._web3, self._es_instance, self._chain_id
                 )
-                event_processor.process()
+                if event_processor.asset is not None:
+                    event_processor.process()
             except Exception as e:
                 logger.error(
                     f"Error processing token transfer event: {e}\n" f"event={event}"
@@ -428,6 +481,7 @@ class EventsMonitor(BlockProcessingClass):
     def store_last_processed_block(self, block):
         # make sure that we don't write a block < then needed
         stored_block = self.get_last_processed_block()
+        logger.debug(f"Storing last_processed_block {block}  (In Es: {stored_block})")
         if block <= stored_block:
             return
         record = {"last_block": block, "version": get_version()}
@@ -525,7 +579,7 @@ class EventsMonitor(BlockProcessingClass):
         _from = from_block
         _to = min(_from + chunk_size - 1, to_block)
 
-        logger.info(
+        logger.debug(
             f"Searching for {event_name} events on chain {self._chain_id} "
             f"in blocks {from_block} to {to_block}."
         )

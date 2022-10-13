@@ -16,7 +16,7 @@ from web3 import Web3
 from addresses import address as contract_addresses
 from aquarius.app.util import get_bool_env_value
 from aquarius.events.http_provider import get_web3_connection_provider
-from artifacts import ERC721Factory, FixedRateExchange, Dispenser
+from artifacts import ERC721Factory, FixedRateExchange, Dispenser, FactoryRouter
 from web3.logs import DISCARD
 
 
@@ -149,20 +149,51 @@ def get_dt_factory(web3, chain_id=None):
     return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
 
 
-def get_fre(web3, chain_id=None):
+def get_fre(web3, chain_id=None, address=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
-    address = get_address_of_type(web3, chain_id, "FixedPrice")
+    if not address:
+        address = get_address_of_type(web3, chain_id, "FixedPrice")
     abi = FixedRateExchange.abi
 
     return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
 
 
-def get_dispenser(web3, chain_id=None):
+def get_dispenser(web3, chain_id=None, address=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
-    address = get_address_of_type(web3, chain_id, "Dispenser")
+    if not address:
+        address = get_address_of_type(web3, chain_id, "Dispenser")
     abi = Dispenser.abi
 
     return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+
+
+def get_factory_contract(web3, chain_id=None):
+    chain_id = chain_id if chain_id else web3.eth.chain_id
+    address = get_address_of_type(web3, chain_id, "Router")
+    abi = FactoryRouter.abi
+    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+
+
+def is_approved_fre(web3, address, chain_id=None):
+    """Returns True if a fre is approved by Factory"""
+    valid = False
+    try:
+        router = get_factory_contract(web3, chain_id)
+        valid = router.caller.isFixedRateContract(address)
+    except Exception as e:
+        logger.warning(f"Failed to check is {address} is an approved fre:  {e}")
+    return valid
+
+
+def is_approved_dispenser(web3, address, chain_id=None):
+    """Returns True if a dispenser is approved by Factory"""
+    valid = False
+    try:
+        router = get_factory_contract(web3, chain_id)
+        valid = router.caller.isDispenserContract(address)
+    except Exception as e:
+        logger.warning(f"Failed to check is {address} is an approved dispenser:  {e}")
+    return valid
 
 
 def get_address_file():
