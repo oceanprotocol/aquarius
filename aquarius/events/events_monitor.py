@@ -174,12 +174,13 @@ class EventsMonitor(BlockProcessingClass):
             self.retry_mechanism.process_queue()
 
         last_block = self.get_last_processed_block()
-        try:
-            current_block = self._web3.eth.block_number
-        except (KeyError, Exception) as e:
-            logger.error(f"Failed to get web3.eth.block_number {str(e)}.")
-            return
-
+        current_block = self._web3.eth.block_number
+        # current_block = None
+        # try:
+        # except (KeyError, Exception) as e:
+        #    logger.error(f"Failed to get web3.eth.block_number {str(e)}.")
+        #    return
+        logger.debug(f"Web3 block:{current_block}")
         if (
             not current_block
             or not isinstance(current_block, int)
@@ -188,7 +189,9 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         from_block = last_block
-
+        logger.debug(
+            f"Web3 block:{current_block}, from:block {from_block}, chunk: {self.blockchain_chunk_size}"
+        )
         start_block_chunk = from_block
         for end_block_chunk in range(
             from_block, current_block, self.blockchain_chunk_size
@@ -197,13 +200,14 @@ class EventsMonitor(BlockProcessingClass):
                 f"Start process_block_range({start_block_chunk}, {end_block_chunk})"
             )
             self.process_block_range(start_block_chunk, end_block_chunk)
+            logger.debug("Done here")
             start_block_chunk = end_block_chunk
 
         # Process last few blocks because range(start, end) doesn't include end
         logger.debug(
-            f"Finally, start process_block_range({end_block_chunk}, {end_block_chunk})"
+            f"Finally, start process_block_range({end_block_chunk}, {current_block})"
         )
-        self.process_block_range(end_block_chunk, end_block_chunk)
+        self.process_block_range(end_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
         """Process a range of blocks."""
