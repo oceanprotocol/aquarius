@@ -87,7 +87,6 @@ class EventsMonitor(BlockProcessingClass):
         self._allowed_publishers = get_allowed_publishers()
         logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
-        self._monitor_is_on = False
         default_sleep_time = 10
         try:
             self._monitor_sleep_time = int(
@@ -119,60 +118,83 @@ class EventsMonitor(BlockProcessingClass):
             "Purgatory enabled" if self.purgatory else "Purgatory disabled"
         )
         logger.info(purgatory_message)
+        self._thread_process_blocks_is_on = False
+        self._thread_process_queue_is_on = False
+        self._thread_process_ve_allocate_is_on = False
+        self._thread_process_purgatory_is_on = False
 
     @property
     def block_envvar(self):
         return "METADATA_CONTRACT_BLOCK"
 
-    def start_events_monitor(self):
-        if self._monitor_is_on:
-            return
-
-        logger.info("Starting the events monitor.")
-        t = Thread(target=self.run_monitor, daemon=True)
-        self._monitor_is_on = True
-        t.start()
-
     def stop_monitor(self):
-        self._monitor_is_on = False
+        """Stops all threads for processing more data"""
+        self._thread_process_blocks_is_on = False
+        self._thread_process_queue_is_on = False
+        self._thread_process_ve_allocate_is_on = False
+        self._thread_process_purgatory_is_on = False
 
-    def run_monitor(self):
+    def start_events_monitor(self):
+        """Starts all needed threads, depending on config"""
+        logger.info("Starting the threads..")
+        t = Thread(target=self.thread_process_blocks, daemon=True)
+        self._thread_process_blocks_is_on = True
+        t.start()
+        if strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0")):
+            t = Thread(target=self.thread_process_queue, daemon=True)
+            self._thread_process_queue_is_on = True
+            t.start()
+        if self.ve_allocate:
+            t = Thread(target=self.thread_process_ve_allocate, daemon=True)
+            self._thread_process_ve_allocate_is_on = True
+            t.start()
+        if self.purgatory:
+            t = Thread(target=self.thread_process_purgatory, daemon=True)
+            self._thread_process_purgatory_is_on = True
+            t.start()
+
+    # main threads below
+    def thread_process_blocks(self):
         while True:
-            self.do_run_monitor()
+            if self._thread_process_blocks_is_on:
+                try:
+                    logger.info("Starting process_current_blocks ....")
+                    self.process_current_blocks()
+                except (KeyError, Exception) as e:
+                    logger.error(f"Error processing event: {str(e)}.")
             time.sleep(self._monitor_sleep_time)
 
-    def do_run_monitor(self):
-        if not self._monitor_is_on:
-            return
+    def thread_process_queue(self):
+        while True:
+            if self._thread_process_queue_is_on:
+                try:
+                    logger.info("Starting process_queue ....")
+                    self.retry_mechanism.process_queue()
+                except (KeyError, Exception) as e:
+                    logger.error(f"Error processing event: {str(e)}.")
+            time.sleep(self._monitor_sleep_time)
 
-        if strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0")):
-            logger.info("Starting process_queue ....")
-            try:
-                self.retry_mechanism.process_queue()
-            except (KeyError, Exception) as e:
-                logger.error(f"Error processing queue: {str(e)}.")
+    def thread_process_ve_allocate(self):
+        while True:
+            if self._thread_process_ve_allocate_is_on:
+                logger.info("Starting ve_allocate.update_lists ....")
+                try:
+                    self.ve_allocate.update_lists()
+                except (KeyError, Exception) as e:
+                    logger.error(f"Error updating ve_allocate list: {str(e)}.")
+            time.sleep(self._monitor_sleep_time)
 
-        try:
-            logger.info("Starting process_current_blocks ....")
-            self.process_current_blocks()
-        except (KeyError, Exception) as e:
-            logger.error(f"Error processing event: {str(e)}.")
+    def thread_process_purgatory(self):
+        while True:
+            if self._thread_process_purgatory_is_on:
+                logger.info("Starting purgatory.update_lists ....")
+                try:
+                    self.purgatory.update_lists()
+                except (KeyError, Exception) as e:
+                    logger.error(f"Error updating purgatory list: {str(e)}.")
+            time.sleep(self._monitor_sleep_time)
 
-        if self.ve_allocate:
-            logger.info("Starting ve_allocate.update_lists ....")
-            try:
-                self.ve_allocate.update_lists()
-            except (KeyError, Exception) as e:
-                logger.error(f"Error updating ve_allocate list: {str(e)}.")
-
-        if self.purgatory:
-            logger.info("Starting purgatory.update_lists ....")
-            try:
-                self.purgatory.update_lists()
-            except (KeyError, Exception) as e:
-                logger.error(f"Error updating purgatory list: {str(e)}.")
-        logger.info("do_run_monitor ended")
-
+    # various functions used by threads
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
 
