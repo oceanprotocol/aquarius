@@ -145,6 +145,13 @@ class EventsMonitor(BlockProcessingClass):
         if not self._monitor_is_on:
             return
 
+        if strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0")):
+            logger.info("Starting process_queue ....")
+            try:
+                self.retry_mechanism.process_queue()
+            except (KeyError, Exception) as e:
+                logger.error(f"Error processing queue: {str(e)}.")
+
         try:
             logger.info("Starting process_current_blocks ....")
             self.process_current_blocks()
@@ -168,10 +175,6 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_current_blocks(self):
         """Process all blocks from the last processed block to the current block."""
-        process_queue = strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0"))
-
-        if process_queue:
-            self.retry_mechanism.process_queue()
 
         last_block = self.get_last_processed_block()
         current_block = None
