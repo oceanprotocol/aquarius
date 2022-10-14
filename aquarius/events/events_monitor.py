@@ -146,6 +146,7 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         if strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0")):
+            logger.info("Starting process_queue ....")
             try:
                 self.retry_mechanism.process_queue()
             except (KeyError, Exception) as e:
