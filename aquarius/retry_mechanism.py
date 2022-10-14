@@ -121,7 +121,7 @@ class RetryMechanism:
     def handle_retry(self, tx_id, log_index, chain_id):
         try:
             # we don't need to wait more than 1 sec. if tx is not there, we will retry later
-            tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_id, 1)
+            tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_id, timeout=1)
         except Exception:
             return False, "Failed to get receipt, will try next time"
 
