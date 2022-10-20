@@ -111,7 +111,7 @@ class RetryMechanism:
             if success:
                 self.delete_by_id(element_id)
             else:
-                logger.info(f"Still unsuccessful. Will retry {element_id} again.")
+                logger.debug(f"Still unsuccessful. Will retry {element_id} again.")
                 self.add_to_retry_queue(
                     queue_element["tx_id"],
                     queue_element["log_index"],
@@ -119,7 +119,11 @@ class RetryMechanism:
                 )
 
     def handle_retry(self, tx_id, log_index, chain_id):
-        tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_id)
+        try:
+            # we don't need to wait more than 1 sec. if tx is not there, we will retry later
+            tx_receipt = self._web3.eth.wait_for_transaction_receipt(tx_id, timeout=1)
+        except Exception:
+            return False, "Failed to get receipt, will try next time"
 
         if len(tx_receipt.logs) <= log_index or log_index < 0:
             return False, f"Log index {log_index} not found"

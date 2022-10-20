@@ -175,45 +175,6 @@ def test_start_stop_events_monitor():
     monitor.stop_monitor()
 
 
-def test_run_monitor(monkeypatch):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
-    monitor.sleep_time = 1
-
-    monitor._monitor_is_on = False
-    assert monitor.do_run_monitor() is None
-
-    monitor._monitor_is_on = True
-    with patch(
-        "aquarius.events.events_monitor.EventsMonitor.process_current_blocks"
-    ) as mock:
-        mock.side_effect = Exception("Boom!")
-        assert monitor.do_run_monitor() is None
-
-    with patch(
-        "aquarius.events.events_monitor.EventsMonitor.process_current_blocks"
-    ) as mock:
-        monitor.do_run_monitor()
-        mock.assert_called_once()
-
-
-def test_run_monitor_purgatory(monkeypatch):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    monkeypatch.setenv(
-        "ASSET_PURGATORY_URL",
-        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-assets.json",
-    )
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
-    monitor._monitor_is_on = True
-    with patch("aquarius.events.purgatory.Purgatory.update_lists") as mock:
-        monitor.do_run_monitor()
-        mock.assert_called_once()
-
-    with patch("aquarius.events.purgatory.Purgatory.update_lists") as mock:
-        mock.side_effect = Exception("Boom!")
-        monitor.do_run_monitor()
-
-
 def test_process_block_range(client, base_ddo_url, events_object):
     config_file = app.config["AQUARIUS_CONFIG_FILE"]
     monitor = EventsMonitor(setup_web3(config_file), config_file)
