@@ -234,89 +234,19 @@ class EventsMonitor(BlockProcessingClass):
         if from_block > to_block:
             return
 
-        processor_args = [
-            self._es_instance,
-            self._web3,
-            self._allowed_publishers,
-            self.purgatory,
-            self._chain_id,
-        ]
-
         # event retrieval
-        all_events = self.get_all_events(from_block, to_block)
-
-        regular_event_processors = {
-            EventTypes.EVENT_METADATA_CREATED: MetadataCreatedProcessor,
-            EventTypes.EVENT_METADATA_UPDATED: MetadataUpdatedProcessor,
-            EventTypes.EVENT_METADATA_STATE: MetadataStateProcessor,
-        }
-
-        # event handling
-        for event_name, events_to_process in all_events.items():
-            if event_name == EventTypes.EVENT_TRANSFER:
-                logger.debug(
-                    f"Starting handle_transfer_ownership for {len(events_to_process)} events"
-                )
-                self.handle_transfer_ownership(events_to_process)
-            elif event_name in regular_event_processors.keys():
-                logger.debug(
-                    f"Starting handle_regular_event_processor for {len(events_to_process)} events"
-                )
-                self.handle_regular_event_processor(
-                    event_name,
-                    regular_event_processors[event_name],
-                    processor_args,
-                    events_to_process,
-                )
-            elif event_name in [
-                EventTypes.EVENT_ORDER_STARTED,
-                EventTypes.EVENT_EXCHANGE_CREATED,
-                EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
-                EventTypes.EVENT_DISPENSER_CREATED,
-            ]:
-                logger.debug(
-                    f"Starting handle_price_change for {len(events_to_process)} events"
-                )
-                self.handle_price_change(event_name, events_to_process, to_block)
-            elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
-                logger.debug(
-                    f"Starting handle_token_uri_update for {len(events_to_process)} events"
-                )
-                self.handle_token_uri_update(events_to_process)
-            else:
-                logger.warning(f"Unknown event {event_name}")
-                logger.warning(events_to_process)
-        self.store_last_processed_block(to_block)
+        self.get_all_events(from_block, to_block)
 
     def get_all_events(self, from_block, to_block):
         logger.debug(
             f"**************Getting all events between {from_block} to {to_block}"
         )
-        all_events = {
-            EventTypes.EVENT_TRANSFER: [],
-            # "regular" events
-            EventTypes.EVENT_METADATA_CREATED: [],
-            EventTypes.EVENT_METADATA_UPDATED: [],
-            EventTypes.EVENT_METADATA_STATE: [],
-            # price changed events
-            EventTypes.EVENT_ORDER_STARTED: [],
-            EventTypes.EVENT_EXCHANGE_CREATED: [],
-            EventTypes.EVENT_EXCHANGE_RATE_CHANGED: [],
-            EventTypes.EVENT_DISPENSER_CREATED: [],
-            #
-            EventTypes.EVENT_TOKEN_URI_UPDATE: [],
-        }
-
         if from_block >= to_block:
-            return all_events
+            return
 
         try:
-            for event_name in all_events.keys():
-                all_events[event_name] = self.get_event_logs(
-                    event_name, from_block, to_block
-                )
+            self.get_event_logs(from_block, to_block)
 
-            return all_events
         except Exception:
             logger.info(f"Failed to get events from {from_block} to {to_block}")
             middle = int((from_block + to_block) / 2)
@@ -324,10 +254,9 @@ class EventsMonitor(BlockProcessingClass):
             logger.info(
                 f"Splitting in two:  {from_block} -> {middle} and {middle_plus} to {to_block}"
             )
-            return merge_list_dictionary(
-                self.get_all_events(from_block, middle),
-                self.get_all_events(middle_plus, to_block),
-            )
+            self.get_all_events(from_block, middle)
+            self.get_all_events(middle_plus, to_block)
+            return
 
     def handle_regular_event_processor(
         self, event_name, processor, processor_args, events
@@ -574,70 +503,80 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block, chunk_size=1000):
-        if event_name not in EventTypes.get_all_values():
-            return []
-
-        if event_name == EventTypes.EVENT_METADATA_CREATED:
-            hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_METADATA_UPDATED:
-            hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_METADATA_STATE:
-            hash_text = "MetadataState(address,uint8,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
-            hash_text = "TokenURIUpdate(address,string,uint256,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_EXCHANGE_CREATED:
-            hash_text = "ExchangeCreated(bytes32,address,address,address,uint256)"
-        elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
-            hash_text = "ExchangeRateChanged(bytes32,address,uint256)"
-        elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
-            hash_text = "DispenserCreated(address,address,uint256,uint256,address)"
-        elif event_name == EventTypes.EVENT_TRANSFER:
-            hash_text = "Transfer(address,address,uint256)"
-        else:
-            hash_text = (
-                "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
-            )
-
-        event_signature_hash = self._web3.keccak(text=hash_text).hex()
-
+    def get_event_logs(self, from_block, to_block, chunk_size=1000):
         _from = from_block
         _to = min(_from + chunk_size - 1, to_block)
 
         logger.debug(
-            f"Searching for {event_name} events on chain {self._chain_id} "
+            f"Searching for events events on chain {self._chain_id} "
             f"in blocks {from_block} to {to_block}."
         )
 
         filter_params = {
-            "topics": [event_signature_hash],
+            "topics": [[d["hash"] for d in EventTypes.list]],
             "fromBlock": _from,
             "toBlock": _to,
         }
 
-        all_logs = []
-        while _from <= to_block:
-            # Search current chunk
-            logs = self._web3.eth.get_logs(filter_params)
-            all_logs.extend(logs)
-            if (_from - from_block) % 1000 == 0:
-                logger.debug(
-                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}; "
-                    f"{len(all_logs)} {event_name} events detected so far."
+        processor_args = [
+            self._es_instance,
+            self._web3,
+            self._allowed_publishers,
+            self.purgatory,
+            self._chain_id,
+        ]
+
+        logs = self._web3.eth.get_logs(filter_params)
+        logger.debug(f"{len(logs)} events detected so far.")
+        # event handling
+        for event in logs:
+            match = next(
+                (
+                    item
+                    for item in EventTypes.list
+                    if item["hash"] == event.topics[0].hex()
+                ),
+                None,
+            )
+            if match is None:
+                logger.warning(f"Unknown event ")
+                logger.warning([event])
+                continue
+            if match["type"] == EventTypes.EVENT_TRANSFER:
+                self.handle_transfer_ownership([event])
+            elif match["type"] == EventTypes.EVENT_METADATA_CREATED:
+                self.handle_regular_event_processor(
+                    match["type"],
+                    MetadataCreatedProcessor,
+                    processor_args,
+                    [event],
                 )
+            elif match["type"] == EventTypes.EVENT_METADATA_UPDATED:
+                self.handle_regular_event_processor(
+                    match["type"],
+                    MetadataUpdatedProcessor,
+                    processor_args,
+                    [event],
+                )
+            elif match["type"] == EventTypes.EVENT_METADATA_STATE:
+                self.handle_regular_event_processor(
+                    match["type"],
+                    MetadataStateProcessor,
+                    processor_args,
+                    [event],
+                )
+            elif match["type"] in [
+                EventTypes.EVENT_ORDER_STARTED,
+                EventTypes.EVENT_EXCHANGE_CREATED,
+                EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
+                EventTypes.EVENT_DISPENSER_CREATED,
+            ]:
+                self.handle_price_change(match["type"], [event], to_block)
+            elif match["type"] == EventTypes.EVENT_TOKEN_URI_UPDATE:
+                self.handle_token_uri_update([event])
 
-            # Prepare for next chunk
-            _from = _to + 1
-            _to = min(_from + chunk_size - 1, to_block)
-            filter_params.update({"fromBlock": _from, "toBlock": _to})
-
-        logger.info(
-            f"Finished searching for {event_name} events on chain {self._chain_id} "
-            f"in blocks {from_block} to {to_block}. "
-            f"{len(all_logs)} {event_name} events detected."
-        )
-
-        return all_logs
+            self.store_last_processed_block(_to)
+        return
 
 
 def merge_list_dictionary(dict_1, dict_2):

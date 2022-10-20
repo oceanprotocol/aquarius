@@ -253,10 +253,6 @@ def test_add_chain_id_to_chains_list(events_object):
         assert events_object.add_chain_id_to_chains_list() is None
 
 
-def test_get_event_logs(events_object):
-    assert events_object.get_event_logs("NonExistentEvent", 0, 10) == []
-
-
 def test_order_started(events_object, client, base_ddo_url):
     web3 = events_object._web3  # get_web3()
     block = web3.eth.block_number
