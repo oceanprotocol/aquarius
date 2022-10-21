@@ -227,21 +227,12 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_block_range(self, from_block, to_block):
         """Process a range of blocks."""
-        logger.debug(
-            f"Metadata monitor (chain: {self._chain_id})>>>> from_block:{from_block}, current_block:{to_block} <<<<"
-        )
-
-        if from_block > to_block:
-            return
-
         # event retrieval
-        self.get_all_events(from_block, to_block)
-
-    def get_all_events(self, from_block, to_block):
-        logger.debug(
-            f"**************Getting all events between {from_block} to {to_block}"
-        )
-        if from_block >= to_block:
+        # self.get_all_events(from_block, to_block)
+        # logger.info(
+        #    f"**************Getting all events between {from_block} to {to_block}"
+        # )
+        if from_block > to_block:
             return
 
         try:
@@ -254,8 +245,8 @@ class EventsMonitor(BlockProcessingClass):
             logger.info(
                 f"Splitting in two:  {from_block} -> {middle} and {middle_plus} to {to_block}"
             )
-            self.get_all_events(from_block, middle)
-            self.get_all_events(middle_plus, to_block)
+            self.process_block_range(from_block, middle)
+            self.process_block_range(middle_plus, to_block)
             return
 
     def handle_regular_event_processor(
@@ -414,7 +405,7 @@ class EventsMonitor(BlockProcessingClass):
                     logging.error(f"Elasticsearch error: {es_err}")
                 logging.error("Connection to ES failed. Trying to connect to back...")
                 time.sleep(5)
-            logging.info("Stable connection to ES.")
+            # logging.info("Stable connection to ES.")
             last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
@@ -507,7 +498,7 @@ class EventsMonitor(BlockProcessingClass):
         _from = from_block
         _to = min(_from + chunk_size - 1, to_block)
 
-        logger.debug(
+        logger.info(
             f"Searching for events events on chain {self._chain_id} "
             f"in blocks {from_block} to {to_block}."
         )
@@ -527,7 +518,7 @@ class EventsMonitor(BlockProcessingClass):
         ]
 
         logs = self._web3.eth.get_logs(filter_params)
-        logger.debug(f"{len(logs)} events detected so far.")
+        logger.info(f"{len(logs)} events detected so far.")
         # event handling
         for event in logs:
             match = next(
@@ -575,7 +566,7 @@ class EventsMonitor(BlockProcessingClass):
             elif match["type"] == EventTypes.EVENT_TOKEN_URI_UPDATE:
                 self.handle_token_uri_update([event])
 
-            self.store_last_processed_block(_to)
+        self.store_last_processed_block(_to)
         return
 
 
