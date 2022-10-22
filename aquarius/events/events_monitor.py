@@ -226,7 +226,9 @@ class EventsMonitor(BlockProcessingClass):
         self.process_block_range(end_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
-        """Process a range of blocks."""
+        """Process a range of blocks.
+        If fails, and possible, try to split the chunk in two and try again
+        """
         if from_block > to_block:
             return
 
