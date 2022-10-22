@@ -528,7 +528,6 @@ class EventsMonitor(BlockProcessingClass):
                         "fromBlock": from_block,
                         "toBlock": to_block,
                     }
-                    logger.error(filter_params)
                     try:
                         logs = self._web3.eth.get_logs(filter_params)
                         self.process_logs(logs, to_block)
