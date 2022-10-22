@@ -227,11 +227,6 @@ class EventsMonitor(BlockProcessingClass):
 
     def process_block_range(self, from_block, to_block):
         """Process a range of blocks."""
-        # event retrieval
-        # self.get_all_events(from_block, to_block)
-        # logger.info(
-        #    f"**************Getting all events between {from_block} to {to_block}"
-        # )
         if from_block > to_block:
             return
 
@@ -240,13 +235,19 @@ class EventsMonitor(BlockProcessingClass):
 
         except Exception:
             logger.info(f"Failed to get events from {from_block} to {to_block}")
-            middle = int((from_block + to_block) / 2)
-            middle_plus = middle + 1
-            logger.info(
-                f"Splitting in two:  {from_block} -> {middle} and {middle_plus} to {to_block}"
-            )
-            self.process_block_range(from_block, middle)
-            self.process_block_range(middle_plus, to_block)
+            # if we can split it in two, just do it
+            if from_block < to_block:
+                middle = int((from_block + to_block) / 2)
+                middle_plus = middle + 1
+                logger.info(
+                    f"Splitting in two:  {from_block} -> {middle} and {middle_plus} to {to_block}"
+                )
+                self.process_block_range(from_block, middle)
+                self.process_block_range(middle_plus, to_block)
+            else:
+                logger.error(
+                    f"Failed to get some events from block {from_block}. Nothing we can do anymore.."
+                )
             return
 
     def handle_regular_event_processor(
@@ -494,21 +495,52 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, from_block, to_block, chunk_size=1000):
-        _from = from_block
-        _to = min(_from + chunk_size - 1, to_block)
-
+    def get_event_logs(self, from_block, to_block):
+        """Get all events from -> to and process them.
+        If that fails, and we tried with multiple blocks, let split handle it
+        If that fails, and we tried on a single block, then try to get events one by one instead of all
+        """
         logger.info(
             f"Searching for events events on chain {self._chain_id} "
             f"in blocks {from_block} to {to_block}."
         )
 
         filter_params = {
-            "topics": [[d["hash"] for d in EventTypes.list]],
-            "fromBlock": _from,
-            "toBlock": _to,
+            "topics": [list(EventTypes.hashes.keys())],
+            "fromBlock": from_block,
+            "toBlock": to_block,
         }
 
+        try:
+            logs = self._web3.eth.get_logs(filter_params)
+        except Exception as e:
+            if from_block < to_block:
+                # splitting in two might help, so rely on that
+                raise Exception(f"Failed to get events for multiple blocks")
+            else:
+                # Since there is only one block, and we failed to get all events, we need to try to take them one by one
+                # if any call fails, there is nothing more we can do  (ie:  failed to get only transfer events from block X)
+                for topic in EventTypes.hashes:
+                    filter_params = {
+                        "topics": [topic],
+                        "fromBlock": from_block,
+                        "toBlock": to_block,
+                    }
+                    logger.error(filter_params)
+                    try:
+                        logs = self._web3.eth.get_logs(filter_params)
+                        self.process_logs(logs, to_block)
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {from_block}.  Bailing out.."
+                        )
+                return
+        self.process_logs(logs, to_block)
+        # finally, stored last block in ES
+        self.store_last_processed_block(to_block)
+
+    def process_logs(self, logs, to_block):
+        """Process a list of logs"""
         processor_args = [
             self._es_instance,
             self._web3,
@@ -517,18 +549,9 @@ class EventsMonitor(BlockProcessingClass):
             self._chain_id,
         ]
 
-        logs = self._web3.eth.get_logs(filter_params)
-        logger.info(f"{len(logs)} events detected so far.")
-        # event handling
+        logger.info(f"Processing {len(logs)} events ...")
         for event in logs:
-            match = next(
-                (
-                    item
-                    for item in EventTypes.list
-                    if item["hash"] == event.topics[0].hex()
-                ),
-                None,
-            )
+            match = EventTypes.hashes.get(event.topics[0].hex(), None)
             if match is None:
                 logger.warning(f"Unknown event ")
                 logger.warning([event])
@@ -566,7 +589,6 @@ class EventsMonitor(BlockProcessingClass):
             elif match["type"] == EventTypes.EVENT_TOKEN_URI_UPDATE:
                 self.handle_token_uri_update([event])
 
-        self.store_last_processed_block(_to)
         return
 
 
