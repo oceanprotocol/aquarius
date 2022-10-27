@@ -60,8 +60,8 @@ test_requirements = [
     "coverage==6.5.0",
     "mccabe==0.6.1",
     "pylint==2.15.4",
-    "pytest",
-    "pytest-env",
+    "pytest==7.1.3",
+    "pytest-env==0.6.2",
     "freezegun==1.2.2",
 ]
 
