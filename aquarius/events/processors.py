@@ -551,13 +551,15 @@ class TransferProcessor:
         self.web3 = web3
 
         try:
-            self.asset = self.es_instance.read(self.did)
+            # self.asset = self.es_instance.read(self.did)
+            self.asset = self.es_instance.exists(self.did)
         except Exception:
             self.asset = None
 
     def process(self):
         if not self.asset:
             return
+        self.asset = self.es_instance.read(self.did)
 
         erc721_contract = self.web3.eth.contract(
             abi=ERC721Template.abi,
