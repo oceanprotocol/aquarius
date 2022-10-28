@@ -35,7 +35,7 @@ def add_assets(_events_object, name, total=5):
         txs.append(send_create_update_tx("create", ddo, bytes([1]), test_account1)[0])
 
     # process all new ddo, starting from original block, before the txs
-    _events_object.store_last_processed_block(block)
+    _events_object.store_last_processed_block(block - 1)
     for ddo in assets:
         _events_object.process_current_blocks()
 
