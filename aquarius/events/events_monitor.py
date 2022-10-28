@@ -217,12 +217,14 @@ class EventsMonitor(BlockProcessingClass):
             f"Web3 block:{current_block}, from:block {from_block}, chunk: {self.blockchain_chunk_size}"
         )
         start_block_chunk = from_block
-        for end_block_chunk in range(
-            from_block, current_block, self.blockchain_chunk_size
-        ):
-            self.process_block_range(start_block_chunk, end_block_chunk)
-            start_block_chunk = end_block_chunk
-
+        steps = range(from_block, current_block, self.blockchain_chunk_size)
+        # if we only have one step, it will be processed at line #228 anyway
+        if len(steps) > 1:
+            for end_block_chunk in steps:
+                self.process_block_range(start_block_chunk, end_block_chunk)
+                start_block_chunk = end_block_chunk
+        else:
+            end_block_chunk = start_block_chunk
         self.process_block_range(end_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
