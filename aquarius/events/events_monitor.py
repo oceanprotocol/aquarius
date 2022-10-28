@@ -436,7 +436,7 @@ class EventsMonitor(BlockProcessingClass):
     def store_last_processed_block(self, block):
         # make sure that we don't write a block < then needed
         stored_block = self.get_last_processed_block()
-        logger.debug(f"Storing last_processed_block {block}  (In Es: {stored_block})")
+        logger.info(f"Storing last_processed_block {block}  (In Es: {stored_block})")
         if block <= stored_block:
             return
         record = {"last_block": block, "version": get_version()}
