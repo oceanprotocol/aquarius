@@ -242,7 +242,7 @@ class EventsMonitor(BlockProcessingClass):
         try:
             self.get_event_logs(from_block, to_block)
 
-        except Exception:
+        except Exception as e:
             logger.info(f"Failed to get events from {from_block} to {to_block}")
             # if we can split it in two, just do it
             if from_block < to_block:
@@ -254,8 +254,9 @@ class EventsMonitor(BlockProcessingClass):
                 self.process_block_range(from_block, middle)
                 self.process_block_range(middle_plus, to_block)
             else:
+                # so we failed to process a single block. we should never reach this
                 logger.error(
-                    f"Failed to get some events from block {from_block}. Nothing we can do anymore.."
+                    f"Failed to get some events from block {from_block}. Error: {e} Nothing we can do anymore.."
                 )
             return
 
