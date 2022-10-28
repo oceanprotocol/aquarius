@@ -212,10 +212,15 @@ class EventsMonitor(BlockProcessingClass):
         ):
             return
 
-        from_block = last_block
+        from_block = (
+            last_block + 1
+        )  # we don't need to process last block again, it's a waste of rpc
         logger.debug(
             f"Web3 block:{current_block}, from:block {from_block}, chunk: {self.blockchain_chunk_size}"
         )
+        if from_block > current_block:
+            # nothing to do for now
+            return
         start_block_chunk = from_block
         steps = range(from_block, current_block, self.blockchain_chunk_size)
         # if we only have one step, it will be processed at line #228 anyway
