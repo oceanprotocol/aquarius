@@ -544,7 +544,12 @@ class EventsMonitor(BlockProcessingClass):
                             f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {from_block}.  Bailing out.."
                         )
                 return
-        self.process_logs(logs, to_block)
+        try:
+            self.process_logs(logs, to_block)
+        except Exception as e:
+            logger.error(
+                f"Failed to process logs {from_block} to {to_block}. Error: {e}"
+            )
         # finally, stored last block in ES
         self.store_last_processed_block(to_block)
 
