@@ -16,7 +16,9 @@ from artifacts import ERC20Template, ERC721Template, FixedRateExchange
 from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
 from jsonsempai import magic  # noqa: F401
+from web3.logs import DISCARD
 from web3.main import Web3
+
 
 from aquarius.app.util import get_aquarius_wallet
 from aquarius.config import get_version
@@ -650,7 +652,9 @@ def test_exchange_created(events_object, client, base_ddo_url):
     fre = get_fre(web3)
     rate = 2 * rate
     exchange_id = (
-        fre.events.ExchangeCreated().processReceipt(receipt)[0].args.exchangeId
+        fre.events.ExchangeCreated()
+        .processReceipt(receipt, errors=DISCARD)[0]
+        .args.exchangeId
     )
     tx = fre.functions.setRate(exchange_id, rate).transact(
         {"from": test_account1.address}

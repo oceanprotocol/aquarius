@@ -311,7 +311,7 @@ class EventsMonitor(BlockProcessingClass):
                     fre = get_fre(self._web3, self._chain_id, event.address)
                     exchange_id = (
                         fre.events.ExchangeCreated()
-                        .processReceipt(receipt)[0]
+                        .processReceipt(receipt, errors=DISCARD)[0]
                         .args.exchangeId
                     )
                     try:
@@ -330,7 +330,7 @@ class EventsMonitor(BlockProcessingClass):
                     fre = get_fre(self._web3, self._chain_id)
                     exchange_id = (
                         fre.events.ExchangeRateChanged()
-                        .processReceipt(receipt)[0]
+                        .processReceipt(receipt, errors=DISCARD)[0]
                         .args.exchangeId
                     )
                     try:
@@ -348,7 +348,7 @@ class EventsMonitor(BlockProcessingClass):
                     dispenser = get_dispenser(self._web3, self._chain_id)
                     erc20_address = (
                         dispenser.events.DispenserCreated()
-                        .processReceipt(receipt)[0]
+                        .processReceipt(receipt, errors=DISCARD)[0]
                         .args.datatokenAddress
                     )
                 else:
