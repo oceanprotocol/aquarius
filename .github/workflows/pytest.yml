@@ -42,7 +42,7 @@ jobs:
           stack-version: 7.14.2
       - name: Test with pytest
         run: |
-            coverage run --source aquarius -m py.test
+            coverage run --source aquarius -m pytest
             coverage report
             coverage xml
       - name: Publish code coverage
