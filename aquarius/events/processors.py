@@ -424,7 +424,7 @@ class OrderStartedProcessor:
         self.last_sync_block = last_sync_block
 
         try:
-            self.asset = self.es_instance.read(self.did)
+            self.asset = self.es_instance.exists(self.did)
         except Exception:
             logger.debug(f"Asset {self.did} is missing from ES.")
             self.asset = None
@@ -432,7 +432,7 @@ class OrderStartedProcessor:
     def process(self):
         if not self.asset:
             return
-
+        self.asset = self.es_instance.read(self.did)
         logger.debug(f"Retrieving number of orders for {self.token_address}.")
         number_orders, price = get_number_orders_price(
             self.token_address, self.last_sync_block, self.chain_id
@@ -454,14 +454,14 @@ class TokenURIUpdatedProcessor:
         self.web3 = web3
 
         try:
-            self.asset = self.es_instance.read(self.did)
+            self.asset = self.es_instance.exists(self.did)
         except Exception:
             self.asset = None
 
     def process(self):
         if not self.asset:
             return
-
+        self.asset = self.es_instance.read(self.did)
         erc721_contract = self.web3.eth.contract(
             abi=ERC721Template.abi,
             address=self.web3.toChecksumAddress(self.event.address),
@@ -551,7 +551,6 @@ class TransferProcessor:
         self.web3 = web3
 
         try:
-            # self.asset = self.es_instance.read(self.did)
             self.asset = self.es_instance.exists(self.did)
         except Exception:
             self.asset = None
