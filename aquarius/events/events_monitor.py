@@ -523,7 +523,7 @@ class EventsMonitor(BlockProcessingClass):
         return object_list
 
     def get_event_logs_for_one_block(self, block):
-        """Get events for ont topic at a time from one block -> multiple rpc calls
+        """Get events for one topic at a time from one block -> multiple rpc calls
 
         Args:
             block: block to index
