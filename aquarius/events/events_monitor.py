@@ -240,7 +240,7 @@ class EventsMonitor(BlockProcessingClass):
             return
 
         try:
-            self.get_event_logs(from_block, to_block)
+            self.get_and_process_logs(from_block, to_block)
 
         except Exception as e:
             logger.info(f"Failed to get events from {from_block} to {to_block}")
@@ -522,7 +522,7 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs_for_one_block(self, block):
+    def get_and_process_event_logs_for_one_block(self, block):
         """Get events for one topic at a time from one block -> multiple rpc calls
 
         Args:
@@ -543,7 +543,7 @@ class EventsMonitor(BlockProcessingClass):
                 )
         return
 
-    def get_event_logs(self, from_block, to_block):
+    def get_and_process_logs(self, from_block, to_block):
         """Get all events from -> to in a single call and process them.
         If that fails, and we tried with multiple blocks, let split handle it
         If that fails, and we tried on a single block, then try to get events one by one instead of all
@@ -572,7 +572,7 @@ class EventsMonitor(BlockProcessingClass):
             else:
                 # Since there is only one block, and we failed to get all events, we need to try to take them one by one
                 # if any call fails, there is nothing more we can do  (ie:  failed to get only transfer events from block X)
-                self.get_event_logs_for_one_block(from_block)
+                self.get_and_process_event_logs_for_one_block(from_block)
                 return
         try:
             self.process_logs(logs, to_block)
