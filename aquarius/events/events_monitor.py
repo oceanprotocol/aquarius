@@ -522,8 +522,29 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
+    def get_event_logs_for_one_block(self, block):
+        """Get events for ont topic at a time from one block -> multiple rpc calls
+
+        Args:
+            block: block to index
+        """
+        for topic in EventTypes.hashes:
+            filter_params = {
+                "topics": [topic],
+                "fromBlock": block,
+                "toBlock": block,
+            }
+            try:
+                logs = self._web3.eth.get_logs(filter_params)
+                self.process_logs(logs, block)
+            except Exception as e:
+                logger.error(
+                    f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {block}."
+                )
+        return
+
     def get_event_logs(self, from_block, to_block):
-        """Get all events from -> to and process them.
+        """Get all events from -> to in a single call and process them.
         If that fails, and we tried with multiple blocks, let split handle it
         If that fails, and we tried on a single block, then try to get events one by one instead of all
 
@@ -551,19 +572,7 @@ class EventsMonitor(BlockProcessingClass):
             else:
                 # Since there is only one block, and we failed to get all events, we need to try to take them one by one
                 # if any call fails, there is nothing more we can do  (ie:  failed to get only transfer events from block X)
-                for topic in EventTypes.hashes:
-                    filter_params = {
-                        "topics": [topic],
-                        "fromBlock": from_block,
-                        "toBlock": to_block,
-                    }
-                    try:
-                        logs = self._web3.eth.get_logs(filter_params)
-                        self.process_logs(logs, to_block)
-                    except Exception as e:
-                        logger.error(
-                            f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {from_block}.  Bailing out.."
-                        )
+                self.get_event_logs_for_one_block(from_block)
                 return
         try:
             self.process_logs(logs, to_block)
