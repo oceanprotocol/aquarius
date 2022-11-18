@@ -31,6 +31,7 @@ from tests.helpers import (
     get_web3,
     new_ddo,
     run_request_get_data,
+    run_request,
     send_create_update_tx,
     send_set_metadata_state_tx,
     test_account1,
@@ -469,6 +470,7 @@ def test_token_transfer(client, base_ddo_url, events_object):
 
 def test_trigger_caching(client, base_ddo_url, events_object):
     web3 = events_object._web3  # get_web3()
+    chain_id = web3.eth.chain_id
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
@@ -478,18 +480,14 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     )
     tx_id = txn_receipt["transactionHash"].hex()
 
-    with patch("aquarius.app.es_instance.ElasticsearchInstance.get") as mock:
-        mock.side_effect = Exception("Boom!")
-        response = run_request_get_data(
-            client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
-        )
-        assert response["error"] == "new exception in processor, retry again"
-
-    response = run_request_get_data(
-        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    response = run_request(
+        client.post,
+        "api/aquarius/assets/triggerCaching",
+        {"transactionId": tx_id, "chain_id": chain_id},
     )
-    assert response["id"] == did
-
+    assert response.status_code == 200
+    time.sleep(2)
+    events_object.retry_mechanism.process_queue()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     for service in published_ddo["services"]:
@@ -502,33 +500,18 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     )
     tx_id = txn_receipt["transactionHash"].hex()
 
-    response = run_request_get_data(
-        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    response = run_request(
+        client.post,
+        "api/aquarius/assets/triggerCaching",
+        {"transactionId": tx_id, "chain_id": chain_id},
     )
+    assert response.status_code == 200
+    time.sleep(2)
+    events_object.retry_mechanism.process_queue()
+
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
-
-    assert response["metadata"]["name"] == "Updated ddo by event"
-
-    # index out of range
-    response = run_request_get_data(
-        client.post,
-        "api/aquarius/assets/triggerCaching",
-        {"transactionId": tx_id, "logIndex": 2},
-    )
-    assert response["error"] == "Log index 2 not found"
-
-    # can not find event created, nor event updated
-    txn_hash = dt_contract.functions.setTokenURI(
-        1, "http://something-else.com"
-    ).transact()
-    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
-    tx_id = txn_receipt["transactionHash"].hex()
-    response = run_request_get_data(
-        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
-    )
-    assert response["error"] == "No metadata created/updated event found in tx."
 
 
 @pytest.mark.skip
