@@ -202,14 +202,15 @@
 
 - Description
 
-    Manually triggers DDO caching based on a transacionId containing either MetadataCreated or MetadataUpdated event(s).
+    Manually triggers DDO caching based on a transactionId containing either MetadataCreated or MetadataUpdated event(s).
 
 - Parameters
 
     | name           | description                         | type   | in   | required |
     |----------------|-------------------------------------|--------|------|----------|
-    | `transactionId`| DID of the asset                    | string | path | true     |
+    | `transactionId`| transaction ID                      | string | path | true     |
     | `logIndex`     | custom log index for the transaction| int    | path | false    |
+    | `chainId`      | chain id                            | int    | path | true     |
 
 - Example
 
@@ -223,7 +224,8 @@
     ```JSON
         {
             "transactionId": "0x945596edf2a26d127514a78ed94fea86b199e68e9bed8b6f6d6c8bb24e451f27",
-            "logIndex": 0
+            "logIndex": 0,
+            "chain_id": 1
         }
     ```
 
@@ -240,7 +242,16 @@
 
         - description: Error
 
+
 ## Chains
+
+### **GET** `/api/aquarius/chains/retryQueue`
+
+- Description
+
+    Returns all queue retry logs
+
+
 
 ### **GET** `/api/aquarius/chains/list`
 
