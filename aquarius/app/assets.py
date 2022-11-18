@@ -407,9 +407,7 @@ def trigger_caching():
         chain_id = data.get("chain_id")
         if not tx_id or not chain_id:
             return (
-                jsonify(
-                    error="Invalid transactionId or chain_id"
-                ),
+                jsonify(error="Invalid transactionId or chain_id"),
                 400,
             )
         log_index = int(data.get("logIndex", 0))
