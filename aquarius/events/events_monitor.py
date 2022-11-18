@@ -111,7 +111,12 @@ class EventsMonitor(BlockProcessingClass):
         )
         logger.info(allocate_message)
         self.retry_mechanism = RetryMechanism(
-            config_file, self._es_instance, self._retries_db_index, self.purgatory
+            config_file,
+            self._es_instance,
+            self._retries_db_index,
+            self.purgatory,
+            self._chain_id,
+            self,
         )
 
         purgatory_message = (

@@ -41,12 +41,13 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         client = get_client(chain_id)
 
         last_block = get_last_block(client)
-        while last_block < last_sync_block:
-            logger.debug(
-                f"Waiting for sync with subgraph, currently at last block {last_block}."
-            )
-            last_block = get_last_block(client)
-            time.sleep(2)
+        if last_sync_block:
+            while last_block < last_sync_block:
+                logger.debug(
+                    f"Waiting for sync with subgraph, currently at last block {last_block}."
+                )
+                last_block = get_last_block(client)
+                time.sleep(2)
 
         query = gql(
             '{tokens(where:{nft:"'
