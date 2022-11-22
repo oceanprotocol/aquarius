@@ -111,7 +111,12 @@ class EventsMonitor(BlockProcessingClass):
         )
         logger.info(allocate_message)
         self.retry_mechanism = RetryMechanism(
-            config_file, self._es_instance, self._retries_db_index, self.purgatory
+            config_file,
+            self._es_instance,
+            self._retries_db_index,
+            self.purgatory,
+            self._chain_id,
+            self,
         )
 
         purgatory_message = (
@@ -254,9 +259,10 @@ class EventsMonitor(BlockProcessingClass):
                 self.process_block_range(from_block, middle)
                 self.process_block_range(middle_plus, to_block)
             else:
-                # so we failed to process a single block. we should never reach this
+                # so we failed to process a single block.
+                self.retry_mechanism.add_block_to_retry_queue(from_block)
                 logger.error(
-                    f"Failed to get some events from block {from_block}. Error: {e} Nothing we can do anymore.."
+                    f"Failed to get some events from block {from_block}. Error: {e}"
                 )
             return
 
@@ -296,12 +302,10 @@ class EventsMonitor(BlockProcessingClass):
             event_processor.metadata_proofs = metadata_proofs
             event_processor.process()
         except Exception as e:
-            self.retry_mechanism.add_to_retry_queue(
-                event.transactionHash.hex(), 0, processor_args[4]
-            )
             logger.exception(
                 f"Error processing {event_name} event: {e}\n" f"event={event}"
             )
+            self.retry_mechanism.add_event_to_retry_queue(event)
 
     def handle_price_change(self, event_name, event, to_block):
         """Process one event of types: EVENT_ORDER_STARTED, EVENT_EXCHANGE_CREATED, EVENT_EXCHANGE_RATE_CHANGED, EVENT_DISPENSER_CREATED
@@ -383,6 +387,7 @@ class EventsMonitor(BlockProcessingClass):
             event_processor.process()
         except Exception as e:
             logger.error(f"Error processing {event_name} event: {e}\n" f"event={event}")
+            self.retry_mechanism.add_event_to_retry_queue(event)
 
     def handle_token_uri_update(self, event):
         """Process one token uri update event
@@ -397,6 +402,7 @@ class EventsMonitor(BlockProcessingClass):
             event_processor.process()
         except Exception as e:
             logger.error(f"Error processing token update event: {e}\n" f"event={event}")
+            self.retry_mechanism.add_event_to_retry_queue(event)
 
     def handle_transfer_ownership(self, event):
         """Process one transfer ownership event
@@ -414,6 +420,7 @@ class EventsMonitor(BlockProcessingClass):
             logger.error(
                 f"Error processing token transfer event: {e}\n" f"event={event}"
             )
+            self.retry_mechanism.add_event_to_retry_queue(event)
 
     def get_last_processed_block(self):
         """Get last processed_block, fallback to contract deployment block"""

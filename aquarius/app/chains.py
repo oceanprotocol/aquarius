@@ -75,3 +75,22 @@ def get_index_status(chain_id):
             f"Cannot get index status for chain {chain_id}. Error encountered is: {str(e)}"
         )
         return jsonify(error=f"Error retrieving chain {chain_id}: {str(e)}."), 404
+
+
+@chains.route("/retryQueue", methods=["GET"])
+def get_retry_queue():
+    """Returns the current retry queue for all chains
+    ---
+    responses:
+      200:
+        description: successful operation.
+    """
+    try:
+        q = {"match_all": {}}
+        result = es_instance.es.search(index=f"{es_instance.db_index}_retries", query=q)
+        return jsonify(result)
+    except Exception as e:
+        return (
+            jsonify(error=f"Encountered error : {str(e)}."),
+            500,
+        )
