@@ -21,13 +21,13 @@ from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataStateProcessor,
-    TransferProcessor,
     MetadataUpdatedProcessor,
     OrderStartedProcessor,
     TokenURIUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.ve_allocate import VeAllocate
+from aquarius.events.nft_ownership import NftOwnership
 from aquarius.events.util import (
     get_metadata_start_block,
     get_defined_block,
@@ -72,6 +72,9 @@ class EventsMonitor(BlockProcessingClass):
 
         self._retries_db_index = f"{self._es_instance.db_index}_retries"
         self._es_instance.es.indices.create(index=self._retries_db_index, ignore=400)
+
+        self._nfts_db_index = f"{self._es_instance.db_index}_nfts"
+        self._es_instance.es.indices.create(index=self._nfts_db_index, ignore=400)
 
         self._web3 = web3
 
@@ -118,6 +121,9 @@ class EventsMonitor(BlockProcessingClass):
             self._chain_id,
             self,
         )
+        self.nft_ownership = NftOwnership(
+            self._es_instance, self._nfts_db_index, self._chain_id, self
+        )
 
         purgatory_message = (
             "Purgatory enabled" if self.purgatory else "Purgatory disabled"
@@ -127,6 +133,7 @@ class EventsMonitor(BlockProcessingClass):
         self._thread_process_queue_is_on = False
         self._thread_process_ve_allocate_is_on = False
         self._thread_process_purgatory_is_on = False
+        self._thread_process_nfts_is_on = False
 
     @property
     def block_envvar(self):
@@ -138,6 +145,7 @@ class EventsMonitor(BlockProcessingClass):
         self._thread_process_queue_is_on = False
         self._thread_process_ve_allocate_is_on = False
         self._thread_process_purgatory_is_on = False
+        self._thread_process_nfts_is_on = False
 
     def start_events_monitor(self):
         """Starts all needed threads, depending on config"""
@@ -145,6 +153,11 @@ class EventsMonitor(BlockProcessingClass):
         t = Thread(target=self.thread_process_blocks, daemon=True)
         self._thread_process_blocks_is_on = True
         t.start()
+
+        t = Thread(target=self.thread_process_blocks, daemon=True)
+        self._thread_process_nfts_is_on = False
+        t.start()
+
         if strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0")):
             t = Thread(target=self.thread_process_queue, daemon=True)
             self._thread_process_queue_is_on = True
@@ -187,6 +200,16 @@ class EventsMonitor(BlockProcessingClass):
                     self.ve_allocate.update_lists()
                 except (KeyError, Exception) as e:
                     logger.error(f"Error updating ve_allocate list: {str(e)}.")
+            time.sleep(self._monitor_sleep_time)
+
+    def thread_process_nft_ownership(self):
+        while True:
+            if self._thread_process_nfts_is_on:
+                logger.info("Starting nft_ownership update_lists ....")
+                try:
+                    self.nft_ownership.update_lists()
+                except (KeyError, Exception) as e:
+                    logger.error(f"Error updating nft ownerships: {str(e)}.")
             time.sleep(self._monitor_sleep_time)
 
     def thread_process_purgatory(self):
@@ -404,24 +427,6 @@ class EventsMonitor(BlockProcessingClass):
             logger.error(f"Error processing token update event: {e}\n" f"event={event}")
             self.retry_mechanism.add_event_to_retry_queue(event)
 
-    def handle_transfer_ownership(self, event):
-        """Process one transfer ownership event
-
-        Args:
-            event: event to be processed
-        """
-        try:
-            event_processor = TransferProcessor(
-                event, self._web3, self._es_instance, self._chain_id
-            )
-            if event_processor.asset is not None:
-                event_processor.process()
-        except Exception as e:
-            logger.error(
-                f"Error processing token transfer event: {e}\n" f"event={event}"
-            )
-            self.retry_mechanism.add_event_to_retry_queue(event)
-
     def get_last_processed_block(self):
         """Get last processed_block, fallback to contract deployment block"""
         block = get_defined_block(self._chain_id)
@@ -612,9 +617,7 @@ class EventsMonitor(BlockProcessingClass):
                 logger.warning(f"Unknown event ")
                 logger.warning(event)
                 continue
-            if match["type"] == EventTypes.EVENT_TRANSFER:
-                self.handle_transfer_ownership(event)
-            elif (
+            if (
                 match["type"] == EventTypes.EVENT_METADATA_CREATED
                 or match["type"] == EventTypes.EVENT_METADATA_UPDATED
                 or match["type"] == EventTypes.EVENT_METADATA_STATE

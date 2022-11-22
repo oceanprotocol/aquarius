@@ -81,6 +81,37 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         return -1, {}
 
 
+def get_nft_transfers(start_block, last_sync_block, chain_id):
+    try:
+        client = get_client(chain_id)
+
+        last_block = get_last_block(client)
+        if last_sync_block:
+            while last_block < last_sync_block:
+                logger.debug(
+                    f"Waiting for sync with subgraph, currently at last block {last_block}."
+                )
+                last_block = get_last_block(client)
+                time.sleep(2)
+        query_text = (
+            "{nftTransferHistories(where:{block_gt: "
+            + str(start_block)
+            + ","
+            + " block_lte: "
+            + str(last_sync_block)
+            + " } orderBy: block orderDirection:asc skip:0 first:1000)"
+            + "{nft{id},newOwner{id},block}}"
+        )
+        query = gql(query_text)
+        transfers_result = client.execute(query)
+        return transfers_result["nftTransferHistories"]
+    except Exception:
+        logger.exception(
+            f"Can not get nft transfers from subgraph {get_network_name()}"
+        )
+        return None
+
+
 def get_transport(chain_id):
     subgraph_urls = json.loads(os.getenv("SUBGRAPH_URLS", "{}"))
 
