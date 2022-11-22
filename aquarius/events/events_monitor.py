@@ -155,7 +155,7 @@ class EventsMonitor(BlockProcessingClass):
         t.start()
 
         t = Thread(target=self.thread_process_nft_ownership, daemon=True)
-        self._thread_process_nfts_is_on = False
+        self._thread_process_nfts_is_on = True
         t.start()
 
         if strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0")):

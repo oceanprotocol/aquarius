@@ -173,8 +173,8 @@ def test_start_stop_events_monitor():
     monitor = EventsMonitor(setup_web3(config_file), config_file)
     with patch("aquarius.events.events_monitor.Thread.start") as mock:
         monitor.start_events_monitor()
-        mock.assert_called_once()
-
+        # we have 2 thread running
+        assert mock.call_count == 2
     monitor.stop_monitor()
 
 
