@@ -154,7 +154,7 @@ class EventsMonitor(BlockProcessingClass):
         self._thread_process_blocks_is_on = True
         t.start()
 
-        t = Thread(target=self.thread_process_blocks, daemon=True)
+        t = Thread(target=self.thread_process_nft_ownership, daemon=True)
         self._thread_process_nfts_is_on = False
         t.start()
 
