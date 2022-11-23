@@ -26,12 +26,11 @@ def get_value(value, env_var, default, config=None):
 
 class ElasticsearchInstance(object):
     def __init__(self, config=None):
-        host = get_value("db.hostname", "DB_HOSTNAME", "localhost", config)
+        host = get_value("db.hostname", "DB_HOSTNAME", "https://localhost", config)
         port = int(get_value("db.port", "DB_PORT", 9200, config))
         username = get_value("db.username", "DB_USERNAME", "elastic", config)
         password = get_value("db.password", "DB_PASSWORD", "changeme", config)
         index = get_value("db.index", "DB_INDEX", "oceandb", config)
-        ssl = self.str_to_bool(get_value("db.ssl", "DB_SSL", "false", config))
         verify_certs = self.str_to_bool(
             get_value("db.verify_certs", "DB_VERIFY_CERTS", "false", config)
         )
@@ -41,10 +40,8 @@ class ElasticsearchInstance(object):
         self._index = index
         try:
             self._es = Elasticsearch(
-                [host],
+                host + ":" + str(port),
                 http_auth=(username, password),
-                port=port,
-                use_ssl=ssl,
                 verify_certs=verify_certs,
                 ca_certs=ca_certs,
                 client_cert=client_key,
