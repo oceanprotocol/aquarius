@@ -31,7 +31,7 @@ def get_chains_list():
     """
     try:
         chains = es_instance.es.get(
-            index=f"{es_instance.db_index}_plus", id="chains", doc_type="_doc"
+            index=f"{es_instance.db_index}_plus", id="chains"
         )["_source"]
         return jsonify(chains)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
@@ -64,7 +64,6 @@ def get_index_status(chain_id):
         last_block_record = es_instance.es.get(
             index=f"{es_instance.db_index}_plus",
             id="events_last_block_" + str(chain_id),
-            doc_type="_doc",
         )["_source"]
         return jsonify(last_block_record)
     except (elasticsearch.exceptions.NotFoundError, KeyError):

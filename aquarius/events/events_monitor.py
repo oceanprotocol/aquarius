@@ -487,7 +487,7 @@ class EventsMonitor(BlockProcessingClass):
                 time.sleep(5)
             logging.info("Stable connection to ES.")
             last_block_record = self._es_instance.es.get(
-                index=self._other_db_index, id=self._index_name, doc_type="_doc"
+                index=self._other_db_index, id=self._index_name
             )["_source"]
             block = (
                 last_block_record["last_block"]
@@ -515,7 +515,6 @@ class EventsMonitor(BlockProcessingClass):
                 index=self._other_db_index,
                 id=self._index_name,
                 body=record,
-                doc_type="_doc",
                 refresh="wait_for",
             )["_id"]
 
@@ -527,7 +526,7 @@ class EventsMonitor(BlockProcessingClass):
     def add_chain_id_to_chains_list(self):
         try:
             chains = self._es_instance.es.get(
-                index=self._other_db_index, id="chains", doc_type="_doc"
+                index=self._other_db_index, id="chains"
             )["_source"]
         except Exception:
             chains = dict()
@@ -538,7 +537,6 @@ class EventsMonitor(BlockProcessingClass):
                 index=self._other_db_index,
                 id="chains",
                 body=json.dumps(chains),
-                doc_type="_doc",
                 refresh="wait_for",
             )["_id"]
             logger.info(f"Added {self._chain_id} to chains list")

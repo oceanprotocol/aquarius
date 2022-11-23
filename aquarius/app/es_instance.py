@@ -82,7 +82,7 @@ class ElasticsearchInstance(object):
         """
         logger.debug("elasticsearch::write::{}".format(resource_id))
         if resource_id is not None:
-            if self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc"):
+            if self.es.exists(index=self.db_index, id=resource_id):
                 raise ValueError(
                     'Resource "{}" already exists, use update instead'.format(
                         resource_id
@@ -93,7 +93,6 @@ class ElasticsearchInstance(object):
             index=self.db_index,
             id=resource_id,
             body=obj,
-            doc_type="_doc",
             refresh="wait_for",
         )["_id"]
 
@@ -103,7 +102,7 @@ class ElasticsearchInstance(object):
         :return: object value from elasticsearch.
         """
         # logger.debug("elasticsearch::read::{}".format(resource_id))
-        return self.es.get(index=self.db_index, id=resource_id, doc_type="_doc")[
+        return self.es.get(index=self.db_index, id=resource_id)[
             "_source"
         ]
 
@@ -118,7 +117,6 @@ class ElasticsearchInstance(object):
             index=self.db_index,
             id=resource_id,
             body=obj,
-            doc_type="_doc",
             refresh="wait_for",
         )["_id"]
 
@@ -136,10 +134,10 @@ class ElasticsearchInstance(object):
         :return:
         """
         logger.debug("elasticsearch::delete::{}".format(resource_id))
-        if not self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc"):
+        if not self.es.exists(index=self.db_index, id=resource_id):
             raise ValueError(f"Resource {resource_id} does not exists")
 
-        return self.es.delete(index=self.db_index, id=resource_id, doc_type="_doc")
+        return self.es.delete(index=self.db_index, id=resource_id)
 
     def count(self):
         count_result = self.es.count(index=self.db_index)

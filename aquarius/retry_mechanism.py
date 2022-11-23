@@ -35,7 +35,7 @@ class RetryMechanism:
 
     def get_by_id(self, rm_id):
         return self._es_instance.es.get(
-            index=self._retries_db_index, id=rm_id, doc_type="queue"
+            index=self._retries_db_index, id=rm_id
         )["_source"]
 
     def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
@@ -65,7 +65,6 @@ class RetryMechanism:
                 index=self._retries_db_index,
                 id=rm_id,
                 body=params,
-                doc_type="queue",
                 refresh="wait_for",
             )["_id"]
             logger.info(f"Added {rm_id} to retry queue")
@@ -90,7 +89,6 @@ class RetryMechanism:
             self._es_instance.es.delete(
                 index=self._retries_db_index,
                 id=element_id,
-                doc_type="queue",
             )
         except Exception:
             pass
