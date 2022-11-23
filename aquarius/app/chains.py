@@ -30,9 +30,9 @@ def get_chains_list():
         description: No chains are present
     """
     try:
-        chains = es_instance.es.get(
-            index=f"{es_instance.db_index}_plus", id="chains"
-        )["_source"]
+        chains = es_instance.es.get(index=f"{es_instance.db_index}_plus", id="chains")[
+            "_source"
+        ]
         return jsonify(chains)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
         logger.error("Cannot get chains list.")

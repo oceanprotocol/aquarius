@@ -34,9 +34,9 @@ class RetryMechanism:
         )
 
     def get_by_id(self, rm_id):
-        return self._es_instance.es.get(
-            index=self._retries_db_index, id=rm_id
-        )["_source"]
+        return self._es_instance.es.get(index=self._retries_db_index, id=rm_id)[
+            "_source"
+        ]
 
     def add_to_retry_queue(self, tx_id, log_index, chain_id, asap=False):
         params = {"tx_id": tx_id, "log_index": log_index, "chain_id": chain_id}

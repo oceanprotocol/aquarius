@@ -102,9 +102,7 @@ class ElasticsearchInstance(object):
         :return: object value from elasticsearch.
         """
         # logger.debug("elasticsearch::read::{}".format(resource_id))
-        return self.es.get(index=self.db_index, id=resource_id)[
-            "_source"
-        ]
+        return self.es.get(index=self.db_index, id=resource_id)["_source"]
 
     def update(self, obj, resource_id):
         """Update object in elasticsearch using the resource_id.

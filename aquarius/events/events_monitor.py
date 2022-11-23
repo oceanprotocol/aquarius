@@ -525,9 +525,9 @@ class EventsMonitor(BlockProcessingClass):
 
     def add_chain_id_to_chains_list(self):
         try:
-            chains = self._es_instance.es.get(
-                index=self._other_db_index, id="chains"
-            )["_source"]
+            chains = self._es_instance.es.get(index=self._other_db_index, id="chains")[
+                "_source"
+            ]
         except Exception:
             chains = dict()
         chains[str(self._chain_id)] = True
