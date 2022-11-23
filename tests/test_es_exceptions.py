@@ -48,13 +48,11 @@ def test_get_assets_names_exception(client):
 
 def test_transport_error(client, query_url):
     with patch("elasticsearch.Elasticsearch.search") as mock:
-        ex = elasticsearch.exceptions.TransportError()
-        ex.args = [400, "test_error", {"more_info": "about it"}]
+        ex = elasticsearch.exceptions.TransportError("test_error")
         mock.side_effect = ex
         rv = run_request(client.post, query_url, {"didList": [1]})
         assert rv.status_code == 400
         assert rv.json["error"] == "test_error"
-        assert rv.json["info"] == {"more_info": "about it"}
 
     with patch("elasticsearch.Elasticsearch.search") as mock:
         mock.side_effect = Exception("Boom!")
@@ -65,7 +63,7 @@ def test_transport_error(client, query_url):
 
 def test_chains_list_exceptions(client, chains_url):
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.side_effect = elasticsearch.exceptions.NotFoundError("Boom!")
+        mock.side_effect = elasticsearch.exceptions.NotFoundError("Boom!", meta={}, body={})
         rv = client.get(chains_url + "/list", content_type="application/json")
         assert rv.status_code == 404
         assert rv.json["error"] == "No chains found."
@@ -79,7 +77,7 @@ def test_chains_list_exceptions(client, chains_url):
 
 def test_chains_status_exceptions(client, chains_url):
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.side_effect = elasticsearch.exceptions.NotFoundError("Boom!")
+        mock.side_effect = elasticsearch.exceptions.NotFoundError("Boom!", meta={}, body={})
         rv = client.get(chains_url + "/status/1", content_type="application/json")
         assert rv.status_code == 404
         assert rv.json["error"] == "Chain 1 is not indexed."
