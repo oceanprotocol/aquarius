@@ -415,9 +415,7 @@ def trigger_caching():
             else None
         )
 
-        retry_mechanism = RetryMechanism(
-            es_instance, retries_db_index, purgatory
-        )
+        retry_mechanism = RetryMechanism(es_instance, retries_db_index, purgatory)
 
         success, result = retry_mechanism.handle_retry(
             tx_id, log_index, web3.eth.chain_id

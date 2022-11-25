@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from aquarius.app.es_instance import ElasticsearchInstance, get_value
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.myapp import app
 
 es_instance = ElasticsearchInstance()

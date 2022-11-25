@@ -111,7 +111,7 @@ def force_set_block(chain_id, block_number):
 
 
 def get_status():
-    db_url = os.getenb("DB_HOSTNAME") + ":" + os.getenv("DB_PORT")
+    db_url = os.getenv("DB_HOSTNAME") + ":" + os.getenv("DB_PORT")
     if Elasticsearch(db_url).ping():
         return "Elasticsearch connected", 200
     else:

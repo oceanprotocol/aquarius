@@ -22,9 +22,7 @@ class ElasticsearchInstance(object):
         password = os.getenv("DB_PASSWORD", "changeme")
         index = os.getenv("DB_INDEX", "oceandb")
         ssl = self.str_to_bool(os.getenv("DB_SSL", "false"))
-        verify_certs = self.str_to_bool(
-            os.getenv("DB_VERIFY_CERTS", "false")
-        )
+        verify_certs = self.str_to_bool(os.getenv("DB_VERIFY_CERTS", "false"))
         ca_certs = os.getenv("DB_CA_CERTS", None)
         client_key = os.getenv("DB_CLIENT_KEY", None)
         client_cert = os.getenv("DB_CLIENT_CERT", None)
