@@ -146,4 +146,4 @@ def get_client(chain_id, block=None):
         last_block = get_last_block(client)
         time.sleep(2)
 
-    return
+    return client
