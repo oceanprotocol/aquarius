@@ -225,9 +225,8 @@ def get_metadata_start_block():
     return block_number
 
 
-def setup_web3(config_file, _logger=None):
+def setup_web3(_logger=None):
     """
-    :param config_file: Web3 object instance
     :param _logger: Logger instance
     :return: web3 instance
     """

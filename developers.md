@@ -2,7 +2,6 @@
 
   * [Running Aquarius locally, for development and testing](#running-aquarius-locally-for-development-and-testing)
   * [General Ocean Dev Docs](#general-ocean-dev-docs)
-  * [Configuration](#configuration)
   * [Extras: Testing &amp; Versioning](#extras-testing--versioning)
   * [Ensuring changes are well propagated](#ensuring-changes-are-well-propagated)
 
@@ -66,7 +65,6 @@ Now you are free to configure your own special Aquarius, and fiddle with the Eve
 
 ```bash
 export FLASK_APP=aquarius/run.py
-export AQUARIUS_CONFIG_FILE=config.ini
 flask run --port=5000
 ```
 
@@ -87,10 +85,10 @@ openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 36
 
 and when it asks for the Common Name (CN), answer `localhost`
 
-Then edit the config file `config.ini` so that:
+Then export the env var so that:
 
 ```yaml
-aquarius.url = http://localhost:5000
+export AQUARIUS_URL=http://localhost:5000
 ```
 
 Then execute this command:
@@ -102,20 +100,6 @@ gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 aquarius.run
 ## General Ocean Dev Docs
 
 Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
-
-## Configuration
-
-You can pass the configuration using the `AQUARIUS_CONFIG_FILE` environment variable (recommended) or locating your configuration in config.ini file.
-
-In the configuration there are now two sections:
-
-- oceandb: Contains different values to connect with elasticsearch. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
-- resources: In this section we are showing the url in which the aquarius is going to be deployed.
-
-```yaml
-[resources]
-aquarius.url = http://localhost:5000
-```
 
 ## Extras: Testing & Versioning
 

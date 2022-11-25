@@ -23,7 +23,6 @@ RUN pip install wheel
 RUN pip install .
 
 
-# config.ini configuration file variables
 ENV DB_MODULE='elasticsearch'
 ENV DB_HOSTNAME='localhost'
 ENV DB_PORT='27017'

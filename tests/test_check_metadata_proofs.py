@@ -19,8 +19,7 @@ def test_check_metadata_proofs(monkeypatch):
     monkeypatch.setenv("ALLOWED_VALIDATORS", "not a json")
     assert not check_metadata_proofs(None, "whatever_it_works")
 
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
 
     random_addresses = []
     random_dicts = []

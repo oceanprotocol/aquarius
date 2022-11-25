@@ -27,7 +27,7 @@ setup_logging()
 assets = Blueprint("assets", __name__)
 
 logger = logging.getLogger("aquarius")
-es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
+es_instance = ElasticsearchInstance()
 
 
 @assets.route("/ddo/<did>", methods=["GET"])
@@ -405,10 +405,9 @@ def trigger_caching():
         tx_id = data.get("transactionId")
         log_index = int(data.get("logIndex", 0))
 
-        config_file = app.config["AQUARIUS_CONFIG_FILE"]
-        web3 = setup_web3(config_file)
+        web3 = setup_web3()
 
-        es_instance = ElasticsearchInstance(config_file)
+        es_instance = ElasticsearchInstance()
         retries_db_index = f"{es_instance.db_index}_retries"
         purgatory = (
             Purgatory(es_instance)
@@ -417,7 +416,7 @@ def trigger_caching():
         )
 
         retry_mechanism = RetryMechanism(
-            config_file, es_instance, retries_db_index, purgatory
+            es_instance, retries_db_index, purgatory
         )
 
         success, result = retry_mechanism.handle_retry(

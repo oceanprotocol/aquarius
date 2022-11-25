@@ -6,7 +6,6 @@
 This module is the entrypoint for statring the Aquarius component.
 """
 import click
-import configparser
 
 from elasticsearch import Elasticsearch
 from flask import jsonify, request
@@ -19,16 +18,15 @@ from aquarius.app.chains import chains
 from aquarius.app.validation import validation
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value
-from aquarius.config import Config, get_version
+from aquarius.config import get_version
 from aquarius.constants import BaseURLs, Metadata
 from aquarius.events.events_monitor import EventsMonitor
 from aquarius.events.util import setup_web3
 from aquarius.myapp import app
 from aquarius.rbac import RBAC
 
-config = Config(filename=app.config["AQUARIUS_CONFIG_FILE"])
-aquarius_url = config.aquarius_url
-es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
+aquarius_url = os.getenv("AQUARIUS_URL")
+es_instance = ElasticsearchInstance()
 
 
 @app.before_request
@@ -53,7 +51,7 @@ def version():
     info = dict()
     info["software"] = Metadata.TITLE
     info["version"] = get_version()
-    info["plugin"] = config.module
+    info["plugin"] = "module"
     return jsonify(info)
 
 
@@ -113,7 +111,8 @@ def force_set_block(chain_id, block_number):
 
 
 def get_status():
-    if Elasticsearch(config.db_url).ping():
+    db_url = os.getenb("DB_HOSTNAME") + ":" + os.getenv("DB_PORT")
+    if Elasticsearch(db_url).ping():
         return "Elasticsearch connected", 200
     else:
         return "Not connected to any database", 400
@@ -121,16 +120,16 @@ def get_status():
 
 # Start events monitoring if required
 if get_bool_env_value("EVENTS_ALLOW", 0):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     monitor.start_events_monitor()
 
 
 if __name__ == "__main__":
-    if isinstance(config.aquarius_url.split(":")[-1], int):
+    aquarius_url = os.getenv("AQUARIUS_URL")
+    if isinstance(aquarius_url.split(":")[-1], int):
         app.run(
-            host=config.aquarius_url.split(":")[1],
-            port=config.aquarius_url.split(":")[-1],
+            host=aquarius_url.split(":")[1],
+            port=aquarius_url.split(":")[-1],
         )
     else:
         app.run()

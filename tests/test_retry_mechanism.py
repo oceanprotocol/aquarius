@@ -12,9 +12,8 @@ from aquarius.retry_mechanism import RetryMechanism
 
 
 def test_add_get(client, base_ddo_url, events_object, monkeypatch):
-    config_file = os.getenv("AQUARIUS_CONFIG_FILE", "config.ini")
     mechanism = RetryMechanism(
-        config_file, events_object._es_instance, events_object._retries_db_index, None
+        events_object._es_instance, events_object._retries_db_index, None
     )
     mechanism.clear_all()
 
@@ -42,9 +41,8 @@ def test_add_get(client, base_ddo_url, events_object, monkeypatch):
 
 
 def test_add_update(client, base_ddo_url, events_object, monkeypatch):
-    config_file = os.getenv("AQUARIUS_CONFIG_FILE", "config.ini")
     mechanism = RetryMechanism(
-        config_file, events_object._es_instance, events_object._retries_db_index, None
+        events_object._es_instance, events_object._retries_db_index, None
     )
     mechanism.clear_all()
 

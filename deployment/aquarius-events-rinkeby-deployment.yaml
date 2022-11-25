@@ -50,8 +50,6 @@ spec:
           value: "0"
         - name: RUN_EVENTS_MONITOR
           value: "1"
-        - name: CONFIG_FILE
-          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         - name: BFACTORY_BLOCK

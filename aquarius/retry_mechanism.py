@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class RetryMechanism:
-    def __init__(self, config_file, es_instance, retries_db_index, purgatory):
+    def __init__(self, es_instance, retries_db_index, purgatory):
         self._es_instance = es_instance
         self._retries_db_index = retries_db_index
         self._purgatory = purgatory
-        self._web3 = setup_web3(config_file)
+        self._web3 = setup_web3()
         self.retry_interval = timedelta(minutes=5)
 
     def clear_all(self):

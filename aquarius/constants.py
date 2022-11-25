@@ -4,17 +4,6 @@
 #
 
 
-class ConfigSections:
-    """
-    This class contains values for:
-        1. `OCEANBD`
-        2. `RESOURCES`
-    """
-
-    OCEANBD = "oceandb"
-    RESOURCES = "resources"
-
-
 class BaseURLs:
     """
     This class contains values for:

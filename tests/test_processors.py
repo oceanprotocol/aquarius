@@ -98,8 +98,7 @@ def test_check_permission(monkeypatch):
 
 
 def test_is_publisher_allowed():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
     processor = MetadataCreatedProcessor(
         event_sample, None, web3, None, None, None, None, None
     )
@@ -108,8 +107,7 @@ def test_is_publisher_allowed():
 
 
 def test_process_fallback(monkeypatch, client, base_ddo_url, events_object):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
@@ -131,8 +129,7 @@ def test_process_fallback(monkeypatch, client, base_ddo_url, events_object):
 
 
 def test_do_decode_update():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
     processor = MetadataUpdatedProcessor(
         event_updated_sample, None, web3, None, None, None, None, None
     )
@@ -146,8 +143,7 @@ def test_do_decode_update():
 
 
 def test_missing_attributes():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
 
     test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
     dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
@@ -216,8 +212,7 @@ def test_drop_non_factory():
     dt_factory.caller = Mock()
     dt_factory.caller.erc721List.return_value = "not the address"
 
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
 
     processor = MetadataCreatedProcessor(
         event_sample, None, None, None, web3, None, None, None
@@ -229,8 +224,7 @@ def test_drop_non_factory():
 
 
 def test_order_started_processor():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
 
     test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
     dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
@@ -252,8 +246,7 @@ def test_order_started_processor():
 
 
 def test_order_started_processor_no_asset():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    web3 = setup_web3(config_file)
+    web3 = setup_web3()
 
     test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
     dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
