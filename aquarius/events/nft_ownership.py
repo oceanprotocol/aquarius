@@ -93,27 +93,27 @@ class NftOwnership:
         start_block = self.get_last_processed_block()
         # never go past last indexed block, because we will not have the ddos
         end_block = self._events_monitor.get_last_processed_block()
-        if end_block > start_block:
-            nft_transfers_list = get_nft_transfers(
-                start_block, end_block, self._chain_id
+        if end_block <= start_block:
+            # no data to ingest
+            return
+        nft_transfers_list = get_nft_transfers(start_block, end_block, self._chain_id)
+        for transfer in nft_transfers_list:
+            did = make_did(
+                Web3.toChecksumAddress(transfer["nft"]["id"]), self._chain_id
             )
-            for transfer in nft_transfers_list:
-                did = make_did(
-                    Web3.toChecksumAddress(transfer["nft"]["id"]), self._chain_id
+            try:
+                asset = self._es_instance.read(did)
+                asset["nft"]["owner"] = Web3.toChecksumAddress(
+                    transfer["newOwner"]["id"]
                 )
-                try:
-                    asset = self._es_instance.read(did)
-                    asset["nft"]["owner"] = Web3.toChecksumAddress(
-                        transfer["newOwner"]["id"]
-                    )
-                    self._es_instance.update(asset, did)
-                    logger.debug(f"Updated {did}: new owner: {asset['nft']['owner']}")
-                except NotFoundError:
-                    logger.debug(
-                        f"Unable to update new owner {transfer['newOwner']['id']} for did {did}:  Not Found"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"Unable to update new owner {transfer['newOwner']['id']} for did {did}:  {e}"
-                    )
-                self.store_last_processed_block(transfer["block"])
+                self._es_instance.update(asset, did)
+                logger.debug(f"Updated {did}: new owner: {asset['nft']['owner']}")
+            except NotFoundError:
+                logger.debug(
+                    f"Unable to update new owner {transfer['newOwner']['id']} for did {did}:  Not Found"
+                )
+            except Exception as e:
+                logger.error(
+                    f"Unable to update new owner {transfer['newOwner']['id']} for did {did}:  {e}"
+                )
+            self.store_last_processed_block(transfer["block"])
