@@ -38,16 +38,7 @@ class Price:
 
 def get_number_orders_price(token_address, last_sync_block, chain_id):
     try:
-        client = get_client(chain_id)
-
-        last_block = get_last_block(client)
-        if last_sync_block:
-            while last_block < last_sync_block:
-                logger.debug(
-                    f"Waiting for sync with subgraph, currently at last block {last_block}."
-                )
-                last_block = get_last_block(client)
-                time.sleep(2)
+        client = get_client(chain_id, last_sync_block)
 
         query = gql(
             '{tokens(where:{nft:"'
@@ -83,16 +74,8 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
 
 def get_nft_transfers(start_block, last_sync_block, chain_id):
     try:
-        client = get_client(chain_id)
+        client = get_client(chain_id, last_sync_block)
 
-        last_block = get_last_block(client)
-        if last_sync_block:
-            while last_block < last_sync_block:
-                logger.debug(
-                    f"Waiting for sync with subgraph, currently at last block {last_block}."
-                )
-                last_block = get_last_block(client)
-                time.sleep(2)
         query_text = (
             "{nftTransferHistories(where:{block_gt: "
             + str(start_block)
@@ -126,12 +109,11 @@ def get_transport(chain_id):
     return AIOHTTPTransport(url=url)
 
 
-def get_client(chain_id):
-    logger.debug("Initializing client for transport and fetching schema.")
-    return Client(transport=get_transport(chain_id), fetch_schema_from_transport=True)
-
-
 def get_last_block(client):
+    """Get current block height from subgraph
+    Args:
+        client:
+    """
     last_block_query = gql("{_meta { block { number } } }")
 
     try:
@@ -143,3 +125,25 @@ def get_last_block(client):
         )
 
     return last_block
+
+
+def get_client(chain_id, block=None):
+    """Gets a graphql client, and optionally, wait until subgraph syncs at least to a certain block
+
+    Args:
+        block: minimum block height
+    """
+    logger.debug("Initializing client for transport and fetching schema.")
+    client = Client(transport=get_transport(chain_id), fetch_schema_from_transport=True)
+    if block is None:
+        return client
+    # wait for subgraph to sync
+    last_block = get_last_block(client)
+    while last_block < block:
+        logger.debug(
+            f"Waiting for sync with subgraph, currently at last block {last_block}."
+        )
+        last_block = get_last_block(client)
+        time.sleep(2)
+
+    return
