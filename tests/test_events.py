@@ -173,8 +173,8 @@ def test_start_stop_events_monitor():
     monitor = EventsMonitor(setup_web3(config_file), config_file)
     with patch("aquarius.events.events_monitor.Thread.start") as mock:
         monitor.start_events_monitor()
-        mock.assert_called_once()
-
+        # we have 2 thread running
+        assert mock.call_count == 2
     monitor.stop_monitor()
 
 
@@ -462,10 +462,15 @@ def test_token_transfer(client, base_ddo_url, events_object):
     ).transact()
     _ = web3.eth.wait_for_transaction_receipt(txn_hash)
 
+    # allow events to reach our nft transfer block
     events_object.process_current_blocks()
+    # process nft transfers
+    events_object.nft_ownership.update_lists()
     updated_ddo = get_ddo(client, base_ddo_url, did)
     assert updated_ddo["id"] == did
-    assert updated_ddo["nft"]["owner"] == test_account2.address
+    assert web3.toChecksumAddress(
+        updated_ddo["nft"]["owner"]
+    ) == web3.toChecksumAddress(test_account2.address)
 
 
 def test_trigger_caching(client, base_ddo_url, events_object):

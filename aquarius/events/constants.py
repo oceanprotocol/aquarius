@@ -40,7 +40,6 @@ class EventTypes(SimpleEnum):
     EVENT_EXCHANGE_CREATED = "ExchangeCreated"
     EVENT_EXCHANGE_RATE_CHANGED = "ExchangeRateChanged"
     EVENT_DISPENSER_CREATED = "DispenserCreated"
-    EVENT_TRANSFER = "Transfer"
     hashes = {
         "0x5463569dcc320958360074a9ab27e809e8a6942c394fb151d139b5f7b4ecb1bd": {
             "type": EVENT_METADATA_CREATED,
@@ -73,10 +72,6 @@ class EventTypes(SimpleEnum):
         "0x7d0aa581e6eb87e15f58588ff20c39ff6622fc796ec9bb664df6ed3eb02442c9": {
             "type": EVENT_DISPENSER_CREATED,
             "text": "DispenserCreated(address,address,uint256,uint256,address)",
-        },
-        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": {
-            "type": EVENT_TRANSFER,
-            "text": "Transfer(address,address,uint256)",
         },
     }
 
