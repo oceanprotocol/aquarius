@@ -32,8 +32,6 @@ jobs:
             [ -f "$HOME/.ocean/ocean-contracts/artifacts/ready" ] && break
             done
           ls -la "$HOME/.ocean/ocean-contracts/artifacts/"
-        env:
-          SUBGRAPH_VERSION: nft
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
