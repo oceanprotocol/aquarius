@@ -104,6 +104,14 @@ class ElasticsearchInstance(object):
         # logger.debug("elasticsearch::read::{}".format(resource_id))
         return self.es.get(index=self.db_index, id=resource_id)["_source"]
 
+    def exists(self, resource_id):
+        """Check if document exists.
+        :param resource_id: id of the object to be read.
+        :return: true if object exists
+        """
+        # logger.debug("elasticsearch::read::{}".format(resource_id))
+        return self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc")
+
     def update(self, obj, resource_id):
         """Update object in elasticsearch using the resource_id.
         :param obj: new value

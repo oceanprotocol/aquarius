@@ -4,6 +4,7 @@
 #
 import elasticsearch
 from flask import Blueprint, jsonify, request
+from datetime import datetime, timedelta
 import json
 import logging
 import os
@@ -400,6 +401,12 @@ def trigger_caching():
     try:
         data = request.args if request.args else request.json
         tx_id = data.get("transactionId")
+        chain_id = data.get("chain_id")
+        if not tx_id or not chain_id:
+            return (
+                jsonify(error="Invalid transactionId or chain_id"),
+                400,
+            )
         log_index = int(data.get("logIndex", 0))
 
         config_file = app.config["AQUARIUS_CONFIG_FILE"]
@@ -414,18 +421,12 @@ def trigger_caching():
         )
 
         retry_mechanism = RetryMechanism(
-            config_file, es_instance, retries_db_index, purgatory
+            config_file, es_instance, retries_db_index, purgatory, chain_id, None
         )
-
-        success, result = retry_mechanism.handle_retry(
-            tx_id, log_index, web3.eth.chain_id
-        )
-
-        if not success:
-            return jsonify(error=result), 400
-
+        retry_mechanism.retry_interval = timedelta(seconds=1)
+        retry_mechanism.add_tx_to_retry_queue(tx_id)
         response = app.response_class(
-            response=result,
+            response="Queued",
             status=200,
             mimetype="application/json",
         )
