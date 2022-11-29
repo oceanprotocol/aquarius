@@ -154,8 +154,6 @@ spec:
           value: elastic
         - name: DB_PASSWORD
           value: changeme
-        - name: DB_SSL
-          value: "false"
         - name: RUN_AQUARIUS_SERVER
           value: "1"
         - name: RUN_EVENTS_MONITOR
@@ -258,8 +256,6 @@ spec:
           value: elastic
         - name: DB_PASSWORD
           value: changeme
-        - name: DB_SSL
-          value: "false"
         - name: RUN_AQUARIUS_SERVER
           value: "0"
         - name: RUN_EVENTS_MONITOR
@@ -402,7 +398,6 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "8"
@@ -426,7 +421,6 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "1"
@@ -624,7 +618,6 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "8"
@@ -646,7 +639,6 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "1"

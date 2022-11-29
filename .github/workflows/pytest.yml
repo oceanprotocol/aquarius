@@ -39,7 +39,7 @@ jobs:
       - name: Run elasticsearch
         uses: elastic/elastic-github-actions/elasticsearch@master
         with:
-          stack-version: 7.14.2
+          stack-version: 8.5.1
       - name: Test with pytest
         run: |
             coverage run --source aquarius -m pytest

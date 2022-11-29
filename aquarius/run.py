@@ -103,7 +103,6 @@ def force_set_block(chain_id, block_number):
         index=other_db_index,
         id=index_name,
         body=record,
-        doc_type="_doc",
         refresh="wait_for",
     )["_id"]
 

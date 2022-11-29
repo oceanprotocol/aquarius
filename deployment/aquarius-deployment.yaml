@@ -44,8 +44,6 @@ spec:
           value: elastic
         - name: DB_PASSWORD
           value: changeme
-        - name: DB_SSL
-          value: "false"
         - name: RUN_AQUARIUS_SERVER
           value: "1"
         - name: RUN_EVENTS_MONITOR

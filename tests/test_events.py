@@ -217,7 +217,7 @@ def test_elasticsearch_connection(events_object, caplog):
 
 def test_get_last_processed_block(events_object, monkeypatch):
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.side_effect = elasticsearch.NotFoundError("Boom!")
+        mock.side_effect = elasticsearch.NotFoundError("Boom!", meta={}, body={})
         assert events_object.get_last_processed_block() == int(
             os.getenv("BFACTORY_BLOCK")
         )
@@ -229,7 +229,7 @@ def test_get_last_processed_block(events_object, monkeypatch):
 
     monkeypatch.delenv("BFACTORY_BLOCK")
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.side_effect = elasticsearch.NotFoundError("Boom!")
+        mock.side_effect = elasticsearch.NotFoundError("Boom!", meta={}, body={})
         assert (
             events_object.get_last_processed_block() == 5
         )  # startBlock from address.json for ganache
@@ -238,7 +238,9 @@ def test_get_last_processed_block(events_object, monkeypatch):
 def test_store_last_processed_block(events_object):
     block = events_object.get_last_processed_block() + 10
     with patch("elasticsearch.Elasticsearch.index") as mock:
-        mock.side_effect = elasticsearch.exceptions.RequestError("Boom!")
+        mock.side_effect = elasticsearch.exceptions.RequestError(
+            "Boom!", meta={}, body={}
+        )
         assert events_object.store_last_processed_block(block) is None
 
 
@@ -248,7 +250,9 @@ def test_add_chain_id_to_chains_list(events_object):
         assert events_object.add_chain_id_to_chains_list() is None
 
     with patch("elasticsearch.Elasticsearch.index") as mock:
-        mock.side_effect = elasticsearch.exceptions.RequestError("Boom!")
+        mock.side_effect = elasticsearch.exceptions.RequestError(
+            "Boom!", meta={}, body={}
+        )
         events_object.add_chain_id_to_chains_list()
         assert events_object.add_chain_id_to_chains_list() is None
 

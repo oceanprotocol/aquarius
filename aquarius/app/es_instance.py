@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class ElasticsearchInstance(object):
     def __init__(self):
-        host = os.getenv("DB_HOSTNAME", "localhost")
+        host = os.getenv("DB_HOSTNAME", "https://localhost")
         port = int(os.getenv("DB_PORT", 9200))
         username = os.getenv("DB_USERNAME", "elastic")
         password = os.getenv("DB_PASSWORD", "changeme")
@@ -29,10 +29,8 @@ class ElasticsearchInstance(object):
         self._index = index
         try:
             self._es = Elasticsearch(
-                [host],
+                host + ":" + str(port),
                 http_auth=(username, password),
-                port=port,
-                use_ssl=ssl,
                 verify_certs=verify_certs,
                 ca_certs=ca_certs,
                 client_cert=client_key,
@@ -73,7 +71,7 @@ class ElasticsearchInstance(object):
         """
         logger.debug("elasticsearch::write::{}".format(resource_id))
         if resource_id is not None:
-            if self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc"):
+            if self.es.exists(index=self.db_index, id=resource_id):
                 raise ValueError(
                     'Resource "{}" already exists, use update instead'.format(
                         resource_id
@@ -84,7 +82,6 @@ class ElasticsearchInstance(object):
             index=self.db_index,
             id=resource_id,
             body=obj,
-            doc_type="_doc",
             refresh="wait_for",
         )["_id"]
 
@@ -94,9 +91,7 @@ class ElasticsearchInstance(object):
         :return: object value from elasticsearch.
         """
         # logger.debug("elasticsearch::read::{}".format(resource_id))
-        return self.es.get(index=self.db_index, id=resource_id, doc_type="_doc")[
-            "_source"
-        ]
+        return self.es.get(index=self.db_index, id=resource_id)["_source"]
 
     def exists(self, resource_id):
         """Check if document exists.
@@ -104,7 +99,7 @@ class ElasticsearchInstance(object):
         :return: true if object exists
         """
         # logger.debug("elasticsearch::read::{}".format(resource_id))
-        return self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc")
+        return self.es.exists(index=self.db_index, id=resource_id)
 
     def update(self, obj, resource_id):
         """Update object in elasticsearch using the resource_id.
@@ -117,7 +112,6 @@ class ElasticsearchInstance(object):
             index=self.db_index,
             id=resource_id,
             body=obj,
-            doc_type="_doc",
             refresh="wait_for",
         )["_id"]
 
@@ -135,10 +129,10 @@ class ElasticsearchInstance(object):
         :return:
         """
         logger.debug("elasticsearch::delete::{}".format(resource_id))
-        if not self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc"):
+        if not self.es.exists(index=self.db_index, id=resource_id):
             raise ValueError(f"Resource {resource_id} does not exists")
 
-        return self.es.delete(index=self.db_index, id=resource_id, doc_type="_doc")
+        return self.es.delete(index=self.db_index, id=resource_id)
 
     def count(self):
         count_result = self.es.count(index=self.db_index)
