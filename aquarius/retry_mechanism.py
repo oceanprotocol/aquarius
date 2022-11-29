@@ -207,7 +207,6 @@ class RetryMechanism:
                 index=self._retries_db_index,
                 id=id,
                 body=element,
-                doc_type="_doc",
                 refresh="wait_for",
             )["_id"]
             logger.info(f"Added {id} to retry queue")
