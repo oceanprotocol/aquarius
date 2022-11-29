@@ -58,8 +58,8 @@ Please refer to [API.md](API.md) file for details on the API itself.
 
 The events monitor runs continuously to retrieve and index the chain Metadata. It saves the results into an Elasticseach database. The monitor reads the events `data` argument, decompresses the metadata json object, then runs schema validation before saving it to the database. The monitor is highly customisable, and it consists of the following components:
 
-- an ElasticsearchInstance, configured through the config.ini or env variables
-- an associated MetadataContract, configured through the config.ini or the `METADATA_CONTRACT_ADDRESS` env variable
+- an ElasticsearchInstance, configured through env variables
+- an associated MetadataContract, configured through the `METADATA_CONTRACT_ADDRESS` env variable
 - a Decryptor class that handles decompression and decryption on the chain data, through communication with Provider
 - a set of `ALLOWED_PUBLISHERS`, if such a restriction exists. You can set a limited number of allowed publisher addresses using this env variable.
 - a Purgatory, based on the `ASSET_PURGATORY_URL` and `ACCOUNT_PURGATORY_URL` env variables. These mark some assets as being in purgatory (`"isInPurgatory": True`), enabling restrictions for some assets or accounts.

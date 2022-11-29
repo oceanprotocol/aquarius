@@ -42,7 +42,6 @@ logger = logging.getLogger(__name__)
 class RetryMechanism:
     def __init__(
         self,
-        config_file,
         es_instance,
         retries_db_index,
         purgatory,
@@ -53,7 +52,7 @@ class RetryMechanism:
         self._retries_db_index = retries_db_index
         self._purgatory = purgatory
         self._chain_id = chain_id
-        self._web3 = setup_web3(config_file)
+        self._web3 = setup_web3()
         self.retry_interval = timedelta(minutes=5)
         self._event_monitor_instance = event_monitor_instance
 

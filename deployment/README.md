@@ -160,8 +160,6 @@ spec:
           value: "0"
         - name: EVENTS_ALLOW
           value: "0"
-        - name: CONFIG_FILE
-          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
@@ -262,8 +260,6 @@ spec:
           value: "0"
         - name: RUN_EVENTS_MONITOR
           value: "1"
-        - name: CONFIG_FILE
-          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         - name: BFACTORY_BLOCK
@@ -406,7 +402,6 @@ services:
       AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "8"
       RUN_AQUARIUS_SERVER: "1"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 0
       ALLOWED_PUBLISHERS: '[""]'
@@ -430,7 +425,6 @@ services:
       AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "1"
       RUN_AQUARIUS_SERVER : "0"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       NETWORK_NAME: "rinkeby"
       EVENTS_RPC: "https://rinkeby.infura.io/v3/<your Infura id project>"
       BFACTORY_BLOCK: 7298806
@@ -628,7 +622,6 @@ services:
       AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "8"
       RUN_AQUARIUS_SERVER: "1"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 0
       ALLOWED_PUBLISHERS: '[""]'
@@ -650,7 +643,6 @@ services:
       AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "1"
       RUN_AQUARIUS_SERVER : "0"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       ALLOWED_PUBLISHERS: '[""]'
       NETWORK_NAME: "rinkeby"
       EVENTS_RPC: "https://rinkeby.infura.io/v3/< your Infura project id >"

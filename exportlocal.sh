@@ -1,4 +1,3 @@
-export AQUARIUS_CONFIG_FILE=config.ini
 export DB_HOSTNAME=https://127.0.0.1
 export DB_INDEX=aquarius
 export DB_MODULE=elasticsearch

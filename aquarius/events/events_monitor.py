@@ -64,8 +64,8 @@ class EventsMonitor(BlockProcessingClass):
 
     _instance = None
 
-    def __init__(self, web3, config_file):
-        self._es_instance = ElasticsearchInstance(config_file)
+    def __init__(self, web3):
+        self._es_instance = ElasticsearchInstance()
 
         self._other_db_index = f"{self._es_instance.db_index}_plus"
         self._es_instance.es.indices.create(index=self._other_db_index, ignore=400)
@@ -114,7 +114,6 @@ class EventsMonitor(BlockProcessingClass):
         )
         logger.info(allocate_message)
         self.retry_mechanism = RetryMechanism(
-            config_file,
             self._es_instance,
             self._retries_db_index,
             self.purgatory,

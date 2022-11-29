@@ -9,7 +9,6 @@ import json
 import logging
 import os
 import time
-
 import pytest
 
 from aquarius.events.events_monitor import EventsMonitor

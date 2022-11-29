@@ -140,37 +140,35 @@ def test_get_assets_in_chain(client, events_object):
 
 
 def test_events_monitor_object(monkeypatch):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
     monkeypatch.setenv("ALLOWED_PUBLISHERS", "can not be converted to a set")
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     assert monitor._allowed_publishers == set()
 
     monkeypatch.setenv("OCN_EVENTS_MONITOR_QUITE_TIME", "can not be converted to int")
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     assert monitor._monitor_sleep_time == 10
 
     monkeypatch.setenv("EVENTS_CLEAN_START", "1")
     with patch("aquarius.events.events_monitor.EventsMonitor.reset_chain") as mock:
-        monitor = EventsMonitor(setup_web3(config_file), config_file)
+        monitor = EventsMonitor(setup_web3())
         mock.assert_called_once()
 
 
 def test_start_stop_events_monitor():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
 
     monitor._monitor_is_on = True
     assert monitor.start_events_monitor() is None
 
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     monitor._contract_address = None
     assert monitor.start_events_monitor() is None
 
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     monitor._contract = None
     assert monitor.start_events_monitor() is None
 
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     with patch("aquarius.events.events_monitor.Thread.start") as mock:
         monitor.start_events_monitor()
         # we have 2 thread running
@@ -179,8 +177,7 @@ def test_start_stop_events_monitor():
 
 
 def test_process_block_range(client, base_ddo_url, events_object):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     assert monitor.process_block_range(13, 10) is None  # not processing if from > to
 
     _ddo = new_ddo(test_account1, get_web3(), "dt.0")
