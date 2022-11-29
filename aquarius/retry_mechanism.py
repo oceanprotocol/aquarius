@@ -66,9 +66,9 @@ class RetryMechanism:
 
     def get_by_id(self, rm_id):
         try:
-            return self._es_instance.es.get(
-                index=self._retries_db_index, id=rm_id, doc_type="_doc"
-            )["_source"]
+            return self._es_instance.es.get(index=self._retries_db_index, id=rm_id)[
+                "_source"
+            ]
         except Exception:
             return None
 
@@ -103,7 +103,6 @@ class RetryMechanism:
             res = self._es_instance.es.delete(
                 index=self._retries_db_index,
                 id=element_id,
-                doc_type="_doc",
             )
             logger.error(res)
         except Exception:
@@ -208,7 +207,6 @@ class RetryMechanism:
                 index=self._retries_db_index,
                 id=id,
                 body=element,
-                doc_type="_doc",
                 refresh="wait_for",
             )["_id"]
             logger.info(f"Added {id} to retry queue")
