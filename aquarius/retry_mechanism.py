@@ -66,9 +66,9 @@ class RetryMechanism:
 
     def get_by_id(self, rm_id):
         try:
-            return self._es_instance.es.get(
-                index=self._retries_db_index, id=rm_id
-            )["_source"]
+            return self._es_instance.es.get(index=self._retries_db_index, id=rm_id)[
+                "_source"
+            ]
         except Exception:
             return None
 
