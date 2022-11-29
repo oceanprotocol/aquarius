@@ -432,7 +432,6 @@ class OrderStartedProcessor:
     def process(self):
         if not self.asset:
             return
-
         logger.debug(f"Retrieving number of orders for {self.token_address}.")
         number_orders, price = get_number_orders_price(
             self.token_address, self.last_sync_block, self.chain_id
@@ -461,7 +460,6 @@ class TokenURIUpdatedProcessor:
     def process(self):
         if not self.asset:
             return
-
         erc721_contract = self.web3.eth.contract(
             abi=ERC721Template.abi,
             address=self.web3.toChecksumAddress(self.event.address),
@@ -541,33 +539,3 @@ class MetadataStateProcessor(EventProcessor):
                 return
 
         self.update_aqua_nft_state_data(self.event.args.state, self.did)
-
-
-class TransferProcessor:
-    def __init__(self, event, web3, es_instance, chain_id):
-        self.did = make_did(event.address, chain_id)
-        self.es_instance = es_instance
-        self.event = event
-        self.web3 = web3
-
-        try:
-            self.asset = self.es_instance.read(self.did)
-        except Exception:
-            self.asset = None
-
-    def process(self):
-        if not self.asset:
-            return
-
-        erc721_contract = self.web3.eth.contract(
-            abi=ERC721Template.abi,
-            address=self.web3.toChecksumAddress(self.event.address),
-        )
-        receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)
-        event_decoded = erc721_contract.events.Transfer().processReceipt(
-            receipt, errors=DISCARD
-        )[0]
-        self.asset["nft"]["owner"] = event_decoded.args.to
-        logger.debug(f"Update owner for {self.did} to {event_decoded.args.to}")
-        self.es_instance.update(self.asset, self.did)
-        return self.asset

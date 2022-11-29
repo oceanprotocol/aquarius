@@ -21,13 +21,13 @@ from aquarius.events.constants import EventTypes
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
     MetadataStateProcessor,
-    TransferProcessor,
     MetadataUpdatedProcessor,
     OrderStartedProcessor,
     TokenURIUpdatedProcessor,
 )
 from aquarius.events.purgatory import Purgatory
 from aquarius.events.ve_allocate import VeAllocate
+from aquarius.events.nft_ownership import NftOwnership
 from aquarius.events.util import (
     get_metadata_start_block,
     get_defined_block,
@@ -73,6 +73,9 @@ class EventsMonitor(BlockProcessingClass):
         self._retries_db_index = f"{self._es_instance.db_index}_retries"
         self._es_instance.es.indices.create(index=self._retries_db_index, ignore=400)
 
+        self._nfts_db_index = f"{self._es_instance.db_index}_nfts"
+        self._es_instance.es.indices.create(index=self._nfts_db_index, ignore=400)
+
         self._web3 = web3
 
         self._chain_id = self._web3.eth.chain_id
@@ -111,7 +114,14 @@ class EventsMonitor(BlockProcessingClass):
         )
         logger.info(allocate_message)
         self.retry_mechanism = RetryMechanism(
-            self._es_instance, self._retries_db_index, self.purgatory
+            self._es_instance,
+            self._retries_db_index,
+            self.purgatory,
+            self._chain_id,
+            self,
+        )
+        self.nft_ownership = NftOwnership(
+            self._es_instance, self._nfts_db_index, self._chain_id, self
         )
 
         purgatory_message = (
@@ -122,6 +132,7 @@ class EventsMonitor(BlockProcessingClass):
         self._thread_process_queue_is_on = False
         self._thread_process_ve_allocate_is_on = False
         self._thread_process_purgatory_is_on = False
+        self._thread_process_nfts_is_on = False
 
     @property
     def block_envvar(self):
@@ -133,6 +144,7 @@ class EventsMonitor(BlockProcessingClass):
         self._thread_process_queue_is_on = False
         self._thread_process_ve_allocate_is_on = False
         self._thread_process_purgatory_is_on = False
+        self._thread_process_nfts_is_on = False
 
     def start_events_monitor(self):
         """Starts all needed threads, depending on config"""
@@ -140,6 +152,11 @@ class EventsMonitor(BlockProcessingClass):
         t = Thread(target=self.thread_process_blocks, daemon=True)
         self._thread_process_blocks_is_on = True
         t.start()
+
+        t = Thread(target=self.thread_process_nft_ownership, daemon=True)
+        self._thread_process_nfts_is_on = True
+        t.start()
+
         if strtobool(os.getenv("PROCESS_RETRY_QUEUE", "0")):
             t = Thread(target=self.thread_process_queue, daemon=True)
             self._thread_process_queue_is_on = True
@@ -184,6 +201,16 @@ class EventsMonitor(BlockProcessingClass):
                     logger.error(f"Error updating ve_allocate list: {str(e)}.")
             time.sleep(self._monitor_sleep_time)
 
+    def thread_process_nft_ownership(self):
+        while True:
+            if self._thread_process_nfts_is_on:
+                logger.info("Starting nft_ownership update_lists ....")
+                try:
+                    self.nft_ownership.update_lists()
+                except (KeyError, Exception) as e:
+                    logger.error(f"Error updating nft ownerships: {str(e)}.")
+            time.sleep(self._monitor_sleep_time)
+
     def thread_process_purgatory(self):
         while True:
             if self._thread_process_purgatory_is_on:
@@ -212,268 +239,195 @@ class EventsMonitor(BlockProcessingClass):
         ):
             return
 
-        from_block = last_block
+        from_block = (
+            last_block + 1
+        )  # we don't need to process last block again, it's a waste of rpc
         logger.debug(
             f"Web3 block:{current_block}, from:block {from_block}, chunk: {self.blockchain_chunk_size}"
         )
+        if from_block > current_block:
+            # nothing to do for now
+            return
         start_block_chunk = from_block
-        for end_block_chunk in range(
-            from_block, current_block, self.blockchain_chunk_size
-        ):
-            self.process_block_range(start_block_chunk, end_block_chunk)
-            start_block_chunk = end_block_chunk
-
+        steps = range(from_block, current_block, self.blockchain_chunk_size)
+        # if we only have one step, it will be processed at line #228 anyway
+        if len(steps) > 1:
+            for end_block_chunk in steps:
+                self.process_block_range(start_block_chunk, end_block_chunk)
+                start_block_chunk = end_block_chunk
+        else:
+            end_block_chunk = start_block_chunk
         self.process_block_range(end_block_chunk, current_block)
 
     def process_block_range(self, from_block, to_block):
-        """Process a range of blocks."""
-        logger.debug(
-            f"Metadata monitor (chain: {self._chain_id})>>>> from_block:{from_block}, current_block:{to_block} <<<<"
-        )
-
+        """Process a range of blocks.
+        If fails, and possible, try to split the chunk in two and try again
+        """
         if from_block > to_block:
             return
 
-        processor_args = [
-            self._es_instance,
-            self._web3,
-            self._allowed_publishers,
-            self.purgatory,
-            self._chain_id,
-        ]
-
-        # event retrieval
-        all_events = self.get_all_events(from_block, to_block)
-
-        regular_event_processors = {
-            EventTypes.EVENT_METADATA_CREATED: MetadataCreatedProcessor,
-            EventTypes.EVENT_METADATA_UPDATED: MetadataUpdatedProcessor,
-            EventTypes.EVENT_METADATA_STATE: MetadataStateProcessor,
-        }
-
-        # event handling
-        for event_name, events_to_process in all_events.items():
-            if event_name == EventTypes.EVENT_TRANSFER:
-                logger.debug(
-                    f"Starting handle_transfer_ownership for {len(events_to_process)} events"
-                )
-                self.handle_transfer_ownership(events_to_process)
-            elif event_name in regular_event_processors.keys():
-                logger.debug(
-                    f"Starting handle_regular_event_processor for {len(events_to_process)} events"
-                )
-                self.handle_regular_event_processor(
-                    event_name,
-                    regular_event_processors[event_name],
-                    processor_args,
-                    events_to_process,
-                )
-            elif event_name in [
-                EventTypes.EVENT_ORDER_STARTED,
-                EventTypes.EVENT_EXCHANGE_CREATED,
-                EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
-                EventTypes.EVENT_DISPENSER_CREATED,
-            ]:
-                logger.debug(
-                    f"Starting handle_price_change for {len(events_to_process)} events"
-                )
-                self.handle_price_change(event_name, events_to_process, to_block)
-            elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
-                logger.debug(
-                    f"Starting handle_token_uri_update for {len(events_to_process)} events"
-                )
-                self.handle_token_uri_update(events_to_process)
-            else:
-                logger.warning(f"Unknown event {event_name}")
-                logger.warning(events_to_process)
-        self.store_last_processed_block(to_block)
-
-    def get_all_events(self, from_block, to_block):
-        logger.debug(
-            f"**************Getting all events between {from_block} to {to_block}"
-        )
-        all_events = {
-            EventTypes.EVENT_TRANSFER: [],
-            # "regular" events
-            EventTypes.EVENT_METADATA_CREATED: [],
-            EventTypes.EVENT_METADATA_UPDATED: [],
-            EventTypes.EVENT_METADATA_STATE: [],
-            # price changed events
-            EventTypes.EVENT_ORDER_STARTED: [],
-            EventTypes.EVENT_EXCHANGE_CREATED: [],
-            EventTypes.EVENT_EXCHANGE_RATE_CHANGED: [],
-            EventTypes.EVENT_DISPENSER_CREATED: [],
-            #
-            EventTypes.EVENT_TOKEN_URI_UPDATE: [],
-        }
-
-        if from_block >= to_block:
-            return all_events
-
         try:
-            for event_name in all_events.keys():
-                all_events[event_name] = self.get_event_logs(
-                    event_name, from_block, to_block
-                )
+            self.get_and_process_logs(from_block, to_block)
 
-            return all_events
-        except Exception:
+        except Exception as e:
             logger.info(f"Failed to get events from {from_block} to {to_block}")
-            middle = int((from_block + to_block) / 2)
-            middle_plus = middle + 1
-            logger.info(
-                f"Splitting in two:  {from_block} -> {middle} and {middle_plus} to {to_block}"
-            )
-            return merge_list_dictionary(
-                self.get_all_events(from_block, middle),
-                self.get_all_events(middle_plus, to_block),
-            )
+            # if we can split it in two, just do it
+            if from_block < to_block:
+                middle = int((from_block + to_block) / 2)
+                middle_plus = middle + 1
+                logger.info(
+                    f"Splitting in two:  {from_block} -> {middle} and {middle_plus} to {to_block}"
+                )
+                self.process_block_range(from_block, middle)
+                self.process_block_range(middle_plus, to_block)
+            else:
+                # so we failed to process a single block.
+                self.retry_mechanism.add_block_to_retry_queue(from_block)
+                logger.error(
+                    f"Failed to get some events from block {from_block}. Error: {e}"
+                )
+            return
 
-    def handle_regular_event_processor(
-        self, event_name, processor, processor_args, events
-    ):
-        """Process emitted events between two given blocks for a given event name.
+    def handle_metadata_updates(self, event_name, processor_args, event):
+        """Process one event of types EVENT_METADATA_CREATED, EVENT_METADATA_UPDATED, EVENT_METADATA_STATE
 
         Args:
             event_name (str): event uppercase constant name
-            processor (EventProcessor): event processor
             processor_args (List[any]): list of processors arguments
-            from_block (int): inital block
-            to_block (int): final block
+            event: event to be processed
         """
-        for event in events:
-            dt_contract = self._web3.eth.contract(
-                abi=ERC721Template.abi,
-                address=self._web3.toChecksumAddress(event.address),
-            )
-            receipt = self._web3.eth.get_transaction_receipt(
-                event.transactionHash.hex()
-            )
-            event_object = dt_contract.events[event_name]().processReceipt(
+        processor = None
+        if event_name == EventTypes.EVENT_METADATA_CREATED:
+            processor = MetadataCreatedProcessor
+        elif event_name == EventTypes.EVENT_METADATA_UPDATED:
+            processor = MetadataUpdatedProcessor
+        elif event_name == EventTypes.EVENT_METADATA_STATE:
+            processor = MetadataStateProcessor
+        if not processor:
+            # unkown type of event, bail out
+            return
+        dt_contract = self._web3.eth.contract(
+            abi=ERC721Template.abi,
+            address=self._web3.toChecksumAddress(event.address),
+        )
+        receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
+        event_object = dt_contract.events[event_name]().processReceipt(
+            receipt, errors=DISCARD
+        )[0]
+        try:
+            metadata_proofs = dt_contract.events.MetadataValidated().processReceipt(
                 receipt, errors=DISCARD
-            )[0]
-            try:
-                metadata_proofs = dt_contract.events.MetadataValidated().processReceipt(
-                    receipt, errors=DISCARD
-                )
-                event_processor = processor(
-                    *([event_object, dt_contract, receipt["from"]] + processor_args)
-                )
-                event_processor.metadata_proofs = metadata_proofs
-                event_processor.process()
-            except Exception as e:
-                self.retry_mechanism.add_to_retry_queue(
-                    event.transactionHash.hex(), 0, processor_args[4]
-                )
-                logger.exception(
-                    f"Error processing {event_name} event: {e}\n" f"event={event}"
-                )
-
-    def handle_price_change(self, event_name, events, to_block):
-        for event in events:
-            receipt = self._web3.eth.get_transaction_receipt(
-                event.transactionHash.hex()
             )
-            erc20_address = None
-            if event_name == EventTypes.EVENT_EXCHANGE_CREATED:
-                if is_approved_fre(self._web3, event.address, self._chain_id):
-                    fre = get_fre(self._web3, self._chain_id, event.address)
-                    exchange_id = (
-                        fre.events.ExchangeCreated()
-                        .processReceipt(receipt)[0]
-                        .args.exchangeId
+            event_processor = processor(
+                *([event_object, dt_contract, receipt["from"]] + processor_args)
+            )
+            event_processor.metadata_proofs = metadata_proofs
+            event_processor.process()
+        except Exception as e:
+            logger.exception(
+                f"Error processing {event_name} event: {e}\n" f"event={event}"
+            )
+            self.retry_mechanism.add_event_to_retry_queue(event)
+
+    def handle_price_change(self, event_name, event, to_block):
+        """Process one event of types: EVENT_ORDER_STARTED, EVENT_EXCHANGE_CREATED, EVENT_EXCHANGE_RATE_CHANGED, EVENT_DISPENSER_CREATED
+
+        Args:
+            event_name (str): event uppercase constant name
+            event: event to be processed
+            to_block: last block in the current queue
+        """
+        receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
+        erc20_address = None
+        if event_name == EventTypes.EVENT_EXCHANGE_CREATED:
+            if is_approved_fre(self._web3, event.address, self._chain_id):
+                fre = get_fre(self._web3, self._chain_id, event.address)
+                exchange_id = (
+                    fre.events.ExchangeCreated()
+                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .args.exchangeId
+                )
+                try:
+                    erc20_address = fre.caller.getExchange(exchange_id)[1]
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to get ERC20 address for {exchange_id} on fre: {event.address}:  {e}"
                     )
-                    try:
-                        erc20_address = fre.caller.getExchange(exchange_id)[1]
-                    except Exception as e:
-                        logger.warning(
-                            f"Failed to get ERC20 address for {exchange_id} on fre: {event.address}:  {e}"
-                        )
-                    logger.debug(f"Erc20Addr:{erc20_address}")
-                else:
-                    logger.debug(
-                        f"Event {event_name} detected on unapproved fre {event.address}"
-                    )
-            elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
-                if is_approved_fre(self._web3, event.address, self._chain_id):
-                    fre = get_fre(self._web3, self._chain_id)
-                    exchange_id = (
-                        fre.events.ExchangeRateChanged()
-                        .processReceipt(receipt)[0]
-                        .args.exchangeId
-                    )
-                    try:
-                        erc20_address = fre.caller.getExchange(exchange_id)[1]
-                    except Exception as e:
-                        logger.warning(
-                            f"Failed to get ERC20 address for {exchange_id} on fre: {event.address}:  {e}"
-                        )
-                else:
-                    logger.debug(
-                        f"Event {event_name} detected on unapproved fre {event.address}"
-                    )
-            elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
-                if is_approved_dispenser(self._web3, event.address, self._chain_id):
-                    dispenser = get_dispenser(self._web3, self._chain_id)
-                    erc20_address = (
-                        dispenser.events.DispenserCreated()
-                        .processReceipt(receipt)[0]
-                        .args.datatokenAddress
-                    )
-                else:
-                    logger.debug(
-                        f"Event {event_name} detected on unapproved dispenser {event.address}"
+                logger.debug(f"Erc20Addr:{erc20_address}")
+            else:
+                logger.debug(
+                    f"Event {event_name} detected on unapproved fre {event.address}"
+                )
+        elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
+            if is_approved_fre(self._web3, event.address, self._chain_id):
+                fre = get_fre(self._web3, self._chain_id)
+                exchange_id = (
+                    fre.events.ExchangeRateChanged()
+                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .args.exchangeId
+                )
+                try:
+                    erc20_address = fre.caller.getExchange(exchange_id)[1]
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to get ERC20 address for {exchange_id} on fre: {event.address}:  {e}"
                     )
             else:
-                erc20_address = event.address
-            if erc20_address is None:
-                return
-            erc20_contract = self._web3.eth.contract(
-                abi=ERC20Template.abi,
-                address=self._web3.toChecksumAddress(erc20_address),
+                logger.debug(
+                    f"Event {event_name} detected on unapproved fre {event.address}"
+                )
+        elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
+            if is_approved_dispenser(self._web3, event.address, self._chain_id):
+                dispenser = get_dispenser(self._web3, self._chain_id)
+                erc20_address = (
+                    dispenser.events.DispenserCreated()
+                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .args.datatokenAddress
+                )
+            else:
+                logger.debug(
+                    f"Event {event_name} detected on unapproved dispenser {event.address}"
+                )
+        else:
+            erc20_address = event.address
+        if erc20_address is None:
+            return
+        erc20_contract = self._web3.eth.contract(
+            abi=ERC20Template.abi,
+            address=self._web3.toChecksumAddress(erc20_address),
+        )
+
+        logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
+
+        try:
+            event_processor = OrderStartedProcessor(
+                erc20_contract.caller.getERC721Address(),
+                self._es_instance,
+                to_block,
+                self._chain_id,
             )
+            event_processor.process()
+        except Exception as e:
+            logger.error(f"Error processing {event_name} event: {e}\n" f"event={event}")
+            self.retry_mechanism.add_event_to_retry_queue(event)
 
-            logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
+    def handle_token_uri_update(self, event):
+        """Process one token uri update event
 
-            try:
-                event_processor = OrderStartedProcessor(
-                    erc20_contract.caller.getERC721Address(),
-                    self._es_instance,
-                    to_block,
-                    self._chain_id,
-                )
-                event_processor.process()
-            except Exception as e:
-                logger.error(
-                    f"Error processing {event_name} event: {e}\n" f"event={event}"
-                )
-
-    def handle_token_uri_update(self, events):
-        for event in events:
-            try:
-                event_processor = TokenURIUpdatedProcessor(
-                    event, self._web3, self._es_instance, self._chain_id
-                )
-                event_processor.process()
-            except Exception as e:
-                logger.error(
-                    f"Error processing token update event: {e}\n" f"event={event}"
-                )
-
-    def handle_transfer_ownership(self, events):
-        for event in events:
-            try:
-                event_processor = TransferProcessor(
-                    event, self._web3, self._es_instance, self._chain_id
-                )
-                if event_processor.asset is not None:
-                    event_processor.process()
-            except Exception as e:
-                logger.error(
-                    f"Error processing token transfer event: {e}\n" f"event={event}"
-                )
+        Args:
+            event: event to be processed
+        """
+        try:
+            event_processor = TokenURIUpdatedProcessor(
+                event, self._web3, self._es_instance, self._chain_id
+            )
+            event_processor.process()
+        except Exception as e:
+            logger.error(f"Error processing token update event: {e}\n" f"event={event}")
+            self.retry_mechanism.add_event_to_retry_queue(event)
 
     def get_last_processed_block(self):
+        """Get last processed_block, fallback to contract deployment block"""
         block = get_defined_block(self._chain_id)
         try:
             # Re-establishing the connection with ES
@@ -485,7 +439,7 @@ class EventsMonitor(BlockProcessingClass):
                     logging.error(f"Elasticsearch error: {es_err}")
                 logging.error("Connection to ES failed. Trying to connect to back...")
                 time.sleep(5)
-            logging.info("Stable connection to ES.")
+            # logging.info("Stable connection to ES.")
             last_block_record = self._es_instance.es.get(
                 index=self._other_db_index, id=self._index_name, doc_type="_doc"
             )["_source"]
@@ -504,9 +458,14 @@ class EventsMonitor(BlockProcessingClass):
         return block
 
     def store_last_processed_block(self, block):
+        """Stores last processed block
+
+        Args:
+            block: last block that was processed
+        """
         # make sure that we don't write a block < then needed
         stored_block = self.get_last_processed_block()
-        logger.debug(f"Storing last_processed_block {block}  (In Es: {stored_block})")
+        logger.info(f"Storing last_processed_block {block}  (In Es: {stored_block})")
         if block <= stored_block:
             return
         record = {"last_block": block, "version": get_version()}
@@ -574,70 +533,110 @@ class EventsMonitor(BlockProcessingClass):
 
         return object_list
 
-    def get_event_logs(self, event_name, from_block, to_block, chunk_size=1000):
-        if event_name not in EventTypes.get_all_values():
-            return []
+    def get_and_process_event_logs_for_one_block(self, block):
+        """Get events for one topic at a time from one block -> multiple rpc calls
 
-        if event_name == EventTypes.EVENT_METADATA_CREATED:
-            hash_text = "MetadataCreated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_METADATA_UPDATED:
-            hash_text = "MetadataUpdated(address,uint8,string,bytes,bytes,bytes32,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_METADATA_STATE:
-            hash_text = "MetadataState(address,uint8,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_TOKEN_URI_UPDATE:
-            hash_text = "TokenURIUpdate(address,string,uint256,uint256,uint256)"
-        elif event_name == EventTypes.EVENT_EXCHANGE_CREATED:
-            hash_text = "ExchangeCreated(bytes32,address,address,address,uint256)"
-        elif event_name == EventTypes.EVENT_EXCHANGE_RATE_CHANGED:
-            hash_text = "ExchangeRateChanged(bytes32,address,uint256)"
-        elif event_name == EventTypes.EVENT_DISPENSER_CREATED:
-            hash_text = "DispenserCreated(address,address,uint256,uint256,address)"
-        elif event_name == EventTypes.EVENT_TRANSFER:
-            hash_text = "Transfer(address,address,uint256)"
-        else:
-            hash_text = (
-                "OrderStarted(address,address,uint256,uint256,uint256,address,uint256)"
-            )
+        Args:
+            block: block to index
+        """
+        for topic in EventTypes.hashes:
+            filter_params = {
+                "topics": [topic],
+                "fromBlock": block,
+                "toBlock": block,
+            }
+            try:
+                logs = self._web3.eth.get_logs(filter_params)
+                self.process_logs(logs, block)
+            except Exception as e:
+                logger.error(
+                    f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {block}."
+                )
+        return
 
-        event_signature_hash = self._web3.keccak(text=hash_text).hex()
+    def get_and_process_logs(self, from_block, to_block):
+        """Get all events from -> to in a single call and process them.
+        If that fails, and we tried with multiple blocks, let split handle it
+        If that fails, and we tried on a single block, then try to get events one by one instead of all
 
-        _from = from_block
-        _to = min(_from + chunk_size - 1, to_block)
-
-        logger.debug(
-            f"Searching for {event_name} events on chain {self._chain_id} "
+        Args:
+            from_block: first block in chunk
+            to_block: last block in chunk
+        """
+        logger.info(
+            f"Searching for events events on chain {self._chain_id} "
             f"in blocks {from_block} to {to_block}."
         )
 
         filter_params = {
-            "topics": [event_signature_hash],
-            "fromBlock": _from,
-            "toBlock": _to,
+            "topics": [list(EventTypes.hashes.keys())],
+            "fromBlock": from_block,
+            "toBlock": to_block,
         }
 
-        all_logs = []
-        while _from <= to_block:
-            # Search current chunk
+        try:
             logs = self._web3.eth.get_logs(filter_params)
-            all_logs.extend(logs)
-            if (_from - from_block) % 1000 == 0:
-                logger.debug(
-                    f"Searched blocks {_from} to {_to} on chain {self._chain_id}; "
-                    f"{len(all_logs)} {event_name} events detected so far."
+        except Exception as e:
+            if from_block < to_block:
+                # splitting in two might help, so rely on that
+                raise Exception(f"Failed to get events for multiple blocks")
+            else:
+                # Since there is only one block, and we failed to get all events, we need to try to take them one by one
+                # if any call fails, there is nothing more we can do  (ie:  failed to get only transfer events from block X)
+                self.get_and_process_event_logs_for_one_block(from_block)
+                return
+        try:
+            self.process_logs(logs, to_block)
+        except Exception as e:
+            logger.error(
+                f"Failed to process logs {from_block} to {to_block}. Error: {e}"
+            )
+        # finally, stored last block in ES
+        self.store_last_processed_block(to_block)
+
+    def process_logs(self, logs, to_block):
+        """Given a list of events, of different types, process them ..
+
+        Args:
+            logs: list of events to be processed
+            to_block: last block in the queue
+        """
+        processor_args = [
+            self._es_instance,
+            self._web3,
+            self._allowed_publishers,
+            self.purgatory,
+            self._chain_id,
+        ]
+
+        logger.info(f"Processing {len(logs)} events ...")
+        for event in logs:
+            match = EventTypes.hashes.get(event.topics[0].hex(), None)
+            if match is None:
+                logger.warning(f"Unknown event ")
+                logger.warning(event)
+                continue
+            if (
+                match["type"] == EventTypes.EVENT_METADATA_CREATED
+                or match["type"] == EventTypes.EVENT_METADATA_UPDATED
+                or match["type"] == EventTypes.EVENT_METADATA_STATE
+            ):
+                self.handle_metadata_updates(
+                    match["type"],
+                    processor_args,
+                    event,
                 )
+            elif match["type"] in [
+                EventTypes.EVENT_ORDER_STARTED,
+                EventTypes.EVENT_EXCHANGE_CREATED,
+                EventTypes.EVENT_EXCHANGE_RATE_CHANGED,
+                EventTypes.EVENT_DISPENSER_CREATED,
+            ]:
+                self.handle_price_change(match["type"], event, to_block)
+            elif match["type"] == EventTypes.EVENT_TOKEN_URI_UPDATE:
+                self.handle_token_uri_update(event)
 
-            # Prepare for next chunk
-            _from = _to + 1
-            _to = min(_from + chunk_size - 1, to_block)
-            filter_params.update({"fromBlock": _from, "toBlock": _to})
-
-        logger.info(
-            f"Finished searching for {event_name} events on chain {self._chain_id} "
-            f"in blocks {from_block} to {to_block}. "
-            f"{len(all_logs)} {event_name} events detected."
-        )
-
-        return all_logs
+        return
 
 
 def merge_list_dictionary(dict_1, dict_2):
