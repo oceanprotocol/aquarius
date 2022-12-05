@@ -21,7 +21,7 @@ def get_schema(version=CURRENT_VERSION):
     """Gets the schema file corresponding to the version."""
     assert version in ALLOWED_VERSIONS, "Can't find schema {}".format(version)
 
-    path = "ddo_checker/shacl_schemas/v4/remote_" + version + ".ttl"
+    path = "schemas/" + version + ".ttl"
 
     schema_file = Path(pkg_resources.resource_filename("aquarius", path))
     assert schema_file.exists(), "Can't find schema {}".format(version)
