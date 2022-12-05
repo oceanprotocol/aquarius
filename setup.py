@@ -30,7 +30,7 @@ install_requirements = [
     "PyYAML==6.0",
     "pytz==2022.6",
     "ocean-contracts==1.1.8",
-    "web3==5.31.1",
+    "web3==5.31.3",
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
@@ -44,7 +44,7 @@ setup_requirements = ["pytest-runner==6.0.0"]
 dev_requirements = [
     "bumpversion==0.6.0",
     "pkginfo==1.9.2",
-    "twine==4.0.1",
+    "twine==4.0.2",
     "flake8",
     "isort",
     "black",
