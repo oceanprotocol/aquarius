@@ -7,7 +7,6 @@ import os
 import time
 
 from elasticsearch import Elasticsearch
-
 from elasticsearch.exceptions import NotFoundError
 
 _DB_INSTANCE = None
