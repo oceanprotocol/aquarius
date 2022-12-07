@@ -39,7 +39,8 @@ class Price:
 def get_number_orders_price(token_address, last_sync_block, chain_id):
     try:
         client = get_client(chain_id, last_sync_block)
-
+        if not client:
+            return -1, {}
         query = gql(
             '{tokens(where:{nft:"'
             + token_address.lower()
@@ -75,7 +76,8 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
 def get_nft_transfers(start_block, last_sync_block, chain_id):
     try:
         client = get_client(chain_id, last_sync_block)
-
+        if not client:
+            return None
         query_text = (
             "{nftTransferHistories(where:{block_gt: "
             + str(start_block)
@@ -99,7 +101,7 @@ def get_transport(chain_id):
     subgraph_urls = json.loads(os.getenv("SUBGRAPH_URLS", "{}"))
 
     if str(chain_id) not in subgraph_urls:
-        raise Exception("Subgraph not defined for this chain.")
+        raise Exception(f"Subgraph not defined for chain {chain_id}.")
 
     prefix = subgraph_urls[str(chain_id)]
 
@@ -134,7 +136,13 @@ def get_client(chain_id, block=None):
         block: minimum block height
     """
     logger.debug("Initializing client for transport and fetching schema.")
-    client = Client(transport=get_transport(chain_id), fetch_schema_from_transport=True)
+    try:
+        client = Client(
+            transport=get_transport(chain_id), fetch_schema_from_transport=True
+        )
+    except Exception as e:
+        logger.warning(f"Failed to initialize graphql client: {e}")
+        return None
     if block is None:
         return client
     # wait for subgraph to sync
