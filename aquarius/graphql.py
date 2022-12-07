@@ -101,7 +101,8 @@ def get_transport(chain_id):
     subgraph_urls = json.loads(os.getenv("SUBGRAPH_URLS", "{}"))
 
     if str(chain_id) not in subgraph_urls:
-        raise Exception(f"Subgraph not defined for chain {chain_id}.")
+        logger.warn(f"Subgraph not defined for chain {chain_id}.")
+        raise Exception("Subgraph not defined for this chain.")
 
     prefix = subgraph_urls[str(chain_id)]
 
