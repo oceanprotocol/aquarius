@@ -301,9 +301,10 @@ class MetadataUpdatedProcessor(EventProcessor):
         valid_remote, errors = validate_dict(
             _record, self._chain_id, self.dt_contract.address
         )
-
         if not valid_remote:
-            logger.error(f"ddo update has validation errors: {errors}")
+            logger.error(
+                f"Updated ddo has validation errors: {errors} \nfor record:\n {_record}"
+            )
             return False
 
         # check purgatory only if asset is valid
