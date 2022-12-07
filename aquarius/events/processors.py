@@ -213,7 +213,11 @@ class MetadataCreatedProcessor(EventProcessor):
 
     def process(self):
         txid = self.txid
-
+        expected_did = make_did(self.event.address, self._chain_id)
+        logger.info(
+            f"Process new DDO: {expected_did}, block {self.block}, "
+            f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
+        )
         dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(
             self._web3.toChecksumAddress(self.event.address)
@@ -222,6 +226,7 @@ class MetadataCreatedProcessor(EventProcessor):
             return
 
         if not check_metadata_proofs(self._web3, self.metadata_proofs):
+            logger.error("Failed to validate metadata_proofs")
             return
 
         # if not authorized, will return False, which is a graceful failure
@@ -240,10 +245,6 @@ class MetadataCreatedProcessor(EventProcessor):
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
-        logger.info(
-            f"Process new DDO, did from event log: {did}, block {self.block}, "
-            f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
-        )
 
         if not self.is_publisher_allowed(sender_address):
             logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
@@ -262,7 +263,8 @@ class MetadataCreatedProcessor(EventProcessor):
 
         permission = self.check_permission(sender_address)
         if not permission:
-            raise Exception("RBAC permission denied.")
+            logger.info("RBAC permission denied. Failing gracefully.")
+            return
 
         _record = self.make_record(asset)
 
@@ -317,19 +319,20 @@ class MetadataUpdatedProcessor(EventProcessor):
 
     def process(self):
         txid = self.txid
-
+        expected_did = make_did(self.event.address, self._chain_id)
+        logger.info(
+            f"Process DDO update: {expected_did}, block {self.block}, "
+            f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
+        )
         dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
             logger.error("token not deployed by our factory")
+            return
 
         if not check_metadata_proofs(self._web3, self.metadata_proofs):
-            try:
-                self._es_instance.delete(make_did(self.event.address, self._chain_id))
-            except ValueError:
-                pass
-
+            logger.error("Failed to validate metadata_proofs")
             return
 
         # if not authorized, will return False, which is a graceful failure
@@ -348,10 +351,6 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
-        logger.info(
-            f"Process new DDO, did from event log:{did}, block {self.block}, "
-            f"contract: {self.event.address}, txid: {self.txid}, chainId: {self._chain_id}"
-        )
 
         permission = self.check_permission(sender_address)
         if not permission:
