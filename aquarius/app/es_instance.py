@@ -13,6 +13,11 @@ _DB_INSTANCE = None
 
 logger = logging.getLogger(__name__)
 
+# get rid of annoying messages from https://github.com/elastic/elastic-transport-python/blob/0a3445be1723e4ef68492ee7da51d70d8c58f1d7/elastic_transport/_async_transport.py#L266
+logging.getLogger("elastic_transport.node").setLevel(logging.ERROR)
+logging.getLogger("elastic_transport.node_pool").setLevel(logging.ERROR)
+logging.getLogger("elastic_transport.transport").setLevel(logging.ERROR)
+
 
 class ElasticsearchInstance(object):
     def __init__(self):

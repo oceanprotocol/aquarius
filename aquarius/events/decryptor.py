@@ -30,10 +30,13 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
         "nonce": nonce,
     }
 
-    response = requests.post(provider_url + "/api/services/decrypt", json=payload)
+    try:
+        response = requests.post(provider_url + "/api/services/decrypt", json=payload)
+    except Exception as e:
+        response = None
 
-    if not response or not hasattr(response, "status_code"):
-        msg = f"Failed to get a response for decrypt DDO with provider={provider_url}, payload={payload}, response is {response.content}"
+    if not hasattr(response, "status_code"):
+        msg = f"Failed to get a response for decrypt DDO with provider={provider_url}, payload={payload}, response={response}"
         logger.error(msg)
         raise Exception(f"in decrypt_ddo: {msg}")
 
@@ -49,8 +52,9 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
 
     if response.status_code == 403:
         # unauthorised decrypter
+        logger.info(f"403, response={response.content}")
         return False
 
-    msg = f"Provider exception on decrypt DDO: {response.content}\n provider URL={provider_url}, payload={payload}."
+    msg = f"Provider exception on decrypt DDO. Status:{response.status_code},  {response.content}\n provider URL={provider_url}, payload={payload}."
     logger.error(msg)
     raise Exception(f"in decrypt_ddo: {msg}")

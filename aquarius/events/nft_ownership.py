@@ -95,7 +95,16 @@ class NftOwnership:
         if end_block <= start_block:
             # no data to ingest
             return
-        nft_transfers_list = get_nft_transfers(start_block, end_block, self._chain_id)
+        try:
+            nft_transfers_list = get_nft_transfers(
+                start_block, end_block, self._chain_id
+            )
+            if not nft_transfers_list:
+                # nothing to process
+                return
+        except Exception as e:
+            logger.warn(f"Failed to get subgraphs NFT transfer list: {e}")
+            return
         for transfer in nft_transfers_list:
             did = make_did(
                 Web3.toChecksumAddress(transfer["nft"]["id"]), self._chain_id
