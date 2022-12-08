@@ -239,6 +239,7 @@ schema:ContainerShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
+        sh:minLength 3;
         sh:maxLength 256;
     ] ;
     sh:property [
@@ -247,6 +248,7 @@ schema:ContainerShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
+        sh:minLength 1;
         sh:maxLength 256;
     ] ;
     sh:property [
@@ -255,6 +257,7 @@ schema:ContainerShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
         sh:maxCount 1;
+        sh:minLength 1;
         sh:maxLength 256;
     ] ;
     sh:property [
