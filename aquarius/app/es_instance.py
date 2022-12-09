@@ -21,27 +21,25 @@ logging.getLogger("elastic_transport.transport").setLevel(logging.ERROR)
 
 class ElasticsearchInstance(object):
     def __init__(self):
+        args = {}
         host = os.getenv("DB_HOSTNAME", "https://localhost")
         port = int(os.getenv("DB_PORT", 9200))
         username = os.getenv("DB_USERNAME", "elastic")
         password = os.getenv("DB_PASSWORD", "changeme")
-        index = os.getenv("DB_INDEX", "oceandb")
+        args["http_auth"] = (username, password)
+        args["maxsize"] = 1000
         ssl = self.str_to_bool(os.getenv("DB_SSL", "false"))
-        verify_certs = self.str_to_bool(os.getenv("DB_VERIFY_CERTS", "false"))
-        ca_certs = os.getenv("DB_CA_CERTS", None)
-        client_key = os.getenv("DB_CLIENT_KEY", None)
-        client_cert = os.getenv("DB_CLIENT_CERT", None)
+        if ssl:
+            args["verify_certs"] = self.str_to_bool(
+                os.getenv("DB_VERIFY_CERTS", "false")
+            )
+            args["ca_certs"] = os.getenv("DB_CA_CERTS", None)
+            args["client_key"] = os.getenv("DB_CLIENT_KEY", None)
+            args["client_cert"] = os.getenv("DB_CLIENT_CERT", None)
+        index = os.getenv("DB_INDEX", "oceandb")
         self._index = index
         try:
-            self._es = Elasticsearch(
-                host + ":" + str(port),
-                http_auth=(username, password),
-                verify_certs=verify_certs,
-                ca_certs=ca_certs,
-                client_cert=client_key,
-                client_key=client_cert,
-                maxsize=1000,
-            )
+            self._es = Elasticsearch(host + ":" + str(port), **args)
             while self._es.ping() is False:
                 logging.info("Trying to connect...")
                 time.sleep(5)
@@ -61,9 +59,9 @@ class ElasticsearchInstance(object):
 
     @staticmethod
     def str_to_bool(s):
-        if s == "true":
+        if s.lower() == "true":
             return True
-        elif s == "false":
+        elif s.lower() == "false":
             return False
         else:
             raise ValueError

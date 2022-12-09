@@ -87,7 +87,7 @@ def get_retry_queue():
     try:
         q = {"match_all": {}}
         result = es_instance.es.search(index=f"{es_instance.db_index}_retries", query=q)
-        return jsonify(result)
+        return jsonify(result.body)
     except Exception as e:
         return (
             jsonify(error=f"Encountered error : {str(e)}."),

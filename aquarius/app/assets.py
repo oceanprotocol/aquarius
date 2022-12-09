@@ -293,7 +293,21 @@ def query_ddo():
         )
 
     try:
-        return jsonify(sanitize_query_result(dict(es_instance.es.search(query=data))))
+        args = {}
+        _query = data.get("query", None)
+        if _query:
+            args["query"] = _query
+        _from = data.get("from", None)
+        if _from:
+            args["from_"] = _from
+        _size = data.get("size", None)
+        if _size:
+            args["size"] = _size
+        _sort = data.get("sort", None)
+        if _sort:
+            args["sort"] = _sort
+        result = es_instance.es.search(**args)
+        return jsonify(sanitize_query_result(result.body))
     except elasticsearch.exceptions.TransportError as e:
         error = e.message
         logger.info(f"Received elasticsearch TransportError: {error}.")
