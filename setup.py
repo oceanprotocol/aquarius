@@ -30,7 +30,7 @@ install_requirements = [
     "PyYAML==6.0",
     "pytz==2022.6",
     "ocean-contracts==1.1.8",
-    "web3==5.31.1",
+    "web3==5.31.3",
     "gevent",
     "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
@@ -44,7 +44,7 @@ setup_requirements = ["pytest-runner==6.0.0"]
 dev_requirements = [
     "bumpversion==0.6.0",
     "pkginfo==1.8.3",
-    "twine==4.0.1",
+    "twine==4.0.2",
     "flake8",
     "isort",
     "black",
@@ -59,9 +59,9 @@ test_requirements = [
     "codacy-coverage==1.3.11",
     "coverage==6.5.0",
     "mccabe==0.6.1",
-    "pylint==2.15.6",
-    "pytest==7.1.3",
-    "pytest-env==0.6.2",
+    "pylint==2.15.7",
+    "pytest",
+    "pytest-env",
     "freezegun==1.2.2",
 ]
 
