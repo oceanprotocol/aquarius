@@ -146,7 +146,7 @@ def test_events_monitor_object(monkeypatch):
 
     monkeypatch.setenv("EVENTS_MONITOR_SLEEP_TIME", "can not be converted to int")
     monitor = EventsMonitor(setup_web3())
-    assert monitor._monitor_sleep_time == 10
+    assert monitor._monitor_sleep_time == 30
 
     monkeypatch.setenv("EVENTS_CLEAN_START", "1")
     with patch("aquarius.events.events_monitor.EventsMonitor.reset_chain") as mock:
