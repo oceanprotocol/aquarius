@@ -88,7 +88,7 @@ class EventsMonitor(BlockProcessingClass):
 
         self.get_or_set_last_block()
         self._allowed_publishers = get_allowed_publishers()
-        logger.debug(f"allowed publishers: {self._allowed_publishers}")
+        logger.info(f"allowed publishers: {self._allowed_publishers}")
 
         # get timers
         self._monitor_sleep_time = self.get_timer_with_default(
