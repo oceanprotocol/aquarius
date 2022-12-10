@@ -400,7 +400,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         if self.txid == ddo_txid:
             logger.warning(
                 "old asset has the same txid, no need to update: "
-                f'event-txid={self.txid} <> asset-event-txid={old_asset["event"]["tx"]}'
+                + f"event-txid={self.txid} <> asset-event-txid={ddo_txid}"
             )
             return False
 
