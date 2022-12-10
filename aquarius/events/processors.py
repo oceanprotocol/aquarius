@@ -522,7 +522,13 @@ class MetadataStateProcessor(EventProcessor):
 
     def process(self):
         self.did = make_did(self.event.address, self._chain_id)
-
+        # check if assets exists. if not, bail out
+        exists = self._es_instance.exists(self.did)
+        if not exists:
+            logger.warn(
+                f"Detected MetadataState changed for {self.did}, but it does not exists."
+            )
+            return
         if self.event.args.state == MetadataStates.ACTIVE:
             return self.restore_ddo()
 
@@ -533,7 +539,6 @@ class MetadataStateProcessor(EventProcessor):
             MetadataStates.REVOKED,
         ]:
             try:
-                self._es_instance.read(self.did)
                 self.soft_delete_ddo(self.did)
             except Exception:
                 return
