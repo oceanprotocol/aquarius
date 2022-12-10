@@ -94,6 +94,7 @@ class EventsMonitor(BlockProcessingClass):
         self._monitor_sleep_time = self.get_timer_with_default(
             "EVENTS_MONITOR_SLEEP_TIME", 30
         )
+
         self._process_queue_sleep_time = self.get_timer_with_default(
             "EVENTS_PROCESS_QUEUE_SLEEP_TIME", 60
         )
@@ -105,6 +106,14 @@ class EventsMonitor(BlockProcessingClass):
         )
         self._purgatory_sleep_time = self.get_timer_with_default(
             "EVENTS_PURGATORY_SLEEP_TIME", 300
+        )
+        logger.info(
+            " Timers set to:\n"
+            + f"\tEVENTS_MONITOR_SLEEP_TIME:{self._monitor_sleep_time}\n"
+            + f"\tEVENTS_PROCESS_QUEUE_SLEEP_TIME:{self._process_queue_sleep_time}\n"
+            + f"\tEVENTS_VE_ALLOCATE_SLEEP_TIME:{self._ve_allocate_sleep_time}\n"
+            + f"\tEVENTS_NFT_TRANSFER_SLEEP_TIME:{self._nft_transfer_sleep_time}\n"
+            + f"\tEVENTS_PURGATORY_SLEEP_TIME:{self._purgatory_sleep_time}\n"
         )
 
         self.purgatory = (
