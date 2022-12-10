@@ -164,6 +164,14 @@ PROCESS_RETRY_QUEUE
 
 # Customize sleep time for events monitor between checking for new events. Defaults to 30 seconds
 EVENTS_MONITOR_SLEEP_TIME
+# Customize sleep time for events monitor between queue processing. Defaults to 60 seconds
+EVENTS_PROCESS_QUEUE_SLEEP_TIME
+# Customize sleep time for events monitor between updating ve_allocate. Defaults to 300 seconds
+EVENTS_VE_ALLOCATE_SLEEP_TIME
+# Customize sleep time for events monitor between checking for nft transfers. Defaults to 300 seconds
+EVENTS_NFT_TRANSFER_SLEEP_TIME
+# Customize sleep time for events monitor between checking for purgatory lists. Defaults to 300 seconds
+EVENTS_PURGATORY_SLEEP_TIME
 ```
 ## Running Aquarius for multiple chains
 

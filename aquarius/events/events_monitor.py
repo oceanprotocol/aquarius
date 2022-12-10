@@ -90,15 +90,22 @@ class EventsMonitor(BlockProcessingClass):
         self._allowed_publishers = get_allowed_publishers()
         logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
-        default_sleep_time = 30
-        try:
-            self._monitor_sleep_time = int(
-                os.getenv("EVENTS_MONITOR_SLEEP_TIME", default_sleep_time)
-            )
-        except ValueError:
-            self._monitor_sleep_time = default_sleep_time
-
-        self._monitor_sleep_time = max(self._monitor_sleep_time, default_sleep_time)
+        # get timers
+        self._monitor_sleep_time = self.get_timer_with_default(
+            "EVENTS_MONITOR_SLEEP_TIME", 30
+        )
+        self._process_queue_sleep_time = self.get_timer_with_default(
+            "EVENTS_PROCESS_QUEUE_SLEEP_TIME", 60
+        )
+        self._ve_allocate_sleep_time = self.get_timer_with_default(
+            "EVENTS_VE_ALLOCATE_SLEEP_TIME", 300
+        )
+        self._nft_transfer_sleep_time = self.get_timer_with_default(
+            "EVENTS_NFT_TRANSFER_SLEEP_TIME", 300
+        )
+        self._purgatory_sleep_time = self.get_timer_with_default(
+            "EVENTS_PURGATORY_SLEEP_TIME", 300
+        )
 
         self.purgatory = (
             Purgatory(self._es_instance)
@@ -137,6 +144,14 @@ class EventsMonitor(BlockProcessingClass):
     @property
     def block_envvar(self):
         return "METADATA_CONTRACT_BLOCK"
+
+    def get_timer_with_default(self, env_name, default_value):
+        """Gets a timer values from ENV or default value."""
+        try:
+            timer_value = int(os.getenv(env_name, default_value))
+        except ValueError:
+            timer_value = default_value
+        return timer_value
 
     def stop_monitor(self):
         """Stops all threads for processing more data"""
@@ -189,7 +204,7 @@ class EventsMonitor(BlockProcessingClass):
                     self.retry_mechanism.process_queue()
                 except (KeyError, Exception) as e:
                     logger.error(f"Error processing event: {str(e)}.")
-            time.sleep(self._monitor_sleep_time)
+            time.sleep(self._process_queue_sleep_time)
 
     def thread_process_ve_allocate(self):
         while True:
@@ -199,7 +214,7 @@ class EventsMonitor(BlockProcessingClass):
                     self.ve_allocate.update_lists()
                 except (KeyError, Exception) as e:
                     logger.error(f"Error updating ve_allocate list: {str(e)}.")
-            time.sleep(self._monitor_sleep_time)
+            time.sleep(self._ve_allocate_sleep_time)
 
     def thread_process_nft_ownership(self):
         while True:
@@ -209,7 +224,7 @@ class EventsMonitor(BlockProcessingClass):
                     self.nft_ownership.update_lists()
                 except (KeyError, Exception) as e:
                     logger.error(f"Error updating nft ownerships: {str(e)}.")
-            time.sleep(self._monitor_sleep_time)
+            time.sleep(self._nft_transfer_sleep_time)
 
     def thread_process_purgatory(self):
         while True:
@@ -219,7 +234,7 @@ class EventsMonitor(BlockProcessingClass):
                     self.purgatory.update_lists()
                 except (KeyError, Exception) as e:
                     logger.error(f"Error updating purgatory list: {str(e)}.")
-            time.sleep(self._monitor_sleep_time)
+            time.sleep(self._purgatory_sleep_time)
 
     # various functions used by threads
     def process_current_blocks(self):
