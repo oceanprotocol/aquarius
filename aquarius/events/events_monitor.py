@@ -90,10 +90,10 @@ class EventsMonitor(BlockProcessingClass):
         self._allowed_publishers = get_allowed_publishers()
         logger.debug(f"allowed publishers: {self._allowed_publishers}")
 
-        default_sleep_time = 10
+        default_sleep_time = 30
         try:
             self._monitor_sleep_time = int(
-                os.getenv("OCN_EVENTS_MONITOR_QUITE_TIME", default_sleep_time)
+                os.getenv("EVENTS_MONITOR_SLEEP_TIME", default_sleep_time)
             )
         except ValueError:
             self._monitor_sleep_time = default_sleep_time

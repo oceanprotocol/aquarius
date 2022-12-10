@@ -144,7 +144,7 @@ def test_events_monitor_object(monkeypatch):
     monitor = EventsMonitor(setup_web3())
     assert monitor._allowed_publishers == set()
 
-    monkeypatch.setenv("OCN_EVENTS_MONITOR_QUITE_TIME", "can not be converted to int")
+    monkeypatch.setenv("EVENTS_MONITOR_SLEEP_TIME", "can not be converted to int")
     monitor = EventsMonitor(setup_web3())
     assert monitor._monitor_sleep_time == 10
 

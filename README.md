@@ -161,6 +161,9 @@ SUBGRAPH_URLS
 
 # Process a queue with failed assets, e.g. retry where temporary network flukes or similar conditions caused a failure
 PROCESS_RETRY_QUEUE
+
+# Customize sleep time for events monitor between checking for new events. Defaults to 30 seconds
+EVENTS_MONITOR_SLEEP_TIME
 ```
 ## Running Aquarius for multiple chains
 
