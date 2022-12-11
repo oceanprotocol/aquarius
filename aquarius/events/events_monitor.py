@@ -539,15 +539,15 @@ class EventsMonitor(BlockProcessingClass):
         self.store_last_processed_block(self._start_block)
 
     def get_assets_in_chain(self):
-        body = {
-            "query": {
-                "query_string": {"query": self._chain_id, "default_field": "chainId"}
-            }
-        }
-        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
+        query = {"query_string": {"query": self._chain_id, "default_field": "chainId"}}
+
+        page = self._es_instance.es.search(
+            index=self._es_instance.db_index, query=query
+        )
         total = page["hits"]["total"]["value"]
-        body["size"] = total
-        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
+        page = self._es_instance.es.search(
+            index=self._es_instance.db_index, query=query, size=total
+        )
 
         object_list = []
         for x in page["hits"]["hits"]:
