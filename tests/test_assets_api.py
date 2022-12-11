@@ -71,7 +71,7 @@ def test_resolveByDtAddress(client_with_no_data, query_url, events_object):
     result = run_request(
         client.post,
         query_url,
-        {"query_string": {"query": dt_address, "default_field": "nft.address"}},
+        {"query":{"query_string": {"query": dt_address, "default_field": "nft.address"}}},
     )
     result = result.json
     assert len(result["hits"]["hits"]) > 0
