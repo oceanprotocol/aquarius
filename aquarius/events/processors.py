@@ -470,16 +470,6 @@ class TokenURIUpdatedProcessor:
             receipt, errors=DISCARD
         )[0]
 
-        if self.asset["event"]["tx"] == event_decoded.transactionHash.hex():
-            logger.warning("old asset has the same txid, no need to update")
-
-            return False
-
-        if int(event_decoded.blockNumber) <= int(self.asset["event"]["block"]):
-            logger.warning("asset was updated later")
-
-            return False
-
         self.asset["nft"]["tokenURI"] = event_decoded.args.tokenURI
         self.es_instance.update(self.asset, self.did)
 
