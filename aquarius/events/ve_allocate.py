@@ -26,7 +26,7 @@ class VeAllocate:
         :param env_var: Url of the file containing purgatory list.
         :return: Object as follows: {...('<did>', '<reason>'),...}
         """
-        response = requests.post(os.getenv(env_var))
+        response = requests.post(os.getenv(env_var), timeout=5)
 
         if response.status_code == requests.codes.ok:
             return {

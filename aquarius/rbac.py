@@ -23,7 +23,7 @@ class RBAC:
             "browserHeaders": getattr(RBAC, "headers", {}),
         }
 
-        response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
+        response = requests.post(os.getenv("RBAC_SERVER_URL"), timeout=5, json=payload)
         if response.status_code != 200:
             logger.warning(
                 f"Expected response code 200 from RBAC server, got {response.status_code}."
@@ -44,7 +44,7 @@ class RBAC:
             "browserHeaders": getattr(RBAC, "headers", {}),
         }
 
-        response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload)
+        response = requests.post(os.getenv("RBAC_SERVER_URL"), json=payload, timeout=5)
 
         if response.status_code != 200:
             logger.warning(
@@ -66,7 +66,9 @@ class RBAC:
             "browserHeaders": getattr(RBAC, "headers", {}),
         }
 
-        return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+        return requests.post(
+            os.getenv("RBAC_SERVER_URL"), json=payload, timeout=5
+        ).json()
 
     @staticmethod
     def check_permission_rbac(event_type, address):
@@ -77,6 +79,8 @@ class RBAC:
         }
 
         try:
-            return requests.post(os.getenv("RBAC_SERVER_URL"), json=payload).json()
+            return requests.post(
+                os.getenv("RBAC_SERVER_URL"), json=payload, timeout=5
+            ).json()
         except Exception:
             return False

@@ -25,7 +25,7 @@ class Purgatory:
         :param env_var: Url of the file containing purgatory list.
         :return: Object as follows: {...('<did>', '<reason>'),...}
         """
-        response = requests.get(os.getenv(env_var))
+        response = requests.get(os.getenv(env_var), timeout=5)
 
         if response.status_code == requests.codes.ok:
             logger.info(
