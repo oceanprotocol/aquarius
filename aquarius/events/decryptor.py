@@ -31,7 +31,10 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
     }
 
     try:
-        response = requests.post(provider_url + "/api/services/decrypt", json=payload)
+        # do not spend more that 4 seconds.. if it fails, we will retry it
+        response = requests.post(
+            provider_url + "/api/services/decrypt", timeout=4, json=payload
+        )
     except Exception as e:
         response = None
 
