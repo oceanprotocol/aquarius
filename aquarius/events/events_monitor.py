@@ -348,10 +348,9 @@ class EventsMonitor(BlockProcessingClass):
             event_processor.metadata_proofs = metadata_proofs
             event_processor.process()
         except Exception as e:
-            logger.exception(
-                f"Error processing {event_name} event: {e}\n" f"event={event}"
-            )
-            self.retry_mechanism.add_event_to_retry_queue(event)
+            error = f"Error processing {event_name} event: {e}\n" f"event={event}"
+            logger.exception(error)
+            self.retry_mechanism.add_event_to_retry_queue(event, event.address, error)
 
     def handle_price_change(self, event_name, event, to_block):
         """Process one event of types: EVENT_ORDER_STARTED, EVENT_EXCHANGE_CREATED, EVENT_EXCHANGE_RATE_CHANGED, EVENT_DISPENSER_CREATED
@@ -420,20 +419,21 @@ class EventsMonitor(BlockProcessingClass):
             abi=ERC20Template.abi,
             address=self._web3.toChecksumAddress(erc20_address),
         )
-
+        nft_address = erc20_contract.caller.getERC721Address()
         logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
 
         try:
             event_processor = OrderStartedProcessor(
-                erc20_contract.caller.getERC721Address(),
+                nft_address,
                 self._es_instance,
                 to_block,
                 self._chain_id,
             )
             event_processor.process()
         except Exception as e:
-            logger.error(f"Error processing {event_name} event: {e}\n" f"event={event}")
-            self.retry_mechanism.add_event_to_retry_queue(event)
+            error = f"Error processing {event_name} event: {e}\n" f"event={event}"
+            logger.error(error)
+            self.retry_mechanism.add_event_to_retry_queue(event, nft_address, error)
 
     def handle_token_uri_update(self, event):
         """Process one token uri update event
@@ -447,8 +447,9 @@ class EventsMonitor(BlockProcessingClass):
             )
             event_processor.process()
         except Exception as e:
-            logger.error(f"Error processing token update event: {e}\n" f"event={event}")
-            self.retry_mechanism.add_event_to_retry_queue(event)
+            error = f"Error processing token update event: {e}\n" f"event={event}"
+            logger.error(error)
+            self.retry_mechanism.add_event_to_retry_queue(event, event.address, error)
 
     def get_last_processed_block(self):
         """Get last processed_block, fallback to contract deployment block"""

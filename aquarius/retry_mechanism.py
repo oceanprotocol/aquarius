@@ -28,11 +28,14 @@ logger = logging.getLogger(__name__)
 # Each element looks like:
 #    {
 #       "type":   "block" | "event" | "tx"
+#       "create_timestamp": timestamp of first seen
 #       "chainId":  chainId for this element
 #       "number_retries": how many times we retryed this element
 #       "next_retry": timestamp of next retry
 #       "data":  { block } for block,  { txId, log_index (optional)} for tx,  { "txt":  Web3.toJSON(event) } for events
 #       "id":  sha256(data)
+#       "nft_address":  only for events
+#       "did":  only for events
 #
 # }
 #
@@ -135,6 +138,7 @@ class RetryMechanism:
             "number_retries": 0,
             "next_retry": 0,
             "data": {"block": str(block_number)},
+            "create_timestamp":int(datetime.utcnow().timestamp())
         }
         id = self.create_id(element)
         element["id"] = id
@@ -153,6 +157,7 @@ class RetryMechanism:
             "number_retries": 0,
             "next_retry": 0,
             "data": {"txId": str(tx_id)},
+            "create_timestamp":int(datetime.utcnow().timestamp())
         }
         if log_index:
             element["data"]["log_index"] = log_index
@@ -161,18 +166,28 @@ class RetryMechanism:
         self.add_element_to_retry_queue(element)
         return id
 
-    def add_event_to_retry_queue(self, event):
+    def add_event_to_retry_queue(self, event, nft_address: None, error: None):
         """Add event to retry queue
 
         Args:
             event
         """
+
+        did = (
+            make_did(self._web3.toChecksumAddress(nft_address), self._chain_id)
+            if nft_address
+            else None
+        )
         element = {
             "type": "event",
+            "nft_address": nft_address,
+            "did": did,
             "chain_id": self._chain_id,
             "number_retries": 0,
             "next_retry": 0,
             "data": {"txt": Web3.toJSON(event)},
+            "error": error,
+            "create_timestamp":int(datetime.utcnow().timestamp())
         }
         id = self.create_id(element)
         element["id"] = id

@@ -251,6 +251,20 @@
 
     Returns all queue retry logs
 
+- Parameters
+
+    | name           | description                          |
+    |----------------|--------------------------------------|
+    | `did`          | filter for did                       |
+    | `chainId`      | chain id                             |
+    | `nft`          | nft                                  |
+    | `type`         | retry event type (tx, event or block)|
+
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/chains/retryQueue?chainId=1'
+    ```
 
 
 ### **GET** `/api/aquarius/chains/list`

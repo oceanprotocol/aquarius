@@ -5,7 +5,7 @@
 import logging
 
 import elasticsearch
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.log import setup_logging
@@ -84,8 +84,25 @@ def get_retry_queue():
       200:
         description: successful operation.
     """
-    try:
+    data = request.args
+    chain_id = data.get("chainId", None)
+    nft_address = data.get("nft", None)
+    did = data.get("did", None)
+    retry_type = data.get("type", None)
+    if chain_id is None and nft_address is None and did is None and retry_type is None:
         q = {"match_all": {}}
+    else:
+        conditions = []
+        if chain_id:
+            conditions.append({"term": {"chain_id": chain_id}})
+        if nft_address:
+            conditions.append({"term": {"nft_address": nft_address}})
+        if did:
+            conditions.append({"term": {"did": did}})
+        if retry_type:
+            conditions.append({"term": {"type": retry_type}})
+        q = {"bool": {"filter": conditions}}
+    try:
         result = es_instance.es.search(index=f"{es_instance.db_index}_retries", query=q)
         return jsonify(result.body)
     except Exception as e:
