@@ -106,9 +106,7 @@ class NftOwnership:
             logger.warn(f"Failed to get subgraphs NFT transfer list: {e}")
             return
         for transfer in nft_transfers_list:
-            did = make_did(
-                Web3.toChecksumAddress(transfer["nft"]["id"]), self._chain_id
-            )
+            did = make_did(transfer["nft"]["id"], self._chain_id)
             try:
                 asset = self._es_instance.read(did)
                 asset["nft"]["owner"] = Web3.toChecksumAddress(

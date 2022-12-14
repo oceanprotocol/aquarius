@@ -138,7 +138,7 @@ class RetryMechanism:
             "number_retries": 0,
             "next_retry": 0,
             "data": {"block": str(block_number)},
-            "create_timestamp":int(datetime.utcnow().timestamp())
+            "create_timestamp": int(datetime.utcnow().timestamp()),
         }
         id = self.create_id(element)
         element["id"] = id
@@ -157,7 +157,7 @@ class RetryMechanism:
             "number_retries": 0,
             "next_retry": 0,
             "data": {"txId": str(tx_id)},
-            "create_timestamp":int(datetime.utcnow().timestamp())
+            "create_timestamp": int(datetime.utcnow().timestamp()),
         }
         if log_index:
             element["data"]["log_index"] = log_index
@@ -173,11 +173,7 @@ class RetryMechanism:
             event
         """
 
-        did = (
-            make_did(self._web3.toChecksumAddress(nft_address), self._chain_id)
-            if nft_address
-            else None
-        )
+        did = make_did(nft_address, self._chain_id) if nft_address else None
         element = {
             "type": "event",
             "nft_address": nft_address,
@@ -187,7 +183,7 @@ class RetryMechanism:
             "next_retry": 0,
             "data": {"txt": Web3.toJSON(event)},
             "error": error,
-            "create_timestamp":int(datetime.utcnow().timestamp())
+            "create_timestamp": int(datetime.utcnow().timestamp()),
         }
         id = self.create_id(element)
         element["id"] = id

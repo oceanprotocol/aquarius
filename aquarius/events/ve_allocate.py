@@ -84,7 +84,7 @@ class VeAllocate:
         logger.info(f"veAllocate: Retrieved list of {len(ve_list)} assets to update")
 
         for nft, ve_allocated_realtime, chain_id in ve_list:
-            did = make_did(Web3.toChecksumAddress(nft), chain_id)
+            did = make_did(nft, chain_id)
             try:
                 asset = self._es_instance.read(did)
                 self.update_asset(asset, ve_allocated_realtime)
