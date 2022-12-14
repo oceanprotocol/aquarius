@@ -242,6 +242,7 @@ class RetryMechanism:
             if now > (created_timestamp + self.max_hold):
                 # we are keeping this for too long, delete it
                 self.delete_by_id(element_id)
+                continue
             self.handle_retry(queue_element)
             # read it again, to see if element was updated
             new_element = self.get_by_id(element_id)
