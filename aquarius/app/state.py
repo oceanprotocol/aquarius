@@ -83,11 +83,16 @@ def route_get_did_state():
         description: successful operation.
     """
     data = request.args
+    if not data.get("nft") and not data.get("txId") and not data.get("did"):
+        return (
+            jsonify(error="You need to specify one of: nft, txId, did"),
+            400,
+        )
     try:
         result = get_did_state(
             data.get("chainId"), data.get("nft"), data.get("txId"), data.get("did")
         )
-        return jsonify(result.body["hits"]["hits"])
+        return jsonify(result.body["hits"]["hits"][0]["_source"])
     except Exception as e:
         return (
             jsonify(error=f"Encountered error : {str(e)}."),
