@@ -35,6 +35,7 @@ def test_retry_tx(client, base_ddo_url, events_object, monkeypatch):
         "create", _ddo, bytes([2]), test_account1
     )
     events_object.retry_mechanism.retry_interval = timedelta(seconds=1)
+    events_object.retry_mechanism.max_hold = 1209600
     events_object.retry_mechanism.clear_all()
     element_id = events_object.retry_mechanism.add_tx_to_retry_queue(
         txn_receipt["transactionHash"].hex()
@@ -69,6 +70,7 @@ def test_retry_block(client, base_ddo_url, events_object, monkeypatch):
         "create", _ddo, bytes([2]), test_account1
     )
     events_object.retry_mechanism.retry_interval = timedelta(seconds=1)
+    events_object.retry_mechanism.max_hold = 1209600
     events_object.retry_mechanism.clear_all()
     element_id = events_object.retry_mechanism.add_block_to_retry_queue(
         txn_receipt["blockNumber"]
@@ -103,6 +105,7 @@ def test_retry_event(client, base_ddo_url, events_object, monkeypatch):
         "create", _ddo, bytes([2]), test_account1
     )
     events_object.retry_mechanism.retry_interval = timedelta(seconds=1)
+    events_object.retry_mechanism.max_hold = 1209600
     events_object.retry_mechanism.clear_all()
     element_id = None
     # iterate over tx events and add METADATA_CREATED to retry queue

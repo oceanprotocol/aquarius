@@ -240,6 +240,9 @@ class RetryMechanism:
             created_timestamp = queue_element["create_timestamp"]
             now = int(datetime.now().timestamp())
             if now > (created_timestamp + self.max_hold):
+                logger.debug(
+                    f"{now} > {(created_timestamp + self.max_hold)} -> deleting event {element_id} from retry_queue"
+                )
                 # we are keeping this for too long, delete it
                 self.delete_by_id(element_id)
                 continue
