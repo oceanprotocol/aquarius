@@ -179,6 +179,7 @@ class ElasticsearchInstance(object):
         did = make_did(nft_address, chain_id)
         obj = {
             "nft": nft_address,
+            "did": did,
             "chain_id": chain_id,
             "tx_id": txid,
             "valid": valid,

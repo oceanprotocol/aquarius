@@ -31,7 +31,9 @@ def get_retry_queue(chain_id, nft_address, did, retry_type):
         if retry_type:
             conditions.append({"term": {"type": retry_type}})
         q = {"bool": {"filter": conditions}}
-        return es_instance.es.search(index=f"{es_instance.db_index}_retries", query=q)
+        return es_instance.es.search(
+            index=f"{es_instance.db_index}_retries", query=q, from_=0, size=10000
+        )
 
 
 @state.route("/retryQueue", methods=["GET"])
