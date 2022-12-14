@@ -4,8 +4,10 @@
 #
 import copy
 import json
+import logging
 from pathlib import Path
 import pkg_resources
+
 from pyshacl import validate
 import pytest
 import rdflib
@@ -17,6 +19,8 @@ from aquarius.ddo_checker.shacl_checker import (
 )
 from tests.ddos.ddo_sample1_v4 import json_dict
 from tests.ddos.ddo_sample_algorithm_v4 import algorithm_ddo_sample
+
+logger = logging.getLogger("aquarius")
 
 
 def test_sample_schema():

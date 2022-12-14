@@ -4,7 +4,7 @@
 #
 algorithm_ddo_sample = {
     "@context": ["https://w3id.org/did/v1"],
-    "id": "did:op:deb8141292dfa2238b2ad1a5b940510da610f6f1eaec5b9b32a2b2f3394bb5e8",
+    "id": "did:op:8468561cc76c1c1309ab17acbe0ab176ca0d886cb730d063cc7612e3bb8d9880",
     "version": "4.5.0",
     "chainId": 1337,
     "nftAddress": "0x22BB53e3d293494DE59fBe1FF78500423dcFd43B",

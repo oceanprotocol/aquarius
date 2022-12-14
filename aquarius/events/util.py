@@ -252,6 +252,8 @@ def setup_web3(_logger=None):
 
 
 def make_did(data_nft_address, chain_id):
+    if not Web3.isAddress(data_nft_address.lower()):
+        return None
     return "did:op:" + remove_0x_prefix(
         Web3.toHex(
             hashlib.sha256(
