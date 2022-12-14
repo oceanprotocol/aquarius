@@ -91,7 +91,7 @@ def validate_dict(dict_orig, chain_id, nft_address):
     if not chain_id:
         extra_errors["chainId"] = "chainId is missing or invalid."
 
-    if not nft_address:
+    if not nft_address or nft_address == "":
         extra_errors["nftAddress"] = "nftAddress is missing or invalid."
 
     if not make_did(nft_address, str(chain_id)) == dict_orig.get("id"):

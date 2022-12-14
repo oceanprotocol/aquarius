@@ -112,7 +112,7 @@ def test_retry_event(client, base_ddo_url, events_object, monkeypatch):
             == "0x5463569dcc320958360074a9ab27e809e8a6942c394fb151d139b5f7b4ecb1bd"
         ):
             logger.error(log)
-            element_id = events_object.retry_mechanism.add_event_to_retry_queue(log)
+            element_id = events_object.retry_mechanism.add_event_to_retry_queue(event=log)
     # make sure that we found the event
     assert element_id
     queue = events_object.retry_mechanism.get_all()
