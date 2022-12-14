@@ -178,18 +178,18 @@ class MetadataCreatedProcessor(EventProcessor):
         # the event record will be used when updating the ddo
         version = _record.get("version")
         if not version:
-            logger.error("DDO has no version.")
-            return False
+            msg = "DDO has no version."
+            logger.error(msg)
+            return False, msg
 
         valid_remote, errors = validate_dict(
             _record, self._chain_id, self.dt_contract.address
         )
 
         if not valid_remote:
-            logger.error(
-                f"New ddo has validation errors: {errors} \nfor record:\n {_record}"
-            )
-            return False
+            msg = f"New ddo has validation errors: {errors} \nfor record:\n {_record}"
+            logger.error(msg)
+            return False, msg
 
         _record["purgatory"] = {}
         if self.purgatory and self.purgatory.is_account_banned(self.sender_address):
@@ -197,7 +197,7 @@ class MetadataCreatedProcessor(EventProcessor):
         else:
             _record["purgatory"]["state"] = False
 
-        return _record
+        return _record, None
 
     def restore_nft_state(self, ddo, state):
         ddo["nft"]["state"] = state
@@ -222,11 +222,20 @@ class MetadataCreatedProcessor(EventProcessor):
         if dt_factory.caller.erc721List(
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
-            logger.error("token not deployed by our factory")
+            error = "nft not deployed by our factory"
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error
+            )
+            logger.error(error)
+
             return
 
         if not check_metadata_proofs(self._web3, self.metadata_proofs):
-            logger.error("Failed to validate metadata_proofs")
+            error = "Failed to validate metadata_proofs"
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error
+            )
+            logger.error(error)
             return
 
         # if not authorized, will return False, which is a graceful failure
@@ -238,21 +247,29 @@ class MetadataCreatedProcessor(EventProcessor):
             self._chain_id,
             txid,
             self.event.args.metaDataHash,
+            self._es_instance,
         )
         if not asset:
-            logger.info("Decrypter is not authorized. Failing gracefully.")
+            logger.info("Decrypt ddo failed.Failing gracefully.")
             return
 
         self.did = asset["id"]
         did, sender_address = self.did, self.sender_address
 
         if not self.is_publisher_allowed(sender_address):
-            logger.warning(f"Sender {sender_address} is not in ALLOWED_PUBLISHERS.")
+            error = f"Sender {sender_address} is not in ALLOWED_PUBLISHERS."
+            logger.warning(error)
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error
+            )
             return
 
         try:
             ddo = self._es_instance.read(did)
             if ddo["chainId"] == self._chain_id:
+                self._es_instance.update_did_state(
+                    self.event.address, self._chain_id, txid, True, None
+                )
                 if ddo["nft"]["state"] == MetadataStates.ACTIVE:
                     logger.warning(f"{did} is already registered on this chainId")
                     return
@@ -263,10 +280,14 @@ class MetadataCreatedProcessor(EventProcessor):
 
         permission = self.check_permission(sender_address)
         if not permission:
-            logger.info("RBAC permission denied. Failing gracefully.")
+            error = "RBAC permission denied."
+            logger.info(error)
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error
+            )
             return
 
-        _record = self.make_record(asset)
+        _record, error_msg = self.make_record(asset)
 
         if _record:
             try:
@@ -278,12 +299,21 @@ class MetadataCreatedProcessor(EventProcessor):
                     f"DDO saved: did={did}, name={name}, "
                     f"publisher={sender_address}, chainId={self._chain_id}"
                 )
+                self._es_instance.update_did_state(
+                    self.event.address, self._chain_id, txid, True, None
+                )
                 return True
             except (KeyError, Exception) as err:
-                logger.error(
-                    f"encountered an error while saving the asset data to ES: {str(err)}"
+                error = f"encountered an error while saving the asset data to ES: {str(err)}"
+                logger.error(error)
+                self._es_instance.update_did_state(
+                    self.event.address, self._chain_id, txid, False, error
                 )
-        return False
+        else:
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error_msg
+            )
+            return False
 
 
 class MetadataUpdatedProcessor(EventProcessor):
@@ -295,17 +325,19 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         version = _record.get("version")
         if not version:
-            logger.error("DDO has no version.")
-            return False
+            msg = "DDO has no version."
+            logger.error()
+            return False, msg
 
         valid_remote, errors = validate_dict(
             _record, self._chain_id, self.dt_contract.address
         )
         if not valid_remote:
-            logger.error(
+            msg = (
                 f"Updated ddo has validation errors: {errors} \nfor record:\n {_record}"
             )
-            return False
+            logger.error(msg)
+            return False, msg
 
         # check purgatory only if asset is valid
         old_purgatory = old_asset.get("purgatory", {})
@@ -316,7 +348,7 @@ class MetadataUpdatedProcessor(EventProcessor):
         else:
             _record["purgatory"]["state"] = old_purgatory.get("state", False)
 
-        return _record
+        return _record, None
 
     def process(self):
         txid = self.txid
@@ -329,11 +361,19 @@ class MetadataUpdatedProcessor(EventProcessor):
         if dt_factory.caller.erc721List(
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
-            logger.error("token not deployed by our factory")
+            error = "nft not deployed by our factory"
+            logger.error(error)
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error
+            )
             return
 
         if not check_metadata_proofs(self._web3, self.metadata_proofs):
-            logger.error("Failed to validate metadata_proofs")
+            error = "Failed to validate metadata_proofs"
+            logger.error(error)
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error
+            )
             return
 
         # if not authorized, will return False, which is a graceful failure
@@ -345,9 +385,10 @@ class MetadataUpdatedProcessor(EventProcessor):
             self._chain_id,
             txid,
             self.event.args.metaDataHash,
+            self._es_instance,
         )
         if not asset:
-            logger.info("Decrypter is not authorized. Failing gracefully.")
+            logger.info("Decrypt ddo failed.Failing gracefully.")
             return
 
         self.did = asset["id"]
@@ -355,7 +396,12 @@ class MetadataUpdatedProcessor(EventProcessor):
 
         permission = self.check_permission(sender_address)
         if not permission:
-            raise Exception("RBAC permission denied.")
+            error = "RBAC permission denied."
+            logger.info(error)
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error
+            )
+            return
 
         try:
             old_asset = self._es_instance.read(did)
@@ -380,18 +426,26 @@ class MetadataUpdatedProcessor(EventProcessor):
         if not is_updateable:
             return False
 
-        _record = self.make_record(asset, old_asset)
+        _record, error_msg = self.make_record(asset, old_asset)
         if _record:
             try:
                 self._es_instance.update(json.dumps(_record), did)
                 logger.info(f"updated DDO did={did}")
+                self._es_instance.update_did_state(
+                    self.event.address, self._chain_id, txid, True, None
+                )
                 return True
             except (KeyError, Exception) as err:
-                logger.error(
-                    f"encountered an error while updating the asset data to ES: {str(err)}"
+                error = f"encountered an error while updating the asset data to ES: {str(err)}"
+                logger.error(error)
+                self._es_instance.update_did_state(
+                    self.event.address, self._chain_id, txid, False, error
                 )
-
-        return False
+        else:
+            self._es_instance.update_did_state(
+                self.event.address, self._chain_id, txid, False, error_msg
+            )
+            return False
 
     def check_update(self, new_asset, old_asset, sender_address):
         # do not update if we have the same txid

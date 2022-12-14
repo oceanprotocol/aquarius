@@ -8,6 +8,7 @@ import time
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
+from aquarius.events.util import make_did
 
 _DB_INSTANCE = None
 
@@ -38,6 +39,7 @@ class ElasticsearchInstance(object):
             args["client_cert"] = os.getenv("DB_CLIENT_CERT", None)
         index = os.getenv("DB_INDEX", "oceandb")
         self._index = index
+        self._did_states_index = f"{self._index}_did_states"
         try:
             self._es = Elasticsearch(host + ":" + str(port), **args)
             while self._es.ping() is False:
@@ -45,6 +47,7 @@ class ElasticsearchInstance(object):
                 time.sleep(5)
 
             self._es.indices.create(index=index, ignore=400)
+            self._es.indices.create(index=self._did_states_index, ignore=400)
 
         except Exception as e:
             logging.info(f"Exception trying to connect... {e}")
@@ -170,3 +173,29 @@ class ElasticsearchInstance(object):
             return False
 
         return True
+
+    def update_did_state(self, nft_address, chain_id, txid, valid, error):
+        """Updates did state."""
+        did = make_did(nft_address, chain_id)
+        obj = {
+            "nft": nft_address,
+            "chain_id": chain_id,
+            "tx_id": txid,
+            "valid": valid,
+            "error": error,
+        }
+        logger.info(f"Set did state {obj} for {did}")
+        return self.es.index(
+            index=self._did_states_index,
+            id=did,
+            body=obj,
+            refresh="wait_for",
+        )["_id"]
+
+    def read_did_state(self, did):
+        """Read did index state.
+        :param did
+        :return: object value from elasticsearch.
+        """
+        # logger.debug("elasticsearch::read::{}".format(resource_id))
+        return self.es.get(index=self._did_states_index, id=did)["_source"]
