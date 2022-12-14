@@ -17,19 +17,7 @@ logger = logging.getLogger("aquarius")
 es_instance = ElasticsearchInstance()
 
 
-@state.route("/retryQueue", methods=["GET"])
-def get_retry_queue():
-    """Returns the current retry queue for all chains
-    ---
-    responses:
-      200:
-        description: successful operation.
-    """
-    data = request.args
-    chain_id = data.get("chainId", None)
-    nft_address = data.get("nft", None)
-    did = data.get("did", None)
-    retry_type = data.get("type", None)
+def get_retry_queue(chain_id, nft_address, did, retry_type):
     if chain_id is None and nft_address is None and did is None and retry_type is None:
         q = {"match_all": {}}
     else:
@@ -43,8 +31,22 @@ def get_retry_queue():
         if retry_type:
             conditions.append({"term": {"type": retry_type}})
         q = {"bool": {"filter": conditions}}
+        return es_instance.es.search(index=f"{es_instance.db_index}_retries", query=q)
+
+
+@state.route("/retryQueue", methods=["GET"])
+def route_get_retry_queue():
+    """Returns the current retry queue for all chains
+    ---
+    responses:
+      200:
+        description: successful operation.
+    """
+    data = request.args
     try:
-        result = es_instance.es.search(index=f"{es_instance.db_index}_retries", query=q)
+        result = get_retry_queue(
+            data.get("chainId"), data.get("nft"), data.get("did"), data.get("type")
+        )
         return jsonify(result.body)
     except Exception as e:
         return (
@@ -53,19 +55,7 @@ def get_retry_queue():
         )
 
 
-@state.route("/ddo", methods=["GET"])
-def get_did_state():
-    """Returns the current state for a did
-    ---
-    responses:
-      200:
-        description: successful operation.
-    """
-    data = request.args
-    chain_id = data.get("chainId", None)
-    nft_address = data.get("nft", None)
-    tx_id = data.get("txId", None)
-    did = data.get("did", None)
+def get_did_state(chain_id, nft_address, tx_id, did):
     if chain_id is None and nft_address is None and did is None and tx_id is None:
         q = {"match_all": {}}
     else:
@@ -79,9 +69,22 @@ def get_did_state():
         if did:
             conditions.append({"term": {"_id": did}})
         q = {"bool": {"filter": conditions}}
-    logger.debug(f"Execute query: {q}")
+    return es_instance.es.search(index=es_instance._did_states_index, query=q)
+
+
+@state.route("/ddo", methods=["GET"])
+def route_get_did_state():
+    """Returns the current state for a did
+    ---
+    responses:
+      200:
+        description: successful operation.
+    """
+    data = request.args
     try:
-        result = es_instance.es.search(index=es_instance._did_states_index, query=q)
+        result = get_did_state(
+            data.get("chainId"), data.get("nft"), data.get("txId"), data.get("did")
+        )
         return jsonify(result.body["hits"]["hits"])
     except Exception as e:
         return (
