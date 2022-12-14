@@ -330,9 +330,13 @@
     
 
 
-- Example
+- Examples
     ```bash
-    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/ddo?chainId=1'
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/ddo?did=did:op:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e
+    ```
+
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/ddo?nft=0xC7ED00725AAb7E679fCB46C9620115fE0B6dD94a
     ```
 
 ## Others
