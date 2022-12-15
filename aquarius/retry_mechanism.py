@@ -4,6 +4,7 @@ from hashlib import sha256
 from hexbytes import HexBytes
 import json
 import logging
+import os
 
 from web3.datastructures import AttributeDict
 from web3.logs import DISCARD
@@ -58,6 +59,11 @@ class RetryMechanism:
         self._web3 = setup_web3()
         self.retry_interval = timedelta(minutes=5)
         self._event_monitor_instance = event_monitor_instance
+        try:
+            # defaults to two weeks
+            self.max_hold = int(os.getenv("PROCESS_RETRY_MAX_HOLD", 1209600))
+        except ValueError:
+            self.max_hold = 1209600
 
     def clear_all(self):
         q = {"match_all": {}}
@@ -231,6 +237,15 @@ class RetryMechanism:
             element_id = queue_element["_id"]
             queue_element = queue_element["_source"]
             old_number_retries = queue_element["number_retries"]
+            created_timestamp = queue_element["create_timestamp"]
+            now = int(datetime.now().timestamp())
+            if now > (created_timestamp + self.max_hold):
+                logger.debug(
+                    f"{now} > {(created_timestamp + self.max_hold)} -> deleting event {element_id} from retry_queue"
+                )
+                # we are keeping this for too long, delete it
+                self.delete_by_id(element_id)
+                continue
             self.handle_retry(queue_element)
             # read it again, to see if element was updated
             new_element = self.get_by_id(element_id)

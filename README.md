@@ -162,6 +162,9 @@ SUBGRAPH_URLS
 # Process a queue with failed assets, e.g. retry where temporary network flukes or similar conditions caused a failure
 PROCESS_RETRY_QUEUE
 
+# For how long to retry such an event, before giving up. Defaults to 2 weeks
+PROCESS_RETRY_MAX_HOLD
+
 # Customize sleep time for events monitor between checking for new events. Defaults to 30 seconds
 EVENTS_MONITOR_SLEEP_TIME
 # Customize sleep time for events monitor between queue processing. Defaults to 60 seconds
