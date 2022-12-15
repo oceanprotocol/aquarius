@@ -19,8 +19,7 @@ from jsonsempai import magic  # noqa: F401
 from web3.logs import DISCARD
 from web3.main import Web3
 
-from aquarius.app.state import get_did_state
-from aquarius.app.util import get_aquarius_wallet
+from aquarius.app.util import get_aquarius_wallet, get_did_state
 from aquarius.config import get_version
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
