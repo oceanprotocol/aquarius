@@ -16,7 +16,6 @@ from eth_keys.backends import NativeECCBackend
 from web3.main import Web3
 
 from aquarius.app.auth_util import sanitize_addresses
-from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.log import setup_logging
 from aquarius.rbac import RBAC
 
@@ -25,7 +24,6 @@ keys = KeyAPI(NativeECCBackend)
 
 
 logger = logging.getLogger("aquarius")
-es_instance = ElasticsearchInstance()
 
 
 def sanitize_record(data_record):
@@ -135,7 +133,7 @@ def get_allowed_publishers():
     return set(sanitize_addresses(allowed_publishers))
 
 
-def get_did_state(chain_id, nft, tx_id, did):
+def get_did_state(es_instance, chain_id, nft, tx_id, did):
     if any([chain_id, nft, did, tx_id]):
         conditions = []
         if chain_id:
@@ -152,7 +150,7 @@ def get_did_state(chain_id, nft, tx_id, did):
     return es_instance.es.search(index=es_instance._did_states_index, query=q)
 
 
-def get_retry_queue(chain_id, nft, did, retry_type):
+def get_retry_queue(es_instance, chain_id, nft, did, retry_type):
     if any([chain_id, nft, did, retry_type]):
         conditions = []
         if chain_id:

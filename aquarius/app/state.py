@@ -29,7 +29,11 @@ def route_get_retry_queue():
     data = request.args
     try:
         result = get_retry_queue(
-            data.get("chainId"), data.get("nft"), data.get("did"), data.get("type")
+            es_instance,
+            data.get("chainId"),
+            data.get("nft"),
+            data.get("did"),
+            data.get("type"),
         )
         return jsonify(result.body)
     except Exception as e:
@@ -55,7 +59,11 @@ def route_get_did_state():
         )
     try:
         result = get_did_state(
-            data.get("chainId"), data.get("nft"), data.get("txId"), data.get("did")
+            es_instance,
+            data.get("chainId"),
+            data.get("nft"),
+            data.get("txId"),
+            data.get("did"),
         )
         return jsonify(result.body["hits"]["hits"][0]["_source"])
     except Exception as e:

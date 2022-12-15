@@ -58,7 +58,7 @@ def run_test(client, base_ddo_url, events_instance, flags):
     for service in published_ddo["services"]:
         assert service["datatokenAddress"] == erc20_address
         assert service["name"] in ["dataAssetAccess", "dataAssetComputingService"]
-    ddo_state = get_did_state(None, None, None, did)
+    ddo_state = get_did_state(events_instance._es_instance, None, None, None, did)
     assert len(ddo_state["hits"]["hits"]) == 1
     assert ddo_state["hits"]["hits"][0]["_id"] == did
     assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == True
@@ -98,7 +98,7 @@ def test_publish(client, base_ddo_url, events_object):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     assert published_ddo["chainId"] == get_web3().eth.chain_id
-    ddo_state = get_did_state(None, None, None, did)
+    ddo_state = get_did_state(events_object._es_instance, None, None, None, did)
     assert len(ddo_state["hits"]["hits"]) == 1
     assert ddo_state["hits"]["hits"][0]["_id"] == did
     assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == True
@@ -111,7 +111,7 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
-    ddo_state = get_did_state(None, None, None, did)
+    ddo_state = get_did_state(events_object._es_instance, None, None, None, did)
     assert len(ddo_state["hits"]["hits"]) == 1
     assert ddo_state["hits"]["hits"][0]["_id"] == did
     assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == False
