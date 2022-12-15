@@ -19,7 +19,7 @@ from aquarius.events.constants import (
 )
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.proof_checker import check_metadata_proofs
-from aquarius.events.util import make_did, get_dt_factory
+from aquarius.events.util import make_did, get_dt_factory, update_did_state
 from aquarius.graphql import get_number_orders_price
 from aquarius.rbac import RBAC
 from artifacts import ERC20Template, ERC721Template
@@ -223,20 +223,28 @@ class MetadataCreatedProcessor(EventProcessor):
             self._web3.toChecksumAddress(self.event.address)
         ) != self._web3.toChecksumAddress(self.event.address):
             error = "nft not deployed by our factory"
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error
-                )
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error,
+            )
             logger.error(error)
 
             return
 
         if not check_metadata_proofs(self._web3, self.metadata_proofs):
             error = "Failed to validate metadata_proofs"
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error
-                )
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error,
+            )
             logger.error(error)
             return
 
@@ -261,19 +269,27 @@ class MetadataCreatedProcessor(EventProcessor):
         if not self.is_publisher_allowed(sender_address):
             error = f"Sender {sender_address} is not in ALLOWED_PUBLISHERS."
             logger.warning(error)
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error
-                )
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error,
+            )
             return
 
         try:
             ddo = self._es_instance.read(did)
             if ddo["chainId"] == self._chain_id:
-                if self._es_instance:
-                    self._es_instance.update_did_state(
-                        self.event.address, self._chain_id, txid, True, None
-                    )
+                update_did_state(
+                    self._es_instance,
+                    self.event.address,
+                    self._chain_id,
+                    txid,
+                    True,
+                    None,
+                )
                 if ddo["nft"]["state"] == MetadataStates.ACTIVE:
                     logger.warning(f"{did} is already registered on this chainId")
                     return
@@ -286,10 +302,14 @@ class MetadataCreatedProcessor(EventProcessor):
         if not permission:
             error = "RBAC permission denied."
             logger.info(error)
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error
-                )
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error,
+            )
             return
 
         _record, error_msg = self.make_record(asset)
@@ -304,23 +324,35 @@ class MetadataCreatedProcessor(EventProcessor):
                     f"DDO saved: did={did}, name={name}, "
                     f"publisher={sender_address}, chainId={self._chain_id}"
                 )
-                if self._es_instance:
-                    self._es_instance.update_did_state(
-                        self.event.address, self._chain_id, txid, True, None
-                    )
+                update_did_state(
+                    self._es_instance,
+                    self.event.address,
+                    self._chain_id,
+                    txid,
+                    True,
+                    None,
+                )
                 return True
             except (KeyError, Exception) as err:
                 error = f"encountered an error while saving the asset data to ES: {str(err)}"
                 logger.error(error)
-                if self._es_instance:
-                    self._es_instance.update_did_state(
-                        self.event.address, self._chain_id, txid, False, error
-                    )
-        else:
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error_msg
+                update_did_state(
+                    self._es_instance,
+                    self.event.address,
+                    self._chain_id,
+                    txid,
+                    False,
+                    error,
                 )
+        else:
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error_msg,
+            )
             return False
 
 
@@ -371,19 +403,27 @@ class MetadataUpdatedProcessor(EventProcessor):
         ) != self._web3.toChecksumAddress(self.event.address):
             error = "nft not deployed by our factory"
             logger.error(error)
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error
-                )
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error,
+            )
             return
 
         if not check_metadata_proofs(self._web3, self.metadata_proofs):
             error = "Failed to validate metadata_proofs"
             logger.error(error)
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error
-                )
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error,
+            )
             return
 
         # if not authorized, will return False, which is a graceful failure
@@ -408,10 +448,14 @@ class MetadataUpdatedProcessor(EventProcessor):
         if not permission:
             error = "RBAC permission denied."
             logger.info(error)
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error
-                )
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error,
+            )
             return
 
         try:
@@ -442,23 +486,35 @@ class MetadataUpdatedProcessor(EventProcessor):
             try:
                 self._es_instance.update(json.dumps(_record), did)
                 logger.info(f"updated DDO did={did}")
-                if self._es_instance:
-                    self._es_instance.update_did_state(
-                        self.event.address, self._chain_id, txid, True, None
-                    )
+                update_did_state(
+                    self._es_instance,
+                    self.event.address,
+                    self._chain_id,
+                    txid,
+                    True,
+                    None,
+                )
                 return True
             except (KeyError, Exception) as err:
                 error = f"encountered an error while updating the asset data to ES: {str(err)}"
                 logger.error(error)
-                if self._es_instance:
-                    self._es_instance.update_did_state(
-                        self.event.address, self._chain_id, txid, False, error
-                    )
-        else:
-            if self._es_instance:
-                self._es_instance.update_did_state(
-                    self.event.address, self._chain_id, txid, False, error_msg
+                update_did_state(
+                    self._es_instance,
+                    self.event.address,
+                    self._chain_id,
+                    txid,
+                    False,
+                    error,
                 )
+        else:
+            update_did_state(
+                self._es_instance,
+                self.event.address,
+                self._chain_id,
+                txid,
+                False,
+                error_msg,
+            )
             return False
 
     def check_update(self, new_asset, old_asset, sender_address):

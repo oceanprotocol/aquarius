@@ -263,3 +263,9 @@ def make_did(data_nft_address, chain_id):
             ).digest()
         )
     )
+
+
+def update_did_state(es_instance, nft_address, chain_id, txid, valid, error):
+    if not es_instance:
+        return
+    es_instance.update_did_state(nft_address, chain_id, txid, valid, error)
