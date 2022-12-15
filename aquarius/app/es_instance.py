@@ -198,5 +198,4 @@ class ElasticsearchInstance(object):
         :param did
         :return: object value from elasticsearch.
         """
-        # logger.debug("elasticsearch::read::{}".format(resource_id))
         return self.es.get(index=self._did_states_index, id=did)["_source"]
