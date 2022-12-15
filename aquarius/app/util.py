@@ -136,9 +136,7 @@ def get_allowed_publishers():
 
 
 def get_did_state(chain_id, nft, tx_id, did):
-    if chain_id is None and nft is None and did is None and tx_id is None:
-        q = {"match_all": {}}
-    else:
+    if any([chain_id, nft, did, tx_id]):
         conditions = []
         if chain_id:
             conditions.append({"term": {"chain_id": chain_id}})
@@ -149,13 +147,13 @@ def get_did_state(chain_id, nft, tx_id, did):
         if did:
             conditions.append({"term": {"_id": did}})
         q = {"bool": {"filter": conditions}}
+    else:
+        q = {"match_all": {}}
     return es_instance.es.search(index=es_instance._did_states_index, query=q)
 
 
 def get_retry_queue(chain_id, nft, did, retry_type):
-    if chain_id is None and nft is None and did is None and retry_type is None:
-        q = {"match_all": {}}
-    else:
+    if any([chain_id, nft, did, retry_type]):
         conditions = []
         if chain_id:
             conditions.append({"term": {"chain_id": chain_id}})
@@ -166,6 +164,8 @@ def get_retry_queue(chain_id, nft, did, retry_type):
         if retry_type:
             conditions.append({"term": {"type": retry_type}})
         q = {"bool": {"filter": conditions}}
-        return es_instance.es.search(
-            index=f"{es_instance.db_index}_retries", query=q, from_=0, size=10000
-        )
+    else:
+        q = {"match_all": {}}
+    return es_instance.es.search(
+        index=f"{es_instance.db_index}_retries", query=q, from_=0, size=10000
+    )
