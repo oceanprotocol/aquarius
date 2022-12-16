@@ -16,7 +16,7 @@ def test_decryptor_request_exception():
             the_response = Mock(spec=Response)
             the_response.status_code = 400
             mock.return_value = the_response
-            decrypt_ddo(None, "provider_url", None, None, None, "test_hash")
+            decrypt_ddo(None, "provider_url", None, None, None, "test_hash", None)
 
     with pytest.raises(Exception, match="Hash check failed"):
         with patch("requests.post") as mock:
@@ -25,5 +25,11 @@ def test_decryptor_request_exception():
             the_response.content = b"some other test"
             mock.return_value = the_response
             decrypt_ddo(
-                None, "provider_url", None, None, None, "test_hash".encode("utf-8")
+                None,
+                "provider_url",
+                None,
+                None,
+                None,
+                "test_hash".encode("utf-8"),
+                None,
             )

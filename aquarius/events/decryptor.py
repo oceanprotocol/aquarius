@@ -10,11 +10,12 @@ from hashlib import sha256
 import requests
 
 from aquarius.app.util import get_aquarius_wallet, get_signature_bytes
+from aquarius.events.util import update_did_state
 
 logger = logging.getLogger(__name__)
 
 
-def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
+def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash, es_instance):
     aquarius_account = get_aquarius_wallet()
     nonce = str(int(datetime.utcnow().timestamp()))
 
@@ -40,6 +41,7 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
 
     if not hasattr(response, "status_code"):
         msg = f"Failed to get a response for decrypt DDO with provider={provider_url}, payload={payload}, response={response}"
+        update_did_state(es_instance, contract_address, chain_id, txid, False, msg)
         logger.error(msg)
         raise Exception(f"in decrypt_ddo: {msg}")
 
@@ -47,17 +49,20 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash):
         if sha256(response.content).hexdigest() != hash.hex():
             msg = f"Hash check failed: response={response.content}, encoded response={sha256(response.content).hexdigest()}\n metadata hash={hash.hex()}"
             logger.error(msg)
+            update_did_state(es_instance, contract_address, chain_id, txid, False, msg)
             raise Exception(f"in decrypt_ddo: {msg}")
         logger.info("Decrypted DDO successfully.")
         response_content = response.content.decode("utf-8")
-
         return json.loads(response_content)
 
     if response.status_code == 403:
         # unauthorised decrypter
-        logger.info(f"403, response={response.content}")
+        msg = f"403, response={response.content}"
+        update_did_state(es_instance, contract_address, chain_id, txid, False, msg)
+        logger.info(msg)
         return False
 
     msg = f"Provider exception on decrypt DDO. Status:{response.status_code},  {response.content}\n provider URL={provider_url}, payload={payload}."
+    update_did_state(es_instance, contract_address, chain_id, txid, False, msg)
     logger.error(msg)
     raise Exception(f"in decrypt_ddo: {msg}")

@@ -245,28 +245,6 @@
 
 ## Chains
 
-### **GET** `/api/aquarius/chains/retryQueue`
-
-- Description
-
-    Returns all queue retry logs
-
-- Parameters
-
-    | name           | description                          |
-    |----------------|--------------------------------------|
-    | `did`          | filter for did                       |
-    | `chainId`      | chain id                             |
-    | `nft`          | nft                                  |
-    | `type`         | retry event type (tx, event or block)|
-
-
-- Example
-    ```bash
-    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/chains/retryQueue?chainId=1'
-    ```
-
-
 ### **GET** `/api/aquarius/chains/list`
 
 - Description
@@ -310,6 +288,56 @@
             {"last_block": 25198729,
             "version": "4.4.1"}
             ```
+
+## State
+
+### **GET** `/api/aquarius/state/retryQueue`
+
+- Description
+
+    Returns all queue retry logs
+
+- Parameters
+
+    | name           | description                          |
+    |----------------|--------------------------------------|
+    | `did`          | filter for did                       |
+    | `chainId`      | chain id                             |
+    | `nft`          | nft                                  |
+    | `type`         | retry event type (tx, event or block)|
+
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/retryQueue?chainId=1'
+    ```
+
+
+### **GET** `/api/aquarius/state/ddo`
+
+- Description
+
+    Returns ddo(s) state(s)
+
+- Parameters for filtering:
+
+    | name           | description                          |
+    |----------------|--------------------------------------|
+    | `did`          | did                                  |
+    | `chainId`      | chain id                             |
+    | `nft`          | nft                                  |
+    | `txId`         | tx id                                |
+    
+
+
+- Examples
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/ddo?did=did:op:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e
+    ```
+
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/ddo?nft=0xC7ED00725AAb7E679fCB46C9620115fE0B6dD94a
+    ```
 
 ## Others
 
