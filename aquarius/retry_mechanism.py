@@ -111,6 +111,7 @@ class RetryMechanism:
             res = self._es_instance.es.delete(
                 index=self._retries_db_index,
                 id=element_id,
+                refresh="wait_for",
             )
             logger.error(res)
         except Exception:
