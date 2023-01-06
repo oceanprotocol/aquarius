@@ -2,7 +2,6 @@
 
   * [Running Aquarius locally, for development and testing](#running-aquarius-locally-for-development-and-testing)
   * [General Ocean Dev Docs](#general-ocean-dev-docs)
-  * [Configuration](#configuration)
   * [Extras: Testing &amp; Versioning](#extras-testing--versioning)
   * [Ensuring changes are well propagated](#ensuring-changes-are-well-propagated)
 
@@ -21,13 +20,19 @@ There are two ways of running Elasticsearch. The first one is to run it bare-bon
 In a new terminal tab, run the elasticsearch database (required for Aquarius).
 You can also run this in the background, but it helps development to see all output separately.
 
-The following snippet downloads and runs Elasticsearch 7.14.2 for a Linux x86 machine, but this can differ per your setup.
+The following snippet downloads and runs Elasticsearch 8.5.1 for a Linux x86 machine, but this can differ per your setup.
 Make sure you adjust the file names and download links if needed.
 
 ```bash
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.14.2-linux-x86_64.tar.gz
-tar -xzf elasticsearch-7.14.2-linux-x86_64.tar.gz
-./elasticsearch-7.14.2/bin/elasticsearch
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.5.1-linux-x86_64.tar.gz
+tar -xzf elasticsearch-8.5.1-linux-x86_64.tar.gz
+./elasticsearch-8.5.1/bin/elasticsearch
+```
+
+Don't forget to change the automatically set passord:
+
+```bash
+./elasticsearch/bin/elasticsearch-reset-password -i -u elastic --url https://localhost:9200
 ```
 
 Alternately, you can run Elasticsearch from docker:
@@ -66,7 +71,6 @@ Now you are free to configure your own special Aquarius, and fiddle with the Eve
 
 ```bash
 export FLASK_APP=aquarius/run.py
-export AQUARIUS_CONFIG_FILE=config.ini
 flask run --port=5000
 ```
 
@@ -87,10 +91,10 @@ openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 36
 
 and when it asks for the Common Name (CN), answer `localhost`
 
-Then edit the config file `config.ini` so that:
+Then export the env var so that:
 
 ```yaml
-aquarius.url = http://localhost:5000
+export AQUARIUS_URL=http://localhost:5000
 ```
 
 Then execute this command:
@@ -102,20 +106,6 @@ gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:5000 -w 1 aquarius.run
 ## General Ocean Dev Docs
 
 Ocean's Python code style and related "meta" developer docs are at [oceanprotocol/dev-ocean repo](https://github.com/oceanprotocol/dev-ocean).
-
-## Configuration
-
-You can pass the configuration using the `AQUARIUS_CONFIG_FILE` environment variable (recommended) or locating your configuration in config.ini file.
-
-In the configuration there are now two sections:
-
-- oceandb: Contains different values to connect with elasticsearch. You can find more information about how to use OceanDB [here](https://github.com/oceanprotocol/oceandb-driver-interface).
-- resources: In this section we are showing the url in which the aquarius is going to be deployed.
-
-```yaml
-[resources]
-aquarius.url = http://localhost:5000
-```
 
 ## Extras: Testing & Versioning
 

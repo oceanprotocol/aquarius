@@ -44,14 +44,10 @@ spec:
           value: elastic
         - name: DB_PASSWORD
           value: changeme
-        - name: DB_SSL
-          value: "false"
         - name: RUN_AQUARIUS_SERVER
           value: "0"
         - name: RUN_EVENTS_MONITOR
           value: "1"
-        - name: CONFIG_FILE
-          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         - name: BFACTORY_BLOCK

@@ -6,15 +6,10 @@ from unittest.mock import patch
 
 import pytest
 
-from aquarius.app.es_instance import ElasticsearchInstance, get_value
+from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.myapp import app
 
-es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
-
-
-def test_value_in_config():
-    config = {"some_variable": "test some variable"}
-    assert get_value("some_variable", "", "", config) == "test some variable"
+es_instance = ElasticsearchInstance()
 
 
 def test_str_to_bool():

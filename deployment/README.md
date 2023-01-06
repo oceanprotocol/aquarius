@@ -154,16 +154,12 @@ spec:
           value: elastic
         - name: DB_PASSWORD
           value: changeme
-        - name: DB_SSL
-          value: "false"
         - name: RUN_AQUARIUS_SERVER
           value: "1"
         - name: RUN_EVENTS_MONITOR
           value: "0"
         - name: EVENTS_ALLOW
           value: "0"
-        - name: CONFIG_FILE
-          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
@@ -260,14 +256,10 @@ spec:
           value: elastic
         - name: DB_PASSWORD
           value: changeme
-        - name: DB_SSL
-          value: "false"
         - name: RUN_AQUARIUS_SERVER
           value: "0"
         - name: RUN_EVENTS_MONITOR
           value: "1"
-        - name: CONFIG_FILE
-          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         - name: BFACTORY_BLOCK
@@ -406,16 +398,14 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "8"
       RUN_AQUARIUS_SERVER: "1"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 0
       ALLOWED_PUBLISHERS: '[""]'
-  aquarius-events-rinkeby:     
+  aquarius-events-rinkeby:
     image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
     container_name: aquarius-events-rinkeby
     restart: on-failure
@@ -431,18 +421,16 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "1"
       RUN_AQUARIUS_SERVER : "0"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       NETWORK_NAME: "rinkeby"
       EVENTS_RPC: "https://rinkeby.infura.io/v3/<your Infura id project>"
       BFACTORY_BLOCK: 7298806
       METADATA_CONTRACT_BLOCK: 7298808
       METADATA_UPDATE_ALL : "0"
-      OCEAN_ADDRESS :  0x8967BCF84170c91B0d24D4302C2376283b0B3a07 
+      OCEAN_ADDRESS :  0x8967BCF84170c91B0d24D4302C2376283b0B3a07
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 1
       BLOCKS_CHUNK_SIZE: "5000"
@@ -611,7 +599,7 @@ Check [Ocean Contracts](https://github.com/oceanprotocol/contracts#-network-depl
 
 */etc/docker/compose/aquarius/docker-compose.yml*  (annotated)
 
-```yaml    
+```yaml
     version: '3'
 services:
   aquarius:
@@ -630,16 +618,14 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL : "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "8"
       RUN_AQUARIUS_SERVER: "1"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 0
       ALLOWED_PUBLISHERS: '[""]'
-  aquarius-events-rinkeby:     
+  aquarius-events-rinkeby:
     image: oceanprotocol/aquarius:v3.0.1 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius
     container_name: aquarius-events-rinkeby
     restart: on-failure
@@ -653,19 +639,17 @@ services:
       DB_PASSWORD: changeme
       DB_NAME: aquarius
       DB_SCHEME: http
-      DB_SSL : "false"
       LOG_LEVEL: "DEBUG"
       AQUARIUS_BIND_URL: "http://0.0.0.0:5000"
       AQUARIUS_WORKERS : "1"
       RUN_AQUARIUS_SERVER : "0"
-      AQUARIUS_CONFIG_FILE: "config.ini"
       ALLOWED_PUBLISHERS: '[""]'
       NETWORK_NAME: "rinkeby"
       EVENTS_RPC: "https://rinkeby.infura.io/v3/< your Infura project id >"
       BFACTORY_BLOCK: 7298806
       METADATA_CONTRACT_BLOCK: 7298808
       METADATA_UPDATE_ALL : "0"
-      OCEAN_ADDRESS :  0x8967BCF84170c91B0d24D4302C2376283b0B3a07 
+      OCEAN_ADDRESS :  0x8967BCF84170c91B0d24D4302C2376283b0B3a07
       EVENTS_ALLOW: 0
       RUN_EVENTS_MONITOR: 1
       BLOCKS_CHUNK_SIZE: "50000"

@@ -38,16 +38,9 @@ class Price:
 
 def get_number_orders_price(token_address, last_sync_block, chain_id):
     try:
-        client = get_client(chain_id)
-
-        last_block = get_last_block(client)
-        while last_block < last_sync_block:
-            logger.debug(
-                f"Waiting for sync with subgraph, currently at last block {last_block}."
-            )
-            last_block = get_last_block(client)
-            time.sleep(2)
-
+        client = get_client(chain_id, last_sync_block)
+        if not client:
+            return -1, {}
         query = gql(
             '{tokens(where:{nft:"'
             + token_address.lower()
@@ -80,10 +73,35 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         return -1, {}
 
 
+def get_nft_transfers(start_block, last_sync_block, chain_id):
+    try:
+        client = get_client(chain_id, last_sync_block)
+        if not client:
+            return None
+        query_text = (
+            "{nftTransferHistories(where:{block_gt: "
+            + str(start_block)
+            + ","
+            + " block_lte: "
+            + str(last_sync_block)
+            + " } orderBy: block orderDirection:asc skip:0 first:1000)"
+            + "{nft{id},newOwner{id},block}}"
+        )
+        query = gql(query_text)
+        transfers_result = client.execute(query)
+        return transfers_result["nftTransferHistories"]
+    except Exception:
+        logger.exception(
+            f"Can not get nft transfers from subgraph {get_network_name()}"
+        )
+        return None
+
+
 def get_transport(chain_id):
     subgraph_urls = json.loads(os.getenv("SUBGRAPH_URLS", "{}"))
 
     if str(chain_id) not in subgraph_urls:
+        logger.warn(f"Subgraph not defined for chain {chain_id}.")
         raise Exception("Subgraph not defined for this chain.")
 
     prefix = subgraph_urls[str(chain_id)]
@@ -94,12 +112,11 @@ def get_transport(chain_id):
     return AIOHTTPTransport(url=url)
 
 
-def get_client(chain_id):
-    logger.debug("Initializing client for transport and fetching schema.")
-    return Client(transport=get_transport(chain_id), fetch_schema_from_transport=True)
-
-
 def get_last_block(client):
+    """Get current block height from subgraph
+    Args:
+        client:
+    """
     last_block_query = gql("{_meta { block { number } } }")
 
     try:
@@ -111,3 +128,31 @@ def get_last_block(client):
         )
 
     return last_block
+
+
+def get_client(chain_id, block=None):
+    """Gets a graphql client, and optionally, wait until subgraph syncs at least to a certain block
+
+    Args:
+        block: minimum block height
+    """
+    logger.debug("Initializing client for transport and fetching schema.")
+    try:
+        client = Client(
+            transport=get_transport(chain_id), fetch_schema_from_transport=True
+        )
+    except Exception as e:
+        logger.warning(f"Failed to initialize graphql client: {e}")
+        return None
+    if block is None:
+        return client
+    # wait for subgraph to sync
+    last_block = get_last_block(client)
+    while last_block < block:
+        logger.debug(
+            f"Waiting for sync with subgraph, currently at last block {last_block}."
+        )
+        last_block = get_last_block(client)
+        time.sleep(2)
+
+    return client

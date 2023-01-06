@@ -5,6 +5,7 @@
 import json
 import logging
 import os
+
 from datetime import datetime
 from hashlib import sha256
 from json import JSONDecodeError
@@ -15,10 +16,14 @@ from eth_keys.backends import NativeECCBackend
 from web3.main import Web3
 
 from aquarius.app.auth_util import sanitize_addresses
+from aquarius.log import setup_logging
 from aquarius.rbac import RBAC
 
 logger = logging.getLogger("aquarius")
 keys = KeyAPI(NativeECCBackend)
+
+
+logger = logging.getLogger("aquarius")
 
 
 def sanitize_record(data_record):
@@ -126,3 +131,39 @@ def get_allowed_publishers():
         )
 
     return set(sanitize_addresses(allowed_publishers))
+
+
+def get_did_state(es_instance, chain_id, nft, tx_id, did):
+    if any([chain_id, nft, did, tx_id]):
+        conditions = []
+        if chain_id:
+            conditions.append({"term": {"chain_id": chain_id}})
+        if nft:
+            conditions.append({"match": {"nft": nft}})
+        if tx_id:
+            conditions.append({"match": {"tx_id": tx_id}})
+        if did:
+            conditions.append({"term": {"_id": did}})
+        q = {"bool": {"filter": conditions}}
+    else:
+        q = {"match_all": {}}
+    return es_instance.es.search(index=es_instance._did_states_index, query=q)
+
+
+def get_retry_queue(es_instance, chain_id, nft, did, retry_type):
+    if any([chain_id, nft, did, retry_type]):
+        conditions = []
+        if chain_id:
+            conditions.append({"term": {"chain_id": chain_id}})
+        if nft:
+            conditions.append({"match": {"nft_address": nft}})
+        if did:
+            conditions.append({"term": {"did": did}})
+        if retry_type:
+            conditions.append({"term": {"type": retry_type}})
+        q = {"bool": {"filter": conditions}}
+    else:
+        q = {"match_all": {}}
+    return es_instance.es.search(
+        index=f"{es_instance.db_index}_retries", query=q, from_=0, size=10000
+    )

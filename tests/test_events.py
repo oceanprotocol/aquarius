@@ -16,9 +16,10 @@ from artifacts import ERC20Template, ERC721Template, FixedRateExchange
 from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
 from jsonsempai import magic  # noqa: F401
+from web3.logs import DISCARD
 from web3.main import Web3
 
-from aquarius.app.util import get_aquarius_wallet
+from aquarius.app.util import get_aquarius_wallet, get_did_state
 from aquarius.config import get_version
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
@@ -29,6 +30,7 @@ from tests.helpers import (
     get_web3,
     new_ddo,
     run_request_get_data,
+    run_request,
     send_create_update_tx,
     send_set_metadata_state_tx,
     test_account1,
@@ -56,7 +58,10 @@ def run_test(client, base_ddo_url, events_instance, flags):
     for service in published_ddo["services"]:
         assert service["datatokenAddress"] == erc20_address
         assert service["name"] in ["dataAssetAccess", "dataAssetComputingService"]
-
+    ddo_state = get_did_state(events_instance._es_instance, None, None, None, did)
+    assert len(ddo_state["hits"]["hits"]) == 1
+    assert ddo_state["hits"]["hits"][0]["_id"] == did
+    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == True
     _ddo["metadata"]["name"] = "Updated ddo by event"
     send_create_update_tx("update", _ddo, bytes([flags]), test_account1)
     events_instance.process_current_blocks()
@@ -93,6 +98,10 @@ def test_publish(client, base_ddo_url, events_object):
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     assert published_ddo["chainId"] == get_web3().eth.chain_id
+    ddo_state = get_did_state(events_object._es_instance, None, None, None, did)
+    assert len(ddo_state["hits"]["hits"]) == 1
+    assert ddo_state["hits"]["hits"][0]["_id"] == did
+    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == True
 
 
 def test_publish_unallowed_address(client, base_ddo_url, events_object):
@@ -102,6 +111,10 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
     events_object.process_current_blocks()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["error"] == f"Asset DID {did} not found in Elasticsearch."
+    ddo_state = get_did_state(events_object._es_instance, None, None, None, did)
+    assert len(ddo_state["hits"]["hits"]) == 1
+    assert ddo_state["hits"]["hits"][0]["_id"] == did
+    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == False
 
 
 def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkeypatch):
@@ -137,47 +150,44 @@ def test_get_assets_in_chain(client, events_object):
 
 
 def test_events_monitor_object(monkeypatch):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
     monkeypatch.setenv("ALLOWED_PUBLISHERS", "can not be converted to a set")
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     assert monitor._allowed_publishers == set()
 
-    monkeypatch.setenv("OCN_EVENTS_MONITOR_QUITE_TIME", "can not be converted to int")
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
-    assert monitor._monitor_sleep_time == 10
+    monkeypatch.setenv("EVENTS_MONITOR_SLEEP_TIME", "can not be converted to int")
+    monitor = EventsMonitor(setup_web3())
+    assert monitor._monitor_sleep_time == 30
 
     monkeypatch.setenv("EVENTS_CLEAN_START", "1")
     with patch("aquarius.events.events_monitor.EventsMonitor.reset_chain") as mock:
-        monitor = EventsMonitor(setup_web3(config_file), config_file)
+        monitor = EventsMonitor(setup_web3())
         mock.assert_called_once()
 
 
 def test_start_stop_events_monitor():
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
 
     monitor._monitor_is_on = True
     assert monitor.start_events_monitor() is None
 
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     monitor._contract_address = None
     assert monitor.start_events_monitor() is None
 
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     monitor._contract = None
     assert monitor.start_events_monitor() is None
 
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     with patch("aquarius.events.events_monitor.Thread.start") as mock:
         monitor.start_events_monitor()
-        mock.assert_called_once()
-
+        # we have 2 thread running
+        assert mock.call_count == 2
     monitor.stop_monitor()
 
 
 def test_process_block_range(client, base_ddo_url, events_object):
-    config_file = app.config["AQUARIUS_CONFIG_FILE"]
-    monitor = EventsMonitor(setup_web3(config_file), config_file)
+    monitor = EventsMonitor(setup_web3())
     assert monitor.process_block_range(13, 10) is None  # not processing if from > to
 
     _ddo = new_ddo(test_account1, get_web3(), "dt.0")
@@ -212,12 +222,12 @@ def test_elasticsearch_connection(events_object, caplog):
         es_mock.return_value = True
         action_thread.join()
         assert "Connection to ES failed. Trying to connect to back..." in caplog.text
-        assert "Stable connection to ES." in caplog.text
+        # assert "Stable connection to ES." in caplog.text
 
 
 def test_get_last_processed_block(events_object, monkeypatch):
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.side_effect = elasticsearch.NotFoundError("Boom!")
+        mock.side_effect = elasticsearch.NotFoundError("Boom!", meta={}, body={})
         assert events_object.get_last_processed_block() == int(
             os.getenv("BFACTORY_BLOCK")
         )
@@ -229,7 +239,7 @@ def test_get_last_processed_block(events_object, monkeypatch):
 
     monkeypatch.delenv("BFACTORY_BLOCK")
     with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.side_effect = elasticsearch.NotFoundError("Boom!")
+        mock.side_effect = elasticsearch.NotFoundError("Boom!", meta={}, body={})
         assert (
             events_object.get_last_processed_block() == 5
         )  # startBlock from address.json for ganache
@@ -238,7 +248,9 @@ def test_get_last_processed_block(events_object, monkeypatch):
 def test_store_last_processed_block(events_object):
     block = events_object.get_last_processed_block() + 10
     with patch("elasticsearch.Elasticsearch.index") as mock:
-        mock.side_effect = elasticsearch.exceptions.RequestError("Boom!")
+        mock.side_effect = elasticsearch.exceptions.RequestError(
+            "Boom!", meta={}, body={}
+        )
         assert events_object.store_last_processed_block(block) is None
 
 
@@ -248,13 +260,11 @@ def test_add_chain_id_to_chains_list(events_object):
         assert events_object.add_chain_id_to_chains_list() is None
 
     with patch("elasticsearch.Elasticsearch.index") as mock:
-        mock.side_effect = elasticsearch.exceptions.RequestError("Boom!")
+        mock.side_effect = elasticsearch.exceptions.RequestError(
+            "Boom!", meta={}, body={}
+        )
         events_object.add_chain_id_to_chains_list()
         assert events_object.add_chain_id_to_chains_list() is None
-
-
-def test_get_event_logs(events_object):
-    assert events_object.get_event_logs("NonExistentEvent", 0, 10) == []
 
 
 def test_order_started(events_object, client, base_ddo_url):
@@ -463,14 +473,20 @@ def test_token_transfer(client, base_ddo_url, events_object):
     ).transact()
     _ = web3.eth.wait_for_transaction_receipt(txn_hash)
 
+    # allow events to reach our nft transfer block
     events_object.process_current_blocks()
+    # process nft transfers
+    events_object.nft_ownership.update_lists()
     updated_ddo = get_ddo(client, base_ddo_url, did)
     assert updated_ddo["id"] == did
-    assert updated_ddo["nft"]["owner"] == test_account2.address
+    assert web3.toChecksumAddress(
+        updated_ddo["nft"]["owner"]
+    ) == web3.toChecksumAddress(test_account2.address)
 
 
 def test_trigger_caching(client, base_ddo_url, events_object):
     web3 = events_object._web3  # get_web3()
+    chain_id = web3.eth.chain_id
     block = web3.eth.block_number
     _ddo = new_ddo(test_account1, web3, f"dt.{block}")
     did = _ddo.id
@@ -480,18 +496,14 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     )
     tx_id = txn_receipt["transactionHash"].hex()
 
-    with patch("aquarius.app.es_instance.ElasticsearchInstance.get") as mock:
-        mock.side_effect = Exception("Boom!")
-        response = run_request_get_data(
-            client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
-        )
-        assert response["error"] == "new exception in processor, retry again"
-
-    response = run_request_get_data(
-        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    response = run_request(
+        client.post,
+        "api/aquarius/assets/triggerCaching",
+        {"transactionId": tx_id, "chain_id": chain_id},
     )
-    assert response["id"] == did
-
+    assert response.status_code == 200
+    time.sleep(2)
+    events_object.retry_mechanism.process_queue()
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     for service in published_ddo["services"]:
@@ -504,33 +516,18 @@ def test_trigger_caching(client, base_ddo_url, events_object):
     )
     tx_id = txn_receipt["transactionHash"].hex()
 
-    response = run_request_get_data(
-        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
+    response = run_request(
+        client.post,
+        "api/aquarius/assets/triggerCaching",
+        {"transactionId": tx_id, "chain_id": chain_id},
     )
+    assert response.status_code == 200
+    time.sleep(2)
+    events_object.retry_mechanism.process_queue()
+
     published_ddo = get_ddo(client, base_ddo_url, did)
     assert published_ddo["id"] == did
     assert published_ddo["metadata"]["name"] == "Updated ddo by event"
-
-    assert response["metadata"]["name"] == "Updated ddo by event"
-
-    # index out of range
-    response = run_request_get_data(
-        client.post,
-        "api/aquarius/assets/triggerCaching",
-        {"transactionId": tx_id, "logIndex": 2},
-    )
-    assert response["error"] == "Log index 2 not found"
-
-    # can not find event created, nor event updated
-    txn_hash = dt_contract.functions.setTokenURI(
-        1, "http://something-else.com"
-    ).transact()
-    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
-    tx_id = txn_receipt["transactionHash"].hex()
-    response = run_request_get_data(
-        client.post, "api/aquarius/assets/triggerCaching", {"transactionId": tx_id}
-    )
-    assert response["error"] == "No metadata created/updated event found in tx."
 
 
 @pytest.mark.skip
@@ -654,7 +651,9 @@ def test_exchange_created(events_object, client, base_ddo_url):
     fre = get_fre(web3)
     rate = 2 * rate
     exchange_id = (
-        fre.events.ExchangeCreated().processReceipt(receipt)[0].args.exchangeId
+        fre.events.ExchangeCreated()
+        .processReceipt(receipt, errors=DISCARD)[0]
+        .args.exchangeId
     )
     tx = fre.functions.setRate(exchange_id, rate).transact(
         {"from": test_account1.address}

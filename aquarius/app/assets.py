@@ -2,8 +2,10 @@
 # Copyright 2021 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import copy
 import elasticsearch
 from flask import Blueprint, jsonify, request
+from datetime import datetime, timedelta
 import json
 import logging
 import os
@@ -27,7 +29,7 @@ setup_logging()
 assets = Blueprint("assets", __name__)
 
 logger = logging.getLogger("aquarius")
-es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
+es_instance = ElasticsearchInstance()
 
 
 @assets.route("/ddo/<did>", methods=["GET"])
@@ -292,14 +294,15 @@ def query_ddo():
         )
 
     try:
-        return jsonify(sanitize_query_result(es_instance.es.search(data)))
+        args = copy.deepcopy(data)
+        if "from" in args.keys():
+            args["from_"] = args.pop("from")
+        result = es_instance.es.search(**args)
+        return jsonify(sanitize_query_result(result.body))
     except elasticsearch.exceptions.TransportError as e:
-        error = e.error if isinstance(e.error, str) else str(e.error)
-        info = e.info if isinstance(e.info, dict) else ""
-        logger.info(
-            f"Received elasticsearch TransportError: {error}, more info: {info}."
-        )
-        return (jsonify(error=error, info=info), e.status_code)
+        error = e.message
+        logger.info(f"Received elasticsearch TransportError: {error}.")
+        return (jsonify(error=error), 400)
     except Exception as e:
         logger.error(f"Received elasticsearch Error: {str(e)}.")
         return jsonify(error=f"Encountered Elasticsearch Exception: {str(e)}"), 500
@@ -403,12 +406,17 @@ def trigger_caching():
     try:
         data = request.args if request.args else request.json
         tx_id = data.get("transactionId")
+        chain_id = data.get("chain_id")
+        if not tx_id or not chain_id:
+            return (
+                jsonify(error="Invalid transactionId or chain_id"),
+                400,
+            )
         log_index = int(data.get("logIndex", 0))
 
-        config_file = app.config["AQUARIUS_CONFIG_FILE"]
-        web3 = setup_web3(config_file)
+        web3 = setup_web3()
 
-        es_instance = ElasticsearchInstance(config_file)
+        es_instance = ElasticsearchInstance()
         retries_db_index = f"{es_instance.db_index}_retries"
         purgatory = (
             Purgatory(es_instance)
@@ -417,18 +425,12 @@ def trigger_caching():
         )
 
         retry_mechanism = RetryMechanism(
-            config_file, es_instance, retries_db_index, purgatory
+            es_instance, retries_db_index, purgatory, chain_id, None
         )
-
-        success, result = retry_mechanism.handle_retry(
-            tx_id, log_index, web3.eth.chain_id
-        )
-
-        if not success:
-            return jsonify(error=result), 400
-
+        retry_mechanism.retry_interval = timedelta(seconds=1)
+        retry_mechanism.add_tx_to_retry_queue(tx_id)
         response = app.response_class(
-            response=result,
+            response="Queued",
             status=200,
             mimetype="application/json",
         )

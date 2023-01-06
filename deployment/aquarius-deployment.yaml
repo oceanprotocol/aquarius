@@ -44,16 +44,12 @@ spec:
           value: elastic
         - name: DB_PASSWORD
           value: changeme
-        - name: DB_SSL
-          value: "false"
         - name: RUN_AQUARIUS_SERVER
           value: "1"
         - name: RUN_EVENTS_MONITOR
           value: "0"
         - name: EVENTS_ALLOW
           value: "0"
-        - name: CONFIG_FILE
-          value: config.ini
         - name: ALLOWED_PUBLISHERS
           value: '[""]'
         image: oceanprotocol/aquarius:v3.0.0

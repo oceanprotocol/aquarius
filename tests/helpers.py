@@ -121,6 +121,7 @@ def send_create_update_tx(name, ddo, flags, account):
             provider_url + "/api/services/encrypt",
             data=compressed_document,
             headers=headers,
+            timeout=5,
         )
         encrypted_data = response.text
     else:

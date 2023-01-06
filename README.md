@@ -58,8 +58,8 @@ Please refer to [API.md](API.md) file for details on the API itself.
 
 The events monitor runs continuously to retrieve and index the chain Metadata. It saves the results into an Elasticseach database. The monitor reads the events `data` argument, decompresses the metadata json object, then runs schema validation before saving it to the database. The monitor is highly customisable, and it consists of the following components:
 
-- an ElasticsearchInstance, configured through the config.ini or env variables
-- an associated MetadataContract, configured through the config.ini or the `METADATA_CONTRACT_ADDRESS` env variable
+- an ElasticsearchInstance, configured through env variables
+- an associated MetadataContract, configured through the `METADATA_CONTRACT_ADDRESS` env variable
 - a Decryptor class that handles decompression and decryption on the chain data, through communication with Provider
 - a set of `ALLOWED_PUBLISHERS`, if such a restriction exists. You can set a limited number of allowed publisher addresses using this env variable.
 - a Purgatory, based on the `ASSET_PURGATORY_URL` and `ACCOUNT_PURGATORY_URL` env variables. These mark some assets as being in purgatory (`"isInPurgatory": True`), enabling restrictions for some assets or accounts.
@@ -161,6 +161,20 @@ SUBGRAPH_URLS
 
 # Process a queue with failed assets, e.g. retry where temporary network flukes or similar conditions caused a failure
 PROCESS_RETRY_QUEUE
+
+# For how long to retry such an event, before giving up. Defaults to 2 weeks
+PROCESS_RETRY_MAX_HOLD
+
+# Customize sleep time for events monitor between checking for new events. Defaults to 30 seconds
+EVENTS_MONITOR_SLEEP_TIME
+# Customize sleep time for events monitor between queue processing. Defaults to 60 seconds
+EVENTS_PROCESS_QUEUE_SLEEP_TIME
+# Customize sleep time for events monitor between updating ve_allocate. Defaults to 300 seconds
+EVENTS_VE_ALLOCATE_SLEEP_TIME
+# Customize sleep time for events monitor between checking for nft transfers. Defaults to 300 seconds
+EVENTS_NFT_TRANSFER_SLEEP_TIME
+# Customize sleep time for events monitor between checking for purgatory lists. Defaults to 300 seconds
+EVENTS_PURGATORY_SLEEP_TIME
 ```
 ## Running Aquarius for multiple chains
 

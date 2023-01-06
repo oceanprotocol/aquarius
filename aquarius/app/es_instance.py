@@ -8,54 +8,46 @@ import time
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
+from aquarius.events.util import make_did
 
 _DB_INSTANCE = None
 
 logger = logging.getLogger(__name__)
 
-
-def get_value(value, env_var, default, config=None):
-    if os.getenv(env_var) is not None:
-        return os.getenv(env_var)
-
-    if config is not None and value in config:
-        return config[value]
-
-    return default
+# get rid of annoying messages from https://github.com/elastic/elastic-transport-python/blob/0a3445be1723e4ef68492ee7da51d70d8c58f1d7/elastic_transport/_async_transport.py#L266
+logging.getLogger("elastic_transport.node").setLevel(logging.ERROR)
+logging.getLogger("elastic_transport.node_pool").setLevel(logging.ERROR)
+logging.getLogger("elastic_transport.transport").setLevel(logging.ERROR)
 
 
 class ElasticsearchInstance(object):
-    def __init__(self, config=None):
-        host = get_value("db.hostname", "DB_HOSTNAME", "localhost", config)
-        port = int(get_value("db.port", "DB_PORT", 9200, config))
-        username = get_value("db.username", "DB_USERNAME", "elastic", config)
-        password = get_value("db.password", "DB_PASSWORD", "changeme", config)
-        index = get_value("db.index", "DB_INDEX", "oceandb", config)
-        ssl = self.str_to_bool(get_value("db.ssl", "DB_SSL", "false", config))
-        verify_certs = self.str_to_bool(
-            get_value("db.verify_certs", "DB_VERIFY_CERTS", "false", config)
-        )
-        ca_certs = get_value("db.ca_cert_path", "DB_CA_CERTS", None, config)
-        client_key = get_value("db.client_key", "DB_CLIENT_KEY", None, config)
-        client_cert = get_value("db.client_cert_path", "DB_CLIENT_CERT", None, config)
-        self._index = index
-        try:
-            self._es = Elasticsearch(
-                [host],
-                http_auth=(username, password),
-                port=port,
-                use_ssl=ssl,
-                verify_certs=verify_certs,
-                ca_certs=ca_certs,
-                client_cert=client_key,
-                client_key=client_cert,
-                maxsize=1000,
+    def __init__(self):
+        args = {}
+        host = os.getenv("DB_HOSTNAME", "https://localhost")
+        port = int(os.getenv("DB_PORT", 9200))
+        username = os.getenv("DB_USERNAME", "elastic")
+        password = os.getenv("DB_PASSWORD", "changeme")
+        args["http_auth"] = (username, password)
+        args["maxsize"] = 1000
+        ssl = self.str_to_bool(os.getenv("DB_SSL", "false"))
+        if ssl:
+            args["verify_certs"] = self.str_to_bool(
+                os.getenv("DB_VERIFY_CERTS", "false")
             )
+            args["ca_certs"] = os.getenv("DB_CA_CERTS", None)
+            args["client_key"] = os.getenv("DB_CLIENT_KEY", None)
+            args["client_cert"] = os.getenv("DB_CLIENT_CERT", None)
+        index = os.getenv("DB_INDEX", "oceandb")
+        self._index = index
+        self._did_states_index = f"{self._index}_did_states"
+        try:
+            self._es = Elasticsearch(host + ":" + str(port), **args)
             while self._es.ping() is False:
                 logging.info("Trying to connect...")
                 time.sleep(5)
 
             self._es.indices.create(index=index, ignore=400)
+            self._es.indices.create(index=self._did_states_index, ignore=400)
 
         except Exception as e:
             logging.info(f"Exception trying to connect... {e}")
@@ -70,9 +62,9 @@ class ElasticsearchInstance(object):
 
     @staticmethod
     def str_to_bool(s):
-        if s == "true":
+        if s.lower() == "true":
             return True
-        elif s == "false":
+        elif s.lower() == "false":
             return False
         else:
             raise ValueError
@@ -85,7 +77,7 @@ class ElasticsearchInstance(object):
         """
         logger.debug("elasticsearch::write::{}".format(resource_id))
         if resource_id is not None:
-            if self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc"):
+            if self.es.exists(index=self.db_index, id=resource_id):
                 raise ValueError(
                     'Resource "{}" already exists, use update instead'.format(
                         resource_id
@@ -96,7 +88,6 @@ class ElasticsearchInstance(object):
             index=self.db_index,
             id=resource_id,
             body=obj,
-            doc_type="_doc",
             refresh="wait_for",
         )["_id"]
 
@@ -106,9 +97,15 @@ class ElasticsearchInstance(object):
         :return: object value from elasticsearch.
         """
         # logger.debug("elasticsearch::read::{}".format(resource_id))
-        return self.es.get(index=self.db_index, id=resource_id, doc_type="_doc")[
-            "_source"
-        ]
+        return self.es.get(index=self.db_index, id=resource_id)["_source"]
+
+    def exists(self, resource_id):
+        """Check if document exists.
+        :param resource_id: id of the object to be read.
+        :return: true if object exists
+        """
+        # logger.debug("elasticsearch::read::{}".format(resource_id))
+        return self.es.exists(index=self.db_index, id=resource_id)
 
     def update(self, obj, resource_id):
         """Update object in elasticsearch using the resource_id.
@@ -121,7 +118,6 @@ class ElasticsearchInstance(object):
             index=self.db_index,
             id=resource_id,
             body=obj,
-            doc_type="_doc",
             refresh="wait_for",
         )["_id"]
 
@@ -139,10 +135,10 @@ class ElasticsearchInstance(object):
         :return:
         """
         logger.debug("elasticsearch::delete::{}".format(resource_id))
-        if not self.es.exists(index=self.db_index, id=resource_id, doc_type="_doc"):
+        if not self.es.exists(index=self.db_index, id=resource_id):
             raise ValueError(f"Resource {resource_id} does not exists")
 
-        return self.es.delete(index=self.db_index, id=resource_id, doc_type="_doc")
+        return self.es.delete(index=self.db_index, id=resource_id)
 
     def count(self):
         count_result = self.es.count(index=self.db_index)
@@ -177,3 +173,29 @@ class ElasticsearchInstance(object):
             return False
 
         return True
+
+    def update_did_state(self, nft_address, chain_id, txid, valid, error):
+        """Updates did state."""
+        did = make_did(nft_address, chain_id)
+        obj = {
+            "nft": nft_address,
+            "did": did,
+            "chain_id": chain_id,
+            "tx_id": txid,
+            "valid": valid,
+            "error": error,
+        }
+        logger.info(f"Set did state {obj} for {did}")
+        return self.es.index(
+            index=self._did_states_index,
+            id=did,
+            body=obj,
+            refresh="wait_for",
+        )["_id"]
+
+    def read_did_state(self, did):
+        """Read did index state.
+        :param did
+        :return: object value from elasticsearch.
+        """
+        return self.es.get(index=self._did_states_index, id=did)["_source"]

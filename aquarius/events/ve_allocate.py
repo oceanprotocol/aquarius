@@ -26,19 +26,22 @@ class VeAllocate:
         :param env_var: Url of the file containing purgatory list.
         :return: Object as follows: {...('<did>', '<reason>'),...}
         """
-        response = requests.post(os.getenv(env_var))
+        response = requests.post(os.getenv(env_var), timeout=5)
 
         if response.status_code == requests.codes.ok:
             return {
-                (a["nft_addr"], a["ve_allocated"], a["chainID"])
+                (a["nft_addr"], a["ve_allocated_realtime"], a["chainID"])
                 for a in response.json()
-                if a and "nft_addr" in a and "ve_allocated" in a and "chainID" in a
+                if a
+                and "nft_addr" in a
+                and "ve_allocated_realtime" in a
+                and "chainID" in a
             }
 
         logger.error(f"veAllocate: Failed to retrieve list from {env_var} env var.")
         return set()
 
-    def update_asset(self, asset, veAllocated):
+    def update_asset(self, asset, ve_allocated_realtime):
         """
         Updates the field `state.allocated`  in `asset` object.
         """
@@ -47,10 +50,10 @@ class VeAllocate:
             asset["stats"] = {"allocated": 0}
         if "allocated" not in asset["stats"]:
             asset["stats"]["allocated"] = 0
-        if asset["stats"]["allocated"] != veAllocated:
-            asset["stats"]["allocated"] = veAllocated
+        if asset["stats"]["allocated"] != ve_allocated_realtime:
+            asset["stats"]["allocated"] = ve_allocated_realtime
             logger.info(
-                f"veAllocate: updating asset {did} with state.allocated={veAllocated}."
+                f"veAllocate: updating asset {did} with state.allocated={ve_allocated_realtime}."
             )
             try:
                 self._es_instance.update(json.dumps(asset), did)
@@ -60,7 +63,7 @@ class VeAllocate:
                 )
         else:
             logger.debug(
-                f"veAllocate: asset {did} has unchanged state.allocated ({veAllocated})."
+                f"veAllocate: asset {did} has unchanged state.allocated ({ve_allocated_realtime})."
             )
 
     def update_lists(self):
@@ -80,11 +83,11 @@ class VeAllocate:
         ve_list = self.retrieve_new_list("VEALLOCATE_URL")
         logger.info(f"veAllocate: Retrieved list of {len(ve_list)} assets to update")
 
-        for nft, ve_allocated, chain_id in ve_list:
-            did = make_did(Web3.toChecksumAddress(nft), chain_id)
+        for nft, ve_allocated_realtime, chain_id in ve_list:
+            did = make_did(nft, chain_id)
             try:
                 asset = self._es_instance.read(did)
-                self.update_asset(asset, ve_allocated)
+                self.update_asset(asset, ve_allocated_realtime)
             except elasticsearch.exceptions.NotFoundError:
                 logger.debug(f"Cannot find asset {did} for veAllocate update")
                 continue

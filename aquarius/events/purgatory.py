@@ -25,7 +25,7 @@ class Purgatory:
         :param env_var: Url of the file containing purgatory list.
         :return: Object as follows: {...('<did>', '<reason>'),...}
         """
-        response = requests.get(os.getenv(env_var))
+        response = requests.get(os.getenv(env_var), timeout=5)
 
         if response.status_code == requests.codes.ok:
             logger.info(
@@ -61,18 +61,20 @@ class Purgatory:
         :return: List of assets authored by `account_address`
         """
         logger.info(f"PURGATORY: getting assets authored by {account_address}.")
-        body = {
-            "query": {
-                "query_string": {
-                    "query": account_address,
-                    "default_field": "event.from",
-                }
+        query = {
+            "query_string": {
+                "query": account_address,
+                "default_field": "event.from",
             }
         }
-        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
+
+        page = self._es_instance.es.search(
+            index=self._es_instance.db_index, query=query
+        )
         total = page["hits"]["total"]["value"]
-        body["size"] = total
-        page = self._es_instance.es.search(index=self._es_instance.db_index, body=body)
+        page = self._es_instance.es.search(
+            index=self._es_instance.db_index, query=query, size=total
+        )
 
         object_list = []
         for x in page["hits"]["hits"]:

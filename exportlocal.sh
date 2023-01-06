@@ -1,10 +1,8 @@
-export AQUARIUS_CONFIG_FILE=config.ini
-export DB_HOSTNAME=127.0.0.1
+export DB_HOSTNAME=https://127.0.0.1
 export DB_INDEX=aquarius
 export DB_MODULE=elasticsearch
 export DB_PASSWORD=changeme
 export DB_PORT=9200
-export DB_SSL=false
 export DB_USERNAME=elastic
 export EVENTS_ALLOW=0
 export EVENTS_RPC=http://127.0.0.1:8545

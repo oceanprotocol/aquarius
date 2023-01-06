@@ -225,9 +225,8 @@ def get_metadata_start_block():
     return block_number
 
 
-def setup_web3(config_file, _logger=None):
+def setup_web3(_logger=None):
     """
-    :param config_file: Web3 object instance
     :param _logger: Logger instance
     :return: web3 instance
     """
@@ -253,8 +252,20 @@ def setup_web3(config_file, _logger=None):
 
 
 def make_did(data_nft_address, chain_id):
+    if not Web3.isAddress(data_nft_address.lower()):
+        return None
     return "did:op:" + remove_0x_prefix(
         Web3.toHex(
-            hashlib.sha256((data_nft_address + str(chain_id)).encode("utf-8")).digest()
+            hashlib.sha256(
+                (Web3.toChecksumAddress(data_nft_address) + str(chain_id)).encode(
+                    "utf-8"
+                )
+            ).digest()
         )
     )
+
+
+def update_did_state(es_instance, nft_address, chain_id, txid, valid, error):
+    if not es_instance:
+        return
+    es_instance.update_did_state(nft_address, chain_id, txid, valid, error)

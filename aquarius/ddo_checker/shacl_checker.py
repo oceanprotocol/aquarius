@@ -5,13 +5,16 @@
 import copy
 from datetime import datetime
 import json
+import logging
 import rdflib
 from pathlib import Path
 import pkg_resources
 from pyshacl import validate
+from web3.main import Web3
 
 from aquarius.events.util import make_did
 
+logger = logging.getLogger("aquarius")
 
 CURRENT_VERSION = "4.5.0"
 ALLOWED_VERSIONS = ["4.0.0", "4.1.0", "4.3.0", "4.5.0"]
@@ -90,13 +93,11 @@ def validate_dict(dict_orig, chain_id, nft_address):
 
     if not chain_id:
         extra_errors["chainId"] = "chainId is missing or invalid."
-
-    if not nft_address:
+    if not nft_address or nft_address == "" or not Web3.isAddress(nft_address.lower()):
         extra_errors["nftAddress"] = "nftAddress is missing or invalid."
 
     if not make_did(nft_address, str(chain_id)) == dict_orig.get("id"):
         extra_errors["id"] = "did is not valid for chain Id and nft address"
-
     # @context key is reserved in JSON-LD format
     dictionary["@context"] = {"@vocab": "http://schema.org/"}
     dictionary_as_string = json.dumps(dictionary)

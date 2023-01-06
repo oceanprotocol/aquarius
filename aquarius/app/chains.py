@@ -5,7 +5,7 @@
 import logging
 
 import elasticsearch
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.log import setup_logging
@@ -14,7 +14,7 @@ from aquarius.myapp import app
 setup_logging()
 chains = Blueprint("chains", __name__)
 logger = logging.getLogger("aquarius")
-es_instance = ElasticsearchInstance(app.config["AQUARIUS_CONFIG_FILE"])
+es_instance = ElasticsearchInstance()
 
 
 @chains.route("/list", methods=["GET"])
@@ -30,9 +30,9 @@ def get_chains_list():
         description: No chains are present
     """
     try:
-        chains = es_instance.es.get(
-            index=f"{es_instance.db_index}_plus", id="chains", doc_type="_doc"
-        )["_source"]
+        chains = es_instance.es.get(index=f"{es_instance.db_index}_plus", id="chains")[
+            "_source"
+        ]
         return jsonify(chains)
     except (elasticsearch.exceptions.NotFoundError, KeyError):
         logger.error("Cannot get chains list.")
@@ -64,7 +64,6 @@ def get_index_status(chain_id):
         last_block_record = es_instance.es.get(
             index=f"{es_instance.db_index}_plus",
             id="events_last_block_" + str(chain_id),
-            doc_type="_doc",
         )["_source"]
         return jsonify(last_block_record)
     except (elasticsearch.exceptions.NotFoundError, KeyError):

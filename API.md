@@ -202,14 +202,15 @@
 
 - Description
 
-    Manually triggers DDO caching based on a transacionId containing either MetadataCreated or MetadataUpdated event(s).
+    Manually triggers DDO caching based on a transactionId containing either MetadataCreated or MetadataUpdated event(s).
 
 - Parameters
 
     | name           | description                         | type   | in   | required |
     |----------------|-------------------------------------|--------|------|----------|
-    | `transactionId`| DID of the asset                    | string | path | true     |
+    | `transactionId`| transaction ID                      | string | path | true     |
     | `logIndex`     | custom log index for the transaction| int    | path | false    |
+    | `chainId`      | chain id                            | int    | path | true     |
 
 - Example
 
@@ -223,7 +224,8 @@
     ```JSON
         {
             "transactionId": "0x945596edf2a26d127514a78ed94fea86b199e68e9bed8b6f6d6c8bb24e451f27",
-            "logIndex": 0
+            "logIndex": 0,
+            "chain_id": 1
         }
     ```
 
@@ -239,6 +241,7 @@
     - 500
 
         - description: Error
+
 
 ## Chains
 
@@ -285,6 +288,56 @@
             {"last_block": 25198729,
             "version": "4.4.1"}
             ```
+
+## State
+
+### **GET** `/api/aquarius/state/retryQueue`
+
+- Description
+
+    Returns all queue retry logs
+
+- Parameters
+
+    | name           | description                          |
+    |----------------|--------------------------------------|
+    | `did`          | filter for did                       |
+    | `chainId`      | chain id                             |
+    | `nft`          | nft                                  |
+    | `type`         | retry event type (tx, event or block)|
+
+
+- Example
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/retryQueue?chainId=1'
+    ```
+
+
+### **GET** `/api/aquarius/state/ddo`
+
+- Description
+
+    Returns ddo(s) state(s)
+
+- Parameters for filtering:
+
+    | name           | description                          |
+    |----------------|--------------------------------------|
+    | `did`          | did                                  |
+    | `chainId`      | chain id                             |
+    | `nft`          | nft                                  |
+    | `txId`         | tx id                                |
+    
+
+
+- Examples
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/ddo?did=did:op:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e
+    ```
+
+    ```bash
+    curl --location --request GET 'https://v4.aquarius.oceanprotocol.com/api/aquarius/state/ddo?nft=0xC7ED00725AAb7E679fCB46C9620115fE0B6dD94a
+    ```
 
 ## Others
 
