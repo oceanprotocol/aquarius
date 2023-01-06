@@ -23,7 +23,6 @@ jobs:
         with:
           repository: "oceanprotocol/barge"
           path: 'barge'
-          ref: 'feature/es_updates'
       - name: Run Barge
         working-directory: ${{ github.workspace }}/barge
         run: |
