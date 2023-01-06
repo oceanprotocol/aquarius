@@ -43,7 +43,7 @@ setup_requirements = ["pytest-runner==6.0.0"]
 
 dev_requirements = [
     "bumpversion==0.6.0",
-    "pkginfo==1.8.3",
+    "pkginfo==1.9.4",
     "twine==4.0.2",
     "flake8",
     "isort",
