@@ -47,9 +47,27 @@ def route_get_retry_queue():
 def route_get_did_state():
     """Returns the current state for a did
     ---
+    parameters:
+      - name: did
+        in: path
+        description: DID of the asset.
+        required: false
+        type: string
+      - name: txId
+        in: path
+        description: transaction id
+        required: false
+        type: string
+      - name: nft
+        in: path
+        description: nft address
+        required: false
+        type: string
     responses:
       200:
         description: successful operation.
+      400:
+        description: missing all inputs.
     """
     data = request.args
     if not data.get("nft") and not data.get("txId") and not data.get("did"):
