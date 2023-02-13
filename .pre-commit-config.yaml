@@ -4,10 +4,10 @@
 ##
 repos:
 -   repo: https://github.com/psf/black
-    rev: 19.3b0
+    rev: 'refs/tags/22.6.0:refs/tags/22.6.0'
     hooks:
     -   id: black
--   repo: https://gitlab.com/pycqa/flake8
+-   repo: https://github.com/pycqa/flake8
     rev: 3.7.9
     hooks:
     - id: flake8
