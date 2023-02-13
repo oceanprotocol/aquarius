@@ -71,11 +71,9 @@ def spec():
     """
     swag = swagger(app)
     swag["info"]["version"] = "1.0"
-    # get_version()
     swag["info"]["title"] = Metadata.TITLE
     swag["info"]["description"] = Metadata.DESCRIPTION + "`" + aquarius_url + "`."
     swag["info"]["connected"] = get_status()
-    # swag['basePath'] = BaseURLs.BASE_AQUARIUS_URL
     return jsonify(swag)
 
 
