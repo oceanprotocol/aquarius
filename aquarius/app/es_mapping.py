@@ -1,4 +1,4 @@
-#  Copyright 2018 Ocean Protocol Foundation
+#  Copyright 2023 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
 
 es_mapping = """
