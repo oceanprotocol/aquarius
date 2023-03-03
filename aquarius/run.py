@@ -70,11 +70,10 @@ def spec():
     Returns the information about supported endpoints generated through swagger. Also returns version info, database connection status.
     """
     swag = swagger(app)
-    swag["info"]["version"] = get_version()
+    swag["info"]["version"] = "1.0"
     swag["info"]["title"] = Metadata.TITLE
     swag["info"]["description"] = Metadata.DESCRIPTION + "`" + aquarius_url + "`."
     swag["info"]["connected"] = get_status()
-    # swag['basePath'] = BaseURLs.BASE_AQUARIUS_URL
     return jsonify(swag)
 
 
@@ -112,7 +111,9 @@ def force_set_block(chain_id, block_number):
 
 
 def get_status():
-    db_url = os.getenv("DB_HOSTNAME") + ":" + os.getenv("DB_PORT")
+    db_url = (
+        os.getenv("DB_HOSTNAME", "https://localhost") + ":" + os.getenv("DB_PORT", 9200)
+    )
     if Elasticsearch(db_url).ping():
         return "Elasticsearch connected", 200
     else:
