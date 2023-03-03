@@ -47,7 +47,7 @@ class CustomHTTPProvider(HTTPProvider):
 
 def get_web3_connection_provider(network_url):
     version = get_version()
-    request_kwargs = {"headers": {"User-Agent": f"OceanProvider/{version}"}}
+    request_kwargs = {"headers": {"User-Agent": f"OceanAquarius/{version}"}}
 
     if network_url.startswith("http"):
         provider = CustomHTTPProvider(network_url, request_kwargs=request_kwargs)
