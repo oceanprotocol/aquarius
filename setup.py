@@ -29,7 +29,7 @@ install_requirements = [
     "elasticsearch==8.6.2",
     "PyYAML==6.0",
     "pytz==2022.7.1",
-    "ocean-contracts==1.1.8",
+    "ocean-contracts==1.1.11",
     "web3==5.31.3",
     "gevent",
     "json-sempai==0.4.0",
