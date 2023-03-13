@@ -9,8 +9,6 @@ import os
 from abc import ABC
 from datetime import datetime
 
-from jsonsempai import magic  # noqa: F401
-
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.constants import (
     AquariusCustomDDOFields,
@@ -19,10 +17,15 @@ from aquarius.events.constants import (
 )
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.proof_checker import check_metadata_proofs
-from aquarius.events.util import make_did, get_dt_factory, update_did_state
+from aquarius.events.util import (
+    make_did,
+    get_dt_factory,
+    update_did_state,
+    get_erc20_contract,
+    get_nft_contract,
+)
 from aquarius.graphql import get_number_orders_price
 from aquarius.rbac import RBAC
-from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
 logger = logging.getLogger(__name__)
@@ -125,10 +128,7 @@ class EventProcessor(ABC):
     def get_tokens_info(self, record):
         datatokens = []
         for service in record.get("services", []):
-            token_contract = self._web3.eth.contract(
-                abi=ERC20Template.abi,
-                address=self._web3.toChecksumAddress(service["datatokenAddress"]),
-            )
+            token_contract = get_erc20_contract(self._web3, service["datatokenAddress"])
 
             datatokens.append(
                 {
@@ -583,10 +583,7 @@ class TokenURIUpdatedProcessor:
     def process(self):
         if not self.asset:
             return
-        erc721_contract = self.web3.eth.contract(
-            abi=ERC721Template.abi,
-            address=self.web3.toChecksumAddress(self.event.address),
-        )
+        erc721_contract = get_nft_contract(self.web3, self.event.address)
 
         receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)
         event_decoded = erc721_contract.events.TokenURIUpdate().processReceipt(

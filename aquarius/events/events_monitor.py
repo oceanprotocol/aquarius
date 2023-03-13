@@ -10,7 +10,6 @@ from distutils.util import strtobool
 from threading import Thread
 
 import elasticsearch
-from jsonsempai import magic  # noqa: F401
 
 from aquarius.app.es_instance import ElasticsearchInstance
 from aquarius.app.util import get_bool_env_value, get_allowed_publishers
@@ -33,10 +32,11 @@ from aquarius.events.util import (
     get_defined_block,
     get_fre,
     get_dispenser,
+    get_erc20_contract,
+    get_nft_contract,
     is_approved_fre,
     is_approved_dispenser,
 )
-from artifacts import ERC20Template, ERC721Template
 from web3.logs import DISCARD
 
 logger = logging.getLogger(__name__)
@@ -330,10 +330,7 @@ class EventsMonitor(BlockProcessingClass):
         if not processor:
             # unkown type of event, bail out
             return
-        dt_contract = self._web3.eth.contract(
-            abi=ERC721Template.abi,
-            address=self._web3.toChecksumAddress(event.address),
-        )
+        dt_contract = get_nft_contract(self._web3, event.address)
         receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
         event_object = dt_contract.events[event_name]().processReceipt(
             receipt, errors=DISCARD
@@ -415,10 +412,7 @@ class EventsMonitor(BlockProcessingClass):
             erc20_address = event.address
         if erc20_address is None:
             return
-        erc20_contract = self._web3.eth.contract(
-            abi=ERC20Template.abi,
-            address=self._web3.toChecksumAddress(erc20_address),
-        )
+        erc20_contract = get_erc20_contract(self._web3, erc20_address)
         nft_address = erc20_contract.caller.getERC721Address()
         logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
 
@@ -571,7 +565,7 @@ class EventsMonitor(BlockProcessingClass):
             try:
                 logs = self._web3.eth.get_logs(filter_params)
                 self.process_logs(logs, block)
-            except Exception as e:
+            except Exception:
                 logger.error(
                     f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {block}."
                 )
@@ -599,10 +593,10 @@ class EventsMonitor(BlockProcessingClass):
 
         try:
             logs = self._web3.eth.get_logs(filter_params)
-        except Exception as e:
+        except Exception:
             if from_block < to_block:
                 # splitting in two might help, so rely on that
-                raise Exception(f"Failed to get events for multiple blocks")
+                raise Exception("Failed to get events for multiple blocks")
             else:
                 # Since there is only one block, and we failed to get all events, we need to try to take them one by one
                 # if any call fails, there is nothing more we can do  (ie:  failed to get only transfer events from block X)
