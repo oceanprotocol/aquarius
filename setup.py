@@ -32,7 +32,6 @@ install_requirements = [
     "ocean-contracts==1.1.12",
     "web3==5.31.3",
     "gevent",
-    "json-sempai==0.4.0",
     "python-dateutil==2.8.2",
     "pyshacl==0.20.0",
     "gql==3.4.0",

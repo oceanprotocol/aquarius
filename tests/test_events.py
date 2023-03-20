@@ -12,10 +12,8 @@ from unittest.mock import patch
 
 import elasticsearch
 import pytest
-from artifacts import ERC20Template, ERC721Template, FixedRateExchange
 from eth_keys import KeyAPI
 from eth_keys.backends import NativeECCBackend
-from jsonsempai import magic  # noqa: F401
 from web3.logs import DISCARD
 from web3.main import Web3
 
@@ -23,13 +21,18 @@ from aquarius.app.util import get_aquarius_wallet, get_did_state
 from aquarius.config import get_version
 from aquarius.events.constants import AquariusCustomDDOFields, MetadataStates
 from aquarius.events.events_monitor import EventsMonitor
-from aquarius.events.util import get_address_file, get_fre, setup_web3
+from aquarius.events.util import (
+    get_address_file,
+    get_fre,
+    setup_web3,
+    get_erc20_contract,
+    get_nft_contract,
+)
 from aquarius.myapp import app
 from tests.helpers import (
     get_ddo,
     get_web3,
     new_ddo,
-    run_request_get_data,
     run_request,
     send_create_update_tx,
     send_set_metadata_state_tx,
@@ -61,7 +64,7 @@ def run_test(client, base_ddo_url, events_instance, flags):
     ddo_state = get_did_state(events_instance._es_instance, None, None, None, did)
     assert len(ddo_state["hits"]["hits"]) == 1
     assert ddo_state["hits"]["hits"][0]["_id"] == did
-    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == True
+    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] is True
     _ddo["metadata"]["name"] = "Updated ddo by event"
     send_create_update_tx("update", _ddo, bytes([flags]), test_account1)
     events_instance.process_current_blocks()
@@ -101,7 +104,7 @@ def test_publish(client, base_ddo_url, events_object):
     ddo_state = get_did_state(events_object._es_instance, None, None, None, did)
     assert len(ddo_state["hits"]["hits"]) == 1
     assert ddo_state["hits"]["hits"][0]["_id"] == did
-    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == True
+    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] is True
 
 
 def test_publish_unallowed_address(client, base_ddo_url, events_object):
@@ -114,7 +117,7 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
     ddo_state = get_did_state(events_object._es_instance, None, None, None, did)
     assert len(ddo_state["hits"]["hits"]) == 1
     assert ddo_state["hits"]["hits"][0]["_id"] == did
-    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] == False
+    assert ddo_state["hits"]["hits"][0]["_source"]["valid"] is False
 
 
 def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkeypatch):
@@ -277,9 +280,7 @@ def test_order_started(events_object, client, base_ddo_url):
         "create", _ddo, bytes([2]), test_account1
     )
     events_object.process_current_blocks()
-    token_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
-    )
+    token_contract = get_erc20_contract(web3, erc20_address)
 
     token_contract.functions.mint(
         web3.toChecksumAddress(test_account3.address), web3.toWei(10, "ether")
@@ -433,10 +434,7 @@ def test_token_uri_update(client, base_ddo_url, events_object):
     assert initial_ddo["id"] == did
     assert initial_ddo["nft"]["tokenURI"] == "http://oceanprotocol.com/nft"
 
-    nft_contract = web3.eth.contract(
-        abi=ERC721Template.abi,
-        address=web3.toChecksumAddress(initial_ddo["nftAddress"]),
-    )
+    nft_contract = get_nft_contract(web3, initial_ddo["nftAddress"])
 
     web3.eth.default_account = test_account1.address
     txn_hash = nft_contract.functions.setTokenURI(
@@ -462,10 +460,7 @@ def test_token_transfer(client, base_ddo_url, events_object):
     assert initial_ddo["id"] == did
     assert initial_ddo["nft"]["owner"] == test_account1.address
 
-    nft_contract = web3.eth.contract(
-        abi=ERC721Template.abi,
-        address=web3.toChecksumAddress(initial_ddo["nftAddress"]),
-    )
+    nft_contract = get_nft_contract(web3, initial_ddo["nftAddress"])
 
     web3.eth.default_account = test_account1.address
     txn_hash = nft_contract.functions.safeTransferFrom(
@@ -599,9 +594,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
         "create", _ddo, bytes([2]), test_account1
     )
     events_object.process_current_blocks()
-    token_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
-    )
+    token_contract = get_erc20_contract(web3, erc20_address)
 
     amount = web3.toWei("100000", "ether")
     rate = web3.toWei("1", "ether")
@@ -617,9 +610,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     ).transact({"from": test_account1.address})
 
     ocean_address = web3.toChecksumAddress(address_json["development"]["Ocean"])
-    ocean_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(ocean_address)
-    )
+    ocean_contract = get_erc20_contract(web3, ocean_address)
     ocean_symbol = ocean_contract.caller.symbol()
 
     tx = token_contract.functions.createFixedRate(
@@ -679,9 +670,7 @@ def test_dispenser_created(events_object, client, base_ddo_url):
         "create", _ddo, bytes([2]), test_account1
     )
     events_object.process_current_blocks()
-    token_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
-    )
+    token_contract = get_erc20_contract(web3, erc20_address)
 
     address_file = get_address_file()
     with open(address_file) as f:

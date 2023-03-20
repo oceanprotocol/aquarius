@@ -10,15 +10,13 @@ import uuid
 
 import requests
 from eth_account import Account
-from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 from web3.datastructures import AttributeDict
 
 from aquarius.app.util import get_signature_vrs
 from aquarius.events.constants import EventTypes
 from aquarius.events.http_provider import get_web3_connection_provider
-from aquarius.events.util import deploy_datatoken, make_did
-from artifacts import ERC721Template
+from aquarius.events.util import deploy_datatoken, make_did, get_nft_contract
 from tests.ddos.ddo_event_sample_v4 import ddo_event_sample_v4
 from web3.logs import DISCARD
 
@@ -86,9 +84,7 @@ def send_create_update_tx(name, ddo, flags, account):
         else EventTypes.EVENT_METADATA_UPDATED
     )
 
-    dt_contract = get_web3().eth.contract(
-        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
-    )
+    dt_contract = get_nft_contract(get_web3(), datatoken_address)
 
     cap = web3.toWei(100000, "ether")
     erc20_txn = dt_contract.functions.createERC20(
@@ -118,7 +114,7 @@ def send_create_update_tx(name, ddo, flags, account):
     if flags[0] & 2:
         headers = {"Content-type": "application/octet-stream"}
         response = requests.post(
-            provider_url + "/api/services/encrypt",
+            provider_url + "/api/services/encrypt?chainId={web3.chain_id}",
             data=compressed_document,
             headers=headers,
             timeout=5,
@@ -161,9 +157,7 @@ def send_set_metadata_state_tx(ddo, account, state):
     web3 = get_web3()
     web3.eth.default_account = web3.toChecksumAddress(account.address)
 
-    dt_contract = web3.eth.contract(
-        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
-    )
+    dt_contract = get_nft_contract(web3, datatoken_address)
 
     txn_hash = dt_contract.functions.setMetaDataState(state).transact()
     txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
