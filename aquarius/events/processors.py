@@ -8,6 +8,7 @@ import logging
 import os
 from abc import ABC
 from datetime import datetime
+from eth_utils.address import to_checksum_address
 
 from jsonsempai import magic  # noqa: F401
 
@@ -127,7 +128,7 @@ class EventProcessor(ABC):
         for service in record.get("services", []):
             token_contract = self._web3.eth.contract(
                 abi=ERC20Template.abi,
-                address=self._web3.toChecksumAddress(service["datatokenAddress"]),
+                address=to_checksum_address(service["datatokenAddress"]),
             )
 
             datatokens.append(
@@ -167,7 +168,7 @@ class MetadataCreatedProcessor(EventProcessor):
         if not self.allowed_publishers:
             return True
 
-        publisher_address = self._web3.toChecksumAddress(publisher_address)
+        publisher_address = to_checksum_address(publisher_address)
         return publisher_address in self.allowed_publishers
 
     def make_record(self, data):
@@ -220,8 +221,8 @@ class MetadataCreatedProcessor(EventProcessor):
         )
         dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(
-            self._web3.toChecksumAddress(self.event.address)
-        ) != self._web3.toChecksumAddress(self.event.address):
+            to_checksum_address(self.event.address)
+        ) != to_checksum_address(self.event.address):
             error = "nft not deployed by our factory"
             update_did_state(
                 self._es_instance,
@@ -399,8 +400,8 @@ class MetadataUpdatedProcessor(EventProcessor):
         )
         dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(
-            self._web3.toChecksumAddress(self.event.address)
-        ) != self._web3.toChecksumAddress(self.event.address):
+            to_checksum_address(self.event.address)
+        ) != to_checksum_address(self.event.address):
             error = "nft not deployed by our factory"
             logger.error(error)
             update_did_state(
@@ -585,7 +586,7 @@ class TokenURIUpdatedProcessor:
             return
         erc721_contract = self.web3.eth.contract(
             abi=ERC721Template.abi,
-            address=self.web3.toChecksumAddress(self.event.address),
+            address=to_checksum_address(self.event.address),
         )
 
         receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)

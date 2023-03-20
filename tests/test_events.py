@@ -9,6 +9,7 @@ import threading
 import time
 from datetime import timedelta
 from unittest.mock import patch
+from eth_utils.address import to_checksum_address
 
 import elasticsearch
 import pytest
@@ -278,11 +279,11 @@ def test_order_started(events_object, client, base_ddo_url):
     )
     events_object.process_current_blocks()
     token_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
+        abi=ERC20Template.abi, address=to_checksum_address(erc20_address)
     )
 
     token_contract.functions.mint(
-        web3.toChecksumAddress(test_account3.address), web3.toWei(10, "ether")
+        to_checksum_address(test_account3.address), web3.toWei(10, "ether")
     ).transact({"from": test_account1.address})
     # mock provider fees
     provider_wallet = get_aquarius_wallet()
@@ -308,8 +309,8 @@ def test_order_started(events_object, client, base_ddo_url):
     signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=pk)
 
     provider_fee = {
-        "providerFeeAddress": web3.toChecksumAddress(provider_fee_address),
-        "providerFeeToken": web3.toChecksumAddress(provider_fee_token),
+        "providerFeeAddress": to_checksum_address(provider_fee_address),
+        "providerFeeToken": to_checksum_address(provider_fee_token),
         "providerFeeAmount": provider_fee_amount,
         "providerData": Web3.toHex(Web3.toBytes(text=provider_data)),
         # make it compatible with last openzepellin https://github.com/OpenZeppelin/openzeppelin-contracts/pull/1622
@@ -319,11 +320,11 @@ def test_order_started(events_object, client, base_ddo_url):
         "validUntil": 0,
     }
     txn = token_contract.functions.startOrder(
-        web3.toChecksumAddress(test_account3.address),
+        to_checksum_address(test_account3.address),
         1,
         (
-            web3.toChecksumAddress(provider_fee["providerFeeAddress"]),
-            web3.toChecksumAddress(provider_fee["providerFeeToken"]),
+            to_checksum_address(provider_fee["providerFeeAddress"]),
+            to_checksum_address(provider_fee["providerFeeToken"]),
             provider_fee["providerFeeAmount"],
             provider_fee["v"],
             provider_fee["r"],
@@ -435,7 +436,7 @@ def test_token_uri_update(client, base_ddo_url, events_object):
 
     nft_contract = web3.eth.contract(
         abi=ERC721Template.abi,
-        address=web3.toChecksumAddress(initial_ddo["nftAddress"]),
+        address=to_checksum_address(initial_ddo["nftAddress"]),
     )
 
     web3.eth.default_account = test_account1.address
@@ -464,7 +465,7 @@ def test_token_transfer(client, base_ddo_url, events_object):
 
     nft_contract = web3.eth.contract(
         abi=ERC721Template.abi,
-        address=web3.toChecksumAddress(initial_ddo["nftAddress"]),
+        address=to_checksum_address(initial_ddo["nftAddress"]),
     )
 
     web3.eth.default_account = test_account1.address
@@ -479,9 +480,9 @@ def test_token_transfer(client, base_ddo_url, events_object):
     events_object.nft_ownership.update_lists()
     updated_ddo = get_ddo(client, base_ddo_url, did)
     assert updated_ddo["id"] == did
-    assert web3.toChecksumAddress(
-        updated_ddo["nft"]["owner"]
-    ) == web3.toChecksumAddress(test_account2.address)
+    assert to_checksum_address(updated_ddo["nft"]["owner"]) == to_checksum_address(
+        test_account2.address
+    )
 
 
 def test_trigger_caching(client, base_ddo_url, events_object):
@@ -600,7 +601,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     )
     events_object.process_current_blocks()
     token_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
+        abi=ERC20Template.abi, address=to_checksum_address(erc20_address)
     )
 
     amount = web3.toWei("100000", "ether")
@@ -613,20 +614,20 @@ def test_exchange_created(events_object, client, base_ddo_url):
     fre_address = address_json["development"]["FixedPrice"]
 
     token_contract.functions.mint(
-        web3.toChecksumAddress(test_account3.address), amount
+        to_checksum_address(test_account3.address), amount
     ).transact({"from": test_account1.address})
 
-    ocean_address = web3.toChecksumAddress(address_json["development"]["Ocean"])
+    ocean_address = to_checksum_address(address_json["development"]["Ocean"])
     ocean_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(ocean_address)
+        abi=ERC20Template.abi, address=to_checksum_address(ocean_address)
     )
     ocean_symbol = ocean_contract.caller.symbol()
 
     tx = token_contract.functions.createFixedRate(
-        web3.toChecksumAddress(fre_address),
+        to_checksum_address(fre_address),
         [
             ocean_address,
-            web3.toChecksumAddress(test_account1.address),
+            to_checksum_address(test_account1.address),
             "0x0000000000000000000000000000000000000000",
             "0x0000000000000000000000000000000000000000",
         ],
@@ -680,7 +681,7 @@ def test_dispenser_created(events_object, client, base_ddo_url):
     )
     events_object.process_current_blocks()
     token_contract = web3.eth.contract(
-        abi=ERC20Template.abi, address=web3.toChecksumAddress(erc20_address)
+        abi=ERC20Template.abi, address=to_checksum_address(erc20_address)
     )
 
     address_file = get_address_file()
@@ -690,7 +691,7 @@ def test_dispenser_created(events_object, client, base_ddo_url):
     dispenser_address = address_json["development"]["Dispenser"]
 
     tx = token_contract.functions.createDispenser(
-        web3.toChecksumAddress(dispenser_address),
+        to_checksum_address(dispenser_address),
         web3.toWei("1", "ether"),
         web3.toWei("1", "ether"),
         True,

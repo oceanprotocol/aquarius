@@ -7,6 +7,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from eth_utils.address import to_checksum_address
 
 import elasticsearch
 import requests
@@ -109,9 +110,7 @@ class NftOwnership:
             did = make_did(transfer["nft"]["id"], self._chain_id)
             try:
                 asset = self._es_instance.read(did)
-                asset["nft"]["owner"] = Web3.toChecksumAddress(
-                    transfer["newOwner"]["id"]
-                )
+                asset["nft"]["owner"] = to_checksum_address(transfer["newOwner"]["id"])
                 self._es_instance.update(asset, did)
                 logger.debug(f"Updated {did}: new owner: {asset['nft']['owner']}")
             except NotFoundError:

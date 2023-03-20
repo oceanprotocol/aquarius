@@ -13,6 +13,7 @@ from eth_account import Account
 from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 from web3.datastructures import AttributeDict
+from eth_utils.address import to_checksum_address
 
 from aquarius.app.util import get_signature_vrs
 from aquarius.events.constants import EventTypes
@@ -87,7 +88,7 @@ def send_create_update_tx(name, ddo, flags, account):
     )
 
     dt_contract = get_web3().eth.contract(
-        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
+        abi=ERC721Template.abi, address=to_checksum_address(datatoken_address)
     )
 
     cap = web3.toWei(100000, "ether")
@@ -95,9 +96,9 @@ def send_create_update_tx(name, ddo, flags, account):
         1,
         ["ERC20DT1", "ERC20DT1Symbol"],
         [
-            web3.toChecksumAddress(account.address),
-            web3.toChecksumAddress(account.address),
-            web3.toChecksumAddress(account.address),
+            to_checksum_address(account.address),
+            to_checksum_address(account.address),
+            to_checksum_address(account.address),
             "0x0000000000000000000000000000000000000000",
         ],
         [cap, 0],
@@ -140,7 +141,7 @@ def send_create_update_tx(name, ddo, flags, account):
     txn_hash = dt_contract.functions.setMetaData(
         0,
         provider_url,
-        web3.toChecksumAddress(provider_address),
+        to_checksum_address(provider_address),
         flags,
         encrypted_data,
         dataHash,
@@ -159,10 +160,10 @@ def send_set_metadata_state_tx(ddo, account, state):
     datatoken_address = ddo["nftAddress"]
 
     web3 = get_web3()
-    web3.eth.default_account = web3.toChecksumAddress(account.address)
+    web3.eth.default_account = to_checksum_address(account.address)
 
     dt_contract = web3.eth.contract(
-        abi=ERC721Template.abi, address=web3.toChecksumAddress(datatoken_address)
+        abi=ERC721Template.abi, address=to_checksum_address(datatoken_address)
     )
 
     txn_hash = dt_contract.functions.setMetaDataState(state).transact()

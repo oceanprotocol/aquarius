@@ -11,6 +11,7 @@ import os
 import pytest
 from hexbytes import HexBytes
 from web3.datastructures import AttributeDict
+from eth_utils.address import to_checksum_address
 
 from aquarius.events.processors import (
     MetadataCreatedProcessor,
@@ -148,7 +149,7 @@ def test_missing_attributes():
     test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
     dt_address = deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")
     dt_contract = web3.eth.contract(
-        abi=ERC721Template.abi, address=web3.toChecksumAddress(dt_address)
+        abi=ERC721Template.abi, address=to_checksum_address(dt_address)
     )
 
     dt_factory = Mock()

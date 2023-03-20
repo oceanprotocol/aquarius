@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 from eth_utils import remove_0x_prefix
+from eth_utils.address import to_checksum_address
 import hashlib
 import json
 import logging
@@ -102,7 +103,7 @@ def deploy_datatoken(w3, account, name, symbol):
         "0x0000000000000000000000000000000000000000",
         "http://oceanprotocol.com/nft",
         True,
-        w3.toChecksumAddress(account.address),
+        to_checksum_address(account.address),
     ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
     raw_tx = sign_tx(w3, built_tx, account.key)
@@ -146,7 +147,7 @@ def get_dt_factory(web3, chain_id=None):
     address = get_address_of_type(web3, chain_id, "ERC721Factory")
     abi = ERC721Factory.abi
 
-    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
 
 
 def get_fre(web3, chain_id=None, address=None):
@@ -155,7 +156,7 @@ def get_fre(web3, chain_id=None, address=None):
         address = get_address_of_type(web3, chain_id, "FixedPrice")
     abi = FixedRateExchange.abi
 
-    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
 
 
 def get_dispenser(web3, chain_id=None, address=None):
@@ -164,14 +165,14 @@ def get_dispenser(web3, chain_id=None, address=None):
         address = get_address_of_type(web3, chain_id, "Dispenser")
     abi = Dispenser.abi
 
-    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
 
 
 def get_factory_contract(web3, chain_id=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     address = get_address_of_type(web3, chain_id, "Router")
     abi = FactoryRouter.abi
-    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
 
 
 def is_approved_fre(web3, address, chain_id=None):
@@ -257,9 +258,7 @@ def make_did(data_nft_address, chain_id):
     return "did:op:" + remove_0x_prefix(
         Web3.toHex(
             hashlib.sha256(
-                (Web3.toChecksumAddress(data_nft_address) + str(chain_id)).encode(
-                    "utf-8"
-                )
+                (to_checksum_address(data_nft_address) + str(chain_id)).encode("utf-8")
             ).digest()
         )
     )

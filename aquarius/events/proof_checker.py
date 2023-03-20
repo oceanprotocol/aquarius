@@ -1,7 +1,12 @@
+#
+# Copyright 2023 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 import json
 from json import JSONDecodeError
 import logging
 import os
+from eth_utils.address import to_checksum_address
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +29,12 @@ def check_metadata_proofs(web3, metadata_proofs):
 
     try:
         proof_addresses = {
-            web3.toChecksumAddress(metadata_proof.args.validator)
+            to_checksum_address(metadata_proof.args.validator)
             for metadata_proof in metadata_proofs
         }
 
         allowed_addresses = {
-            web3.toChecksumAddress(address) for address in allowed_validators
+            to_checksum_address(address) for address in allowed_validators
         }
 
         allowed_addresses = list(proof_addresses & allowed_addresses)

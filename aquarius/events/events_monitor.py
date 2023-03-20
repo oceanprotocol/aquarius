@@ -8,6 +8,7 @@ import os
 import time
 from distutils.util import strtobool
 from threading import Thread
+from eth_utils.address import to_checksum_address
 
 import elasticsearch
 from jsonsempai import magic  # noqa: F401
@@ -332,7 +333,7 @@ class EventsMonitor(BlockProcessingClass):
             return
         dt_contract = self._web3.eth.contract(
             abi=ERC721Template.abi,
-            address=self._web3.toChecksumAddress(event.address),
+            address=to_checksum_address(event.address),
         )
         receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
         event_object = dt_contract.events[event_name]().processReceipt(
@@ -417,7 +418,7 @@ class EventsMonitor(BlockProcessingClass):
             return
         erc20_contract = self._web3.eth.contract(
             abi=ERC20Template.abi,
-            address=self._web3.toChecksumAddress(erc20_address),
+            address=to_checksum_address(erc20_address),
         )
         nft_address = erc20_contract.caller.getERC721Address()
         logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")
