@@ -6,8 +6,7 @@ import json
 import logging
 import os
 import time
-from eth_utils.addresss import to_checksum_address
-from web3.main import Web3
+from eth_utils.address import to_checksum_address
 
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
