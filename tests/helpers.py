@@ -138,8 +138,10 @@ def send_create_update_tx(name, ddo, flags, account):
         provider_url,
         web3.toChecksumAddress(provider_address),
         flags,
-        encrypted_data,
-        dataHash,
+        encrypted_data
+        if isinstance(encrypted_data, bytes)
+        else encrypted_data.encode("UTF-8"),
+        dataHash if isinstance(dataHash, bytes) else dataHash.encode("UTF-8"),
         [validatorContent],
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
