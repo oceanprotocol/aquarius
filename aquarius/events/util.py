@@ -4,6 +4,7 @@
 #
 from eth_utils import remove_0x_prefix
 from eth_utils.address import to_checksum_address, is_address
+import artifacts
 import hashlib
 import json
 import logging
@@ -11,13 +12,11 @@ import os
 import time
 from pathlib import Path
 
-from jsonsempai import magic  # noqa: F401
 from web3 import Web3
 
-from addresses import address as contract_addresses
+import addresses
 from aquarius.app.util import get_bool_env_value
 from aquarius.events.http_provider import get_web3_connection_provider
-from artifacts import ERC721Factory, FixedRateExchange, Dispenser, FactoryRouter
 from web3.logs import DISCARD
 
 
@@ -142,37 +141,62 @@ def get_address_of_type(web3, chain_id=None, address_type=None):
     return correspondence[chain_id]
 
 
+def get_contract(web3, contract_name, address):
+    abi = get_contract_definition(contract_name)["abi"]
+
+    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
+
+
+def get_contract_definition(contract_name: str):
+    """Returns the abi JSON for a contract name."""
+    path = os.path.join(artifacts.__file__, "..", f"{contract_name}.json")
+    path = Path(path).expanduser().resolve()
+
+    if not path.exists():
+        raise TypeError("Contract name does not exist in artifacts.")
+
+    with open(path) as f:
+        return json.load(f)
+
+
 def get_dt_factory(web3, chain_id=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     address = get_address_of_type(web3, chain_id, "ERC721Factory")
-    abi = ERC721Factory.abi
 
-    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
+    return get_contract(web3, "ERC721Factory", address)
 
 
 def get_fre(web3, chain_id=None, address=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     if not address:
         address = get_address_of_type(web3, chain_id, "FixedPrice")
-    abi = FixedRateExchange.abi
 
-    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
+    return get_contract(web3, "FixedRateExchange", address)
 
 
 def get_dispenser(web3, chain_id=None, address=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     if not address:
         address = get_address_of_type(web3, chain_id, "Dispenser")
-    abi = Dispenser.abi
 
-    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
+    return get_contract(web3, "Dispenser", address)
 
 
 def get_factory_contract(web3, chain_id=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     address = get_address_of_type(web3, chain_id, "Router")
-    abi = FactoryRouter.abi
-    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
+
+    return get_contract(web3, "FactoryRouter", address)
+
+
+def get_nft_contract(web3, address):
+    address = web3.toChecksumAddress(address)
+    return get_contract(web3, "ERC721Template", address)
+
+
+def get_erc20_contract(web3, address):
+    address = web3.toChecksumAddress(address)
+    return get_contract(web3, "ERC20Template", address)
 
 
 def is_approved_fre(web3, address, chain_id=None):
@@ -205,7 +229,9 @@ def get_address_file():
     return (
         Path(env_file).expanduser().resolve()
         if env_file
-        else Path(contract_addresses.__file__).expanduser().resolve()
+        else Path(os.path.join(addresses.__file__, "..", "address.json"))
+        .expanduser()
+        .resolve()
     )
 
 

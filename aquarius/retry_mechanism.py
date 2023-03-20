@@ -1,24 +1,19 @@
+#
+# Copyright 2023 Ocean Protocol Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 from datetime import datetime, timedelta
 import elasticsearch
 from hashlib import sha256
 from hexbytes import HexBytes
-import json
 import logging
+import json
 import os
 
 from web3.datastructures import AttributeDict
-from web3.logs import DISCARD
 from web3.main import Web3
 
-from aquarius.app.util import get_allowed_publishers, sanitize_record
-from aquarius.events.processors import (
-    MetadataCreatedProcessor,
-    MetadataUpdatedProcessor,
-)
 from aquarius.events.util import setup_web3, make_did
-
-from jsonsempai import magic  # noqa: F401
-from artifacts import ERC721Template
 
 
 logger = logging.getLogger(__name__)
@@ -290,7 +285,6 @@ class RetryMechanism:
             # put it back to queue
             self.add_tx_to_retry_queue(tx_id, log_index)
             return
-        i = 0
         for log in tx_receipt.logs:
             if (log_index and log["logIndex"] == log_index) or (not log_index):
                 self._event_monitor_instance.process_logs([log], None)
