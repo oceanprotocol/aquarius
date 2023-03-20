@@ -10,7 +10,7 @@ import rdflib
 from pathlib import Path
 import pkg_resources
 from pyshacl import validate
-from web3.main import Web3
+from eth_utils.address import is_address
 
 from aquarius.events.util import make_did
 
@@ -93,7 +93,7 @@ def validate_dict(dict_orig, chain_id, nft_address):
 
     if not chain_id:
         extra_errors["chainId"] = "chainId is missing or invalid."
-    if not nft_address or nft_address == "" or not Web3.isAddress(nft_address.lower()):
+    if not nft_address or nft_address == "" or not is_address(nft_address.lower()):
         extra_errors["nftAddress"] = "nftAddress is missing or invalid."
 
     if not make_did(nft_address, str(chain_id)) == dict_orig.get("id"):

@@ -336,11 +336,11 @@ class EventsMonitor(BlockProcessingClass):
             address=to_checksum_address(event.address),
         )
         receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
-        event_object = dt_contract.events[event_name]().processReceipt(
+        event_object = dt_contract.events[event_name]().process_receipt(
             receipt, errors=DISCARD
         )[0]
         try:
-            metadata_proofs = dt_contract.events.MetadataValidated().processReceipt(
+            metadata_proofs = dt_contract.events.MetadataValidated().process_receipt(
                 receipt, errors=DISCARD
             )
             event_processor = processor(
@@ -368,7 +368,7 @@ class EventsMonitor(BlockProcessingClass):
                 fre = get_fre(self._web3, self._chain_id, event.address)
                 exchange_id = (
                     fre.events.ExchangeCreated()
-                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .process_receipt(receipt, errors=DISCARD)[0]
                     .args.exchangeId
                 )
                 try:
@@ -387,7 +387,7 @@ class EventsMonitor(BlockProcessingClass):
                 fre = get_fre(self._web3, self._chain_id)
                 exchange_id = (
                     fre.events.ExchangeRateChanged()
-                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .process_receipt(receipt, errors=DISCARD)[0]
                     .args.exchangeId
                 )
                 try:
@@ -405,7 +405,7 @@ class EventsMonitor(BlockProcessingClass):
                 dispenser = get_dispenser(self._web3, self._chain_id)
                 erc20_address = (
                     dispenser.events.DispenserCreated()
-                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .process_receipt(receipt, errors=DISCARD)[0]
                     .args.datatokenAddress
                 )
             else:

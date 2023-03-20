@@ -283,7 +283,7 @@ def test_order_started(events_object, client, base_ddo_url):
     )
 
     token_contract.functions.mint(
-        to_checksum_address(test_account3.address), web3.toWei(10, "ether")
+        to_checksum_address(test_account3.address), web3.to_wei(10, "ether")
     ).transact({"from": test_account1.address})
     # mock provider fees
     provider_wallet = get_aquarius_wallet()
@@ -291,10 +291,10 @@ def test_order_started(events_object, client, base_ddo_url):
     provider_data = json.dumps({"timeout": 0}, separators=(",", ":"))
     provider_fee_address = provider_wallet.address
     provider_fee_token = "0x0000000000000000000000000000000000000000"
-    message_hash = Web3.solidityKeccak(
+    message_hash = Web3.solidity_keccak(
         ["bytes", "address", "address", "uint256", "uint256"],
         [
-            Web3.toHex(Web3.toBytes(text=provider_data)),
+            Web3.to_hex(Web3.to_bytes(text=provider_data)),
             provider_fee_address,
             provider_fee_token,
             provider_fee_amount,
@@ -303,8 +303,8 @@ def test_order_started(events_object, client, base_ddo_url):
     )
     pk = keys.PrivateKey(provider_wallet.key)
     prefix = "\x19Ethereum Signed Message:\n32"
-    signable_hash = Web3.solidityKeccak(
-        ["bytes", "bytes"], [Web3.toBytes(text=prefix), Web3.toBytes(message_hash)]
+    signable_hash = Web3.solidity_keccak(
+        ["bytes", "bytes"], [Web3.to_bytes(text=prefix), Web3.to_bytes(message_hash)]
     )
     signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=pk)
 
@@ -312,11 +312,11 @@ def test_order_started(events_object, client, base_ddo_url):
         "providerFeeAddress": to_checksum_address(provider_fee_address),
         "providerFeeToken": to_checksum_address(provider_fee_token),
         "providerFeeAmount": provider_fee_amount,
-        "providerData": Web3.toHex(Web3.toBytes(text=provider_data)),
+        "providerData": Web3.to_hex(Web3.to_bytes(text=provider_data)),
         # make it compatible with last openzepellin https://github.com/OpenZeppelin/openzeppelin-contracts/pull/1622
         "v": (signed.v + 27) if signed.v <= 1 else signed.v,
-        "r": Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),
-        "s": Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),
+        "r": Web3.to_hex(Web3.to_bytes(signed.r).rjust(32, b"\0")),
+        "s": Web3.to_hex(Web3.to_bytes(signed.s).rjust(32, b"\0")),
         "validUntil": 0,
     }
     txn = token_contract.functions.startOrder(
@@ -604,8 +604,8 @@ def test_exchange_created(events_object, client, base_ddo_url):
         abi=ERC20Template.abi, address=to_checksum_address(erc20_address)
     )
 
-    amount = web3.toWei("100000", "ether")
-    rate = web3.toWei("1", "ether")
+    amount = web3.to_wei("100000", "ether")
+    rate = web3.to_wei("1", "ether")
 
     address_file = get_address_file()
     with open(address_file) as f:
@@ -653,7 +653,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
     rate = 2 * rate
     exchange_id = (
         fre.events.ExchangeCreated()
-        .processReceipt(receipt, errors=DISCARD)[0]
+        .process_receipt(receipt, errors=DISCARD)[0]
         .args.exchangeId
     )
     tx = fre.functions.setRate(exchange_id, rate).transact(
@@ -692,8 +692,8 @@ def test_dispenser_created(events_object, client, base_ddo_url):
 
     tx = token_contract.functions.createDispenser(
         to_checksum_address(dispenser_address),
-        web3.toWei("1", "ether"),
-        web3.toWei("1", "ether"),
+        web3.to_wei("1", "ether"),
+        web3.to_wei("1", "ether"),
         True,
         "0x0000000000000000000000000000000000000000",
     ).transact({"from": test_account1.address})

@@ -248,7 +248,7 @@ def test_wallet_missing(monkeypatch):
 def test_deploy_datatoken_fails():
     web3 = setup_web3()
     test_account1 = Account.from_key(os.environ.get("EVENTS_TESTS_PRIVATE_KEY", None))
-    with patch.object(type(web3.eth), "getTransactionReceipt") as mock:
+    with patch.object(type(web3.eth), "get_transaction_receipt") as mock:
         mock.side_effect = Exception()
         with pytest.raises(Exception, match="tx not found"):
             deploy_datatoken(web3, test_account1, "TT1", "TT1Symbol")

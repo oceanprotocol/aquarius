@@ -589,8 +589,8 @@ class TokenURIUpdatedProcessor:
             address=to_checksum_address(self.event.address),
         )
 
-        receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)
-        event_decoded = erc721_contract.events.TokenURIUpdate().processReceipt(
+        receipt = self.web3.eth.get_transaction_receipt(self.event.transactionHash)
+        event_decoded = erc721_contract.events.TokenURIUpdate().process_receipt(
             receipt, errors=DISCARD
         )[0]
 
@@ -610,10 +610,10 @@ class MetadataStateProcessor(EventProcessor):
 
         create_events = self.dt_contract.events[
             EventTypes.EVENT_METADATA_CREATED
-        ]().processReceipt(receipt, errors=DISCARD)
+        ]().process_receipt(receipt, errors=DISCARD)
         update_events = self.dt_contract.events[
             EventTypes.EVENT_METADATA_UPDATED
-        ]().processReceipt(receipt, errors=DISCARD)
+        ]().process_receipt(receipt, errors=DISCARD)
 
         if not create_events and not update_events:
             logger.error("create/update ddo event not found")

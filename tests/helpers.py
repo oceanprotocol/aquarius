@@ -91,7 +91,7 @@ def send_create_update_tx(name, ddo, flags, account):
         abi=ERC721Template.abi, address=to_checksum_address(datatoken_address)
     )
 
-    cap = web3.toWei(100000, "ether")
+    cap = web3.to_wei(100000, "ether")
     erc20_txn = dt_contract.functions.createERC20(
         1,
         ["ERC20DT1", "ERC20DT1Symbol"],
@@ -149,7 +149,7 @@ def send_create_update_tx(name, ddo, flags, account):
     ).transact()
     txn_receipt = get_web3().eth.wait_for_transaction_receipt(txn_hash)
 
-    _ = getattr(dt_contract.events, event_name)().processReceipt(
+    _ = getattr(dt_contract.events, event_name)().process_receipt(
         txn_receipt, errors=DISCARD
     )
 

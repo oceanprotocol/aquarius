@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 from eth_utils import remove_0x_prefix
-from eth_utils.address import to_checksum_address
+from eth_utils.address import to_checksum_address, is_address
 import hashlib
 import json
 import logging
@@ -104,18 +104,18 @@ def deploy_datatoken(w3, account, name, symbol):
         "http://oceanprotocol.com/nft",
         True,
         to_checksum_address(account.address),
-    ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
+    ).build_transaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
     raw_tx = sign_tx(w3, built_tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(raw_tx)
 
     time.sleep(3)
     try:
-        receipt = w3.eth.getTransactionReceipt(tx_hash)
+        receipt = w3.eth.get_transaction_receipt(tx_hash)
 
         return (
             dt_factory.events.NFTCreated()
-            .processReceipt(receipt, errors=DISCARD)[0]
+            .process_receipt(receipt, errors=DISCARD)[0]
             .args.newTokenAddress
         )
     except Exception:
@@ -253,10 +253,10 @@ def setup_web3(_logger=None):
 
 
 def make_did(data_nft_address, chain_id):
-    if not Web3.isAddress(data_nft_address.lower()):
+    if not is_address(data_nft_address.lower()):
         return None
     return "did:op:" + remove_0x_prefix(
-        Web3.toHex(
+        Web3.to_hex(
             hashlib.sha256(
                 (to_checksum_address(data_nft_address) + str(chain_id)).encode("utf-8")
             ).digest()
