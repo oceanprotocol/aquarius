@@ -190,12 +190,12 @@ def get_factory_contract(web3, chain_id=None):
 
 
 def get_nft_contract(web3, address):
-    address = web3.toChecksumAddress(address)
+    address = to_checksum_address(address)
     return get_contract(web3, "ERC721Template", address)
 
 
 def get_erc20_contract(web3, address):
-    address = web3.toChecksumAddress(address)
+    address = to_checksum_address(address)
     return get_contract(web3, "ERC20Template", address)
 
 

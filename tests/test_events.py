@@ -610,7 +610,7 @@ def test_exchange_created(events_object, client, base_ddo_url):
         to_checksum_address(test_account3.address), amount
     ).transact({"from": test_account1.address})
 
-    ocean_address = web3.toChecksumAddress(address_json["development"]["Ocean"])
+    ocean_address = to_checksum_address(address_json["development"]["Ocean"])
     ocean_contract = get_erc20_contract(web3, ocean_address)
     ocean_symbol = ocean_contract.caller.symbol()
 
