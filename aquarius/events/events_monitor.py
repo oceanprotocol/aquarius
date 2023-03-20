@@ -565,9 +565,9 @@ class EventsMonitor(BlockProcessingClass):
             try:
                 logs = self._web3.eth.get_logs(filter_params)
                 self.process_logs(logs, block)
-            except Exception:
+            except Exception as e:
                 logger.error(
-                    f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {block}."
+                    f"Failed to fetch {EventTypes.hashes[topic]['type']} logs from block {block}. {e}"
                 )
         return
 
@@ -593,10 +593,10 @@ class EventsMonitor(BlockProcessingClass):
 
         try:
             logs = self._web3.eth.get_logs(filter_params)
-        except Exception:
+        except Exception as e:
             if from_block < to_block:
                 # splitting in two might help, so rely on that
-                raise Exception("Failed to get events for multiple blocks")
+                raise Exception("Failed to get events for multiple blocks. {e}")
             else:
                 # Since there is only one block, and we failed to get all events, we need to try to take them one by one
                 # if any call fails, there is nothing more we can do  (ie:  failed to get only transfer events from block X)
