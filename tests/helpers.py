@@ -134,6 +134,7 @@ def send_create_update_tx(name, ddo, flags, account):
         validatorContent["s"][0],
     )
 
+    web3.strict_bytes_type_checking = False
     txn_hash = dt_contract.functions.setMetaData(
         0,
         provider_url,
