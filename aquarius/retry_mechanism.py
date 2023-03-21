@@ -28,14 +28,14 @@ logger = logging.getLogger(__name__)
 #       "chainId":  chainId for this element
 #       "number_retries": how many times we retryed this element
 #       "next_retry": timestamp of next retry
-#       "data":  { block } for block,  { txId, log_index (optional)} for tx,  { "txt":  Web3.toJSON(event) } for events
+#       "data":  { block } for block,  { txId, log_index (optional)} for tx,  { "txt":  Web3.to_json(event) } for events
 #       "id":  sha256(data)
 #       "nft_address":  only for events
 #       "did":  only for events
 #
 # }
 #
-# Note:   since web3 tx logs cannot be stored as json, we need to unpack them (Web3.toJSON) and then pack them (HexBytes, AttributeDict)
+# Note:   since web3 tx logs cannot be stored as json, we need to unpack them (Web3.to_json) and then pack them (HexBytes, AttributeDict)
 
 
 class RetryMechanism:
@@ -183,7 +183,7 @@ class RetryMechanism:
             "chain_id": self._chain_id,
             "number_retries": 0,
             "next_retry": 0,
-            "data": {"txt": Web3.toJSON(event)},
+            "data": {"txt": Web3.to_json(event)},
             "error": error,
             "create_timestamp": int(datetime.utcnow().timestamp()),
         }
