@@ -29,20 +29,20 @@ tar -xzf elasticsearch-8.5.1-linux-x86_64.tar.gz
 ./elasticsearch-8.5.1/bin/elasticsearch
 ```
 
-Don't forget to change the automatically set passord:
+Don't forget to change the automatically set password:
 
 ```bash
-./elasticsearch/bin/elasticsearch-reset-password -i -u elastic --url https://localhost:9200
+./elasticsearch-8.5.1/bin/elasticsearch-reset-password -i -u elastic --url https://localhost:9200
 ```
 
 Alternately, you can run Elasticsearch from docker:
-`docker run --rm -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.14.2`
+`docker run --rm -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ELASTIC_PASSWORD=<your_password> elasticsearch:7.14.2`
 
 The arguments have the following meaning:
 - `--rm` Automatically remove the container when it exits
 - `-p 9200:9200 -p 9300:9300` expose ports 9200 and 9300 and bind them.
-- `-e "discovery.type=single-node"` sets the environment variable for Elasticsearch.
-If `discovery.type` is set to `single-node`, Elasticsearch forms a single-node cluster. Thus, our node will elect itself master and will not join a cluster with any other node. Since we are not building a multiple-node cluster, we are settings this to `single-node`.
+- `-e "discovery.type=single-node"` sets the environment variable for Elasticsearch. If `discovery.type` is set to `single-node`, Elasticsearch forms a single-node cluster. Thus, our node will elect itself master and will not join a cluster with any other node. Since we are not building a multiple-node cluster, we are settings this to `single-node`.
+- `-e ELASTIC_PASSWORD=<your_password>` sets the password for Elasticsearch.
 
 After spinning up Elasticsearch using either method, you can continue with the following Aquarius instructions. In yet another tab, clone this repository:
 
