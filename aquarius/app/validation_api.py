@@ -36,9 +36,6 @@ def schema(version):
       500:
         description: server error
     """
-    import pdb
-
-    pdb.set_trace()
     try:
         if version not in ALLOWED_VERSIONS:
             return jsonify(erorr="Schema version not found."), 404
