@@ -16,14 +16,10 @@ from eth_keys.backends import NativeECCBackend
 from web3.main import Web3
 
 from aquarius.app.auth_util import sanitize_addresses
-from aquarius.log import setup_logging
 from aquarius.rbac import RBAC
 
 logger = logging.getLogger("aquarius")
 keys = KeyAPI(NativeECCBackend)
-
-
-logger = logging.getLogger("aquarius")
 
 
 def sanitize_record(data_record):
