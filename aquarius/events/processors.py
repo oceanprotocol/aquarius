@@ -8,6 +8,7 @@ import logging
 import os
 from abc import ABC
 from datetime import datetime
+from eth_utils.address import to_checksum_address
 
 from aquarius.ddo_checker.shacl_checker import validate_dict
 from aquarius.events.constants import (
@@ -167,7 +168,7 @@ class MetadataCreatedProcessor(EventProcessor):
         if not self.allowed_publishers:
             return True
 
-        publisher_address = self._web3.toChecksumAddress(publisher_address)
+        publisher_address = to_checksum_address(publisher_address)
         return publisher_address in self.allowed_publishers
 
     def make_record(self, data):
@@ -220,8 +221,8 @@ class MetadataCreatedProcessor(EventProcessor):
         )
         dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(
-            self._web3.toChecksumAddress(self.event.address)
-        ) != self._web3.toChecksumAddress(self.event.address):
+            to_checksum_address(self.event.address)
+        ) != to_checksum_address(self.event.address):
             error = "nft not deployed by our factory"
             update_did_state(
                 self._es_instance,
@@ -399,8 +400,8 @@ class MetadataUpdatedProcessor(EventProcessor):
         )
         dt_factory = get_dt_factory(self._web3, self._chain_id)
         if dt_factory.caller.erc721List(
-            self._web3.toChecksumAddress(self.event.address)
-        ) != self._web3.toChecksumAddress(self.event.address):
+            to_checksum_address(self.event.address)
+        ) != to_checksum_address(self.event.address):
             error = "nft not deployed by our factory"
             logger.error(error)
             update_did_state(
@@ -585,8 +586,8 @@ class TokenURIUpdatedProcessor:
             return
         erc721_contract = get_nft_contract(self.web3, self.event.address)
 
-        receipt = self.web3.eth.getTransactionReceipt(self.event.transactionHash)
-        event_decoded = erc721_contract.events.TokenURIUpdate().processReceipt(
+        receipt = self.web3.eth.get_transaction_receipt(self.event.transactionHash)
+        event_decoded = erc721_contract.events.TokenURIUpdate().process_receipt(
             receipt, errors=DISCARD
         )[0]
 
@@ -606,10 +607,10 @@ class MetadataStateProcessor(EventProcessor):
 
         create_events = self.dt_contract.events[
             EventTypes.EVENT_METADATA_CREATED
-        ]().processReceipt(receipt, errors=DISCARD)
+        ]().process_receipt(receipt, errors=DISCARD)
         update_events = self.dt_contract.events[
             EventTypes.EVENT_METADATA_UPDATED
-        ]().processReceipt(receipt, errors=DISCARD)
+        ]().process_receipt(receipt, errors=DISCARD)
 
         if not create_events and not update_events:
             logger.error("create/update ddo event not found")

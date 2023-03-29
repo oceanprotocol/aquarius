@@ -330,13 +330,14 @@ class EventsMonitor(BlockProcessingClass):
         if not processor:
             # unkown type of event, bail out
             return
+
         dt_contract = get_nft_contract(self._web3, event.address)
         receipt = self._web3.eth.get_transaction_receipt(event.transactionHash.hex())
-        event_object = dt_contract.events[event_name]().processReceipt(
+        event_object = dt_contract.events[event_name]().process_receipt(
             receipt, errors=DISCARD
         )[0]
         try:
-            metadata_proofs = dt_contract.events.MetadataValidated().processReceipt(
+            metadata_proofs = dt_contract.events.MetadataValidated().process_receipt(
                 receipt, errors=DISCARD
             )
             event_processor = processor(
@@ -364,7 +365,7 @@ class EventsMonitor(BlockProcessingClass):
                 fre = get_fre(self._web3, self._chain_id, event.address)
                 exchange_id = (
                     fre.events.ExchangeCreated()
-                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .process_receipt(receipt, errors=DISCARD)[0]
                     .args.exchangeId
                 )
                 try:
@@ -383,7 +384,7 @@ class EventsMonitor(BlockProcessingClass):
                 fre = get_fre(self._web3, self._chain_id)
                 exchange_id = (
                     fre.events.ExchangeRateChanged()
-                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .process_receipt(receipt, errors=DISCARD)[0]
                     .args.exchangeId
                 )
                 try:
@@ -401,7 +402,7 @@ class EventsMonitor(BlockProcessingClass):
                 dispenser = get_dispenser(self._web3, self._chain_id)
                 erc20_address = (
                     dispenser.events.DispenserCreated()
-                    .processReceipt(receipt, errors=DISCARD)[0]
+                    .process_receipt(receipt, errors=DISCARD)[0]
                     .args.datatokenAddress
                 )
             else:
@@ -412,6 +413,7 @@ class EventsMonitor(BlockProcessingClass):
             erc20_address = event.address
         if erc20_address is None:
             return
+
         erc20_contract = get_erc20_contract(self._web3, erc20_address)
         nft_address = erc20_contract.caller.getERC721Address()
         logger.debug(f"{event_name} detected on ERC20 contract {event.address}.")

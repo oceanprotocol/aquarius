@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 from eth_utils import remove_0x_prefix
+from eth_utils.address import to_checksum_address, is_address
 import artifacts
 import hashlib
 import json
@@ -101,19 +102,19 @@ def deploy_datatoken(w3, account, name, symbol):
         "0x0000000000000000000000000000000000000000",
         "http://oceanprotocol.com/nft",
         True,
-        w3.toChecksumAddress(account.address),
-    ).buildTransaction({"from": account.address, "gasPrice": w3.eth.gas_price})
+        to_checksum_address(account.address),
+    ).build_transaction({"from": account.address, "gasPrice": w3.eth.gas_price})
 
     raw_tx = sign_tx(w3, built_tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(raw_tx)
 
     time.sleep(3)
     try:
-        receipt = w3.eth.getTransactionReceipt(tx_hash)
+        receipt = w3.eth.get_transaction_receipt(tx_hash)
 
         return (
             dt_factory.events.NFTCreated()
-            .processReceipt(receipt, errors=DISCARD)[0]
+            .process_receipt(receipt, errors=DISCARD)[0]
             .args.newTokenAddress
         )
     except Exception:
@@ -143,7 +144,7 @@ def get_address_of_type(web3, chain_id=None, address_type=None):
 def get_contract(web3, contract_name, address):
     abi = get_contract_definition(contract_name)["abi"]
 
-    return web3.eth.contract(address=web3.toChecksumAddress(address), abi=abi)
+    return web3.eth.contract(address=to_checksum_address(address), abi=abi)
 
 
 def get_contract_definition(contract_name: str):
@@ -161,6 +162,7 @@ def get_contract_definition(contract_name: str):
 def get_dt_factory(web3, chain_id=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     address = get_address_of_type(web3, chain_id, "ERC721Factory")
+
     return get_contract(web3, "ERC721Factory", address)
 
 
@@ -176,22 +178,24 @@ def get_dispenser(web3, chain_id=None, address=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     if not address:
         address = get_address_of_type(web3, chain_id, "Dispenser")
+
     return get_contract(web3, "Dispenser", address)
 
 
 def get_factory_contract(web3, chain_id=None):
     chain_id = chain_id if chain_id else web3.eth.chain_id
     address = get_address_of_type(web3, chain_id, "Router")
+
     return get_contract(web3, "FactoryRouter", address)
 
 
 def get_nft_contract(web3, address):
-    address = web3.toChecksumAddress(address)
+    address = to_checksum_address(address)
     return get_contract(web3, "ERC721Template", address)
 
 
 def get_erc20_contract(web3, address):
-    address = web3.toChecksumAddress(address)
+    address = to_checksum_address(address)
     return get_contract(web3, "ERC20Template", address)
 
 
@@ -275,14 +279,12 @@ def setup_web3(_logger=None):
 
 
 def make_did(data_nft_address, chain_id):
-    if not Web3.isAddress(data_nft_address.lower()):
+    if not is_address(data_nft_address.lower()):
         return None
     return "did:op:" + remove_0x_prefix(
-        Web3.toHex(
+        Web3.to_hex(
             hashlib.sha256(
-                (Web3.toChecksumAddress(data_nft_address) + str(chain_id)).encode(
-                    "utf-8"
-                )
+                (to_checksum_address(data_nft_address) + str(chain_id)).encode("utf-8")
             ).digest()
         )
     )

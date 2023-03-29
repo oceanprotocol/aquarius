@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import time
-from web3.main import Web3
+from eth_utils.address import to_checksum_address
 
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -56,7 +56,7 @@ def get_number_orders_price(token_address, last_sync_block, chain_id):
         if fres and "price" in fres[0]:
             price = Price(fres[0]["price"])
             if "baseToken" in fres[0]:
-                price.token_address = Web3.toChecksumAddress(
+                price.token_address = to_checksum_address(
                     fres[0]["baseToken"].get("address")
                 )
                 price.token_symbol = fres[0]["baseToken"].get("symbol")

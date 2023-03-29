@@ -76,17 +76,17 @@ def get_signature_vrs(raw):
         keys_pk = keys.PrivateKey(wallet.key)
 
         prefix = "\x19Ethereum Signed Message:\n32"
-        signable_hash = Web3.solidityKeccak(
+        signable_hash = Web3.solidity_keccak(
             ["bytes", "bytes"],
-            [Web3.toBytes(text=prefix), Web3.toBytes(hashed_raw.digest())],
+            [Web3.to_bytes(text=prefix), Web3.to_bytes(hashed_raw.digest())],
         )
         signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=keys_pk)
 
         values = {"hash": "0x" + hashed_raw.hexdigest(), "publicKey": wallet.address}
 
         values["v"] = (signed.v + 27) if signed.v <= 1 else signed.v
-        values["r"] = (Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")),)
-        values["s"] = (Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")),)
+        values["r"] = (Web3.to_hex(Web3.to_bytes(signed.r).rjust(32, b"\0")),)
+        values["s"] = (Web3.to_hex(Web3.to_bytes(signed.s).rjust(32, b"\0")),)
     except AquariusPrivateKeyException:
         values = {"hash": "", "publicKey": "", "r": "", "s": "", "v": ""}
 
@@ -98,18 +98,19 @@ def get_signature_bytes(raw):
         wallet = get_aquarius_wallet()
 
         keys_pk = keys.PrivateKey(wallet.key)
-        message_hash = Web3.solidityKeccak(
+        message_hash = Web3.solidity_keccak(
             ["bytes"],
-            [Web3.toBytes(text=raw)],
+            [Web3.to_bytes(text=raw)],
         )
         prefix = "\x19Ethereum Signed Message:\n32"
-        signable_hash = Web3.solidityKeccak(
-            ["bytes", "bytes"], [Web3.toBytes(text=prefix), Web3.toBytes(message_hash)]
+        signable_hash = Web3.solidity_keccak(
+            ["bytes", "bytes"],
+            [Web3.to_bytes(text=prefix), Web3.to_bytes(message_hash)],
         )
         signed = keys.ecdsa_sign(message_hash=signable_hash, private_key=keys_pk)
-        v = str(Web3.toHex(Web3.toBytes(signed.v)))
-        r = str(Web3.toHex(Web3.toBytes(signed.r).rjust(32, b"\0")))
-        s = str(Web3.toHex(Web3.toBytes(signed.s).rjust(32, b"\0")))
+        v = str(Web3.to_hex(Web3.to_bytes(signed.v)))
+        r = str(Web3.to_hex(Web3.to_bytes(signed.r).rjust(32, b"\0")))
+        s = str(Web3.to_hex(Web3.to_bytes(signed.s).rjust(32, b"\0")))
         signature = "0x" + r[2:] + s[2:] + v[2:]
     except AquariusPrivateKeyException:
         signature = None
