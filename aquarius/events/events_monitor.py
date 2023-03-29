@@ -456,7 +456,7 @@ class EventsMonitor(BlockProcessingClass):
                 try:
                     if self._es_instance.es.ping() is True:
                         break
-                except elasticsearch.exceptions.ElasticsearchException as es_err:
+                except Exception as es_err:
                     logging.error(f"Elasticsearch error: {es_err}")
                 logging.error("Connection to ES failed. Trying to connect to back...")
                 time.sleep(5)

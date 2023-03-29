@@ -37,6 +37,7 @@ class ElasticsearchInstance(object):
             args["ca_certs"] = os.getenv("DB_CA_CERTS", None)
             args["client_key"] = os.getenv("DB_CLIENT_KEY", None)
             args["client_cert"] = os.getenv("DB_CLIENT_CERT", None)
+            args["ssl_show_warn"] = False
         index = os.getenv("DB_INDEX", "oceandb")
         self._index = index
         self._did_states_index = f"{self._index}_did_states"
