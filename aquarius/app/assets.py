@@ -388,15 +388,26 @@ def trigger_caching():
     consumes:
       - application/json
     parameters:
-      - name: transactionId
+      - in: body
+        name: body
         required: true
-        description: transaction id containing MetadataCreated or MetadataUpdated event
-      - name: chainId
-        required: true
-        description: chain Id for the transaction
-      - name: logIndex
-        required: false
-        description: zero-based index in log if transaction contains more events
+        description: JSON object containing transaction details
+        schema:
+          type: object
+          properties:
+            transactionId:
+              type: string
+              description: transaction id containing MetadataCreated or MetadataUpdated event
+              example: "0xaabbccdd"
+            chainId:
+              type: int
+              description: chain Id id of MetadataCreated or MetadataUpdated event
+              example: 8996
+            logIndex:
+              type: int
+              required: false
+              description: log index for the event in the transaction
+              example: 8996
     responses:
       200:
         description: successful operation.
