@@ -13,9 +13,9 @@ import time
 from pathlib import Path
 
 from web3 import Web3
+from web3.exceptions import ExtraDataLengthError
 
 import addresses
-from aquarius.app.util import get_bool_env_value
 from aquarius.events.http_provider import get_web3_connection_provider
 from web3.logs import DISCARD
 
@@ -266,11 +266,9 @@ def setup_web3(_logger=None):
     provider = get_web3_connection_provider(network_rpc)
     web3 = Web3(provider)
 
-    if (
-        get_bool_env_value("USE_POA_MIDDLEWARE", 0)
-        or get_network_name().lower() == "rinkeby"
-        or get_network_name().lower() == "mumbai"
-    ):
+    try:
+        web3.eth.get_block("latest")
+    except ExtraDataLengthError:
         from web3.middleware import geth_poa_middleware
 
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)

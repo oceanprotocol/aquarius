@@ -127,9 +127,6 @@ METADATA_CONTRACT_ADDRESS
 # The block number of `Metadata` contract deployment
 METADATA_CONTRACT_BLOCK
 
-# Enable the use of poa_middleware if the network is a POA network such as Rinkeby. (no need to set for rinkeby specifically, since that is already treated in the code, but any other POA network should have this flag setup)
-USE_POA_MIDDLEWARE
-
 # if set to 1, read events from the first Metadata and BFactory block number, or a specific block number (used for debugging)
 IGNORE_LAST_BLOCK
 
