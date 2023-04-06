@@ -391,6 +391,9 @@ def trigger_caching():
       - name: transactionId
         required: true
         description: transaction id containing MetadataCreated or MetadataUpdated event
+      - name: chainId
+        required: true
+        description: chain Id for the transaction
       - name: logIndex
         required: false
         description: zero-based index in log if transaction contains more events
