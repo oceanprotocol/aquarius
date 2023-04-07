@@ -5,7 +5,7 @@
 import copy
 import elasticsearch
 from flask import Blueprint, jsonify, request
-from datetime import datetime, timedelta
+from datetime import timedelta
 import json
 import logging
 import os
@@ -17,7 +17,6 @@ from aquarius.app.util import (
     get_signature_vrs,
 )
 from aquarius.ddo_checker.shacl_checker import validate_dict
-from aquarius.events.util import setup_web3
 from aquarius.log import setup_logging
 from aquarius.myapp import app
 from aquarius.events.purgatory import Purgatory
@@ -389,12 +388,26 @@ def trigger_caching():
     consumes:
       - application/json
     parameters:
-      - name: transactionId
+      - in: body
+        name: body
         required: true
-        description: transaction id containing MetadataCreated or MetadataUpdated event
-      - name: logIndex
-        required: false
-        description: zero-based index in log if transaction contains more events
+        description: JSON object containing transaction details
+        schema:
+          type: object
+          properties:
+            transactionId:
+              type: string
+              description: transaction id containing MetadataCreated or MetadataUpdated event
+              example: "0xaabbccdd"
+            chainId:
+              type: int
+              description: chain Id id of MetadataCreated or MetadataUpdated event
+              example: 8996
+            logIndex:
+              type: int
+              required: false
+              description: log index for the event in the transaction
+              example: 8996
     responses:
       200:
         description: successful operation.
@@ -414,8 +427,6 @@ def trigger_caching():
             )
         log_index = int(data.get("logIndex", 0))
 
-        web3 = setup_web3()
-
         es_instance = ElasticsearchInstance()
         retries_db_index = f"{es_instance.db_index}_retries"
         purgatory = (
@@ -428,7 +439,7 @@ def trigger_caching():
             es_instance, retries_db_index, purgatory, chain_id, None
         )
         retry_mechanism.retry_interval = timedelta(seconds=1)
-        retry_mechanism.add_tx_to_retry_queue(tx_id)
+        retry_mechanism.add_tx_to_retry_queue(tx_id, log_index)
         response = app.response_class(
             response="Queued",
             status=200,

@@ -80,7 +80,7 @@ def spec():
 # Call factory function to create our blueprint
 swaggerui_blueprint = get_swaggerui_blueprint(
     BaseURLs.SWAGGER_URL,
-    aquarius_url + "/spec",
+    "/spec",
     config={"app_name": "Test application"},  # Swagger UI config overrides
 )
 
@@ -112,7 +112,9 @@ def force_set_block(chain_id, block_number):
 
 def get_status():
     db_url = (
-        os.getenv("DB_HOSTNAME", "https://localhost") + ":" + os.getenv("DB_PORT", 9200)
+        os.getenv("DB_HOSTNAME", "https://localhost")
+        + ":"
+        + os.getenv("DB_PORT", "9200")
     )
     if Elasticsearch(db_url).ping():
         return "Elasticsearch connected", 200
