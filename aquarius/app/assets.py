@@ -407,7 +407,7 @@ def trigger_caching():
               type: int
               required: false
               description: log index for the event in the transaction
-              example: 8996
+              example: 1
     responses:
       200:
         description: successful operation.

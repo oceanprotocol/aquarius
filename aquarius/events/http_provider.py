@@ -6,7 +6,6 @@ import os
 
 from web3 import HTTPProvider, WebsocketProvider
 
-from aquarius.config import get_version
 from aquarius.events.request import make_post_request
 
 GANACHE_URL = "http://127.0.0.1:8545"
@@ -46,17 +45,15 @@ class CustomHTTPProvider(HTTPProvider):
 
 
 def get_web3_connection_provider(network_url):
-    version = get_version()
-    request_kwargs = {"headers": {"User-Agent": f"OceanAquarius/{version}"}}
 
     if network_url.startswith("http"):
-        provider = CustomHTTPProvider(network_url, request_kwargs=request_kwargs)
+        provider = CustomHTTPProvider(network_url)
     elif network_url.startswith("ws"):
         provider = WebsocketProvider(network_url)
     elif network_url == "ganache":
-        provider = CustomHTTPProvider(GANACHE_URL, request_kwargs=request_kwargs)
+        provider = CustomHTTPProvider(GANACHE_URL)
     elif network_url == "polygon":
-        provider = CustomHTTPProvider(POLYGON_URL, request_kwargs=request_kwargs)
+        provider = CustomHTTPProvider(POLYGON_URL)
     else:
         assert network_url in SUPPORTED_NETWORK_NAMES, (
             f"The given network_url *{network_url}* does not start with either "

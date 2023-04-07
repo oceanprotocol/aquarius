@@ -22,6 +22,8 @@ RUN pip install setuptools
 RUN pip install wheel
 RUN pip install .
 
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+RUN update-alternatives --set python3 /usr/bin/python3.8
 
 ENV DB_MODULE='elasticsearch'
 ENV DB_HOSTNAME='localhost'
