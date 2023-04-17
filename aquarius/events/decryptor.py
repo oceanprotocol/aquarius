@@ -4,7 +4,7 @@
 #
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 
 import requests
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash, es_instance):
     aquarius_account = get_aquarius_wallet()
-    nonce = str(int(datetime.utcnow().timestamp()))
+    nonce = str(int(datetime.now(timezone.utc).timestamp()))
 
     signature = get_signature_bytes(
         f"{txid}{aquarius_account.address}{chain_id}{nonce}"
