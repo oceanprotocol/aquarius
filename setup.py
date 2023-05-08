@@ -34,7 +34,7 @@ install_requirements = [
     "gevent",
     "python-dateutil==2.8.2",
     "pyshacl==0.22.2",
-    "gql==3.4.0",
+    "gql==3.4.1",
     "aiohttp==3.8.4",
 ]
 
