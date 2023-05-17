@@ -2,7 +2,7 @@
 # Copyright 2023 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import elasticsearch
 from hashlib import sha256
 from hexbytes import HexBytes
@@ -88,7 +88,9 @@ class RetryMechanism:
                 "must": [
                     {
                         "range": {
-                            "next_retry": {"lt": int(datetime.utcnow().timestamp())}
+                            "next_retry": {
+                                "lt": int(datetime.now(timezone.utc).timestamp())
+                            }
                         }
                     },
                     {"term": {"chain_id": self._chain_id}},
@@ -140,7 +142,7 @@ class RetryMechanism:
             "number_retries": 0,
             "next_retry": 0,
             "data": {"block": str(block_number)},
-            "create_timestamp": int(datetime.utcnow().timestamp()),
+            "create_timestamp": int(datetime.now(timezone.utc).timestamp()),
         }
         id = self.create_id(element)
         element["id"] = id
@@ -159,7 +161,7 @@ class RetryMechanism:
             "number_retries": 0,
             "next_retry": 0,
             "data": {"txId": str(tx_id)},
-            "create_timestamp": int(datetime.utcnow().timestamp()),
+            "create_timestamp": int(datetime.now(timezone.utc).timestamp()),
         }
         if log_index:
             element["data"]["log_index"] = log_index
@@ -185,7 +187,7 @@ class RetryMechanism:
             "next_retry": 0,
             "data": {"txt": Web3.to_json(event)},
             "error": error,
-            "create_timestamp": int(datetime.utcnow().timestamp()),
+            "create_timestamp": int(datetime.now(timezone.utc).timestamp()),
         }
         id = self.create_id(element)
         element["id"] = id
@@ -210,7 +212,7 @@ class RetryMechanism:
 
         element["next_retry"] = int(
             (
-                datetime.utcnow()
+                datetime.now(timezone.utc)
                 + (element["number_retries"] + 1) * self.retry_interval
             ).timestamp()
         )
