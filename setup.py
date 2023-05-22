@@ -30,7 +30,7 @@ install_requirements = [
     "PyYAML==6.0",
     "pytz==2023.3",
     "ocean-contracts==1.1.12",
-    "web3==6.3.0",
+    "web3==6.4.0",
     "gevent",
     "python-dateutil==2.8.2",
     "pyshacl==0.22.2",
