@@ -277,7 +277,7 @@ def setup_web3(_logger=None):
     block_hash_decimal = int(block.hash.hex(), 16)
     last_bytes = block_hash_decimal.to_bytes(32, "big")[-2:]
     chain_id = int(last_bytes.hex(), 16)
-
+    logger.info(f"chain id: {chain_id} and web3 chain id: {web3.eth.chain_id}")
     if chain_id != web3.eth.chain_id:
         raise Exception("Invalid blocks for current network RPC!")
 
