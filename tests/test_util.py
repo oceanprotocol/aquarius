@@ -220,6 +220,17 @@ def test_setup_web3(monkeypatch):
     assert setup_web3(logger)
 
 
+def test_config_rpc(monkeypatch):
+    monkeypatch.setenv("CONFIG_NETWORK_URL", "https://rpc-mumbai.maticvigil.com/")
+
+    with pytest.raises(Exception) as e:
+        setup_web3(logger)
+
+    assert "Mismatch of chain IDs between configuration and events RPC!" in str(
+        e.value.args[0]
+    )
+
+
 def test_setup_logging(monkeypatch):
     with patch("logging.config.dictConfig") as mock:
         mock.side_effect = Exception("Boom!")
