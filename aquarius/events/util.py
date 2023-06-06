@@ -2,7 +2,6 @@
 # Copyright 2023 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
-from aquarius.config import get_config_chain_id
 from eth_utils import remove_0x_prefix
 from eth_utils.address import to_checksum_address, is_address
 import artifacts
@@ -236,6 +235,14 @@ def get_address_file():
     )
 
 
+def get_config_chain_id():
+    config_rpc = os.getenv("CONFIG_NETWORK_URL")
+    provider = get_web3_connection_provider(config_rpc)
+    web3 = Web3(provider)
+
+    return web3.eth.chain_id
+
+
 def get_metadata_start_block():
     """Returns the block number to use as start"""
     block_number = int(os.getenv("METADATA_CONTRACT_BLOCK", 0))
@@ -274,9 +281,11 @@ def setup_web3(_logger=None):
 
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    if get_config_chain_id() != web3.eth.chain_id:
+    config_chain_id = get_config_chain_id()
+
+    if config_chain_id != web3.eth.chain_id:
         raise Exception(
-            f"Mismatch of chain IDs between configuration and events RPC! Config chain ID: {get_config_chain_id()} and events chain ID: {web3.eth.chain_id}"
+            f"Mismatch of chain IDs between configuration and events RPC! Config chain ID: {config_chain_id} and events chain ID: {web3.eth.chain_id}"
         )
 
     return web3
