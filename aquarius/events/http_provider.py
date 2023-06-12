@@ -45,7 +45,6 @@ class CustomHTTPProvider(HTTPProvider):
 
 
 def get_web3_connection_provider(network_url):
-
     if network_url.startswith("http"):
         provider = CustomHTTPProvider(network_url)
     elif network_url.startswith("ws"):

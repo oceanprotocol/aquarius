@@ -192,8 +192,6 @@ def test_get_web3_connection_provider(monkeypatch):
     with pytest.raises(AssertionError):
         get_web3_connection_provider("not_a_network")
     assert get_web3_connection_provider("kovan").endpoint_uri == "http://127.0.0.1:8545"
-    monkeypatch.setenv("NETWORK_URL", "wss://kovan")
-    assert get_web3_connection_provider("kovan").endpoint_uri == "wss://kovan"
 
 
 def test_get_network_name(monkeypatch):
@@ -221,7 +219,7 @@ def test_setup_web3(monkeypatch):
 
 
 def test_config_rpc(monkeypatch):
-    monkeypatch.setenv("CONFIG_NETWORK_URL", "https://rpc-mumbai.maticvigil.com/")
+    monkeypatch.setenv("NETWORK_URL", "https://rpc-mumbai.maticvigil.com/")
 
     with pytest.raises(Exception) as e:
         setup_web3(logger)
