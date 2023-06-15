@@ -219,7 +219,7 @@ def test_setup_web3(monkeypatch):
 
 
 def test_config_rpc(monkeypatch):
-    monkeypatch.setenv("NETWORK_URL", "https://rpc-mumbai.maticvigil.com/")
+    monkeypatch.setenv("PUBLIC_RPC", "https://rpc-mumbai.maticvigil.com/")
 
     with pytest.raises(
         Exception, match="Mismatch of chain IDs between configuration and events RPC!"
