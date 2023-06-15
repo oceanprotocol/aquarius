@@ -236,7 +236,7 @@ def get_address_file():
 
 
 def get_config_chain_id():
-    config_rpc = os.getenv("NETWORK_URL")
+    config_rpc = os.getenv("PUBLIC_RPC")
     provider = get_web3_connection_provider(config_rpc)
     web3 = Web3(provider)
 
