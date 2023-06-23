@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+  labels:
+    app: aquarius
+  name: aquarius
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: aquarius
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: aquarius
+    spec:
+      containers:
+      - env:
+        - name: LOG_LEVEL
+          value: DEBUG
+        - name: AQUARIUS_URL
+          value: http://0.0.0.0:5000
+        - name: AQUARIUS_WORKERS
+          value: "4"
+        - name: DB_HOSTNAME
+          value: < ES service hostname >
+        - name: DB_MODULE
+          value: elasticsearch
+        - name: DB_NAME
+          value: aquarius
+        - name: DB_PORT
+          value: "9200"
+        - name: DB_SCHEME
+          value: http
+        - name: DB_USERNAME
+          value: < ES username >
+        - name: DB_PASSWORD
+          value: < ES password >
+        - name: DB_SSL
+          value: "false"
+        - name: RUN_AQUARIUS_SERVER
+          value: "1"
+        - name: RUN_EVENTS_MONITOR
+          value: "0"
+        - name: EVENTS_ALLOW
+          value: "0"
+        - name: CONFIG_FILE
+          value: config.ini
+        - name: ALLOWED_PUBLISHERS
+          value: '[""]'
+        image: oceanprotocol/aquarius:v5.1.2 => check the available versions: https://hub.docker.com/repository/docker/oceanprotocol/aquarius/tags?page=1&ordering=last_updated
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        name: aquarius
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 800m
+            memory: 1Gi
+          requests:
+            cpu: 800m
+            memory: 1Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
