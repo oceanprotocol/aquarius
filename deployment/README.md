@@ -70,7 +70,8 @@ $ curl localhost:9200
 Aquarius supports indexing multiple chains using a single instance to serve API requests and one instance for each chain that must be indexed.
 
 
-![image](https://user-images.githubusercontent.com/54084524/128821016-f2f2b98d-a62d-469a-9bca-dfd2164df3ae.png)
+<img width="783" alt="image" src="https://github.com/oceanprotocol/aquarius/assets/54084524/3c756369-5f06-4eb1-8d34-f19dacef4c76">
+
 
 
 
