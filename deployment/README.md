@@ -32,7 +32,7 @@ Templates (yaml files) are provided and could be customized based on the environ
 
 ##### Elasticsearch
 
-It is recommended to deploy Elasticsearch through Helm chart.
+It is recommended to deploy Elasticsearch through Helm [chart](https://github.com/elastic/cloud-on-k8s).
 
 Once the Elasticsearch pods are running, the database service should be available:
 
