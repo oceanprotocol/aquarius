@@ -192,7 +192,7 @@ spec:
 
 Example deployment for *Mumbai* (Polygon testenet):
 
-[aquarius-events-rinkeby-deployment.yaml](./aquarius-events-rinkeby-deployment.yaml) (annotated) => this deployment will be responsabile for indexing the block and storing the metadata published on-chain:
+[aquarius-events-mumbai-deployment.yaml](./aquarius-events-mumbai-deployment.yaml) (annotated) => this deployment will be responsabile for indexing the block and storing the metadata published on-chain:
 
 ```yaml
 apiVersion: apps/v1
