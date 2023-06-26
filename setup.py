@@ -29,7 +29,7 @@ install_requirements = [
     "elasticsearch==8.7.0",
     "PyYAML==6.0",
     "pytz==2023.3",
-    "ocean-contracts==1.1.12",
+    "ocean-contracts==1.1.13",
     "web3==6.3.0",
     "gevent",
     "python-dateutil==2.8.2",
