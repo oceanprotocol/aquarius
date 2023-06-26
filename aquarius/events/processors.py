@@ -640,12 +640,11 @@ class MetadataStateProcessor(EventProcessor):
                 f"Detected MetadataState changed for {self.did}, but it does not exists."
             )
             return
-        if self.event.args.state == MetadataStates.ACTIVE:
+        if self.event.args.state == MetadataStates.ACTIVE or self.event.args.state == MetadataStates.END_OF_LIFE:
             return self.restore_ddo()
 
         target_state = self.event.args.state
         if target_state in [
-            MetadataStates.END_OF_LIFE,
             MetadataStates.DEPRECATED,
             MetadataStates.REVOKED,
         ]:
