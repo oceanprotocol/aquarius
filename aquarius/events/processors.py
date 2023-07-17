@@ -15,6 +15,7 @@ from aquarius.events.constants import (
     AquariusCustomDDOFields,
     EventTypes,
     MetadataStates,
+    SoftDeleteMetadataStates,
 )
 from aquarius.events.decryptor import decrypt_ddo
 from aquarius.events.proof_checker import check_metadata_proofs
@@ -634,24 +635,30 @@ class MetadataStateProcessor(EventProcessor):
     def process(self):
         self.did = make_did(self.event.address, self._chain_id)
         # check if assets exists. if not, bail out
-        exists = self._es_instance.exists(self.did)
-        if not exists:
+        ddo = self._es_instance.read(self.did)
+
+        if not ddo:
             logger.warn(
                 f"Detected MetadataState changed for {self.did}, but it does not exists."
             )
             return
-        if self.event.args.state == MetadataStates.ACTIVE:
+        # if asset was already in soft state, let's check if we need to bring it back
+        if (
+            self.event.args.state == MetadataStates.ACTIVE
+            or self.event.args.state == MetadataStates.END_OF_LIFE
+        ) and ddo[AquariusCustomDDOFields.NFT]["state"] in SoftDeleteMetadataStates:
             return self.restore_ddo()
 
-        target_state = self.event.args.state
-        if target_state in [
-            MetadataStates.END_OF_LIFE,
-            MetadataStates.DEPRECATED,
-            MetadataStates.REVOKED,
-        ]:
+        # check if asset is active before doing soft delete
+        if (
+            self.event.args.state in SoftDeleteMetadataStates
+            and ddo[AquariusCustomDDOFields.NFT]["state"]
+            not in SoftDeleteMetadataStates
+        ):
             try:
                 self.soft_delete_ddo(self.did)
             except Exception:
                 return
-
-        self.update_aqua_nft_state_data(self.event.args.state, self.did)
+        # update only if needed
+        if self.event.args.state != ddo[AquariusCustomDDOFields.NFT]["state"]:
+            self.update_aqua_nft_state_data(self.event.args.state, self.did)
