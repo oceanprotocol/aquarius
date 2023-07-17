@@ -84,6 +84,12 @@ class MetadataStates(IntEnum):
     ORDERING_DISABLED = 4
 
 
+SoftDeleteMetadataStates = [
+    MetadataStates.DEPRECATED,
+    MetadataStates.REVOKED,
+]
+
+
 class AquariusCustomDDOFields(SimpleEnum):
     EVENT = "event"
     NFT = "nft"
