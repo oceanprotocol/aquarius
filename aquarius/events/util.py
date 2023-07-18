@@ -281,12 +281,13 @@ def setup_web3(_logger=None):
 
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    config_chain_id = get_config_chain_id()
+    if "PUBLIC_RPC" in os.environ:
+        config_chain_id = get_config_chain_id()
 
-    if config_chain_id != web3.eth.chain_id:
-        raise Exception(
-            f"Mismatch of chain IDs between configuration and events RPC! Config chain ID: {config_chain_id} and events chain ID: {web3.eth.chain_id}"
-        )
+        if config_chain_id != web3.eth.chain_id:
+            raise Exception(
+                f"Mismatch of chain IDs between configuration and events RPC! Config chain ID: {config_chain_id} and events chain ID: {web3.eth.chain_id}"
+            )
 
     return web3
 
