@@ -25,7 +25,7 @@ install_requirements = [
     "flask-swagger-ui==4.11.1",
     "Jinja2>=2.10.1",
     "requests>=2.21.0",
-    "gunicorn==20.1.0",
+    "gunicorn==21.2.0",
     "elasticsearch==8.8.2",
     "PyYAML==6.0",
     "pytz==2023.3",
