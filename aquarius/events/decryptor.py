@@ -4,6 +4,8 @@
 #
 import json
 import logging
+import time
+from _decimal import Decimal
 from datetime import datetime, timezone
 from hashlib import sha256
 
@@ -17,10 +19,25 @@ logger = logging.getLogger(__name__)
 
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash, es_instance):
     aquarius_account = get_aquarius_wallet()
-    nonce = str(int(datetime.now(timezone.utc).timestamp()))
+    # get nonce
+    try:
+        nonce_response = requests.get(
+            provider_url + "/api/services/nonce",
+            params=aquarius_account.address,
+            timeout=4,
+        ).json()
+
+        if nonce_response:
+            nonce = Decimal(nonce_response["nonce"]) if nonce_response["nonce"] else 0
+            nonce = nonce + 1
+    except Exception as e:
+        logger.error(
+            f"Failed to retrieve nonce from provider endpoint with this error: {e}. Switching to fallback nonce."
+        )
+        nonce = Decimal(time.time_ns())
 
     signature = get_signature_bytes(
-        f"{txid}{aquarius_account.address}{chain_id}{nonce}"
+        f"{txid}{aquarius_account.address}{chain_id}{str(nonce)}"
     )
     payload = {
         "transactionId": txid,
