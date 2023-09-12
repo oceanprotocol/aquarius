@@ -21,9 +21,10 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash, es_ins
     aquarius_account = get_aquarius_wallet()
     # get nonce
     try:
+        params = {"userAddress": aquarius_account.address}
         nonce_response = requests.get(
             provider_url + "/api/services/nonce",
-            params=aquarius_account.address,
+            params=params,
             timeout=4,
         ).json()
 
