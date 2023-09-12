@@ -442,6 +442,7 @@ def test_token_uri_update(client, base_ddo_url, events_object):
         1, "http://something-else.com"
     ).transact()
     _ = web3.eth.wait_for_transaction_receipt(txn_hash)
+    time.sleep(5)
 
     events_object.process_current_blocks()
     updated_ddo = get_ddo(client, base_ddo_url, did)
