@@ -29,7 +29,7 @@ def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash, es_ins
         ).json()
 
         if nonce_response:
-            nonce = Decimal(nonce_response["nonce"]) if nonce_response["nonce"] else 1
+            nonce = Decimal(nonce_response["nonce"]) if nonce_response["nonce"] else 0
             nonce = nonce + 1
     except Exception as e:
         logger.error(
