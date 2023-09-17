@@ -19,22 +19,7 @@ logger = logging.getLogger(__name__)
 
 def decrypt_ddo(w3, provider_url, contract_address, chain_id, txid, hash, es_instance):
     aquarius_account = get_aquarius_wallet()
-    # get nonce
-    try:
-        params = {"userAddress": aquarius_account.address}
-        nonce_response = requests.get(
-            provider_url + "/api/services/nonce",
-            params=params,
-            timeout=4,
-        ).json()
-
-        nonce = Decimal(nonce_response["nonce"]) if nonce_response["nonce"] else 1
-        nonce = nonce + 1
-    except Exception as e:
-        logger.error(
-            f"Failed to retrieve nonce from provider endpoint with this error: {e}. Switching to fallback nonce."
-        )
-        nonce = Decimal(time.time_ns())
+    nonce = Decimal(time.time_ns())
 
     signature = get_signature_bytes(
         f"{txid}{aquarius_account.address}{chain_id}{str(nonce)}"
