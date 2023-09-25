@@ -440,7 +440,7 @@ def test_token_uri_update(client, base_ddo_url, events_object):
     web3.eth.default_account = test_account1.address
     txn_hash = nft_contract.functions.setTokenURI(
         1, "http://something-else.com"
-    ).transact()
+    ).transact({"from": test_account1.address})
     _ = web3.eth.wait_for_transaction_receipt(txn_hash)
 
     events_object.process_current_blocks()
