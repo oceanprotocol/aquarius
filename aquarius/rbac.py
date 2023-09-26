@@ -71,11 +71,14 @@ class RBAC:
         ).json()
 
     @staticmethod
-    def check_permission_rbac(event_type, address):
+    def check_permission_rbac(event_type, address, tx_id):
         payload = {
             "eventType": event_type,
             "component": "metadatacache",
-            "credentials": {"type": "address", "value": address},
+            "credentials": [
+                {"type": "address", "value": address},
+                {"type": "address", "value": tx_id},
+            ],
         }
 
         try:

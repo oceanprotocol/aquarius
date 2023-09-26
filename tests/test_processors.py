@@ -81,7 +81,7 @@ def test_check_permission(monkeypatch):
     )
     with patch("requests.post") as mock:
         mock.side_effect = Exception("Boom!")
-        assert processor.check_permission("some_address") is False
+        assert processor.check_permission("some_address", "some tx id") is False
 
     # will affect the process() function too
     with pytest.raises(Exception):
