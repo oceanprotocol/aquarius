@@ -62,7 +62,9 @@ def run_test(client, base_ddo_url, events_instance, flags):
     for service in published_ddo["services"]:
         assert service["datatokenAddress"] == erc20_address
         assert service["name"] in ["dataAssetAccess", "dataAssetComputingService"]
-    ddo_state = get_did_state(events_instance._es_instance, None, None, None, did)
+    ddo_state = get_did_state(
+        events_instance._es_instance, web3.eth.chain_id, None, None, did
+    )
     assert len(ddo_state["hits"]["hits"]) == 1
     assert ddo_state["hits"]["hits"][0]["_id"] == did
     assert ddo_state["hits"]["hits"][0]["_source"]["valid"] is True
@@ -122,7 +124,7 @@ def test_publish_unallowed_address(client, base_ddo_url, events_object):
 
 
 def test_publish_and_update_ddo_rbac(client, base_ddo_url, events_object, monkeypatch):
-    monkeypatch.setenv("RBAC_SERVER_URL", "http://localhost:3000")
+    monkeypatch.setenv("RBAC_SERVER_URL", "http://172.15.0.8:3000")
     run_test(client, base_ddo_url, events_object, 2)
 
 

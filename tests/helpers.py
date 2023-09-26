@@ -115,7 +115,7 @@ def send_create_update_tx(name, ddo, flags, account):
     if flags[0] & 2:
         headers = {"Content-type": "application/octet-stream"}
         response = requests.post(
-            provider_url + "/api/services/encrypt?chainId={web3.chain_id}",
+            provider_url + f"/api/services/encrypt?chainId={web3.eth.chain_id}",
             data=compressed_document,
             headers=headers,
             timeout=5,
