@@ -75,10 +75,8 @@ class RBAC:
         payload = {
             "eventType": event_type,
             "component": "metadatacache",
-            "credentials": [
-                {"type": "address", "value": address},
-                {"type": "address", "value": tx_id},
-            ],
+            "txid": tx_id,
+            "credentials": {"type": "address", "value": address},
         }
 
         try:
