@@ -28,7 +28,7 @@ install_requirements = [
     "gunicorn==21.2.0",
     "elasticsearch==8.9.0",
     "PyYAML==6.0.1",
-    "pytz==2023.3",
+    "pytz==2023.3.post1",
     "ocean-contracts==1.1.15",
     "web3==6.10.0",
     "gevent",
