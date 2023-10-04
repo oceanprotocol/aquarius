@@ -2,28 +2,24 @@
 ## Copyright 2023 Ocean Protocol Foundation
 ## SPDX-License-Identifier: Apache-2.0
 ##
-FROM ubuntu:18.04
+FROM python:3.8-slim-buster
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
 ARG VERSION
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
-    gcc \
-    python3.8 \
-    python3-pip \
-    python3.8-dev \
-    gettext-base
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install --no-install-recommends -y \
+        build-essential \
+        gcc \
+        gettext-base \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY . /aquarius
 WORKDIR /aquarius
 
-RUN python3.8 -m pip install -U pip==20.2.2
-RUN pip install setuptools
-RUN pip install wheel
-RUN pip install .
-
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
-RUN update-alternatives --set python3 /usr/bin/python3.8
+RUN python3.8 -m pip install setuptools \
+    wheel \
+    && python3.8 -m pip install .
 
 ENV DB_MODULE='elasticsearch'
 ENV DB_HOSTNAME='localhost'
