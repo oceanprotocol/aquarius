@@ -6,20 +6,19 @@ FROM python:3.8-slim-buster
 LABEL maintainer="Ocean Protocol <devops@oceanprotocol.com>"
 
 ARG VERSION
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install --no-install-recommends -y \
-        build-essential \
-        gcc \
-        gettext-base \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+    build-essential \
+    gcc \
+    gettext-base && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY . /aquarius
 WORKDIR /aquarius
 
-RUN python3.8 -m pip install setuptools \
-    wheel \
-    && python3.8 -m pip install .
+RUN python3.8 -m pip install --no-cache-dir setuptools wheel && \
+    python3.8 -m pip install --no-cache-dir .
 
 ENV DB_MODULE='elasticsearch'
 ENV DB_HOSTNAME='localhost'
