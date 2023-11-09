@@ -71,11 +71,19 @@ class RBAC:
         ).json()
 
     @staticmethod
-    def check_permission_rbac(event_type, address):
+    def check_permission_rbac(event_type, address, tx_id, asset):
+        try:
+            chain_id = asset["chainId"]
+            nft_address = asset["nftAddress"]
+        except KeyError:
+            return False
+
         payload = {
             "eventType": event_type,
             "component": "metadatacache",
             "credentials": {"type": "address", "value": address},
+            "txid": tx_id,
+            "asset": {"chainId": chain_id, "nftAddress": nft_address},
         }
 
         try:

@@ -81,7 +81,14 @@ def test_check_permission(monkeypatch):
     )
     with patch("requests.post") as mock:
         mock.side_effect = Exception("Boom!")
-        assert processor.check_permission("some_address") is False
+        asset = {"chainId": 8996, "nftAddress": "some_nft_address"}
+        assert processor.check_permission("some_address", "some tx id", asset) is False
+
+    # Test permission with empty asset
+    with patch("requests.post") as mock:
+        mock.side_effect = Exception("Boom!")
+        asset = {}
+        assert processor.check_permission("some_address", "some tx id", asset) is False
 
     # will affect the process() function too
     with pytest.raises(Exception):
