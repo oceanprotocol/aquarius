@@ -23,7 +23,6 @@ jobs:
         with:
           repository: "oceanprotocol/barge"
           path: 'barge'
-          ref: feature/bump_contracts_and_subgraph
       - name: Run Barge
         working-directory: ${{ github.workspace }}/barge
         run: |
