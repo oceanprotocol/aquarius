@@ -45,6 +45,9 @@ jobs:
             coverage run --source aquarius -m pytest
             coverage report
             coverage xml
+      - name: docker logs
+        run: docker logs ocean_subgraph_1
+        if: ${{ failure() }}
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v2.7.5
         env:

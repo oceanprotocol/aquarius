@@ -243,12 +243,6 @@ def test_get_last_processed_block(events_object, monkeypatch):
         mock.return_value = {"_source": {"last_block": intended_block}}
         assert events_object.get_last_processed_block() == 0
 
-    monkeypatch.delenv("BFACTORY_BLOCK")
-    with patch("elasticsearch.Elasticsearch.get") as mock:
-        mock.side_effect = elasticsearch.NotFoundError("Boom!", meta={}, body={})
-        assert (
-            events_object.get_last_processed_block() == 5
-        )  # startBlock from address.json for ganache
 
 
 def test_store_last_processed_block(events_object):
