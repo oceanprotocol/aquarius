@@ -244,7 +244,6 @@ def test_get_last_processed_block(events_object, monkeypatch):
         assert events_object.get_last_processed_block() == 0
 
 
-
 def test_store_last_processed_block(events_object):
     block = events_object.get_last_processed_block() + 10
     with patch("elasticsearch.Elasticsearch.index") as mock:
