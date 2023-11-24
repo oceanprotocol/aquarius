@@ -33,7 +33,7 @@ install_requirements = [
     "web3==6.11.1",
     "gevent",
     "python-dateutil==2.8.2",
-    "pyshacl==0.22.2",
+    "pyshacl==0.25.0",
     "gql==3.4.1",
     "aiohttp==3.9.0",
 ]
