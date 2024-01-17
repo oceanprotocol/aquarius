@@ -147,9 +147,7 @@ def test_purgatory_retrieve_account_list(events_object, monkeypatch):
     assert result
 
     filter_by_address = {
-        x["reason"]
-        for x in result
-        if x["address"] == "0xAD23fC9D943018C34aC55E8DA29AF700A2Fd0FeB"
+        x[1] for x in result if x[0] == "0xAD23fC9D943018C34aC55E8DA29AF700A2Fd0FeB"
     }
     assert len(filter_by_address) == 1
     assert list(filter_by_address)[0] == "bad actor"
