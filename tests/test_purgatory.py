@@ -135,8 +135,11 @@ def test_purgatory_retrieve_new_list(events_object):
         assert purgatory.retrieve_new_list("env") == set()
 
 
-def test_purgatory_retrieve_account_list(events_object):
+def test_purgatory_retrieve_account_list(events_object, monkeypatch):
+    # set account purgatory filtering for accounts
+    monkeypatch.setenv('ACCOUNT_PURGATORY_URL', "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-accounts.json")
     purgatory = Purgatory(events_object._es_instance)
+
     result = purgatory.retrieve_new_list("ACCOUNT_PURGATORY_URL")
     print(f"result from retrieve new list: {result}")
     assert result
