@@ -144,12 +144,15 @@ def test_purgatory_retrieve_account_list(events_object, monkeypatch):
     purgatory = Purgatory(events_object._es_instance)
 
     result = purgatory.retrieve_new_list("ACCOUNT_PURGATORY_URL")
-
     assert result
-    assert list(result)[0] == (
-        "0x279e112d0D182A7234Fe11D0363B3C6f2edd71e4",
-        "test account",
-    )
+
+    filter_by_address = {
+        x["reason"]
+        for x in result
+        if x["address"] == "0xAD23fC9D943018C34aC55E8DA29AF700A2Fd0FeB"
+    }
+    assert len(filter_by_address) == 1
+    assert list(filter_by_address)[0] == "bad actor"
 
 
 def test_failures(events_object):
