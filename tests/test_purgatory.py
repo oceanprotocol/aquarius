@@ -2,6 +2,7 @@
 # Copyright 2023 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import os
 from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
@@ -130,6 +131,13 @@ def test_purgatory_retrieve_new_list(events_object):
         the_response.status_code = 400
         mock.return_value = the_response
         assert purgatory.retrieve_new_list("env") == set()
+
+
+def test_purgatory_retrieve_account_list(events_object):
+    purgatory = Purgatory(events_object._es_instance)
+    result = purgatory.retrieve_new_list("ACCOUNT_PURGATORY_URL")
+    print(f"result from retrieve new list: {result}")
+    assert result
 
 
 def test_failures(events_object):
