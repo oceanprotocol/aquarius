@@ -124,7 +124,9 @@ def test_purgatory_retrieve_new_list(events_object):
         the_response.status_code = 200
         the_response.json.return_value = [{"did": "some_did", "reason": "some_reason"}]
         mock.return_value = the_response
-        assert purgatory.retrieve_new_list("env") == {("some_did", "some_reason")}
+        assert purgatory.retrieve_new_list("ASSET_PURGATORY_URL") == {
+            ("some_did", "some_reason")
+        }
 
     with patch("requests.get") as mock:
         the_response = Mock(spec=Response)
