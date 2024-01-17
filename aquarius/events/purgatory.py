@@ -36,7 +36,6 @@ class Purgatory:
                     (a["did"], a["reason"]) for a in response.json() if a and "did" in a
                 }
             elif env_var == "ACCOUNT_PURGATORY_URL":
-                logger.info(f"response.json(): {response.json()}")
                 return {
                     (a["address"], a["reason"])
                     for a in response.json()

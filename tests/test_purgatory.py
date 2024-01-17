@@ -144,8 +144,12 @@ def test_purgatory_retrieve_account_list(events_object, monkeypatch):
     purgatory = Purgatory(events_object._es_instance)
 
     result = purgatory.retrieve_new_list("ACCOUNT_PURGATORY_URL")
-    print(f"result from retrieve new list: {result}")
+
     assert result
+    assert list(result)[0] == (
+        "0x279e112d0D182A7234Fe11D0363B3C6f2edd71e4",
+        "test account",
+    )
 
 
 def test_failures(events_object):
