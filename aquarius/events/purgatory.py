@@ -22,7 +22,7 @@ class Purgatory:
 
     def retrieve_new_list(self, env_var):
         """
-        :param env_var: Url of the file containing purgatory list.
+        :param env_var: Environment variable name of the file URL containing purgatory list.
         :return: Object as follows: {...('<did>', '<reason>'),...}
         """
         response = requests.get(os.getenv(env_var), timeout=5)
@@ -31,9 +31,16 @@ class Purgatory:
             logger.info(
                 f"PURGATORY: Successfully retrieved new purgatory list from {env_var} env var."
             )
-            return {
-                (a["did"], a["reason"]) for a in response.json() if a and "did" in a
-            }
+            if env_var == "ASSET_PURGATORY_URL":
+                return {
+                    (a["did"], a["reason"]) for a in response.json() if a and "did" in a
+                }
+            elif env_var == "ACCOUNT_PURGATORY_URL":
+                return {
+                    (a["address"], a["reason"])
+                    for a in response.json()
+                    if a and "address" in a
+                }
 
         logger.info(
             f"PURGATORY: Failed to retrieve purgatory list from {env_var} env var."

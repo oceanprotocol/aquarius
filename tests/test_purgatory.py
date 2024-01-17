@@ -2,6 +2,7 @@
 # Copyright 2023 Ocean Protocol Foundation
 # SPDX-License-Identifier: Apache-2.0
 #
+import os
 from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
@@ -123,13 +124,33 @@ def test_purgatory_retrieve_new_list(events_object):
         the_response.status_code = 200
         the_response.json.return_value = [{"did": "some_did", "reason": "some_reason"}]
         mock.return_value = the_response
-        assert purgatory.retrieve_new_list("env") == {("some_did", "some_reason")}
+        assert purgatory.retrieve_new_list("ASSET_PURGATORY_URL") == {
+            ("some_did", "some_reason")
+        }
 
     with patch("requests.get") as mock:
         the_response = Mock(spec=Response)
         the_response.status_code = 400
         mock.return_value = the_response
         assert purgatory.retrieve_new_list("env") == set()
+
+
+def test_purgatory_retrieve_account_list(events_object, monkeypatch):
+    # set account purgatory filtering for accounts
+    monkeypatch.setenv(
+        "ACCOUNT_PURGATORY_URL",
+        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-accounts.json",
+    )
+    purgatory = Purgatory(events_object._es_instance)
+
+    result = purgatory.retrieve_new_list("ACCOUNT_PURGATORY_URL")
+    assert result
+
+    filter_by_address = {
+        x[1] for x in result if x[0] == "0xAD23fC9D943018C34aC55E8DA29AF700A2Fd0FeB"
+    }
+    assert len(filter_by_address) == 1
+    assert list(filter_by_address)[0] == "bad actor"
 
 
 def test_failures(events_object):
