@@ -419,7 +419,7 @@ def trigger_caching():
     try:
         data = request.args if request.args else request.json
         tx_id = data.get("transactionId")
-        chain_id = data.get("chain_id")
+        chain_id = data.get("chainId")
         if not tx_id or not chain_id:
             return (
                 jsonify(error="Invalid transactionId or chain_id"),
