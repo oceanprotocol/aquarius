@@ -78,10 +78,13 @@ class Purgatory:
         page = self._es_instance.es.search(
             index=self._es_instance.db_index, query=query
         )
+        logger.info(f"PURGATORY: getting page {page}.")
         total = page["hits"]["total"]["value"]
+        logger.info(f"PURGATORY: getting total {total}.")
         page = self._es_instance.es.search(
             index=self._es_instance.db_index, query=query, size=total
         )
+        logger.info(f"PURGATORY: getting total page {page}.")
 
         object_list = []
         for x in page["hits"]["hits"]:
@@ -115,6 +118,9 @@ class Purgatory:
 
         for acc_id, reason in new_accounts_for_purgatory:
             assets = self.get_assets_authored_by(acc_id)
+            logger.info(
+                f"PURGATORY: assets: {assets}"
+            )
             for asset in assets:
                 self.update_asset_purgatory_status(asset, reason=reason)
             self.reference_account_list.add((acc_id, reason))

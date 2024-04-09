@@ -78,6 +78,15 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     assert published_ddo["purgatory"]["state"] is False
 
 
+def test_update_lists_with_accounts(client, base_ddo_url, events_object, monkeypatch):
+    monkeypatch.setenv(
+        "ACCOUNT_PURGATORY_URL",
+        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-accounts.json",
+    )
+    purgatory = Purgatory(events_object._es_instance)
+    purgatory.update_lists()
+
+
 def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatch):
     monkeypatch.setenv(
         "ASSET_PURGATORY_URL",
