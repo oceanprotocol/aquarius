@@ -155,6 +155,9 @@ class Purgatory:
                 self.update_asset_purgatory_status(asset, False, reason)
                 self.reference_asset_list.remove((did, reason))
             except elasticsearch.exceptions.NotFoundError:
+                logger.info(
+                    f"PURGATORY: Asset {did} could not be found in db => Cannot update in Purgatory list."
+                )
                 continue
 
         logger.info(
