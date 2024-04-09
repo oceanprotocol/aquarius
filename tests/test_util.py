@@ -214,7 +214,7 @@ def test_get_network_name(monkeypatch):
 
 
 def test_setup_web3(monkeypatch):
-    monkeypatch.setenv("NETWORK_NAME", "rinkeby")
+    monkeypatch.setenv("NETWORK_NAME", "goerli")
     assert setup_web3(logger)
 
 
