@@ -118,9 +118,7 @@ class Purgatory:
 
         for acc_id, reason in new_accounts_for_purgatory:
             assets = self.get_assets_authored_by(acc_id)
-            logger.info(
-                f"PURGATORY: assets: {assets}"
-            )
+            logger.info(f"PURGATORY: assets: {assets}")
             for asset in assets:
                 self.update_asset_purgatory_status(asset, reason=reason)
             self.reference_account_list.add((acc_id, reason))
