@@ -206,11 +206,11 @@
 
 - Parameters
 
-    | name           | description                         | type   | in   | required |
-    |----------------|-------------------------------------|--------|------|----------|
-    | `transactionId`| transaction ID                      | string | path | true     |
-    | `logIndex`     | custom log index for the transaction| int    | path | false    |
-    | `chainId`      | chain id                            | int    | path | true     |
+    | name            | description                         | type   | in   | required |
+    |-----------------|-------------------------------------|--------|------|----------|
+    | `transactionId` | transaction ID                      | string | path | true     |
+    | `logIndex`      | custom log index for the transaction| int    | path | false    |
+    | `chain_id`      | chain id                            | int    | path | true     |
 
 - Example
 
