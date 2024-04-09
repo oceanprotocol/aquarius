@@ -78,19 +78,6 @@ def test_purgatory_with_assets(client, base_ddo_url, events_object, monkeypatch)
     assert published_ddo["purgatory"]["state"] is False
 
 
-def test_get_assets_authored_by_account(
-    client, base_ddo_url, events_object, monkeypatch
-):
-    monkeypatch.setenv(
-        "ACCOUNT_PURGATORY_URL",
-        "https://raw.githubusercontent.com/oceanprotocol/list-purgatory/main/list-accounts.json",
-    )
-    purgatory = Purgatory(events_object._es_instance)
-    print(
-        purgatory.get_assets_authored_by("0x279e112d0D182A7234Fe11D0363B3C6f2edd71e4")
-    )
-
-
 def test_purgatory_with_accounts(client, base_ddo_url, events_object, monkeypatch):
     monkeypatch.setenv(
         "ASSET_PURGATORY_URL",

@@ -118,13 +118,22 @@ class Purgatory:
 
         for acc_id, reason in new_accounts_for_purgatory:
             assets = self.get_assets_authored_by(acc_id)
-            logger.info(f"PURGATORY: assets: {assets}")
+            if not assets:
+                logger.info(
+                    f"PURGATORY: There are not assets from author {acc_id} => Cannot update in Purgatory list."
+                )
+                continue
             for asset in assets:
                 self.update_asset_purgatory_status(asset, reason=reason)
             self.reference_account_list.add((acc_id, reason))
 
         for acc_id, reason in new_accounts_forgiven:
             assets = self.get_assets_authored_by(acc_id)
+            if not assets:
+                logger.info(
+                    f"PURGATORY: There are not assets from author {acc_id} => Cannot update in Purgatory list."
+                )
+                continue
             for asset in assets:
                 self.update_asset_purgatory_status(asset, False, reason)
             self.reference_account_list.remove((acc_id, reason))
@@ -135,6 +144,9 @@ class Purgatory:
                 self.update_asset_purgatory_status(asset, reason=reason)
                 self.reference_asset_list.add((did, reason))
             except elasticsearch.exceptions.NotFoundError:
+                logger.info(
+                    f"PURGATORY: Asset {did} could not be found in db => Cannot update in Purgatory list."
+                )
                 continue
 
         for did, reason in new_ids_forgiven:
