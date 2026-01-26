@@ -61,7 +61,7 @@ test_requirements = [
     "pylint==3.0.2",
     "pytest",
     "pytest-env",
-    "freezegun==1.2.2",
+    "freezegun==1.5.5",
 ]
 
 setup(
