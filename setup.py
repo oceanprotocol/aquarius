@@ -32,7 +32,7 @@ install_requirements = [
     "ocean-contracts==2.0.2",
     "web3==6.11.1",
     "gevent",
-    "python-dateutil==2.8.2",
+    "python-dateutil==2.9.0.post0",
     "pyshacl==0.22.2",
     "gql==3.4.1",
     "aiohttp==3.9.0",
