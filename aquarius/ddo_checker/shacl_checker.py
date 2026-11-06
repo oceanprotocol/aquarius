@@ -64,7 +64,7 @@ def is_iso_format(date_string):
     date_string = date_string.rstrip("Z")
     try:
         datetime.fromisoformat(date_string)
-    except:
+    except ValueError:
         return False
 
     return True
